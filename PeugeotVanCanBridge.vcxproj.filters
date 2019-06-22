@@ -168,6 +168,15 @@
     <ClInclude Include="VanVinStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CanWarningLogStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanStatusOfFunctionsStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanDefineVehicleParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cppQueue.cpp">

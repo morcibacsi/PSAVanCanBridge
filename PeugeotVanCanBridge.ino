@@ -30,6 +30,10 @@
 #include "CanTripInfoHandler.h"
 #include "CanAirConOnDisplayHandler.h"
 
+#include "CanWarningLogStructs.h"
+#include "CanStatusOfFunctionsStructs.h"
+#include "CanDefineVehicleParameters.h"
+
 #include "CanDisplayPopupHandler.h"
 #include "VanCanDisplayPopupMap.h"
 
@@ -529,12 +533,12 @@ void VANTask(void * parameter)
                 }
                 else if (inChar == 'c')
                 {
-                    SendSampleCan(msgId, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+                    SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
                     msgId++;
                 }
                 else if (inChar == 'x')
                 {
-                    SendSampleCan(msgId, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+                    SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
                     msgId--;
                 }
             }
