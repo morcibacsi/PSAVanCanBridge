@@ -6,7 +6,7 @@ root = true
 # C++
 [*.{c,cpp,h}]
 indent_style = space
-indent_size = tab
 tab_width = 4
+
 end_of_line = crlf
 charset = utf-8-bom
