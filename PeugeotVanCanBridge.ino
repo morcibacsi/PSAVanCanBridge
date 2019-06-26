@@ -6,13 +6,16 @@
  * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied.
 */
+#pragma region Includes
 #include <Arduino.h>
 #include <esp32_arduino_rmt_van_rx.h>
 #include <ArduinoLog.h>
 #include <BluetoothSerial.h>
 #include "driver/can.h"
+#include "AbstractSerial.h"
+#include "HardwareSerialAbs.h"
+#include "BluetoothSerialAbs.h"
 
-#include "cppQueue.h"
 #include "Serializer.h"
 #include "PacketGenerator.h"
 
@@ -29,10 +32,9 @@
 #include "CanVinHandler.h"
 #include "CanTripInfoHandler.h"
 #include "CanAirConOnDisplayHandler.h"
-
-#include "CanWarningLogStructs.h"
-#include "CanStatusOfFunctionsStructs.h"
-#include "CanDefineVehicleParameters.h"
+#include "CanStatusOfFunctionsHandler.h"
+#include "CanWarningLogHandler.h"
+#include "CanSpeedAndRpmHandler.h"
 
 #include "CanDisplayPopupHandler.h"
 #include "VanCanDisplayPopupMap.h"
@@ -46,11 +48,14 @@
 #include "VanDashboardStructs.h"
 #include "VanVinStructs.h"
 #include "VanRadioRemoteStructs.h"
-#include "VanCanAirConditionerSpeedMap.h";
+#include "VanCanAirConditionerSpeedMap.h"
 #include "DoorStatus.h"
+#include "VanDataToBridgeToCan.h"
 
-//#define UseBlueToothSerial;
-#define TestMode;
+#pragma endregion
+
+#define USE_BLUETOOTH_SERIAL;
+#define DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS;
 
 ESP32_RMT_VAN_RX VAN_RX;
 
@@ -64,33 +69,8 @@ const uint8_t CAN_TX_PIN = 4;
 
 //const int CAN_RADIO_INTERVAL = 50;
 const int CAN_RADIO_INTERVAL = 100;
-const int CAN_AIRCON_INTERVAL = 100;
 
 const bool SILENT_MODE = false;
-
-struct VanDataToBridgeToCan
-{
-    int Speed = 0;
-    int Rpm = 0;
-    int Trip1Distance = 0;
-    int Trip1Speed = 0;
-    int Trip1Consumption = 0;
-    int Trip2Distance = 0;
-    int Trip2Speed = 0;
-    int Trip2Consumption = 0;
-    int FuelConsumption = 0;
-    int FuelLeftToPump = 0;
-    int InternalTemperature = 0;
-    uint8_t RadioRemoteButton = 0;
-    uint8_t RadioRemoteScroll = 0;
-    uint8_t IsHeatingPanelPoweredOn = 0; // Displays off
-    uint8_t IsAirConEnabled = 0;   // AC enabled, but should consider IsAirConRunning also
-    uint8_t IsAirConRunning = 0;
-    uint8_t IsWindowHeatingOn = 0;
-    uint8_t IsAirRecyclingOn = 0;
-    uint8_t AirConFanSpeed = 0;
-    uint8_t TripInfoButtonPressed = 0;
-};
 
 struct VanVinToBridgeToCan
 {
@@ -106,7 +86,7 @@ struct VanIgnitionDataToBridgeToCan
 
 TaskHandle_t CANSendIgnitionTask;
 TaskHandle_t CANSendDataTask;
-TaskHandle_t CANSendVinTask;
+
 TaskHandle_t VANReadTask;
 TaskHandle_t CANReadTask;
 
@@ -123,8 +103,13 @@ CanTripInfoHandler *tripInfoHandler;
 CanAirConOnDisplayHandler *canAirConOnDisplayHandler;
 CanRadioRemoteButtonPacketSender *radioRemoteSender;
 VanCanAirConditionerSpeedMap *vanCanAirConditionerSpeedMap;
+CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
+CanWarningLogHandler *canWarningLogHandler;
+CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
 
-#ifdef UseBlueToothSerial
+AbsSer *serialPort;
+
+#ifdef USE_BLUETOOTH_SERIAL
     BluetoothSerial SerialBT;
 #endif
 
@@ -133,15 +118,14 @@ int msgId = 0x0;
 
 void setup()
 {
-
-    #ifdef UseBlueToothSerial
-    SerialBT.begin("ESP32 Arduino VAN bus monitor"); //Bluetooth device name
-    Serial.begin(500000);
+    #ifdef USE_BLUETOOTH_SERIAL
+    serialPort = new BluetoothSerAbs(SerialBT, "ESP32 Arduino VAN bus monitor");
     #else
-    //Serial.begin(115200);
-    Serial.begin(230400);
-    //Serial.begin(500000);
+    serialPort = new HwSerAbs(Serial);
     #endif
+
+    serialPort->begin(115200);
+    //serialPort->begin(230400);
 
     // Pass log level, whether to show log level, and print interface.
     /* Available levels are:
@@ -155,7 +139,7 @@ void setup()
     */
     if (SILENT_MODE)
     {
-        #ifdef UseBlueToothSerial
+        #ifdef USE_BLUETOOTH_SERIAL
         Log.begin(LOG_LEVEL_SILENT, &SerialBT);
         #else
         Log.begin(LOG_LEVEL_SILENT, &Serial);
@@ -163,7 +147,7 @@ void setup()
     }
     else
     {
-        #ifdef UseBlueToothSerial
+        #ifdef USE_BLUETOOTH_SERIAL
         Log.begin(LOG_LEVEL_VERBOSE, &SerialBT);
         #else
         //Log.begin(LOG_LEVEL_WARNING, &Serial);
@@ -186,37 +170,40 @@ void setup()
     canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
     radioRemoteSender = new CanRadioRemoteButtonPacketSender(CANInterface);
     vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
+    canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
+    canWarningLogHandler = new CanWarningLogHandler(CANInterface);
+    canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
 
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
-    ignitionQueue = xQueueCreate(1, sizeof(VanIgnitionDataToBridgeToCan));
-    vinQueue = xQueueCreate(1, sizeof(VanVinToBridgeToCan));
+    ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
+    vinQueue = xQueueCreate(queueSize, sizeof(VanVinToBridgeToCan));
 
     xTaskCreatePinnedToCore(
         CANSendIgnitionTaskFunction,    /* Function to implement the task */
-        "CANSendIgnitionTask",          /* Name of the task */
-        10000,                          /* Stack size in words */
-        NULL,                           /* Task input parameter */
-        2,                              /* Priority of the task */
+        "CANSendIgnitionTask",    /* Name of the task */
+        10000,               /* Stack size in words */
+        NULL,                /* Task input parameter */
+        2,                     /* Priority of the task */
         &CANSendIgnitionTask,           /* Task handle. */
-        0);                             /* Core where the task should run */
+        0);                      /* Core where the task should run */
 
     xTaskCreatePinnedToCore(
         CANSendDataTaskFunction,        /* Function to implement the task */
-        "CANSendDataTask",              /* Name of the task */
-        10000,                          /* Stack size in words */
-        NULL,                           /* Task input parameter */
-        0,                              /* Priority of the task */
+        "CANSendDataTask",        /* Name of the task */
+        10000,               /* Stack size in words */
+        NULL,                /* Task input parameter */
+        0,                     /* Priority of the task */
         &CANSendDataTask,               /* Task handle. */
-        0);                             /* Core where the task should run */
+        0);                      /* Core where the task should run */
 
     xTaskCreatePinnedToCore(
         VANTask,                        /* Function to implement the task */
-        "VANReadTask",                  /* Name of the task */
-        10000,                          /* Stack size in words */
-        NULL,                           /* Task input parameter */
-        0,                              /* Priority of the task */
+        "VANReadTask",            /* Name of the task */
+        10000,               /* Stack size in words */
+        NULL,                /* Task input parameter */
+        1,                     /* Priority of the task */
         &VANReadTask,                   /* Task handle. */
-        1);                             /* Core where the task should run */
+        1);                      /* Core where the task should run */
 
     //xTaskCreatePinnedToCore(
     //    CANReadTaskFunction,            /* Function to implement the task */
@@ -230,29 +217,31 @@ void setup()
 
 void CANReadTaskFunction(void * parameter)
 {
-    static uint32_t lastCanReadMillis = 0;
-    unsigned long currentTime = millis();
+    //static uint32_t lastCanReadMillis = 0;
+    //unsigned long currentTime = millis();
     uint8_t canReadMessage[20] = { 0 };
     uint8_t canReadMessageLength = 0;
+    char tmp[3];
 
     for (;;)
     {
-        currentTime = millis();
+        //currentTime = millis();
         CANInterface->ReadMessage(&canReadMessageLength, canReadMessage);
+        serialPort->print("CAN READ: ");
 
-        printf("CAN READ: ");
         for (size_t i = 0; i < canReadMessageLength; i++)
         {
+            snprintf(tmp, 3, "%02X", canReadMessage[i]);
             if (i != canReadMessageLength - 1)
             {
-                printf("%02X ", canReadMessage[i]);
+                serialPort->print(tmp);
+                serialPort->print(" ");
             }
             else
             {
-                printf("%02X", canReadMessage[i]);
+                serialPort->println(tmp);
             }
         }
-        printf("\n");
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
@@ -261,8 +250,6 @@ void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
     unsigned long previousRadioTime = millis();
-    unsigned long previousCanPopupTime = millis();
-    unsigned long previousAirConTime = millis();
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -275,14 +262,15 @@ void CANSendDataTaskFunction(void * parameter)
         {
             dataToBridge = dataToBridgeReceived;
 
+            #pragma  region SpeedAndRpm
+
+            canSpeedAndRpmHandler->SetData(dataToBridge.Rpm, dataToBridge.Speed);
+            canSpeedAndRpmHandler->Process(currentTime);
+
+            #pragma endregion
+
             #pragma region TripInfo
 
-            //if (dataToBridge.TripInfoButtonPressed == 1)
-            //{
-            //    Log.trace("tripInfoPress\n");
-
-            //    tripInfoHandler->TripButtonPress(dataToBridge.TripInfoButtonPressed);
-            //}
             tripInfoHandler->SetTripData(
                 dataToBridge.Rpm,
                 dataToBridge.Speed,
@@ -301,11 +289,7 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region PopupMessage
 
-            if (currentTime - previousCanPopupTime > 200)
-            {
-                previousCanPopupTime = currentTime;
-                canPopupHandler->Process(currentTime);
-            }
+            canPopupHandler->Process(currentTime);
 
             #pragma endregion
 
@@ -321,23 +305,19 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region AirCon
 
-            if (currentTime - previousAirConTime > CAN_AIRCON_INTERVAL)
+            if (!canPopupHandler->IsPopupVisible())
             {
-                previousAirConTime = currentTime;
-
-                if (!canPopupHandler->IsPopupVisible())
-                {
-                    canAirConOnDisplayHandler->SendCanAirConToDisplay(
-                        dataToBridge.InternalTemperature, 
-                        dataToBridge.InternalTemperature, 
-                        0, 
-                        0, // auto mode
-                        dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
-                        dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                        dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                        dataToBridge.AirConFanSpeed,
-                        dataToBridge.IsAirRecyclingOn);
-                }
+                canAirConOnDisplayHandler->SendCanAirConToDisplay(
+                    currentTime,
+                    dataToBridge.InternalTemperature, 
+                    dataToBridge.InternalTemperature, 
+                    0, 
+                    0, // auto mode
+                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
+                    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                    dataToBridge.AirConFanSpeed,
+                    dataToBridge.IsAirRecyclingOn);
             }
 
             #pragma endregion
@@ -362,7 +342,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         currentTime = millis();
 
-        #ifndef TestMode
+        #ifndef DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS
             ignition = 0;
             if (dataToBridge.Ignition == 1)
             {
@@ -371,6 +351,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
             else
             {
                 canPopupHandler->Reset();
+                canStatusOfFunctionsHandler->Reset();
+                canWarningLogHandler->Reset();
             }
             economyMode = 0;
             if (dataToBridge.EconomyModeActive == 1)
@@ -380,7 +362,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
         #else
             ignition = 1;
             economyMode = 0;
-        #endif // TestMode
+        #endif // DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS
 
         #pragma region Ignition signal for radio
 
@@ -432,28 +414,10 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma endregion
 
+        canStatusOfFunctionsHandler->Init();
+        canWarningLogHandler->Init();
+
         vTaskDelay(65 / portTICK_PERIOD_MS);
-    }
-}
-
-void CANSendVinTaskFunction(void* parameter)
-{
-    VanVinToBridgeToCan vinDataToBridge;
-    unsigned long currentTime = millis();
-
-    for (;;)
-    {
-        if (!canVinHandler->IsVinSet())
-        {
-            xQueueReceive(vinQueue, &vinDataToBridge, portMAX_DELAY);
-            canVinHandler->SetVin(vinDataToBridge.Vin);
-        }
-
-        currentTime = millis();
-
-        canVinHandler->Process(currentTime);
-
-        vTaskDelay(400 / portTICK_PERIOD_MS);
     }
 }
 
@@ -483,26 +447,22 @@ void VANTask(void * parameter)
     {
         if (millis() - lastMillis > 10)
         {
-            if (dataToBridge.TripInfoButtonPressed == 1)
-            {
-                dataToBridge.TripInfoButtonPressed = 0;
-            }
             VAN_RX.Receive(&vanMessageLength, vanMessage);
             ///*
-            if (Serial.available() > 0) {
+            if (serialPort->available() > 0) {
                 ///*
                 vanMessageLength = 0;
-                uint8_t inChar = (uint8_t)Serial.read();
+                uint8_t inChar = (uint8_t)serialPort->read();
                 if (inChar == 'v') { // got a sync byte?
-                    while (Serial.available()) {
-                        vanMessage[vanMessageLength] = Serial.read();
+                    while (serialPort->available()) {
+                        vanMessage[vanMessageLength] = serialPort->read();
                         vanMessageLength++;
                     }
                 }
-                else if (inChar == 's') { // got a sync byte?
+                else if (inChar == 'c') { // got a sync byte?
                     uint8_t canMsgLength = 0;
-                    while (Serial.available()) {
-                        canMsg[canMsgLength] = Serial.read();
+                    while (serialPort->available()) {
+                        canMsg[canMsgLength] = serialPort->read();
                         canMsgLength++;
                     }
 
@@ -525,18 +485,46 @@ void VANTask(void * parameter)
                 }
                 else if (inChar == 't')
                 {
-                    tripInfoHandler->TripButtonPress(1);
+                    tripInfoHandler->TripButtonPress();
+                }
+                else if (inChar == 'e')
+                {
+                    SendCanRadioButton(CONST_OK_BUTTON);
+                }
+                else if (inChar == 'q')
+                {
+                    SendCanRadioButton(CONST_ESC_BUTTON);
+                }
+                else if (inChar == 'w')
+                {
+                    SendCanRadioButton(CONST_UP_ARROW);
+                }
+                else if (inChar == 'a')
+                {
+                    SendCanRadioButton(CONST_LEFT_ARROW);
+                }
+                else if (inChar == 'd')
+                {
+                    SendCanRadioButton(CONST_RIGHT_ARROW);
+                }
+                else if (inChar == 's')
+                {
+                    SendCanRadioButton(CONST_DOWN_ARROW);
                 }
                 else if (inChar == 'm')
                 {
                     SendCanRadioButton(CONST_MODE_BUTTON);
                 }
-                else if (inChar == 'c')
+                else if (inChar == 'n')
+                {
+                    SendCanRadioButton(CONST_MENU_BUTTON);
+                }
+                else if (inChar == 'x')
                 {
                     SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
                     msgId++;
                 }
-                else if (inChar == 'x')
+                else if (inChar == 'y')
                 {
                     SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
                     msgId--;
@@ -558,19 +546,10 @@ void VANTask(void * parameter)
                     for (size_t i = 0; i < vanMessageLength - 3; i++)
                     {
                         snprintf(tmp, 3, "%02X", vanMessageWithoutId[i]);
-                        #ifdef UseBlueToothSerial
-                        SerialBT.print(tmp);
-                        SerialBT.print(" ");
-                        #else
-                        Serial.print(tmp);
-                        Serial.print(" ");
-                        #endif // UseBluetoothSerial
+                        serialPort->print(tmp);
+                        serialPort->print(" ");
                     }
-                    #ifdef UseBlueToothSerial
-                    SerialBT.println();
-                    #else
-                    Serial.println();
-                    #endif // UseBluetoothSerial
+                    serialPort->println();
                     Log.error("CRC byte 1: %X\n", crcByte1);
                     Log.error("CRC byte 2: %X\n", crcByte2);
                     Log.error("CRC : %X\n", crcValue);
@@ -591,6 +570,31 @@ void VANTask(void * parameter)
                         item.DoorStatus1 = 0;
                         item.DoorStatus2 = 0;
                         canPopupHandler->QueueNewMessage(item);
+
+                        switch (packet.data.Message)
+                        {
+                            case VAN_POPUP_MSG_DEADLOCKING_ACTIVE:
+                                canStatusOfFunctionsHandler->SetAutomaticDoorLockingEnabled();
+                                break;
+                            case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_ACTIVE:
+                                canStatusOfFunctionsHandler->SetAutomaticHeadlampEnabled();
+                                break;
+                            case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_INACTIVE:
+                                canStatusOfFunctionsHandler->SetAutomaticHeadlampDisabled();
+                                break;
+                            case VAN_POPUP_MSG_PASSENGER_AIRBAG_DEACTIVATED:
+                                canStatusOfFunctionsHandler->SetPassengerAirbagDisabled();
+                                break;
+                            case VAN_POPUP_MSG_CATALYTIC_CONVERTER_FAULT:
+                            case VAN_POPUP_MSG_ANTIPOLLUTION_FAULT:
+                                canWarningLogHandler->SetEngineFaultRepairNeeded();
+                                break;
+                            case VAN_POPUP_MSG_AUTOMATIC_GEAR_FAULT:
+                                canWarningLogHandler->SetGearBoxFault();
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     if (packet.data.Field5.seatbelt_warning)
                     {
@@ -615,8 +619,7 @@ void VANTask(void * parameter)
                     }
                     if (packet.data.Field6.left_stick_button)
                     {
-                        dataToBridge.TripInfoButtonPressed = 1;
-                        tripInfoHandler->TripButtonPress(1);
+                        tripInfoHandler->TripButtonPress();
                     }
                 }
                 #pragma endregion
@@ -631,8 +634,8 @@ void VANTask(void * parameter)
                     }
                     else
                     {
-                        dataToBridge.Rpm = VanDecodeRpmOrSpeed(packet.data.Rpm.data) / 8;
-                        dataToBridge.Speed = VanDecodeRpmOrSpeed(packet.data.Speed.data) / 100;
+                        dataToBridge.Rpm = SwapHiByteAndLoByte(packet.data.Rpm.data) / 8;
+                        dataToBridge.Speed = SwapHiByteAndLoByte(packet.data.Speed.data) / 100;
                     }
                 }
                 #pragma endregion
@@ -649,11 +652,10 @@ void VANTask(void * parameter)
                     dataToBridge.Trip2Speed = packet.data.Trip2Speed;
                     dataToBridge.FuelConsumption = SwapHiByteAndLoByte(packet.data.FuelConsumption.data);
                     dataToBridge.FuelLeftToPump = SwapHiByteAndLoByte(packet.data.FuelLeftToPumpInKm.data);
-                    dataToBridge.TripInfoButtonPressed = packet.data.Field10.TripButton;
 
-                    if (dataToBridge.TripInfoButtonPressed)
+                    if (packet.data.Field10.TripButton)
                     {
-                        tripInfoHandler->TripButtonPress(dataToBridge.TripInfoButtonPressed);
+                        tripInfoHandler->TripButtonPress();
                     }
 
                     doorStatus.status.FrontLeft = packet.data.Doors.FrontLeft;
@@ -746,8 +748,7 @@ void VANTask(void * parameter)
 
                     if (packet.data.RemoteButton.seek_down_pressed && packet.data.RemoteButton.seek_up_pressed)
                     {
-                        dataToBridge.TripInfoButtonPressed = 1;
-                        tripInfoHandler->TripButtonPress(1);
+                        tripInfoHandler->TripButtonPress();
                     }
                 }
                 #pragma endregion
@@ -765,21 +766,12 @@ void VANTask(void * parameter)
                         snprintf(tmp, 3, "%02X", vanMessage[i]);
                         if (i != vanMessageLength - 1)
                         {
-                            #ifdef UseBlueToothSerial
-                            SerialBT.print(tmp);
-                            SerialBT.print(" ");
-                            #else
-                            Serial.print(tmp);
-                            Serial.print(" ");
-                            #endif // UseBluetoothSerial
+                            serialPort->print(tmp);
+                            serialPort->print(" ");
                         }
                         else
                         {
-                            #ifdef UseBlueToothSerial
-                            SerialBT.println(tmp);
-                            #else
-                            Serial.println(tmp);
-                            #endif // UseBluetoothSerial
+                            serialPort->println(tmp);
                         }
                     }
                     //*/
@@ -828,7 +820,7 @@ void SendSampleCan(unsigned long canId, uint8_t byte0, uint8_t byte1, uint8_t by
     serializedPacket[5] = byte5;
     serializedPacket[6] = byte6;
     serializedPacket[7] = byte7;
-    Serial.println(canId,HEX);
+    serialPort->println(canId,HEX);
     SendCANMessage(canId, 0, 8, serializedPacket);
 }
 

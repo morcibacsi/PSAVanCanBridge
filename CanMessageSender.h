@@ -33,7 +33,7 @@ class CanMessageSender : public AbstractCanMessageSender {
 
           //f_config.acceptance_code = (MSG_ID << 21);
           //f_config.acceptance_mask = ~(CAN_STD_ID_MASK << 21);
-          f_config.single_filter = true;
+          //f_config.single_filter = true;
 
           //Set to NO_ACK mode due to self testing with single module
           can_general_config_t g_config; // = CAN_GENERAL_CONFIG_DEFAULT(TX_GPIO_NUM, RX_GPIO_NUM, CAN_MODE_NO_ACK)
@@ -55,10 +55,14 @@ class CanMessageSender : public AbstractCanMessageSender {
           can_message_t tx_msg;
           tx_msg.data_length_code = sizeOfByteArray;
           tx_msg.identifier = canId;
+          //Serial.print(canId, HEX);
           for (size_t i = 0; i < sizeOfByteArray; i++)
           {
+              //Serial.print(" ");
+              //Serial.print(byteArray[i], HEX);
               tx_msg.data[i] = byteArray[i];
           }
+          //Serial.println();
           //ESP_LOGI(EXAMPLE_TAG, "Send Msg 1 %d", i);
           xSemaphoreTake(canSemaphore, portMAX_DELAY);
 
@@ -72,6 +76,7 @@ class CanMessageSender : public AbstractCanMessageSender {
       {
           can_message_t rx_msg;
           ESP_ERROR_CHECK(can_receive(&rx_msg, portMAX_DELAY));
+          //ESP_ERROR_CHECK(can_receive(&rx_msg, 30 / portTICK_PERIOD_MS));
           *len = rx_msg.data_length_code;
           for (uint8_t i = 0; i < *len; i++)
           {

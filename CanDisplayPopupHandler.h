@@ -17,12 +17,15 @@ const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT =  10;
 
 class CanDisplayPopupHandler
 {
+    const int CAN_POPUP_INTERVAL = 200;
+
     AbstractCanMessageSender *canMessageSender;
     //ByteAcceptanceHandler* byteAcceptanceHandler;
 
     bool riskOfIceShown = false;
     bool seatbeltWarningShown = false;
-    long canDisplayPopupStartTime = 0;
+    unsigned long canDisplayPopupStartTime = 0;
+    unsigned long previousCanPopupTime = millis();
     bool canPopupVisible = false;
     int popupCounter = 0;
     CanDisplayPopupItem currentPopupMessage;
@@ -113,32 +116,37 @@ class CanDisplayPopupHandler
 
     void Process(unsigned long currentTime)
     {
-        //we show every message for the amount of seconds defined in CAN_POPUP_MESSAGE_TIME
-        if (lastPopupMessage.Visible && (currentTime - canDisplayPopupStartTime) > lastPopupMessage.DisplayTimeInMilliSeconds)
+        if (currentTime - previousCanPopupTime > CAN_POPUP_INTERVAL)
         {
-            HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
-        }
+            previousCanPopupTime = currentTime;
 
-        //if the popup is not visible and we have something in the queue then we display a popup
-        if (!canPopupVisible && !popupMessageQueue->isEmpty())
-        {
-            xSemaphoreTake(canSemaphore, portMAX_DELAY);
-            popupMessageQueue->pop(&currentPopupMessage);
-            xSemaphoreGive(canSemaphore);
-
-            //by hiding first the popup we ensure that the new popup gets displayed
-            if (lastPopupMessage.IsInited)
+            //we show every message for the amount of seconds defined in CAN_POPUP_MESSAGE_TIME
+            if (lastPopupMessage.Visible && (currentTime - canDisplayPopupStartTime) > lastPopupMessage.DisplayTimeInMilliSeconds)
             {
                 HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
             }
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-            ShowCanPopupMessage(currentPopupMessage.Category, currentPopupMessage.MessageType, currentPopupMessage.KmToDisplay, currentPopupMessage.DoorStatus1, currentPopupMessage.DoorStatus2, currentPopupMessage.Counter);
-            lastPopupMessage.MessageType = currentPopupMessage.MessageType;
-            lastPopupMessage.DisplayTimeInMilliSeconds = currentPopupMessage.DisplayTimeInMilliSeconds;
-            lastPopupMessage.IsInited = true;
-            lastPopupMessage.Counter = currentPopupMessage.Counter;
-            lastPopupMessage.DoorStatus1 = currentPopupMessage.DoorStatus1;
-            lastPopupMessage.DoorStatus2 = currentPopupMessage.DoorStatus2;
+
+            //if the popup is not visible and we have something in the queue then we display a popup
+            if (!canPopupVisible && !popupMessageQueue->isEmpty())
+            {
+                xSemaphoreTake(canSemaphore, portMAX_DELAY);
+                popupMessageQueue->pop(&currentPopupMessage);
+                xSemaphoreGive(canSemaphore);
+
+                //by hiding first the popup we ensure that the new popup gets displayed
+                if (lastPopupMessage.IsInited)
+                {
+                    HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
+                }
+                vTaskDelay(10 / portTICK_PERIOD_MS);
+                ShowCanPopupMessage(currentPopupMessage.Category, currentPopupMessage.MessageType, currentPopupMessage.KmToDisplay, currentPopupMessage.DoorStatus1, currentPopupMessage.DoorStatus2, currentPopupMessage.Counter);
+                lastPopupMessage.MessageType = currentPopupMessage.MessageType;
+                lastPopupMessage.DisplayTimeInMilliSeconds = currentPopupMessage.DisplayTimeInMilliSeconds;
+                lastPopupMessage.IsInited = true;
+                lastPopupMessage.Counter = currentPopupMessage.Counter;
+                lastPopupMessage.DoorStatus1 = currentPopupMessage.DoorStatus1;
+                lastPopupMessage.DoorStatus2 = currentPopupMessage.DoorStatus2;
+            }
         }
     }
 
