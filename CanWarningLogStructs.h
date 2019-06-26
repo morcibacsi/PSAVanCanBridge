@@ -49,8 +49,8 @@ typedef struct {
     uint8_t SuspensionFaulty         : 1; // bit 1 Suspension faulty max speed 90 kmh
     uint8_t EngineFaultRepairNeeded  : 1; // bit 2 Engine fault repair needed
     uint8_t unknown3                 : 1; // bit 3
-    uint8_t TyrePressuresTooLow1     : 1; // bit 4 Tyre pressure(s) too low
-    uint8_t unknown5                 : 1; // bit 5 Tyre pressure(s) too low
+    uint8_t TyrePressuresTooLow      : 1; // bit 4 Tyre pressure(s) too low
+    uint8_t unknown5                 : 1; // bit 5
     uint8_t AntiWanderDeviceFaulty   : 1; // bit 6 Anti-wander system lane-crossing warning device faulty
     uint8_t unknown7                 : 1; // bit 7
 } CanWarningLogByte4Struct;
