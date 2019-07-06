@@ -35,12 +35,6 @@ class CanSpeedAndRpmPacketSender
 {
     AbstractCanMessageSender * canMessageSender;
 
-    unsigned int SwapLoByteWithHiByte(unsigned int input)
-    {
-        // swap low order byte with high order byte
-        return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
-    }
-
 public:
     CanSpeedAndRpmPacketSender(AbstractCanMessageSender * object)
     {
@@ -52,9 +46,9 @@ public:
         PacketGenerator<CanSpeedAndRpmPacket> generator;
 
         generator.packet.data.Rpm.Data = rpm;
-        generator.packet.data.Speed.Data = SwapLoByteWithHiByte(speed * 100);
-        generator.packet.data.FuelConsumptionCounter = 0x89;
+        generator.packet.data.Speed.Data = (speed * 100);
         generator.packet.data.Odometer.Data = 0x24B9;
+        generator.packet.data.FuelConsumptionCounter = 0x89;
         generator.packet.data.Field4 = 0xD0;
 
         unsigned char *serializedPacket = generator.GetSerializedPacket();
