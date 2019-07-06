@@ -70,4 +70,32 @@ typedef union CanDash2Packet {
     uint8_t CanDash2Packet[sizeof(CanDash2Struct)];
 };
 
+
+class CanDash2PacketSender
+{
+    AbstractCanMessageSender * canMessageSender;
+
+    public:
+    CanDash2PacketSender(AbstractCanMessageSender * object)
+    {
+        canMessageSender = object;
+    }
+
+    void SendData(uint8_t driversSeatbeltLight, uint8_t sideLights, uint8_t lowBeam, uint8_t highBeam, uint8_t frontFog, uint8_t rearFog, uint8_t leftIndicator, uint8_t rightIndicator)
+    {
+        PacketGenerator<CanDash2Packet> generator;
+        generator.packet.data.Field1.driver_seatbelt_light = driversSeatbeltLight;
+
+        generator.packet.data.Field5.side_lights_on = sideLights;
+        generator.packet.data.Field5.low_beam_on = lowBeam;
+        generator.packet.data.Field5.high_beam_on = highBeam;
+        generator.packet.data.Field5.front_fog_light_on = frontFog;
+        generator.packet.data.Field5.rear_fog_light_on = rearFog;
+        generator.packet.data.Field5.left_indicator_on = leftIndicator;
+        generator.packet.data.Field5.right_indicator_on = rightIndicator;
+
+        unsigned char *serializedPacket = generator.GetSerializedPacket();
+        canMessageSender->SendMessage(CAN_ID_DASH2, 0, sizeof(CanDash2Packet), serializedPacket);
+    }
+};
 #endif

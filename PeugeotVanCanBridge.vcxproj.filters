@@ -201,6 +201,9 @@
     <ClInclude Include="VanDataToBridgeToCan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VanLightsStatusStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cppQueue.cpp">

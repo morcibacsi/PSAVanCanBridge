@@ -46,6 +46,7 @@
 #include "VanSpeedAndRpmStructs.h"
 #include "VanCarStatusWithTripComputerStructs.h"
 #include "VanDashboardStructs.h"
+#include "VanLightsStatusStructs.h"
 #include "VanVinStructs.h"
 #include "VanRadioRemoteStructs.h"
 #include "VanCanAirConditionerSpeedMap.h"
@@ -69,6 +70,7 @@ const uint8_t CAN_TX_PIN = 4;
 
 //const int CAN_RADIO_INTERVAL = 50;
 const int CAN_RADIO_INTERVAL = 100;
+const int CAN_LIGHTS_INTERVAL = 100;
 
 const bool SILENT_MODE = false;
 
@@ -106,6 +108,7 @@ VanCanAirConditionerSpeedMap *vanCanAirConditionerSpeedMap;
 CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
 CanWarningLogHandler *canWarningLogHandler;
 CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
+CanDash2PacketSender *dash2Sender;
 
 AbsSer *serialPort;
 
@@ -173,6 +176,7 @@ void setup()
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
     canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
+    dash2Sender = new CanDash2PacketSender(CANInterface);
 
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
@@ -250,6 +254,7 @@ void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
     unsigned long previousRadioTime = millis();
+    unsigned long previousLightsTime = millis();
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -320,6 +325,23 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.IsAirRecyclingOn);
             }
 
+            #pragma endregion
+
+            #pragma region Lights
+            if (currentTime - previousLightsTime > CAN_LIGHTS_INTERVAL)
+            {
+                previousLightsTime = currentTime;
+
+                dash2Sender->SendData(
+                    dataToBridge.SeatBeltWarning, 
+                    dataToBridge.SideLights, 
+                    dataToBridge.LowBeam, 
+                    dataToBridge.HighBeam, 
+                    dataToBridge.FrontFog, 
+                    dataToBridge.RearFog, 
+                    dataToBridge.LeftIndicator, 
+                    dataToBridge.RightIndicator);
+            }
             #pragma endregion
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -596,6 +618,7 @@ void VANTask(void * parameter)
                                 break;
                         }
                     }
+                    dataToBridge.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
                     if (packet.data.Field5.seatbelt_warning)
                     {
                         if (dataToBridge.Speed > 10)
@@ -683,6 +706,8 @@ void VANTask(void * parameter)
                     ignitionDataToBridge.OutsideTemperature = GetTemperatureFromVANByte(packet.data.ExternalTemperature.value);
                     ignitionDataToBridge.EconomyModeActive = packet.data.Field1.economy_mode;
                     ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
+                    dataToBridge.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+
                     xQueueOverwrite(ignitionQueue, (void*)& ignitionDataToBridge);
                 }
                 #pragma endregion
@@ -752,7 +777,18 @@ void VANTask(void * parameter)
                     }
                 }
                 #pragma endregion
-
+                #pragma region Lights status
+                else if (IsVanIdent(identByte1, identByte2, VAN_ID_LIGHTS_STATUS))
+                {
+                    VanLightStatusPacket packet = DeSerialize<VanLightStatusPacket>(vanMessageWithoutId);
+                    dataToBridge.LowBeam = packet.data.LightsStatus.dipped_beam;
+                    dataToBridge.HighBeam = packet.data.LightsStatus.high_beam;
+                    dataToBridge.FrontFog = packet.data.LightsStatus.front_fog;
+                    dataToBridge.RearFog = packet.data.LightsStatus.rear_fog;
+                    dataToBridge.LeftIndicator = packet.data.LightsStatus.left_indicator;
+                    dataToBridge.RightIndicator = packet.data.LightsStatus.right_indicator;
+                }
+                #pragma endregion
                 if (!SILENT_MODE 
                     //&& (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1))
                     //&& (IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP))
