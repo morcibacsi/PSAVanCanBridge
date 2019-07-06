@@ -28,7 +28,7 @@ typedef struct {
 typedef struct {
     uint8_t dashboard_brightness        : 4; // bit 0-3
     uint8_t disable_dark_mode           : 1; // bit 4
-    uint8_t dashboard_lightning_enabled : 1; // bit 5
+    uint8_t dashboard_lighting_enabled  : 1; // bit 5
     uint8_t                             : 1; // bit 6
     uint8_t                             : 1; // bit 7
 } CanIgnitionByte4Struct;
@@ -70,18 +70,15 @@ public:
         canMessageSender = object;
     }
 
-    void SendIgnition(uint8_t economy_mode_active, uint8_t brightness)
+    void SendIgnition(uint8_t economy_mode_active, uint8_t brightness, uint8_t dashboard_lighting_enabled)
     {
         PacketGenerator<CanIgnitionPacket> generator1;
-        //generator1.packet.data.Field1 = 0x0E;
-        //generator1.packet.data.Field2 = 0x00;
+
         generator1.packet.data.Field3.economy_mode_active = economy_mode_active;
-        generator1.packet.data.Brightness.dashboard_lightning_enabled = 1;
-        generator1.packet.data.Brightness.dashboard_brightness = brightness; //0-127
+        generator1.packet.data.Brightness.dashboard_lighting_enabled = dashboard_lighting_enabled;
+        generator1.packet.data.Brightness.dashboard_brightness = brightness; //0-15
         generator1.packet.data.Ignition.ignition_mode = CAN_IGNITION_MODE_ON;
-        //generator1.packet.data.Field6 = 0x80;
-        //generator1.packet.data.Field7 = 0x00;
-        //generator1.packet.data.Field8 = 0xA0;
+
         unsigned char *serializedPacket1 = generator1.GetSerializedPacket();
         //unsigned char canMsg[8] = { 0x0E, 0x00, 0x05, 0x2F, 0x21, 0x80, 0x00, 0xA0 };
         canMessageSender->SendMessage(CAN_ID_IGNITION, 0, sizeof(CanIgnitionPacket), serializedPacket1);

@@ -84,6 +84,8 @@ struct VanIgnitionDataToBridgeToCan
     int OutsideTemperature = 0;
     uint8_t EconomyModeActive = 0;
     uint8_t Ignition = 0;
+    uint8_t DashboardLightingEnabled = 0;
+    uint8_t NightMode = 0;
 };
 
 TaskHandle_t CANSendIgnitionTask;
@@ -357,6 +359,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
     unsigned long lastVinTime = millis();
     uint8_t economyMode = 0;
     uint8_t ignition = 0;
+    uint8_t brightness = 15;
 
     for (;;)
     {
@@ -386,12 +389,21 @@ void CANSendIgnitionTaskFunction(void * parameter)
             economyMode = 0;
         #endif // DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS
 
+        if (dataToBridge.NightMode)
+        {
+            brightness = 7;
+        }
+        else
+        {
+            brightness = 15;
+        }
+
         #pragma region Ignition signal for radio
 
         if (ignition == 1)
         {
             CanIgnitionPacketSender radioIgnition(CANInterface);
-            radioIgnition.SendIgnition(economyMode, 127);
+            radioIgnition.SendIgnition(economyMode, brightness, dataToBridge.DashboardLightingEnabled);
         }
         #pragma endregion
 
@@ -703,9 +715,12 @@ void VANTask(void * parameter)
                 else if (IsVanIdent(identByte1, identByte2, VAN_ID_DASHBOARD))
                 {
                     VanDashboardPacket packet = DeSerialize<VanDashboardPacket>(vanMessageWithoutId);
+
                     ignitionDataToBridge.OutsideTemperature = GetTemperatureFromVANByte(packet.data.ExternalTemperature.value);
                     ignitionDataToBridge.EconomyModeActive = packet.data.Field1.economy_mode;
                     ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
+                    ignitionDataToBridge.DashboardLightingEnabled = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+
                     dataToBridge.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
 
                     xQueueOverwrite(ignitionQueue, (void*)& ignitionDataToBridge);
@@ -787,6 +802,7 @@ void VANTask(void * parameter)
                     dataToBridge.RearFog = packet.data.LightsStatus.rear_fog;
                     dataToBridge.LeftIndicator = packet.data.LightsStatus.left_indicator;
                     dataToBridge.RightIndicator = packet.data.LightsStatus.right_indicator;
+                    ignitionDataToBridge.NightMode = dataToBridge.LowBeam || dataToBridge.HighBeam;
                 }
                 #pragma endregion
                 if (!SILENT_MODE 
