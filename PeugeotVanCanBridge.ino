@@ -194,40 +194,41 @@ void setup()
     vinQueue = xQueueCreate(queueSize, sizeof(VanVinToBridgeToCan));
 
     xTaskCreatePinnedToCore(
-        CANSendIgnitionTaskFunction,    /* Function to implement the task */
-        "CANSendIgnitionTask",    /* Name of the task */
-        10000,               /* Stack size in words */
-        NULL,                /* Task input parameter */
-        2,                     /* Priority of the task */
-        &CANSendIgnitionTask,           /* Task handle. */
-        0);                      /* Core where the task should run */
+        CANSendIgnitionTaskFunction,    // Function to implement the task
+        "CANSendIgnitionTask",          // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        2,                              // Priority of the task
+        &CANSendIgnitionTask,           // Task handle.
+        0);                             // Core where the task should run
 
     xTaskCreatePinnedToCore(
-        CANSendDataTaskFunction,        /* Function to implement the task */
-        "CANSendDataTask",        /* Name of the task */
-        10000,               /* Stack size in words */
-        NULL,                /* Task input parameter */
-        0,                     /* Priority of the task */
-        &CANSendDataTask,               /* Task handle. */
-        0);                      /* Core where the task should run */
+        CANSendDataTaskFunction,        // Function to implement the task
+        "CANSendDataTask",              // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter 
+        0,                              // Priority of the task
+        &CANSendDataTask,               // Task handle.
+        0);                             // Core where the task should run
 
     xTaskCreatePinnedToCore(
-        VANTask,                        /* Function to implement the task */
-        "VANReadTask",            /* Name of the task */
-        10000,               /* Stack size in words */
-        NULL,                /* Task input parameter */
-        1,                     /* Priority of the task */
-        &VANReadTask,                   /* Task handle. */
-        1);                      /* Core where the task should run */
-
-    //xTaskCreatePinnedToCore(
-    //    CANReadTaskFunction,            /* Function to implement the task */
-    //    "CANReadTask",                  /* Name of the task */
-    //    10000,                          /* Stack size in words */
-    //    NULL,                           /* Task input parameter */
-    //    0,                              /* Priority of the task */
-    //    &CANReadTask,                   /* Task handle. */
-    //    1);                             /* Core where the task should run */
+        VANTask,                        // Function to implement the task
+        "VANReadTask",                  // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        1,                              // Priority of the task
+        &VANReadTask,                   // Task handle.
+        1);                             // Core where the task should run
+/*
+    xTaskCreatePinnedToCore(
+        CANReadTaskFunction,            // Function to implement the task
+        "CANReadTask",                  // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        0,                              // Priority of the task
+        &CANReadTask,                   // Task handle.
+        1);                             // Core where the task should run
+//*/
 }
 
 void CANReadTaskFunction(void * parameter)
