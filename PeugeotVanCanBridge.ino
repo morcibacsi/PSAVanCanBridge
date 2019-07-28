@@ -56,19 +56,28 @@
 #pragma endregion
 
 #define USE_BLUETOOTH_SERIAL;
-#define DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS;
-
+#define DO_NOT_CONSIDER_IGNITION_SIGNAL_FROM_VAN_BUS;
+#define HW_VERSION 1
 ESP32_RMT_VAN_RX VAN_RX;
 
 const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
+
+#if HW_VERSION == 1
 const uint8_t VAN_DATA_RX_PIN = 19;
-//const uint8_t VAN_DATA_RX_PIN = 35;
-const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
+const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
 
 const uint8_t CAN_RX_PIN = 5;
 const uint8_t CAN_TX_PIN = 4;
+#elif HW_VERSION == 2
+const uint8_t VAN_DATA_RX_PIN = 21;
+const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_LOW;
 
-//const int CAN_RADIO_INTERVAL = 50;
+const uint8_t CAN_RX_PIN = 33;
+const uint8_t CAN_TX_PIN = 32;
+#endif
+
+const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
+
 const int CAN_RADIO_INTERVAL = 100;
 const int CAN_LIGHTS_INTERVAL = 100;
 
@@ -163,7 +172,7 @@ void setup()
 
     Log.trace("ESP32 Arduino VAN bus monitor\n");
 
-    VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
+    VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL);
 
     CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
     CANInterface->Init();
@@ -367,7 +376,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         currentTime = millis();
 
-        #ifndef DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS
+        #ifndef DO_NOT_CONSIDER_IGNITION_SIGNAL_FROM_VAN_BUS
             ignition = 0;
             if (dataToBridge.Ignition == 1)
             {
