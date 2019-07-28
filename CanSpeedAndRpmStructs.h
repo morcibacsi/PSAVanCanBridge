@@ -8,8 +8,7 @@
 const unsigned long CAN_ID_SPEED_AND_RPM = 0x0B6;
 
 typedef struct {
-    unsigned short unknown : 3;
-    unsigned short Data : 13;
+    unsigned short Data : 16;
 } CanRpmStruct;
 
 typedef struct {
@@ -35,18 +34,24 @@ class CanSpeedAndRpmPacketSender
 {
     AbstractCanMessageSender * canMessageSender;
 
+    unsigned int SwapLoByteWithHiByte(unsigned int input)
+    {
+        // swap low order byte with high order byte
+        return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
+    }
+
 public:
     CanSpeedAndRpmPacketSender(AbstractCanMessageSender * object)
     {
         canMessageSender = object;
     }
 
-    void Send(uint8_t speed, uint8_t rpm)
+    void Send(uint8_t speed, uint16_t rpm)
     {
         PacketGenerator<CanSpeedAndRpmPacket> generator;
 
-        generator.packet.data.Rpm.Data = rpm;
-        generator.packet.data.Speed.Data = (speed * 100);
+        generator.packet.data.Rpm.Data = SwapLoByteWithHiByte(rpm * 8);
+        generator.packet.data.Speed.Data = SwapLoByteWithHiByte(speed * 100);
         generator.packet.data.Odometer.Data = 0x24B9;
         generator.packet.data.FuelConsumptionCounter = 0x89;
         generator.packet.data.Field4 = 0xD0;

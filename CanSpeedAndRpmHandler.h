@@ -8,7 +8,7 @@
 
 class CanSpeedAndRpmHandler
 {
-    const int CAN_SPEED_RPM_INTERVAL = 50;
+    const int CAN_SPEED_RPM_INTERVAL = 40;
 
     AbstractCanMessageSender *canMessageSender;
 
@@ -23,10 +23,10 @@ class CanSpeedAndRpmHandler
         canMessageSender = object;
     }
 
-    void SetData(int rpm, int speed)
+    void SetData(int speed, int rpm)
     {
-        Rpm = rpm;
         Speed = speed;
+        Rpm = rpm;
     }
 
     void Process(unsigned long currentTime)

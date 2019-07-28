@@ -271,7 +271,7 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma  region SpeedAndRpm
 
-            canSpeedAndRpmHandler->SetData(dataToBridge.Rpm, dataToBridge.Speed);
+            canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
             canSpeedAndRpmHandler->Process(currentTime);
 
             #pragma endregion

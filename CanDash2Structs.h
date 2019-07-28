@@ -49,7 +49,7 @@ typedef struct {
     uint8_t                : 1; // bit 4
     uint8_t                : 1; // bit 5
     uint8_t                : 1; // bit 6
-    uint8_t low_fuel_level : 1; // bit 7
+    uint8_t dash_enabled   : 1; // bit 7
 } CanDash2Byte6Struct;
 
 
@@ -93,6 +93,7 @@ class CanDash2PacketSender
         generator.packet.data.Field5.rear_fog_light_on = rearFog;
         generator.packet.data.Field5.left_indicator_on = leftIndicator;
         generator.packet.data.Field5.right_indicator_on = rightIndicator;
+        generator.packet.data.Field6.dash_enabled = 1;
 
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_DASH2, 0, sizeof(CanDash2Packet), serializedPacket);
