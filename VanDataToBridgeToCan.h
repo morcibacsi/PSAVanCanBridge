@@ -33,5 +33,8 @@ struct VanDataToBridgeToCan
     uint8_t LeftIndicator = 0;
     uint8_t RightIndicator = 0;
     uint8_t SideLights = 0;
+    uint8_t Ignition = 0;
+    uint8_t FuelLowLight = 0;
+    uint8_t PassengerAirbag = 0;
 };
 #endif

@@ -268,6 +268,7 @@ void CANSendDataTaskFunction(void * parameter)
     unsigned long currentTime = millis();
     unsigned long previousRadioTime = millis();
     unsigned long previousLightsTime = millis();
+    uint8_t ignition = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -275,6 +276,15 @@ void CANSendDataTaskFunction(void * parameter)
     for (;;)
     {
         currentTime = millis();
+
+        #ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
+            ignition = dataToBridge.Ignition;
+        #else
+            ignition = 1;
+
+            canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
+            canSpeedAndRpmHandler->Process(currentTime);
+        #endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
 
         if (xQueueReceive(dataQueue, &dataToBridgeReceived, portMAX_DELAY) == pdTRUE)
         {
@@ -346,14 +356,18 @@ void CANSendDataTaskFunction(void * parameter)
                 previousLightsTime = currentTime;
 
                 dash2Sender->SendData(
-                    dataToBridge.SeatBeltWarning, 
-                    dataToBridge.SideLights, 
-                    dataToBridge.LowBeam, 
-                    dataToBridge.HighBeam, 
-                    dataToBridge.FrontFog, 
-                    dataToBridge.RearFog, 
-                    dataToBridge.LeftIndicator, 
-                    dataToBridge.RightIndicator);
+                    dataToBridge.SeatBeltWarning,
+                    dataToBridge.SideLights,
+                    dataToBridge.LowBeam,
+                    dataToBridge.HighBeam,
+                    dataToBridge.FrontFog,
+                    dataToBridge.RearFog,
+                    dataToBridge.LeftIndicator,
+                    dataToBridge.RightIndicator,
+                    ignition,
+                    dataToBridge.FuelLowLight,
+                    dataToBridge.PassengerAirbag
+                    );
             }
             #pragma endregion
         }
@@ -642,6 +656,9 @@ void VANTask(void * parameter)
                         }
                     }
                     dataToBridge.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
+                    dataToBridge.FuelLowLight = packet.data.Field6.fuel_low_light;
+                    dataToBridge.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
+
                     if (packet.data.Field5.seatbelt_warning)
                     {
                         if (dataToBridge.Speed > 10)
@@ -733,6 +750,7 @@ void VANTask(void * parameter)
                     ignitionDataToBridge.DashboardLightingEnabled = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
 
                     dataToBridge.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+                    dataToBridge.Ignition = ignitionDataToBridge.Ignition;
 
                     xQueueOverwrite(ignitionQueue, (void*)& ignitionDataToBridge);
                 }
