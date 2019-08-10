@@ -104,33 +104,33 @@ typedef struct {
     uint8_t             : 1; // bit 4
     uint8_t             : 1; // bit 5
     uint8_t             : 1; // bit 6
-    uint8_t             : 1; // bit 7
+    uint8_t water_temp_max : 1; // bit 7
 } VanDisplayMsg0Struct;
 
 typedef struct {
-    uint8_t             : 1; // bit 0
-    uint8_t             : 1; // bit 1
-    uint8_t             : 1; // bit 2
-    uint8_t             : 1; // bit 3
-    uint8_t             : 1; // bit 4
-    uint8_t             : 1; // bit 5
-    uint8_t             : 1; // bit 6
-    uint8_t             : 1; // bit 7
+    uint8_t              : 1; // bit 0
+    uint8_t              : 1; // bit 1
+    uint8_t              : 1; // bit 2
+    uint8_t              : 1; // bit 3
+    uint8_t              : 1; // bit 4
+    uint8_t              : 1; // bit 5
+    uint8_t oil_light    : 1; // bit 6
+    uint8_t              : 1; // bit 7
 } VanDisplayMsgByte1Struct;
 
 typedef struct {
-    uint8_t                 : 1; // bit 0
+    uint8_t mil             : 1; // bit 0
     uint8_t                 : 1; // bit 1
     uint8_t                 : 1; // bit 2
     uint8_t                 : 1; // bit 3
-    uint8_t                 : 1; // bit 4
-    uint8_t                 : 1; // bit 5
+    uint8_t esp             : 1; // bit 4
+    uint8_t abs             : 1; // bit 5
     uint8_t                 : 1; // bit 6
     uint8_t                 : 1; // bit 7
 } VanDisplayMsgByte2Struct;
 
 typedef struct {
-    uint8_t                   : 1; // bit 0
+    uint8_t airbag            : 1; // bit 0
     uint8_t                   : 1; // bit 1
     uint8_t                   : 1; // bit 2
     uint8_t                   : 1; // bit 3
@@ -146,20 +146,20 @@ typedef struct {
     uint8_t                   : 1; // bit 2
     uint8_t                   : 1; // bit 3
     uint8_t                   : 1; // bit 4
-    uint8_t key_in            : 1; // bit 5
+    uint8_t battery_fault     : 1; // bit 5
     uint8_t                   : 1; // bit 6
     uint8_t                   : 1; // bit 7
 } VanDisplayMsgByte4Struct;
 
 typedef struct {
-    uint8_t handbrake         : 1; // bit 0
-    uint8_t seatbelt_warning  : 1; // bit 1
-    uint8_t                   : 1; // bit 2
-    uint8_t                   : 1; // bit 3
-    uint8_t                   : 1; // bit 4
-    uint8_t                   : 1; // bit 5
-    uint8_t                   : 1; // bit 6
-    uint8_t                   : 1; // bit 7
+    uint8_t handbrake                    : 1; // bit 0
+    uint8_t seatbelt_warning             : 1; // bit 1
+    uint8_t passenger_airbag_deactivated : 1; // bit 2
+    uint8_t                              : 1; // bit 3
+    uint8_t                              : 1; // bit 4
+    uint8_t                              : 1; // bit 5
+    uint8_t                              : 1; // bit 6
+    uint8_t                              : 1; // bit 7
 } VanDisplayMsgByte5Struct;
 
 typedef struct {
@@ -170,7 +170,7 @@ typedef struct {
     uint8_t left_stick_button : 1; // bit 4
     uint8_t                   : 1; // bit 5
     uint8_t                   : 1; // bit 6
-    uint8_t                   : 1; // bit 7
+    uint8_t fuel_low_light    : 1; // bit 7
 } VanDisplayMsgByte6Struct;
 
 typedef struct {
@@ -199,9 +199,9 @@ typedef struct {
 //Read left to right in documentation
 typedef struct VanDisplayStruct {
     uint8_t Field0;
-    uint8_t Field1;
-    uint8_t Field2;
-    uint8_t Field3;
+    VanDisplayMsgByte1Struct Field1;
+    VanDisplayMsgByte2Struct Field2;
+    VanDisplayMsgByte3Struct Field3;
     uint8_t Field4;
     VanDisplayMsgByte5Struct Field5;
     VanDisplayMsgByte6Struct Field6;
@@ -239,9 +239,9 @@ public:
         //initial testing value was: 0x00, 0x02, 0x01, 0x00, 0xFF, 0x01, 0x00, 0x01, 0xFF, 0x44, 0x00, 0x00, 0x00, 0x00
 
         packet.data.Field0 = 0xFF;
-        packet.data.Field1 = 0xFF;
-        packet.data.Field2 = 0xFF;
-        packet.data.Field3 = 0xFF;
+        //packet.data.Field1 = 0xFF;
+        //packet.data.Field2 = 0xFF;
+        //packet.data.Field3 = 0xFF;
         packet.data.Field4 = 0xFF;
         //packet.data.Field5 = 0xFF;
         //packet.data.Field6 = 0xFF;
