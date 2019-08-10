@@ -56,8 +56,8 @@
 #pragma endregion
 
 #define USE_BLUETOOTH_SERIAL;
-#define DO_NOT_CONSIDER_IGNITION_SIGNAL_FROM_VAN_BUS;
-#define HW_VERSION 1
+#define USE_IGNITION_SIGNAL_FROM_VAN_BUS;
+#define HW_VERSION 2
 ESP32_RMT_VAN_RX VAN_RX;
 
 const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
@@ -378,8 +378,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         currentTime = millis();
 
-        #ifndef DO_NOT_CONSIDER_IGNITION_SIGNAL_FROM_VAN_BUS
-            ignition = 0;
+        ignition = 0;
+        #ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
             if (dataToBridge.Ignition == 1)
             {
                 ignition = 1;
@@ -398,7 +398,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
         #else
             ignition = 1;
             economyMode = 0;
-        #endif // DO_NOT_CONSIDER_IGNITION_FROM_VAN_BUS
+        #endif // USE_IGNITION_FROM_VAN_BUS
 
         if (dataToBridge.NightMode)
         {
