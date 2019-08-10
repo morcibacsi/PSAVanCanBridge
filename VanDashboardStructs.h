@@ -74,9 +74,13 @@ int8_t GetTemperatureToSendToDisplay(int8_t externalTemperature)
 
 int8_t GetTemperatureFromVANByte(int8_t vanByte)
 {
-	return (vanByte - 0x50) / 2;
+    return (vanByte - 0x50) / 2;
 }
 
+int8_t GetWaterTemperatureFromVANByte(int8_t vanByte)
+{
+    return (vanByte - 39);
+}
 
 #pragma region Sender class
 class VanDashboardPacketSender
