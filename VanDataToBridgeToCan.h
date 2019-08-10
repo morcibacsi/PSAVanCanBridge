@@ -41,5 +41,6 @@ struct VanDataToBridgeToCan
     uint8_t Esp = 0;
     uint8_t Mil = 0;
     uint8_t Airbag = 0;
+    uint8_t FuelLevel = 0;
 };
 #endif

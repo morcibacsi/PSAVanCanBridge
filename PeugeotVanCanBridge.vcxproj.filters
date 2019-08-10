@@ -204,6 +204,12 @@
     <ClInclude Include="VanLightsStatusStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CanDash3Structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanDash4Structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cppQueue.cpp">

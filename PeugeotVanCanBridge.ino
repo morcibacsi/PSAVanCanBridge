@@ -24,6 +24,7 @@
 #include "CanDash1Structs.h"
 #include "CanDash2Structs.h"
 #include "CanDash3Structs.h"
+#include "CanDash4Structs.h"
 #include "CanIgnitionStructs.h"
 #include "CanMenuStructs.h"
 #include "CanDoorStatusStructs.h"
@@ -124,6 +125,7 @@ CanWarningLogHandler *canWarningLogHandler;
 CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
 CanDash2PacketSender *dash2Sender;
 CanDash3PacketSender *dash3Sender;
+CanDash4PacketSender *dash4Sender;
 
 AbsSer *serialPort;
 
@@ -193,6 +195,7 @@ void setup()
     canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
     dash2Sender = new CanDash2PacketSender(CANInterface);
     dash3Sender = new CanDash3PacketSender(CANInterface);
+    dash4Sender = new CanDash4PacketSender(CANInterface);
 
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
@@ -388,6 +391,11 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.Esp,
                     dataToBridge.Airbag
                 );
+
+                dash4Sender->SendData(
+                    dataToBridge.FuelLevel
+                );
+
             }
             #pragma endregion
         }
@@ -856,6 +864,8 @@ void VANTask(void * parameter)
                     dataToBridge.RearFog = packet.data.LightsStatus.rear_fog;
                     dataToBridge.LeftIndicator = packet.data.LightsStatus.left_indicator;
                     dataToBridge.RightIndicator = packet.data.LightsStatus.right_indicator;
+                    dataToBridge.FuelLevel = packet.data.FuelLevel;
+
                     ignitionDataToBridge.NightMode = dataToBridge.LowBeam || dataToBridge.HighBeam;
                 }
                 #pragma endregion
