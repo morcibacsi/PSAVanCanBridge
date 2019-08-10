@@ -40,7 +40,7 @@ typedef struct VanLightsStatusStructs {
     uint8_t Field4;
     VanLightsStatusByte5Struct LightsStatus;
     uint8_t Field6;
-    uint8_t Field7;
+    uint8_t FuelLevel; // in percentage
     uint8_t Field8;
     uint8_t Field9;
     uint8_t Field10;
