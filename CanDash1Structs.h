@@ -84,10 +84,16 @@ class CanDashIgnitionPacketSender
         canMessageSender = object;
     }
 
-    void SendIgnition(uint8_t ignition, int externalTemperature)
+    void SendIgnition(uint8_t ignition, int coolantTemperature, int externalTemperature)
     {
+        if (!ignition)
+        {
+            coolantTemperature = 0;
+        }
+
         PacketGenerator<CanDash1Packet> generator;
         generator.packet.data.IgnitionField.ignition = ignition;
+        generator.packet.data.CoolantTemperature = CanGetCoolantTemperatureToDisplay(coolantTemperature);
         generator.packet.data.ExternalTemperature = CanGetExternalTemperatureToDisplay(externalTemperature);
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_DASH1, 0, sizeof(CanDash1Packet), serializedPacket);

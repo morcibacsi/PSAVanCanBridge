@@ -91,6 +91,7 @@ struct VanVinToBridgeToCan
 struct VanIgnitionDataToBridgeToCan
 {
     int OutsideTemperature = 0;
+    int WaterTemperature = 0;
     uint8_t EconomyModeActive = 0;
     uint8_t Ignition = 0;
     uint8_t DashboardLightingEnabled = 0;
@@ -422,7 +423,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
         #pragma region Ignition signal for display
 
         CanDashIgnitionPacketSender dashIgnition(CANInterface);
-        dashIgnition.SendIgnition(ignition, dataToBridge.OutsideTemperature);
+        dashIgnition.SendIgnition(ignition, dataToBridge.WaterTemperature, dataToBridge.OutsideTemperature);
 
         if (dataToBridge.OutsideTemperature <= 3 && dataToBridge.OutsideTemperature >= -3 && currentTime > 10000)
         {
@@ -725,7 +726,7 @@ void VANTask(void * parameter)
                 else if (IsVanIdent(identByte1, identByte2, VAN_ID_DASHBOARD))
                 {
                     VanDashboardPacket packet = DeSerialize<VanDashboardPacket>(vanMessageWithoutId);
-
+                    ignitionDataToBridge.WaterTemperature = GetWaterTemperatureFromVANByte(packet.data.WaterTemperature.value);
                     ignitionDataToBridge.OutsideTemperature = GetTemperatureFromVANByte(packet.data.ExternalTemperature.value);
                     ignitionDataToBridge.EconomyModeActive = packet.data.Field1.economy_mode;
                     ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
