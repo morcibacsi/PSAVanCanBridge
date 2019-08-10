@@ -36,5 +36,10 @@ struct VanDataToBridgeToCan
     uint8_t Ignition = 0;
     uint8_t FuelLowLight = 0;
     uint8_t PassengerAirbag = 0;
+    uint8_t Handbrake = 0;
+    uint8_t Abs = 0;
+    uint8_t Esp = 0;
+    uint8_t Mil = 0;
+    uint8_t Airbag = 0;
 };
 #endif

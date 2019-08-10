@@ -23,6 +23,7 @@
 #include "CanDisplayStructs.h"
 #include "CanDash1Structs.h"
 #include "CanDash2Structs.h"
+#include "CanDash3Structs.h"
 #include "CanIgnitionStructs.h"
 #include "CanMenuStructs.h"
 #include "CanDoorStatusStructs.h"
@@ -80,6 +81,7 @@ const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 
 const int CAN_RADIO_INTERVAL = 100;
 const int CAN_LIGHTS_INTERVAL = 100;
+const int CAN_DASH_ICONS_INTERVAL = 100;
 
 const bool SILENT_MODE = false;
 
@@ -121,6 +123,7 @@ CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
 CanWarningLogHandler *canWarningLogHandler;
 CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
 CanDash2PacketSender *dash2Sender;
+CanDash3PacketSender *dash3Sender;
 
 AbsSer *serialPort;
 
@@ -189,6 +192,7 @@ void setup()
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
     canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
     dash2Sender = new CanDash2PacketSender(CANInterface);
+    dash3Sender = new CanDash3PacketSender(CANInterface);
 
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
@@ -268,6 +272,7 @@ void CANSendDataTaskFunction(void * parameter)
     unsigned long currentTime = millis();
     unsigned long previousRadioTime = millis();
     unsigned long previousLightsTime = millis();
+    unsigned long previousDashIconsTime = millis();
     uint8_t ignition = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
@@ -368,6 +373,21 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.FuelLowLight,
                     dataToBridge.PassengerAirbag
                     );
+            }
+            #pragma endregion
+
+            #pragma region Dash icons
+            if (currentTime - previousDashIconsTime > CAN_DASH_ICONS_INTERVAL)
+            {
+                previousDashIconsTime = currentTime;
+
+                dash3Sender->SendData(
+                    dataToBridge.Handbrake,
+                    dataToBridge.Mil,
+                    dataToBridge.Abs,
+                    dataToBridge.Esp,
+                    dataToBridge.Airbag
+                );
             }
             #pragma endregion
         }
@@ -658,6 +678,11 @@ void VANTask(void * parameter)
                     dataToBridge.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
                     dataToBridge.FuelLowLight = packet.data.Field6.fuel_low_light;
                     dataToBridge.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
+                    dataToBridge.Handbrake = packet.data.Field5.handbrake;
+                    dataToBridge.Abs = packet.data.Field2.abs;
+                    dataToBridge.Esp = packet.data.Field2.esp;
+                    dataToBridge.Mil = packet.data.Field2.mil;
+                    dataToBridge.Airbag = packet.data.Field3.airbag;
 
                     if (packet.data.Field5.seatbelt_warning)
                     {
