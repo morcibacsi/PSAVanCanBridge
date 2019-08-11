@@ -175,6 +175,7 @@
     <ClInclude Include="CanRadioRdsTextStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanRadioRemoteMessageHandler.h" />
     <ClInclude Include="CanRadioRemoteStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>

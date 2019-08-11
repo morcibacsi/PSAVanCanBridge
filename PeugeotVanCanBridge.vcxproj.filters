@@ -228,6 +228,9 @@
     <ClInclude Include="CanDash3MessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CanRadioRemoteMessageHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cppQueue.cpp">

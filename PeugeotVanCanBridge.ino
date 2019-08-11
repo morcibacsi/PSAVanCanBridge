@@ -26,8 +26,7 @@
 #include "CanMenuStructs.h"
 #include "CanDoorStatusStructs.h"
 #include "CanDisplayPopupItem.h"
-#include "CanAirConStructs.h"
-#include "CanRadioRemoteStructs.h"
+#include "CanRadioRemoteMessageHandler.h"
 #include "CanVinHandler.h"
 #include "CanTripInfoHandler.h"
 #include "CanAirConOnDisplayHandler.h"
@@ -81,8 +80,6 @@ const uint8_t CAN_TX_PIN = 32;
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 
-const int CAN_RADIO_INTERVAL = 100;
-
 const bool SILENT_MODE = false;
 
 struct VanVinToBridgeToCan
@@ -117,7 +114,7 @@ VanCanDisplayPopupMap *popupMapping;
 CanVinHandler *canVinHandler;
 CanTripInfoHandler *tripInfoHandler;
 CanAirConOnDisplayHandler *canAirConOnDisplayHandler;
-CanRadioRemoteButtonPacketSender *radioRemoteSender;
+CanRadioRemoteMessageHandler *canRadioRemoteMessageHandler;
 VanCanAirConditionerSpeedMap *vanCanAirConditionerSpeedMap;
 CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
 CanWarningLogHandler *canWarningLogHandler;
@@ -187,7 +184,7 @@ void setup()
     canVinHandler = new CanVinHandler(CANInterface);
     tripInfoHandler = new CanTripInfoHandler(CANInterface);
     canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
-    radioRemoteSender = new CanRadioRemoteButtonPacketSender(CANInterface);
+    canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
     vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
@@ -272,7 +269,6 @@ void CANReadTaskFunction(void * parameter)
 void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
-    unsigned long previousRadioTime = millis();
     uint8_t ignition = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
@@ -328,11 +324,8 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region Radio remote
 
-            if (currentTime - previousRadioTime > CAN_RADIO_INTERVAL)
-            {
-                previousRadioTime = currentTime;
-                radioRemoteSender->SendAsByte(dataToBridge.RadioRemoteButton, dataToBridge.RadioRemoteScroll);
-            }
+            canRadioRemoteMessageHandler->SetData(dataToBridge.RadioRemoteButton, dataToBridge.RadioRemoteScroll);
+            canRadioRemoteMessageHandler->Process(currentTime);
 
             #pragma endregion
 
