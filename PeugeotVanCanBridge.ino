@@ -134,14 +134,22 @@ int msgId = 0x0;
 
 void setup()
 {
+    uint64_t macAddress;
+    macAddress = ESP.getEfuseMac();
+    uint16_t uniqueIdForBluetooth = (uint16_t)(macAddress >> 32);
+    char bluetoothDeviceName[27];
+    snprintf(bluetoothDeviceName, 27, "ESP32 VAN bus monitor %04X", uniqueIdForBluetooth);
+
     #ifdef USE_BLUETOOTH_SERIAL
-    serialPort = new BluetoothSerAbs(SerialBT, "ESP32 Arduino VAN bus monitor");
+    serialPort = new BluetoothSerAbs(SerialBT, bluetoothDeviceName);
     #else
     serialPort = new HwSerAbs(Serial);
     #endif
 
-    serialPort->begin(115200);
+    //serialPort->begin(115200);
     //serialPort->begin(230400);
+    serialPort->begin(500000);
+    serialPort->println(bluetoothDeviceName);
 
     // Pass log level, whether to show log level, and print interface.
     /* Available levels are:
