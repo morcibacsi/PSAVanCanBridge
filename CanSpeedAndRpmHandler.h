@@ -3,50 +3,34 @@
 #ifndef _CanSpeedAndRpmHandler_h
     #define _CanSpeedAndRpmHandler_h
 
+#include "CanMessageHandlerBase.h"
 #include "CanSpeedAndRpmStructs.h"
 #include "CanMessageSender.h"
 
-class CanSpeedAndRpmHandler
+class CanSpeedAndRpmHandler : public CanMessageHandlerBase
 {
-    const int CAN_SPEED_RPM_INTERVAL = 40;
+    static const int CAN_SPEED_RPM_INTERVAL = 40;
 
-    AbstractCanMessageSender *canMessageSender;
+    int _Speed = 0;
+    int _Rpm = 0;
 
-    unsigned long previousTime = millis();
+    CanSpeedAndRpmPacketSender* speedAndRpmSender;
 
-    int Speed = 0;
-    int Rpm = 0;
+    void InternalProcess() override
+    {
+        speedAndRpmSender->Send(_Speed, _Rpm);
+    }
 
     public:
-    CanSpeedAndRpmHandler(AbstractCanMessageSender * object)
+    CanSpeedAndRpmHandler(AbstractCanMessageSender * object) : CanMessageHandlerBase(object, CAN_SPEED_RPM_INTERVAL)
     {
-        canMessageSender = object;
+        speedAndRpmSender = new CanSpeedAndRpmPacketSender(object);
     }
 
     void SetData(int speed, int rpm)
     {
-        Speed = speed;
-        Rpm = rpm;
-    }
-
-    void Process(unsigned long currentTime)
-    {
-        if (currentTime - previousTime > CAN_SPEED_RPM_INTERVAL)
-        {
-            previousTime = currentTime;
-
-            if (Speed == 0xFFFF)
-            {
-                Speed = 0;
-            }
-            if (Rpm == 0xFFFF)
-            {
-                Rpm = 0;
-            }
-
-            CanSpeedAndRpmPacketSender speedAndRpmSender(canMessageSender);
-            speedAndRpmSender.Send(Speed, Rpm);
-        }
+        _Speed = speed == 0xFFFF ? 0 : speed;
+        _Rpm = rpm == 0xFFFF ? 0 : rpm;
     }
 };
 

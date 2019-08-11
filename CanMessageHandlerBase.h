@@ -11,11 +11,10 @@ class CanMessageHandlerBase
     int processInterval = 100;
     unsigned long previousTime = 0;
 
-    AbstractCanMessageSender *canMessageSender;
-
     virtual void InternalProcess() = 0;
 
     protected:
+    AbstractCanMessageSender *canMessageSender;
     CanMessageHandlerBase(AbstractCanMessageSender * object, int interval)
     {
         processInterval = interval;
@@ -23,7 +22,6 @@ class CanMessageHandlerBase
     }
 
     public:
-
     void Process(unsigned long currentTime)
     {
         if (currentTime - previousTime > processInterval)
