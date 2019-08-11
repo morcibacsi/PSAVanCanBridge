@@ -4,6 +4,8 @@
 #ifndef _CanDash2Structs_h
     #define _CanDash2Structs_h
 
+#include "AbstractCanMessageSender.h"
+
 // CANID: 128
 const unsigned long CAN_ID_DASH2 = 0x128;
 
@@ -121,12 +123,23 @@ class CanDash2PacketSender
         canMessageSender = object;
     }
 
-    void SendData(uint8_t driversSeatbeltLight, uint8_t sideLights, uint8_t lowBeam, uint8_t highBeam, uint8_t frontFog, uint8_t rearFog, uint8_t leftIndicator, uint8_t rightIndicator, uint8_t dash_enabled, uint8_t fuel_low_light, uint8_t passenger_airbag_deactivated)
+    void SendData(
+        uint8_t driversSeatbeltLight,
+        uint8_t sideLights,
+        uint8_t lowBeam,
+        uint8_t highBeam,
+        uint8_t frontFog,
+        uint8_t rearFog,
+        uint8_t leftIndicator,
+        uint8_t rightIndicator,
+        uint8_t dashEnabled,
+        uint8_t fuelLowLight,
+        uint8_t passengerAirbagDeactivated)
     {
         PacketGenerator<CanDash2Packet> generator;
         generator.packet.data.Field1.driver_seatbelt_light = driversSeatbeltLight;
-        generator.packet.data.Field1.fuel_low_light = fuel_low_light;
-        generator.packet.data.Field1.passenger_airbag_deactivated = passenger_airbag_deactivated;
+        generator.packet.data.Field1.fuel_low_light = fuelLowLight;
+        generator.packet.data.Field1.passenger_airbag_deactivated = passengerAirbagDeactivated;
 
         generator.packet.data.Field5.side_lights_on = sideLights;
         generator.packet.data.Field5.low_beam_on = lowBeam;
@@ -136,7 +149,7 @@ class CanDash2PacketSender
         generator.packet.data.Field5.left_indicator_on = leftIndicator;
         generator.packet.data.Field5.right_indicator_on = rightIndicator;
 
-        generator.packet.data.Field6.dash_enabled = dash_enabled;
+        generator.packet.data.Field6.dash_enabled = dashEnabled;
 
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_DASH2, 0, sizeof(CanDash2Packet), serializedPacket);
