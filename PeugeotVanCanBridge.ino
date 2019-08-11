@@ -381,7 +381,6 @@ void CANSendIgnitionTaskFunction(void * parameter)
     VanVinToBridgeToCan vinDataToBridge;
 
     unsigned long currentTime = millis();
-    unsigned long lastVinTime = millis();
     uint8_t economyMode = 0;
     uint8_t ignition = 0;
     uint8_t brightness = 15;
@@ -457,19 +456,15 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma region VIN sending
 
-        if (currentTime - lastVinTime > 500)
+        if (!canVinHandler->IsVinSet())
         {
-            lastVinTime = currentTime;
-            if (!canVinHandler->IsVinSet())
+            if (xQueueReceive(vinQueue, &vinDataToBridge, portMAX_DELAY) == pdTRUE)
             {
-                if (xQueueReceive(vinQueue, &vinDataToBridge, portMAX_DELAY) == pdTRUE)
-                {
-                    canVinHandler->SetVin(vinDataToBridge.Vin);
-                }
+                canVinHandler->SetVin(vinDataToBridge.Vin);
             }
-
-            canVinHandler->Process(currentTime);
         }
+
+        canVinHandler->Process(currentTime);
 
         #pragma endregion
 
