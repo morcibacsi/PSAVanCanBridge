@@ -4,7 +4,7 @@
 #ifndef _CanWarningLogHandler_h
     #define _CanWarningLogHandler_h
 
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 #include "CanWarningLogStructs.h"
 
 class CanWarningLogHandler

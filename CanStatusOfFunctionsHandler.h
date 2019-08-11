@@ -4,7 +4,7 @@
 #ifndef _CanStatusOfFunctionsHandler_h
     #define _CanStatusOfFunctionsHandler_h
 
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 #include "CanStatusOfFunctionsStructs.h"
 
 class CanStatusOfFunctionsHandler

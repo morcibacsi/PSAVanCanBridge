@@ -4,7 +4,7 @@
     #define _CanVinHandler_h
 
 #include "CanVinStructs.h"
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 
 class CanVinHandler
 {

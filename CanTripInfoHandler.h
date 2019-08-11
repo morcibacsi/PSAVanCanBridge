@@ -6,7 +6,7 @@
 #include "CanTrip0Structs.h"
 #include "CanTrip1Structs.h"
 #include "CanTrip2Structs.h"
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 
 class CanTripInfoHandler
 {

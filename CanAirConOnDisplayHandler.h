@@ -5,7 +5,7 @@
     #define _CanAirConOnDisplayHandler_h
 
 #include "CanAirConOnDisplayStructs.h"
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 
 class CanAirConOnDisplayHandler
 {

@@ -5,7 +5,7 @@
 
 #include "CanMessageHandlerBase.h"
 #include "CanSpeedAndRpmStructs.h"
-#include "CanMessageSender.h"
+#include "AbstractCanMessageSender.h"
 
 class CanSpeedAndRpmHandler : public CanMessageHandlerBase
 {
