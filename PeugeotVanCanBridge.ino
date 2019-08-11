@@ -200,7 +200,7 @@ void setup()
     xTaskCreatePinnedToCore(
         CANSendIgnitionTaskFunction,    // Function to implement the task
         "CANSendIgnitionTask",          // Name of the task
-        10000,                          // Stack size in words
+        15000,                          // Stack size in words
         NULL,                           // Task input parameter
         2,                              // Priority of the task
         &CANSendIgnitionTask,           // Task handle.
@@ -209,7 +209,7 @@ void setup()
     xTaskCreatePinnedToCore(
         CANSendDataTaskFunction,        // Function to implement the task
         "CANSendDataTask",              // Name of the task
-        10000,                          // Stack size in words
+        15000,                          // Stack size in words
         NULL,                           // Task input parameter 
         0,                              // Priority of the task
         &CANSendDataTask,               // Task handle.
@@ -218,7 +218,7 @@ void setup()
     xTaskCreatePinnedToCore(
         VANTask,                        // Function to implement the task
         "VANReadTask",                  // Name of the task
-        10000,                          // Stack size in words
+        20000,                          // Stack size in words
         NULL,                           // Task input parameter
         1,                              // Priority of the task
         &VANReadTask,                   // Task handle.
@@ -499,7 +499,8 @@ void VANTask(void * parameter)
 
     for (;;)
     {
-        if (millis() - lastMillis > 10)
+        currentTime = millis();
+        if (currentTime - lastMillis > 10)
         {
             VAN_RX.Receive(&vanMessageLength, vanMessage);
             ///*
