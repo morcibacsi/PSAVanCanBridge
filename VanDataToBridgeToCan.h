@@ -4,6 +4,9 @@
 #ifndef _VanDataToBridgeToCan_h
     #define _VanDataToBridgeToCan_h
 
+#include "LightStatus.h"
+#include "DashIcons1.h"
+
 struct VanDataToBridgeToCan
 {
     int Speed = 0;
@@ -25,22 +28,9 @@ struct VanDataToBridgeToCan
     uint8_t IsWindowHeatingOn = 0;
     uint8_t IsAirRecyclingOn = 0;
     uint8_t AirConFanSpeed = 0;
-    uint8_t SeatBeltWarning = 0;
-    uint8_t LowBeam = 0;
-    uint8_t HighBeam = 0;
-    uint8_t FrontFog = 0;
-    uint8_t RearFog = 0;
-    uint8_t LeftIndicator = 0;
-    uint8_t RightIndicator = 0;
-    uint8_t SideLights = 0;
     uint8_t Ignition = 0;
-    uint8_t FuelLowLight = 0;
-    uint8_t PassengerAirbag = 0;
-    uint8_t Handbrake = 0;
-    uint8_t Abs = 0;
-    uint8_t Esp = 0;
-    uint8_t Mil = 0;
-    uint8_t Airbag = 0;
     uint8_t FuelLevel = 0;
+    LightStatus LightStatuses;
+    DashIcons1 DashIcons1Field;
 };
 #endif

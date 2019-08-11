@@ -22,9 +22,6 @@
 #include "CanMessageSender.h"
 #include "CanDisplayStructs.h"
 #include "CanDash1Structs.h"
-#include "CanDash2Structs.h"
-#include "CanDash3Structs.h"
-#include "CanDash4Structs.h"
 #include "CanIgnitionStructs.h"
 #include "CanMenuStructs.h"
 #include "CanDoorStatusStructs.h"
@@ -37,7 +34,9 @@
 #include "CanStatusOfFunctionsHandler.h"
 #include "CanWarningLogHandler.h"
 #include "CanSpeedAndRpmHandler.h"
-
+#include "CanDash2MessageHandler.h"
+#include "CanDash3MessageHandler.h"
+#include "CanDash4MessageHandler.h"
 #include "CanDisplayPopupHandler.h"
 #include "VanCanDisplayPopupMap.h"
 
@@ -53,6 +52,8 @@
 #include "VanRadioRemoteStructs.h"
 #include "VanCanAirConditionerSpeedMap.h"
 #include "DoorStatus.h"
+#include "LightStatus.h"
+#include "DashIcons1.h"
 #include "VanDataToBridgeToCan.h"
 
 #pragma endregion
@@ -81,8 +82,6 @@ const uint8_t CAN_TX_PIN = 32;
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 
 const int CAN_RADIO_INTERVAL = 100;
-const int CAN_LIGHTS_INTERVAL = 100;
-const int CAN_DASH_ICONS_INTERVAL = 100;
 
 const bool SILENT_MODE = false;
 
@@ -123,9 +122,9 @@ VanCanAirConditionerSpeedMap *vanCanAirConditionerSpeedMap;
 CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
 CanWarningLogHandler *canWarningLogHandler;
 CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
-CanDash2PacketSender *dash2Sender;
-CanDash3PacketSender *dash3Sender;
-CanDash4PacketSender *dash4Sender;
+CanDash2MessageHandler *canDash2MessageHandler;
+CanDash3MessageHandler *canDash3MessageHandler;
+CanDash4MessageHandler *canDash4MessageHandler;
 
 AbsSer *serialPort;
 
@@ -193,9 +192,9 @@ void setup()
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
     canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
-    dash2Sender = new CanDash2PacketSender(CANInterface);
-    dash3Sender = new CanDash3PacketSender(CANInterface);
-    dash4Sender = new CanDash4PacketSender(CANInterface);
+    canDash2MessageHandler = new CanDash2MessageHandler(CANInterface);
+    canDash3MessageHandler = new CanDash3MessageHandler(CANInterface);
+    canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
 
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
@@ -274,8 +273,6 @@ void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
     unsigned long previousRadioTime = millis();
-    unsigned long previousLightsTime = millis();
-    unsigned long previousDashIconsTime = millis();
     uint8_t ignition = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
@@ -359,44 +356,26 @@ void CANSendDataTaskFunction(void * parameter)
             #pragma endregion
 
             #pragma region Lights
-            if (currentTime - previousLightsTime > CAN_LIGHTS_INTERVAL)
-            {
-                previousLightsTime = currentTime;
 
-                dash2Sender->SendData(
-                    dataToBridge.SeatBeltWarning,
-                    dataToBridge.SideLights,
-                    dataToBridge.LowBeam,
-                    dataToBridge.HighBeam,
-                    dataToBridge.FrontFog,
-                    dataToBridge.RearFog,
-                    dataToBridge.LeftIndicator,
-                    dataToBridge.RightIndicator,
-                    ignition,
-                    dataToBridge.FuelLowLight,
-                    dataToBridge.PassengerAirbag
-                    );
-            }
+            canDash2MessageHandler->SetData(
+                dataToBridge.LightStatuses,
+                dataToBridge.DashIcons1Field,
+                ignition
+            );
+            canDash2MessageHandler->Process(currentTime);
+
             #pragma endregion
 
             #pragma region Dash icons
-            if (currentTime - previousDashIconsTime > CAN_DASH_ICONS_INTERVAL)
-            {
-                previousDashIconsTime = currentTime;
 
-                dash3Sender->SendData(
-                    dataToBridge.Handbrake,
-                    dataToBridge.Mil,
-                    dataToBridge.Abs,
-                    dataToBridge.Esp,
-                    dataToBridge.Airbag
-                );
+            canDash3MessageHandler->SetData(
+                dataToBridge.DashIcons1Field
+            );
+            canDash3MessageHandler->Process(currentTime);
 
-                dash4Sender->SendData(
-                    dataToBridge.FuelLevel
-                );
+            canDash4MessageHandler->SetData(dataToBridge.FuelLevel);
+            canDash4MessageHandler->Process(currentTime);
 
-            }
             #pragma endregion
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -440,7 +419,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
         #else
             ignition = 1;
             economyMode = 0;
-        #endif // USE_IGNITION_FROM_VAN_BUS
+        #endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
 
         if (dataToBridge.NightMode)
         {
@@ -683,14 +662,15 @@ void VANTask(void * parameter)
                                 break;
                         }
                     }
-                    dataToBridge.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
-                    dataToBridge.FuelLowLight = packet.data.Field6.fuel_low_light;
-                    dataToBridge.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
-                    dataToBridge.Handbrake = packet.data.Field5.handbrake;
-                    dataToBridge.Abs = packet.data.Field2.abs;
-                    dataToBridge.Esp = packet.data.Field2.esp;
-                    dataToBridge.Mil = packet.data.Field2.mil;
-                    dataToBridge.Airbag = packet.data.Field3.airbag;
+
+                    dataToBridge.DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
+                    dataToBridge.DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_low_light;
+                    dataToBridge.DashIcons1Field.status.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
+                    dataToBridge.DashIcons1Field.status.Handbrake = packet.data.Field5.handbrake;
+                    dataToBridge.DashIcons1Field.status.Abs = packet.data.Field2.abs;
+                    dataToBridge.DashIcons1Field.status.Esp = packet.data.Field2.esp;
+                    dataToBridge.DashIcons1Field.status.Mil = packet.data.Field2.mil;
+                    dataToBridge.DashIcons1Field.status.Airbag = packet.data.Field3.airbag;
 
                     if (packet.data.Field5.seatbelt_warning)
                     {
@@ -782,7 +762,7 @@ void VANTask(void * parameter)
                     ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
                     ignitionDataToBridge.DashboardLightingEnabled = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
 
-                    dataToBridge.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+                    dataToBridge.LightStatuses.status.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
                     dataToBridge.Ignition = ignitionDataToBridge.Ignition;
 
                     xQueueOverwrite(ignitionQueue, (void*)& ignitionDataToBridge);
@@ -858,15 +838,15 @@ void VANTask(void * parameter)
                 else if (IsVanIdent(identByte1, identByte2, VAN_ID_LIGHTS_STATUS))
                 {
                     VanLightStatusPacket packet = DeSerialize<VanLightStatusPacket>(vanMessageWithoutId);
-                    dataToBridge.LowBeam = packet.data.LightsStatus.dipped_beam;
-                    dataToBridge.HighBeam = packet.data.LightsStatus.high_beam;
-                    dataToBridge.FrontFog = packet.data.LightsStatus.front_fog;
-                    dataToBridge.RearFog = packet.data.LightsStatus.rear_fog;
-                    dataToBridge.LeftIndicator = packet.data.LightsStatus.left_indicator;
-                    dataToBridge.RightIndicator = packet.data.LightsStatus.right_indicator;
+                    dataToBridge.LightStatuses.status.LowBeam = packet.data.LightsStatus.dipped_beam;
+                    dataToBridge.LightStatuses.status.HighBeam = packet.data.LightsStatus.high_beam;
+                    dataToBridge.LightStatuses.status.FrontFog = packet.data.LightsStatus.front_fog;
+                    dataToBridge.LightStatuses.status.RearFog = packet.data.LightsStatus.rear_fog;
+                    dataToBridge.LightStatuses.status.LeftIndicator = packet.data.LightsStatus.left_indicator;
+                    dataToBridge.LightStatuses.status.RightIndicator = packet.data.LightsStatus.right_indicator;
                     dataToBridge.FuelLevel = packet.data.FuelLevel;
 
-                    ignitionDataToBridge.NightMode = dataToBridge.LowBeam || dataToBridge.HighBeam;
+                    ignitionDataToBridge.NightMode = dataToBridge.LightStatuses.status.LowBeam || dataToBridge.LightStatuses.status.HighBeam;
                 }
                 #pragma endregion
                 if (!SILENT_MODE 

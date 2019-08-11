@@ -129,10 +129,13 @@
     <ClInclude Include="CanDash1Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanDash2MessageHandler.h" />
     <ClInclude Include="CanDash2Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanDash3MessageHandler.h" />
     <ClInclude Include="CanDash3Structs.h" />
+    <ClInclude Include="CanDash4MessageHandler.h" />
     <ClInclude Include="CanDash4Structs.h" />
     <ClInclude Include="CanDefineVehicleParameters.h" />
     <ClInclude Include="CanDisplayClockStructs.h">
@@ -156,6 +159,7 @@
     <ClInclude Include="CanMenuStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanMessageHandlerBase.h" />
     <ClInclude Include="CanMessageSender.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -213,6 +217,7 @@
     <ClInclude Include="cppQueue.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="DashIcons1.h" />
     <ClInclude Include="DoorStatus.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -220,6 +225,7 @@
     <ClInclude Include="IntegRadioHelper.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="LightStatus.h" />
     <ClInclude Include="PacketGenerator.h">
       <FileType>CppCode</FileType>
     </ClInclude>
