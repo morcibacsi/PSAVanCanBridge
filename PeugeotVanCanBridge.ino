@@ -661,13 +661,13 @@ void VANTask(void * parameter)
                     }
 
                     dataToBridge.DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
-                    dataToBridge.DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_low_light;
+                    dataToBridge.DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_level_low;
                     dataToBridge.DashIcons1Field.status.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
                     dataToBridge.DashIcons1Field.status.Handbrake = packet.data.Field5.handbrake;
                     dataToBridge.DashIcons1Field.status.Abs = packet.data.Field2.abs;
                     dataToBridge.DashIcons1Field.status.Esp = packet.data.Field2.esp;
                     dataToBridge.DashIcons1Field.status.Mil = packet.data.Field2.mil;
-                    dataToBridge.DashIcons1Field.status.Airbag = packet.data.Field3.airbag;
+                    dataToBridge.DashIcons1Field.status.Airbag = packet.data.Field3.side_airbag_faulty;
 
                     if (packet.data.Field5.seatbelt_warning)
                     {
