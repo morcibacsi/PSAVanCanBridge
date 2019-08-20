@@ -15,6 +15,7 @@ typedef struct {
     int Counter;
     bool Visible;
     ulong SetVisibleOnDisplayTime;
+    uint8_t VANByte;
 } CanDisplayPopupItem;
 
 #endif

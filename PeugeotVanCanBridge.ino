@@ -644,10 +644,45 @@ void VANTask(void * parameter)
                         item.MessageType = popupMapping->GetCanMessageIdFromVanMessage(packet.data.Message);
                         item.DoorStatus1 = 0;
                         item.DoorStatus2 = 0;
-                        canPopupHandler->QueueNewMessage(item);
+                        item.VANByte = packet.data.Message;
 
                         switch (packet.data.Message)
                         {
+                            case VAN_POPUP_MSG_FUEL_TANK_ACCESS_OPEN:
+                            {
+                                item.DoorStatus2 = 0x40;
+                                break;
+                            }
+                            case VAN_POPUP_MSG_TYRES_PUNCTURED:
+                            {
+                                item.DoorStatus1 = 0xFF;
+                                break;
+                            }
+                            case VAN_POPUP_MSG_SEAT_BELT_REMINDER:
+                            {
+                                item.DoorStatus1 = 0xFF;
+                                break;
+                            }
+                            case VAN_POPUP_MSG_HILL_HOLDER_ACTIVE:
+                            {
+                                // on some screens it displays seatbelt related message
+                                item.DoorStatus1 = 0x08;
+                                break;
+                            }
+                            case VAN_POPUP_MSG_WHEEL_PRESSURE_SENSOR_BATTERY_LOW:
+                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING0:
+                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING1:
+                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING2:
+                            {
+                                item.DoorStatus1 = 0xFF;
+                                break;
+                            }
+                            case VAN_POPUP_MSG_HEADLIGHT_BEND_SYSTEM_ACTIVATED:
+                            {
+                                // on some screens it displays seatbelt related message
+                                item.DoorStatus1 = 0x02;
+                                break;
+                            }
                             case VAN_POPUP_MSG_DEADLOCKING_ACTIVE:
                                 canStatusOfFunctionsHandler->SetAutomaticDoorLockingEnabled();
                                 break;
@@ -670,6 +705,8 @@ void VANTask(void * parameter)
                             default:
                                 break;
                         }
+
+                        canPopupHandler->QueueNewMessage(item);
                     }
 
                     dataToBridge.DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;

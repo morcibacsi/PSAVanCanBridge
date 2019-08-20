@@ -173,7 +173,7 @@ typedef struct {
     uint8_t                     : 1; // bit 4
     uint8_t                     : 1; // bit 5
     uint8_t is_fuel_flap_open   : 1; // bit 6
-    uint8_t                     : 1; // bit 7
+    uint8_t is_rear_screen_open : 1; // bit 7
 } CanDisplayDoorStatus2Struct;
 
 typedef union {
