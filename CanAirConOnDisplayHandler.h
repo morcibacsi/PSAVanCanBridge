@@ -7,12 +7,10 @@
 #include "CanAirConOnDisplayStructs.h"
 #include "AbstractCanMessageSender.h"
 
-class CanAirConOnDisplayHandler
+class CanAirConOnDisplayHandler : public CanMessageHandlerBase
 {
-    const int CAN_AIRCON_INTERVAL = 100;
-    unsigned long previousTime = millis();
+    static const int CAN_AIRCON_INTERVAL = 100;
 
-    AbstractCanMessageSender *canMessageSender;
     uint8_t FanSpeed;
     uint8_t FanSpeedChangedCounter;
 
@@ -26,62 +24,89 @@ class CanAirConOnDisplayHandler
     uint8_t prevFanSpeed; 
     uint8_t prevRecyclingOn;
 
-    public:
-    CanAirConOnDisplayHandler(AbstractCanMessageSender * object)
+    bool sendMessageOnCan;
+
+    CanAirConditionOnDisplayPacketSender* acSender;
+
+    virtual void InternalProcess()
     {
-        canMessageSender = object;
+        if (sendMessageOnCan)
+        {
+            if (sendMessageOnCan)
+            {
+                acSender->SendACDataToDisplay(
+                    prevTemperatureLeft,
+                    prevTemperatureRight,
+                    prevDirection,
+                    prevAutoMode,
+                    prevAcOff,
+                    prevOff,
+                    prevWindshield,
+                    prevFanSpeed,
+                    prevRecyclingOn
+                );
+            }
+        }
+    }
+
+    public:
+    CanAirConOnDisplayHandler(AbstractCanMessageSender * object) : CanMessageHandlerBase(object, CAN_AIRCON_INTERVAL)
+    {
+        acSender = new CanAirConditionOnDisplayPacketSender(object);
         FanSpeedChangedCounter = 0;
     }
 
-    void SendCanAirConToDisplay(unsigned long currentTime, float temperatureLeft, float temperatureRight, uint8_t direction, uint8_t autoMode, uint8_t acOff, uint8_t off, uint8_t windshield, uint8_t fanSpeed, uint8_t recyclingOn)
+    void SetData(
+        float temperatureLeft,
+        float temperatureRight,
+        uint8_t direction,
+        uint8_t autoMode,
+        uint8_t acOff,
+        uint8_t off,
+        uint8_t windshield,
+        uint8_t fanSpeed,
+        uint8_t recyclingOn
+    )
     {
-        if (currentTime - previousTime > CAN_AIRCON_INTERVAL)
+        // add some tolerance on the fan speed to avoid 'flickering'
+        if (FanSpeed != fanSpeed)
         {
-            previousTime = currentTime;
+            FanSpeedChangedCounter++;
 
-            // add some tolerance on the fan speed to avoid 'flickering'
-            if (FanSpeed != fanSpeed)
+            if (FanSpeedChangedCounter == 3)
             {
-                FanSpeedChangedCounter++;
-
-                if (FanSpeedChangedCounter == 3)
-                {
-                    FanSpeed = fanSpeed;
-                    FanSpeedChangedCounter = 0;
-                }
-            }
-            else
-            {
+                FanSpeed = fanSpeed;
                 FanSpeedChangedCounter = 0;
             }
+        }
+        else
+        {
+            FanSpeedChangedCounter = 0;
+        }
 
-            // spare some bandwidth on CAN bus
-            const bool sendMessageOnCan =
-                prevTemperatureLeft != temperatureLeft || 
-                prevTemperatureRight != temperatureRight || 
-                prevDirection != direction || 
-                prevAutoMode != autoMode || 
-                prevAcOff != acOff || 
-                prevOff != off || 
-                prevWindshield != windshield || 
-                prevFanSpeed != FanSpeed || 
-                prevRecyclingOn != recyclingOn;
+        // spare some bandwidth on CAN bus
+        sendMessageOnCan =
+            prevTemperatureLeft != temperatureLeft || 
+            prevTemperatureRight != temperatureRight || 
+            prevDirection != direction || 
+            prevAutoMode != autoMode || 
+            prevAcOff != acOff || 
+            prevOff != off || 
+            prevWindshield != windshield || 
+            prevFanSpeed != FanSpeed || 
+            prevRecyclingOn != recyclingOn;
 
-            if (sendMessageOnCan)
-            {
-                prevTemperatureLeft = temperatureLeft;
-                prevTemperatureRight = temperatureRight;
-                prevDirection = direction;
-                prevAutoMode = autoMode; 
-                prevAcOff = acOff;
-                prevOff = off;
-                prevWindshield = windshield;
-                prevFanSpeed = FanSpeed;
-                prevRecyclingOn = recyclingOn;
-
-                CanAirConditionOnDisplayPacketSender acSender(canMessageSender);
-                acSender.SendACDataToDisplay(temperatureLeft, temperatureRight, direction, autoMode, acOff, off, windshield, FanSpeed, recyclingOn);
-            }
+        if (sendMessageOnCan)
+        {
+            prevTemperatureLeft = temperatureLeft;
+            prevTemperatureRight = temperatureRight;
+            prevDirection = direction;
+            prevAutoMode = autoMode;
+            prevAcOff = acOff;
+            prevOff = off;
+            prevWindshield = windshield;
+            prevFanSpeed = FanSpeed;
+            prevRecyclingOn = recyclingOn;
         }
     }
 };

@@ -341,8 +341,7 @@ void CANSendDataTaskFunction(void * parameter)
 
             if (!canPopupHandler->IsPopupVisible())
             {
-                canAirConOnDisplayHandler->SendCanAirConToDisplay(
-                    currentTime,
+                canAirConOnDisplayHandler->SetData(
                     dataToBridge.InternalTemperature, 
                     dataToBridge.InternalTemperature, 
                     0, 
@@ -352,6 +351,7 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
                     dataToBridge.AirConFanSpeed,
                     dataToBridge.IsAirRecyclingOn);
+                canAirConOnDisplayHandler->Process(currentTime);
             }
 
             #pragma endregion
