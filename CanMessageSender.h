@@ -72,7 +72,7 @@ class CanMessageSender : public AbstractCanMessageSender {
 
       }
 
-      virtual void ReadMessage(uint8_t *len, uint8_t *buf)
+      virtual void ReadMessage(uint32_t* canId, uint8_t* len, uint8_t* buf)
       {
           can_message_t rx_msg;
           ESP_ERROR_CHECK(can_receive(&rx_msg, portMAX_DELAY));

@@ -19,7 +19,8 @@
 #include "Serializer.h"
 #include "PacketGenerator.h"
 
-#include "CanMessageSender.h"
+//#include "CanMessageSender.h"
+#include "CanMessageSenderEsp32Arduino.h"
 #include "CanDisplayStructs.h"
 #include "CanDash1Structs.h"
 #include "CanIgnitionStructs.h"
@@ -184,7 +185,8 @@ void setup()
 
     VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL);
 
-    CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
+    //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
+    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
     CANInterface->Init();
 
     canPopupHandler = new CanDisplayPopupHandler(CANInterface);
@@ -231,6 +233,7 @@ void setup()
         1,                              // Priority of the task
         &VANReadTask,                   // Task handle.
         1);                             // Core where the task should run
+//
 /*
     xTaskCreatePinnedToCore(
         CANReadTaskFunction,            // Function to implement the task
@@ -249,27 +252,36 @@ void CANReadTaskFunction(void * parameter)
     //unsigned long currentTime = millis();
     uint8_t canReadMessage[20] = { 0 };
     uint8_t canReadMessageLength = 0;
+    uint32_t canId = 0;
     char tmp[3];
 
     for (;;)
     {
         //currentTime = millis();
-        CANInterface->ReadMessage(&canReadMessageLength, canReadMessage);
-        serialPort->print("CAN READ: ");
-
-        for (size_t i = 0; i < canReadMessageLength; i++)
+        CANInterface->ReadMessage(&canId, &canReadMessageLength, canReadMessage);
+        //if (canId == 0x3F6)
         {
-            snprintf(tmp, 3, "%02X", canReadMessage[i]);
-            if (i != canReadMessageLength - 1)
+            serialPort->print("CANFRAME: ");
+            serialPort->print(canId, HEX);
+            serialPort->print(" ");
+            serialPort->print(canReadMessageLength, DEC);
+            serialPort->print(" ");
+
+            for (size_t i = 0; i < canReadMessageLength; i++)
             {
-                serialPort->print(tmp);
-                serialPort->print(" ");
-            }
-            else
-            {
-                serialPort->println(tmp);
+                snprintf(tmp, 3, "%02X", canReadMessage[i]);
+                if (i != canReadMessageLength - 1)
+                {
+                    serialPort->print(tmp);
+                    serialPort->print(" ");
+                }
+                else
+                {
+                    serialPort->println(tmp);
+                }
             }
         }
+
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
