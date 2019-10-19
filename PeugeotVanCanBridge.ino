@@ -6,6 +6,11 @@
  * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied.
 */
+#define USE_BLUETOOTH_SERIAL
+#define USE_IGNITION_SIGNAL_FROM_VAN_BUS
+#define HW_VERSION 2
+//#define USE_NEW_AIRCON_DISPLAY_SENDER
+
 #pragma region Includes
 #include <Arduino.h>
 #include <esp32_arduino_rmt_van_rx.h>
@@ -30,7 +35,11 @@
 #include "CanRadioRemoteMessageHandler.h"
 #include "CanVinHandler.h"
 #include "CanTripInfoHandler.h"
-#include "CanAirConOnDisplayHandler.h"
+#ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+    #include "CanAirConOnDisplayHandler.h"
+#else
+    #include "CanAirConOnDisplayHandlerOrig.h"
+#endif
 #include "CanStatusOfFunctionsHandler.h"
 #include "CanWarningLogHandler.h"
 #include "CanSpeedAndRpmHandler.h"
@@ -59,9 +68,6 @@
 
 #pragma endregion
 
-#define USE_BLUETOOTH_SERIAL;
-#define USE_IGNITION_SIGNAL_FROM_VAN_BUS;
-#define HW_VERSION 2
 ESP32_RMT_VAN_RX VAN_RX;
 
 const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
@@ -354,6 +360,8 @@ void CANSendDataTaskFunction(void * parameter)
 
             if (!canPopupHandler->IsPopupVisible())
             {
+                ///*
+#ifdef USE_NEW_AIRCON_DISPLAY_SENDER
                 canAirConOnDisplayHandler->SetData(
                     dataToBridge.InternalTemperature, 
                     dataToBridge.InternalTemperature, 
@@ -365,6 +373,19 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.AirConFanSpeed,
                     dataToBridge.IsAirRecyclingOn);
                 canAirConOnDisplayHandler->Process(currentTime);
+#else
+                canAirConOnDisplayHandler->SendCanAirConToDisplay(
+                    currentTime,
+                    dataToBridge.InternalTemperature,
+                    dataToBridge.InternalTemperature,
+                    0,
+                    0, // auto mode
+                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
+                    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                    dataToBridge.AirConFanSpeed,
+                    dataToBridge.IsAirRecyclingOn);
+#endif
             }
 
             #pragma endregion
