@@ -260,33 +260,41 @@ void CANReadTaskFunction(void * parameter)
     //unsigned long currentTime = millis();
     uint8_t canReadMessage[20] = { 0 };
     uint8_t canReadMessageLength = 0;
-    uint32_t canId = 0;
+    uint16_t canId = 0;
     char tmp[3];
 
     for (;;)
     {
-        //currentTime = millis();
+        canId = 0;
+        canReadMessageLength = 0;
         CANInterface->ReadMessage(&canId, &canReadMessageLength, canReadMessage);
-        //if (canId == 0x3F6)
-        {
-            serialPort->print("CANFRAME: ");
-            serialPort->print(canId, HEX);
-            serialPort->print(" ");
-            serialPort->print(canReadMessageLength, DEC);
-            serialPort->print(" ");
 
-            for (size_t i = 0; i < canReadMessageLength; i++)
+        if (canId > 0)
+        {
+            //serialPort->print("CANFRAME: ");
+            //serialPort->print(canId, HEX);
+            //serialPort->print(" ");
+            //serialPort->print(canReadMessageLength, DEC);
+            //serialPort->print(" ");
+
+            //for (size_t i = 0; i < canReadMessageLength; i++)
+            //{
+            //    snprintf(tmp, 3, "%02X", canReadMessage[i]);
+            //    if (i != canReadMessageLength - 1)
+            //    {
+            //        serialPort->print(tmp);
+            //        serialPort->print(" ");
+            //    }
+            //}
+            //serialPort->println(tmp);
+        }
+
+        if (canId == CAN_ID_MENU_BUTTONS)
+        {
+            CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
+            if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
             {
-                snprintf(tmp, 3, "%02X", canReadMessage[i]);
-                if (i != canReadMessageLength - 1)
-                {
-                    serialPort->print(tmp);
-                    serialPort->print(" ");
-                }
-                else
-                {
-                    serialPort->println(tmp);
-                }
+                canPopupHandler->HideCurrentPopupMessage();
             }
         }
 

@@ -29,7 +29,7 @@ class CanMessageSenderEsp32Arduino : public AbstractCanMessageSender {
           ESP32Can.CANInit(CAN_cfg);
       }
 
-      virtual void SendMessage(unsigned long canId, uint8_t ext, uint8_t sizeOfByteArray, unsigned char *byteArray)
+      virtual void SendMessage(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, unsigned char *byteArray)
       {
           CAN_frame_t tx_frame;
           tx_frame.FIR.B.FF = CAN_frame_std;
@@ -46,7 +46,7 @@ class CanMessageSenderEsp32Arduino : public AbstractCanMessageSender {
           xSemaphoreGive(canSemaphore);
       }
 
-      virtual void ReadMessage(uint32_t *canId, uint8_t *len, uint8_t *buf)
+      virtual void ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf)
       {
           CAN_frame_t rx_frame;
 

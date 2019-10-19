@@ -107,7 +107,7 @@ class CanDisplayPopupHandler
 
         if (itemCanBeQueued)
         {
-            Log.notice("%d: Queue message(%d): %x doors: %x\n", millis(), item.Counter, item.MessageType, item.DoorStatus1);
+            //Log.notice("%d: Queue message(%d): %x doors: %x\n", millis(), item.Counter, item.MessageType, item.DoorStatus1);
             xSemaphoreTake(canSemaphore, portMAX_DELAY);
             popupMessageQueue->push(&item);
             xSemaphoreGive(canSemaphore);
@@ -151,7 +151,7 @@ class CanDisplayPopupHandler
     }
 
     void ShowCanPopupMessage(uint8_t category, uint8_t messageType, int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2, int counter) {
-        Log.notice("%d: Show message(%d): %x doors: %x\n", millis(), counter, messageType, doorStatus1);
+        //Log.notice("%d: Show message(%d): %x doors: %x\n", millis(), counter, messageType, doorStatus1);
         CanDisplayPacketSender displayMessageSender(canMessageSender);
 
         uint8_t messageSentCount = 0;
@@ -177,7 +177,7 @@ class CanDisplayPopupHandler
 
     void HideCanPopupMessage(uint8_t messageType, uint8_t doorStatus, int counter)
     {
-        Log.notice("%d: Hide message(%d): %x  doors: %x\n", millis() - lastPopupMessage.SetVisibleOnDisplayTime, counter, messageType, doorStatus);
+        //Log.notice("%d: Hide message(%d): %x  doors: %x\n", millis() - lastPopupMessage.SetVisibleOnDisplayTime, counter, messageType, doorStatus);
         CanDisplayPacketSender displayMessageSender(canMessageSender);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
@@ -189,6 +189,11 @@ class CanDisplayPopupHandler
         lastPopupMessage.DisplayTimeInMilliSeconds = 0;
         lastPopupMessage.Visible = false;
         canPopupVisible = false;
+    }
+
+    void HideCurrentPopupMessage()
+    {
+        HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
     }
 
     bool IsPopupVisible()
