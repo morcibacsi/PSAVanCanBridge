@@ -41,6 +41,7 @@
 #include "VanCanDisplayPopupMap.h"
 
 #include "VanMessageSender.h"
+#include "VanCdChangerStructs.h"
 #include "VanAirConditioner1Structs.h"
 #include "VanAirConditioner2Structs.h"
 #include "VanDisplayStructs.h"
