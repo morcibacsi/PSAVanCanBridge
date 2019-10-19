@@ -346,7 +346,9 @@ void CANSendDataTaskFunction(void * parameter)
                 dataToBridge.Trip2Speed,
                 dataToBridge.Trip2Consumption,
                 dataToBridge.FuelConsumption,
-                dataToBridge.FuelLeftToPump
+                //dataToBridge.FuelLeftToPump
+                dataToBridge.FuelLevel
+
             );
             tripInfoHandler->Process(currentTime);
 
