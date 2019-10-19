@@ -111,7 +111,7 @@ public:
         packet.data.ExternalTemperature.value = GetTemperatureToSendToDisplay(externalTemperature);
 
         unsigned char *serializedPacket = Serialize<VanDashboardPacket>(packet);
-        vanMessageSender->set_channel_for_transmit_message(channelId, 0x8a, 4, serializedPacket, sizeof(packet), 0);
+        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_DASHBOARD, serializedPacket, sizeof(packet), 0);
         memset(&packet, 0, 0);
         delete[] serializedPacket;
     }

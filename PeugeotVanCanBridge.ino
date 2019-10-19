@@ -756,8 +756,8 @@ void VANTask(void * parameter)
                     }
                     else
                     {
-                        dataToBridge.Rpm = SwapHiByteAndLoByte(packet.data.Rpm.data) / 8;
-                        dataToBridge.Speed = SwapHiByteAndLoByte(packet.data.Speed.data) / 100;
+                        dataToBridge.Rpm = GetRpmFromVanData(packet.data.Rpm.data);
+                        dataToBridge.Speed = GetSpeedFromVanData(packet.data.Speed.data);
                     }
                 }
                 #pragma endregion

@@ -309,7 +309,7 @@ public:
         serializedPacket[12] = 0xFF;
         serializedPacket[13] = 0xFF;
 
-        vanMessageSender->set_channel_for_transmit_message(channelId, 0x52, 4, serializedPacket, sizeof(packet), 0);
+        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_DISPLAY_POPUP, serializedPacket, sizeof(packet), 0);
         memset(&packet, 0, 0);
         delete[] serializedPacket;
         vanMessageSender->disable_channel(channelId);

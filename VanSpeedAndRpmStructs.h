@@ -33,10 +33,20 @@ typedef union VanSpeedAndRpmPacket {
     uint8_t VanSpeedAndRpmPacket[sizeof(VanSpeedAndRpmStruct)];
 };
 
-unsigned int VanDecodeRpmOrSpeed(unsigned int input)
+uint16_t SwapHiByteAndLoByte(uint16_t input)
 {
     // swap low order byte with high order byte
     return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
+}
+
+uint16_t GetRpmFromVanData(uint16_t input)
+{
+    return SwapHiByteAndLoByte(input) / 8;
+}
+
+uint8_t GetSpeedFromVanData(uint16_t input)
+{
+    return SwapHiByteAndLoByte(input) / 100;
 }
 
 #pragma region Sender class
@@ -61,7 +71,7 @@ public:
 
         //printf("sending speed: %d (%#x)\n", x, x);
         unsigned char *serializedPacket = Serialize<VanSpeedAndRpmPacket>(packet);
-        vanMessageSender->set_channel_for_transmit_message(channelId, 0x82, 4, serializedPacket, sizeof(packet), 0);
+        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_SPEED_RPM, serializedPacket, sizeof(packet), 0);
         memset(&packet, 0, 0);
         delete[] serializedPacket;
         //sequenceCounter++;
