@@ -477,11 +477,9 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma region Ignition signal for radio
 
-        if (ignition == 1)
-        {
-            CanIgnitionPacketSender radioIgnition(CANInterface);
-            radioIgnition.SendIgnition(economyMode, brightness, dataToBridge.DashboardLightingEnabled);
-        }
+        CanIgnitionPacketSender radioIgnition(CANInterface);
+        radioIgnition.SendIgnition(economyMode, brightness, dataToBridge.DashboardLightingEnabled);
+
         #pragma endregion
 
         vTaskDelay(3 / portTICK_PERIOD_MS);
