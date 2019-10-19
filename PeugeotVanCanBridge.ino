@@ -960,7 +960,7 @@ void VANTask(void * parameter)
 bool IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
 {
     bool result = false;
-    int combined = byte1 << 8 | byte2;
+    uint16_t combined = byte1 << 8 | byte2;
     result = combined >> 4 == ident;
     return result;
 }
