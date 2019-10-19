@@ -5,7 +5,7 @@
     #define _CanStatusOfFunctionsStructs_h
 
 // CANID: 2E1
-const unsigned long CAN_ID_STATUS_OF_FUNCTIONS = 0x2E1;
+const uint16_t CAN_ID_STATUS_OF_FUNCTIONS = 0x2E1;
 
 // Read right to left in documentation
 typedef struct {

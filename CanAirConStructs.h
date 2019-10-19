@@ -5,7 +5,7 @@
     #define _CanAirConStructs_h
 
 // CANID: 1D0
-const unsigned long CAN_ID_AIRCON = 0x1D0;
+const uint16_t CAN_ID_AIRCON = 0x1D0;
 
 const uint8_t CAN_AIRCON_DIR_FRONT          = B011;
 const uint8_t CAN_AIRCON_DIR_UP             = B100;

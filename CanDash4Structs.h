@@ -5,7 +5,7 @@
     #define _CanDash4Structs_h
 
 // CANID: 161
-const unsigned long CAN_ID_DASH4 = 0x161;
+const uint16_t CAN_ID_DASH4 = 0x161;
 
 // Read left to right in documentation
 typedef struct CanDash4Struct {

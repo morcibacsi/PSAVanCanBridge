@@ -6,7 +6,7 @@
 
 
 // CANID: 276 (Peugeot 301 display)
-const unsigned long CAN_ID_DISPLAY_CLOCK = 0x276;
+const uint16_t CAN_ID_DISPLAY_CLOCK = 0x276;
 
 // Read left to right in documentation
 typedef struct CanDisplayClockStruct {

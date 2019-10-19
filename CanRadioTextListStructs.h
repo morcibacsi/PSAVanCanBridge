@@ -5,7 +5,7 @@
     #define _CanRadioTextListStructs_h
 
 // CANID: 125
-const unsigned long CAN_ID_RADIO_TEXT_LIST = 0x125;
+const uint16_t CAN_ID_RADIO_TEXT_LIST = 0x125;
 
 const uint8_t CAN_RADIO_TEXT_LIST_CLOSE  = 0;
 const uint8_t CAN_RADIO_TEXT_LIST_RADIO1 = 1;

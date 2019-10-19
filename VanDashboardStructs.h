@@ -5,7 +5,7 @@
 #define _VanDashboardStructs_h
 
 // VANID: 8A4
-const unsigned long VAN_ID_DASHBOARD = 0x8A4;
+const uint16_t VAN_ID_DASHBOARD = 0x8A4;
 const uint8_t VAN_DASHBOARD_LIGHTS_OFF = 0x8F;
 
 // Read right to left in documentation

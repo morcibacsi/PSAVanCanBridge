@@ -5,7 +5,7 @@
     #define _CanRadioRdsTextStructs_h
 
 // CANID: 2A5
-const unsigned long CAN_ID_RADIO_RDS_TEXT = 0x2A5;
+const uint16_t CAN_ID_RADIO_RDS_TEXT = 0x2A5;
 
 // Read left to right in documentation
 typedef struct CanRadioRdsTextStruct {

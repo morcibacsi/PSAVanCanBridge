@@ -5,7 +5,7 @@
     #define _CanRadioVolumeStructs_h
 
 // CANID: 1A5
-const unsigned long CAN_ID_RADIO_VOLUME = 0x1A5;
+const uint16_t CAN_ID_RADIO_VOLUME = 0x1A5;
 
 const uint8_t CAN_RADIO_VOLUME_SCROLLING_ON  = B000;
 const uint8_t CAN_RADIO_VOLUME_SCROLLING_OFF = B111;
@@ -36,7 +36,7 @@ public:
         canMessageSender = object;
     }
 
-    void Send(int volume, bool changing)
+    void Send(uint8_t volume, bool changing)
     {
         PacketGenerator<CanRadioAudioSettingsPacket> generator;
 

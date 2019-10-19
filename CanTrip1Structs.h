@@ -5,7 +5,7 @@
     #define _CanTrip1Structs_h
 
 // CANID: 2A1
-const unsigned long CAN_ID_TRIP1 = 0x2A1;
+const uint16_t CAN_ID_TRIP1 = 0x2A1;
 
 // Read left to right in documentation
 typedef struct CanTrip1Struct {

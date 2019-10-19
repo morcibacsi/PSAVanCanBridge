@@ -5,7 +5,7 @@
     #define _VanCarStatusWithTripComputerStructs_h
 
 // VANID: 564
-const unsigned long VAN_ID_CARSTATUS = 0x564;
+const uint16_t VAN_ID_CARSTATUS = 0x564;
 
 // Read right to left in documentation
 typedef struct {

@@ -5,7 +5,7 @@
     #define _CanMenuStructs_h
 
 // CANID: 3E5
-const unsigned long CAN_ID_MENU_BUTTONS = 0x3E5;
+const uint16_t CAN_ID_MENU_BUTTONS = 0x3E5;
 
 const int CONST_UP_ARROW    = 119; //w
 const int CONST_DOWN_ARROW  = 115; //s
@@ -103,7 +103,7 @@ public:
         canMessageSender = object;
     }
 
-    void SendButtonCode(int buttonId)
+    void SendButtonCode(uint8_t buttonId)
     {
         PacketGenerator<CanMenuPacket> generator;
 

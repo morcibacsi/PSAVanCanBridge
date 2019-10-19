@@ -5,7 +5,7 @@
     #define _CanRadioInfoStructs_h
 
 // CANID: 265
-const unsigned long CAN_ID_RADIO_INFO = 0x265;
+const uint16_t CAN_ID_RADIO_INFO = 0x265;
 
 typedef struct {
     uint8_t reg_enabled  : 1; // bit 0

@@ -5,7 +5,7 @@
     #define _CanRadioAudioSettingsStructs_h
 
 // CANID: 1E5
-const unsigned long CAN_ID_RADIO_AUDIO_SETTINGS = 0x1E5;
+const uint16_t CAN_ID_RADIO_AUDIO_SETTINGS = 0x1E5;
 
 const uint8_t CAN_RADIO_AMBIENCE_NONE       = B00011;
 const uint8_t CAN_RADIO_AMBIENCE_CLASSICAL  = B00111;

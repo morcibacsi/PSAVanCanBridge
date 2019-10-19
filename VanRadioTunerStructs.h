@@ -5,7 +5,7 @@
     #define _VanRadioTunerMessageStructs_h
 
 // VANID: 554
-const unsigned long VAN_ID_RADIO_TUNER = 0x554;
+const uint16_t VAN_ID_RADIO_TUNER = 0x554;
 
 const uint8_t VAN_RADIO_TUNER_BAND_NONE  = 0;
 const uint8_t VAN_RADIO_TUNER_BAND_FM1   = 1;

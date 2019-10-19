@@ -7,10 +7,10 @@
 #include "AbstractCanMessageSender.h"
 
 // CANID: 0F6
-const unsigned long CAN_ID_DASH1 = 0x0F6;
+const uint16_t CAN_ID_DASH1 = 0x0F6;
 
-const int CAN_INDICATOR_LEFT  = 121; //y
-const int CAN_INDICATOR_RIGHT = 120; //x
+const uint8_t CAN_INDICATOR_LEFT  = 121; //y
+const uint8_t CAN_INDICATOR_RIGHT = 120; //x
 
 // Read right to left in documentation
 typedef struct {

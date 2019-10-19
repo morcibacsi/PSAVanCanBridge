@@ -6,7 +6,7 @@
 
 
 // CANID: 2E3
-const unsigned long CAN_ID_RADIO_MP3 = 0x2E3;
+const uint16_t CAN_ID_RADIO_MP3 = 0x2E3;
 
 //typedef struct {
 //    uint8_t volume       : 5; // bit 0-4

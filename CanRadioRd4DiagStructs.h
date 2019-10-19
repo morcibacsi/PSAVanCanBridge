@@ -5,8 +5,8 @@
     #define _CanRadioRd4DiagStructs_h
 
 // CANID: 760
-const unsigned long CAN_ID_RADIO_DIAG = 0x760;
-const unsigned long CAN_ID_RADIO_DIAG_ANSWER = 0x660;
+const uint16_t CAN_ID_RADIO_DIAG = 0x760;
+const uint16_t CAN_ID_RADIO_DIAG_ANSWER = 0x660;
 
 class CanRadioRd4DiagPacketSender
 {

@@ -5,7 +5,7 @@
     #define _CanDoorStatusStructs_h
 
 // CANID: 220
-const unsigned long CAN_ID_DOOR_STATUS = 0x220;
+const uint16_t CAN_ID_DOOR_STATUS = 0x220;
 
 // Read right to left in documentation
 ///*

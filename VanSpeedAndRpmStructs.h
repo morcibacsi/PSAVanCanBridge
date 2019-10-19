@@ -5,7 +5,7 @@
     #define _VanSpeedAndRpmStructs_h
 
 // VANID: 824
-const unsigned long VAN_ID_SPEED_RPM = 0x824;
+const uint16_t VAN_ID_SPEED_RPM = 0x824;
 
 // Read right to left in documentation
 typedef struct {

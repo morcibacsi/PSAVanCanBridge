@@ -5,17 +5,17 @@
     #define _VanCdChangerStructs_h
 
 // VANID: 4EC
-const unsigned long VAN_ID_CD_CHANGER = 0x4EC;
+const uint16_t VAN_ID_CD_CHANGER = 0x4EC;
 
-const unsigned long VAN_ID_CD_CHANGER_STATUS_OFF          = 0x41;
-const unsigned long VAN_ID_CD_CHANGER_STATUS_PAUSED       = 0xC1;
-const unsigned long VAN_ID_CD_CHANGER_STATUS_BUSY         = 0xD3;
-const unsigned long VAN_ID_CD_CHANGER_STATUS_PLAYING      = 0xC3;
-const unsigned long VAN_ID_CD_CHANGER_STATUS_FAST_FORWARD = 0xC4;
-const unsigned long VAN_ID_CD_CHANGER_STATUS_FAST_REWIND  = 0xC5;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_OFF          = 0x41;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_PAUSED       = 0xC1;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_BUSY         = 0xD3;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_PLAYING      = 0xC3;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_FAST_FORWARD = 0xC4;
+const uint8_t VAN_ID_CD_CHANGER_STATUS_FAST_REWIND  = 0xC5;
 
-const unsigned long VAN_ID_CD_CHANGER_CARTRIDGE_NOT_PRESENT = 0x06;
-const unsigned long VAN_ID_CD_CHANGER_CARTRIDGE_PRESENT     = 0x16;
+const uint8_t VAN_ID_CD_CHANGER_CARTRIDGE_NOT_PRESENT = 0x06;
+const uint8_t VAN_ID_CD_CHANGER_CARTRIDGE_PRESENT     = 0x16;
 
 typedef struct {
     uint8_t Cd1Present : 1; // bit 0

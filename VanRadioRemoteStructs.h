@@ -5,7 +5,7 @@
     #define _VanRadioRemoteStructs_h
 
 // VANID: 9C4
-const unsigned long VAN_ID_RADIO_REMOTE = 0x9C4;
+const uint16_t VAN_ID_RADIO_REMOTE = 0x9C4;
 
 // Read right to left in documentation
 typedef struct {

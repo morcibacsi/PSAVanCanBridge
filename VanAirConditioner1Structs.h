@@ -5,7 +5,7 @@
     #define _VanAirConditioner1Structs_h
 
 // VANID: 464
-const unsigned long VAN_ID_AIR_CONDITIONER_1 = 0x464;
+const uint16_t VAN_ID_AIR_CONDITIONER_1 = 0x464;
 
 // Read right to left in documentation
 typedef struct {

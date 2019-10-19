@@ -5,7 +5,7 @@
     #define _CanRadioRemoteStructs_h
 
 // CANID: 21F
-const unsigned long CAN_ID_RADIO_REMOTE = 0x21F;
+const uint16_t CAN_ID_RADIO_REMOTE = 0x21F;
 
 // Read right to left in documentation
 typedef struct {

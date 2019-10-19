@@ -7,7 +7,7 @@
 #include "AbstractCanMessageSender.h"
 
 // CANID: 128
-const unsigned long CAN_ID_DASH2 = 0x128;
+const uint16_t CAN_ID_DASH2 = 0x128;
 
 const uint8_t CAN_DASH_GEAR_P = 0x00;
 const uint8_t CAN_DASH_GEAR_R = 0x10;

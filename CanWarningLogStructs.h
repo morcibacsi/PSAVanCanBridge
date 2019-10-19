@@ -5,7 +5,7 @@
     #define _CanWarningLogStructs_h
 
 // CANID: 120
-const unsigned long CAN_ID_WARNING_LOG = 0x120;
+const uint16_t CAN_ID_WARNING_LOG = 0x120;
 
 const uint8_t CAN_WARNING_LOG_ENABLE = 0xFF;
 const uint8_t CAN_WARNING_LOG_DISABLE = 0x00;

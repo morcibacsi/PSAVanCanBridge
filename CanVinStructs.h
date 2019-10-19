@@ -5,11 +5,11 @@
     #define _CanVinStructs_h
 
 // CANID: 336
-const unsigned long CAN_ID_VIN_PART1 = 0x336;
+const uint16_t CAN_ID_VIN_PART1 = 0x336;
 // CANID: 3B6
-const unsigned long CAN_ID_VIN_PART2 = 0x3B6;
+const uint16_t CAN_ID_VIN_PART2 = 0x3B6;
 // CANID: 2B6
-const unsigned long CAN_ID_VIN_PART3 = 0x2B6;
+const uint16_t CAN_ID_VIN_PART3 = 0x2B6;
 
 // Read left to right in documentation
 

@@ -5,7 +5,7 @@
 #define _VanRadioInfoStructs_h
 
 // VANID: 4D4
-const unsigned long VAN_ID_RADIO_INFO = 0x4D4;
+const uint16_t VAN_ID_RADIO_INFO = 0x4D4;
 
 //Read right to left in documentation
 

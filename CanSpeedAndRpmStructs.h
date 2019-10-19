@@ -5,7 +5,7 @@
     #define _CanSpeedAndRpmStructs_h
 
 // CANID: 0B6
-const unsigned long CAN_ID_SPEED_AND_RPM = 0x0B6;
+const uint16_t CAN_ID_SPEED_AND_RPM = 0x0B6;
 
 typedef struct {
     unsigned short Data : 16;

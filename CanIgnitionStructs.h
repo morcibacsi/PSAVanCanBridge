@@ -7,7 +7,7 @@
 #include "AbstractCanMessageSender.h"
 
 // CANID: 036
-const unsigned long CAN_ID_IGNITION = 0x036;
+const uint16_t CAN_ID_IGNITION = 0x036;
 
 const int CAN_IGNITION_MODE_ON                = 0x01;
 const int CAN_IGNITION_MODE_OFF               = 0x02;

@@ -5,7 +5,7 @@
     #define _VanVinStructs_h
 
 // VANID: E24
-const unsigned long VAN_ID_VIN = 0xE24;
+const uint16_t VAN_ID_VIN = 0xE24;
 
 // Read left to right in documentation
 typedef struct VanVinStruct {

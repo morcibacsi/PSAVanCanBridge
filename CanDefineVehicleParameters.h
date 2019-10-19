@@ -5,7 +5,7 @@
     #define _CanDefineVehicleParameters_h
 
 // CANID: 361
-const unsigned long CAN_ID_DEFINE_VEHICLE_PARAMETERS = 0x361;
+const uint16_t CAN_ID_DEFINE_VEHICLE_PARAMETERS = 0x361;
 
 // Read right to left in documentation
 typedef struct {

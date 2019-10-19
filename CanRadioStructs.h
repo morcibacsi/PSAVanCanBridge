@@ -5,7 +5,7 @@
     #define _CanRadioStructs_h
 
 // CANID: 165
-const unsigned long CAN_ID_RADIO = 0x165;
+const uint16_t CAN_ID_RADIO = 0x165;
 
 const uint8_t CAN_RADIO_SOURCE_BLUETOOTH  = B111;
 const uint8_t CAN_RADIO_SOURCE_USB        = B110;

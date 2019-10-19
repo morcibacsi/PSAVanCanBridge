@@ -5,7 +5,7 @@
     #define _VanLightsStatusStructs_h
 
 // VANID: 4FC
-const unsigned long VAN_ID_LIGHTS_STATUS = 0x4FC;
+const uint16_t VAN_ID_LIGHTS_STATUS = 0x4FC;
 
 // Read right to left in documentation
 typedef struct {
