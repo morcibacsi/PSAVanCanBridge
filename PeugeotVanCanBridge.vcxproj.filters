@@ -231,6 +231,21 @@
     <ClInclude Include="CanRadioRemoteMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CanAirConOnDisplayHandlerOrig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanRadioRd4DiagStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanMessageSenderEsp32Arduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanCdChangerStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanDisplayStatusStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cppQueue.cpp">

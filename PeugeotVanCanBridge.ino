@@ -46,6 +46,7 @@
 #include "CanDash2MessageHandler.h"
 #include "CanDash3MessageHandler.h"
 #include "CanDash4MessageHandler.h"
+#include "CanDisplayStatusStructs.h"
 #include "CanDisplayPopupHandler.h"
 #include "VanCanDisplayPopupMap.h"
 
@@ -295,6 +296,19 @@ void CANReadTaskFunction(void * parameter)
             if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
             {
                 canPopupHandler->HideCurrentPopupMessage();
+            }
+        }
+        if (canId == CAN_ID_DISPLAYSTATUS)
+        {
+            CanDisplayStatusPacket packet = DeSerialize<CanDisplayStatusPacket>(canReadMessage);
+
+            if (packet.data.DistanceToDestination.Km == 2)
+            {
+                ESP.restart();
+            }
+            else if (packet.data.DistanceToDestination.Km == 4)
+            {
+                //TODO enter OTA mode
             }
         }
 

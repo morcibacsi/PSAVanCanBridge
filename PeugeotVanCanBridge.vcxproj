@@ -120,6 +120,7 @@
     <ClInclude Include="CanAirConOnDisplayHandler.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanAirConOnDisplayHandlerOrig.h" />
     <ClInclude Include="CanAirConOnDisplayStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -147,6 +148,7 @@
     <ClInclude Include="CanDisplayPopupItem.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanDisplayStatusStructs.h" />
     <ClInclude Include="CanDisplayStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -163,6 +165,7 @@
     <ClInclude Include="CanMessageSender.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanMessageSenderEsp32Arduino.h" />
     <ClInclude Include="CanRadioAudioSettingsStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -172,6 +175,7 @@
     <ClInclude Include="CanRadioMp3Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanRadioRd4DiagStructs.h" />
     <ClInclude Include="CanRadioRdsTextStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -248,6 +252,7 @@
     <ClInclude Include="VanCarStatusWithTripComputerStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanCdChangerStructs.h" />
     <ClInclude Include="VanDashboardStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>

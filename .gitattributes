@@ -1,0 +1,2 @@
+*.vcxproj               -text diff -merge eol=crlf
+*.vcxproj.filters       -text diff -merge eol=crlf
