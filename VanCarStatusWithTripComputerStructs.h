@@ -70,4 +70,22 @@ typedef union VanCarStatusWithTripComputerPacket {
     uint8_t VanCarStatusWithTripComputerPacket[sizeof(VanCarStatusWithTripComputerStruct)];
 };
 
+#pragma region Sender class
+class VanCarStatusPacketSender
+{
+    AbstractVanMessageSender* vanMessageSender;
+public:
+    VanCarStatusPacketSender(AbstractVanMessageSender* object)
+    {
+        vanMessageSender = object;
+    }
+
+    void GetCarStatus(uint8_t channelId)
+    {
+        vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_CARSTATUS, 29, 1);
+    }
+};
+#pragma endregion
+
+
 #endif
