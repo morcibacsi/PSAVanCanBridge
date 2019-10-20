@@ -4,6 +4,9 @@
 #ifndef _CanTrip2Structs_h
     #define _CanTrip2Structs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 261
 const uint16_t CAN_ID_TRIP2 = 0x261;
 

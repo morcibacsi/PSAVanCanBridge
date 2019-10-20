@@ -4,6 +4,9 @@
 #ifndef _CanRadioRemoteStructs_h
     #define _CanRadioRemoteStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 21F
 const uint16_t CAN_ID_RADIO_REMOTE = 0x21F;
 

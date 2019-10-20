@@ -4,6 +4,8 @@
 #ifndef _CanRadioRd4DiagStructs_h
     #define _CanRadioRd4DiagStructs_h
 
+#include "AbstractCanMessageSender.h"
+
 // CANID: 760
 const uint16_t CAN_ID_RADIO_DIAG = 0x760;
 const uint16_t CAN_ID_RADIO_DIAG_ANSWER = 0x660;

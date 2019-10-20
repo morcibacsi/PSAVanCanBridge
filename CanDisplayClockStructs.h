@@ -4,6 +4,8 @@
 #ifndef _CanDisplayClockStructs_h
     #define _CanDisplayClockStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
 
 // CANID: 276 (Peugeot 301 display)
 const uint16_t CAN_ID_DISPLAY_CLOCK = 0x276;

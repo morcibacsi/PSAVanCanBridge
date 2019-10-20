@@ -4,6 +4,9 @@
 #ifndef _CanDisplayStructs_h
     #define _CanDisplayStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 #pragma region Popup message consts
 //0x80
 const uint8_t CAN_POPUP_MSG_DIAGNOSIS_OK                                             = 0X00;

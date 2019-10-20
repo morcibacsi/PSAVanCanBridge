@@ -4,6 +4,9 @@
 #ifndef _CanSpeedAndRpmStructs_h
     #define _CanSpeedAndRpmStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 0B6
 const uint16_t CAN_ID_SPEED_AND_RPM = 0x0B6;
 

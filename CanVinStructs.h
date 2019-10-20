@@ -4,6 +4,9 @@
 #ifndef _CanVinStructs_h
     #define _CanVinStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 336
 const uint16_t CAN_ID_VIN_PART1 = 0x336;
 // CANID: 3B6

@@ -4,6 +4,9 @@
 #ifndef _CanDash3Structs_h
     #define _CanDash3Structs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 168
 const uint16_t CAN_ID_DASH3 = 0x168;
 

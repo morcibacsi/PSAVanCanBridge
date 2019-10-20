@@ -4,6 +4,9 @@
 #ifndef _CanRadioTunerStructs_h
     #define _CanRadioTunerStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 225
 const uint16_t CAN_ID_RADIO_TUNER = 0x225;
 
@@ -52,7 +55,6 @@ typedef struct {
     uint8_t : 1;
     uint8_t : 1;
 } CanRadioTunerFrequencyByte45Struct;
-
 
 union {
     unsigned char frequencySplitToBytes[2];

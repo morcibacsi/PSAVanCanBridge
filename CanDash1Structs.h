@@ -5,6 +5,7 @@
     #define _CanDash1Structs_h
 
 #include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
 
 // CANID: 0F6
 const uint16_t CAN_ID_DASH1 = 0x0F6;

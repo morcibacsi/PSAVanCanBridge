@@ -4,6 +4,9 @@
 #ifndef _CanRadioStructs_h
     #define _CanRadioStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 165
 const uint16_t CAN_ID_RADIO = 0x165;
 

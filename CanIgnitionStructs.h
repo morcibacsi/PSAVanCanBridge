@@ -5,6 +5,7 @@
     #define _CanIgnitionStructs_h
 
 #include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
 
 // CANID: 036
 const uint16_t CAN_ID_IGNITION = 0x036;

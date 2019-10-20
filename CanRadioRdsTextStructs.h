@@ -4,6 +4,9 @@
 #ifndef _CanRadioRdsTextStructs_h
     #define _CanRadioRdsTextStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 2A5
 const uint16_t CAN_ID_RADIO_RDS_TEXT = 0x2A5;
 

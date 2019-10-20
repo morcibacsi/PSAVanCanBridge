@@ -4,6 +4,9 @@
 #ifndef _CanMenuStructs_h
     #define _CanMenuStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 3E5
 const uint16_t CAN_ID_MENU_BUTTONS = 0x3E5;
 

@@ -4,6 +4,9 @@
 #ifndef _CanAirConOnDisplayStructs_h
     #define _CanAirConOnDisplayStructs_h
 
+#include "AbstractCanMessageSender.h"
+#include "PacketGenerator.h"
+
 // CANID: 1E3
 const uint16_t CAN_ID_AIRCON_ON_DIPSLAY = 0x1E3;
 
