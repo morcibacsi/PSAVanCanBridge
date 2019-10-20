@@ -24,6 +24,7 @@
 #include "Serializer.h"
 #include "PacketGenerator.h"
 
+#include "AbstractCanMessageSender.h"
 //#include "CanMessageSender.h"
 #include "CanMessageSenderEsp32Arduino.h"
 #include "CanDisplayStructs.h"
@@ -66,7 +67,6 @@
 #include "LightStatus.h"
 #include "DashIcons1.h"
 #include "VanDataToBridgeToCan.h"
-//#include "CanRadioRd4DiagStructs.h"
 
 #pragma endregion
 
@@ -138,9 +138,6 @@ AbsSer *serialPort;
 #ifdef USE_BLUETOOTH_SERIAL
     BluetoothSerial SerialBT;
 #endif
-
-uint8_t canMsg[20] = { 0 };
-int msgId = 0x0;
 
 void setup()
 {
@@ -215,7 +212,7 @@ void setup()
     dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
     vinQueue = xQueueCreate(queueSize, sizeof(VanVinToBridgeToCan));
-
+///*
     xTaskCreatePinnedToCore(
         CANSendIgnitionTaskFunction,    // Function to implement the task
         "CANSendIgnitionTask",          // Name of the task
@@ -233,7 +230,7 @@ void setup()
         0,                              // Priority of the task
         &CANSendDataTask,               // Task handle.
         0);                             // Core where the task should run
-
+//*/
     xTaskCreatePinnedToCore(
         VANTask,                        // Function to implement the task
         "VANReadTask",                  // Name of the task
@@ -242,8 +239,9 @@ void setup()
         1,                              // Priority of the task
         &VANReadTask,                   // Task handle.
         1);                             // Core where the task should run
-//
-/*
+//*/
+
+///*
     xTaskCreatePinnedToCore(
         CANReadTaskFunction,            // Function to implement the task
         "CANReadTask",                  // Name of the task
@@ -257,12 +255,9 @@ void setup()
 
 void CANReadTaskFunction(void * parameter)
 {
-    //static uint32_t lastCanReadMillis = 0;
-    //unsigned long currentTime = millis();
     uint8_t canReadMessage[20] = { 0 };
     uint8_t canReadMessageLength = 0;
     uint16_t canId = 0;
-    char tmp[3];
 
     for (;;)
     {
@@ -272,44 +267,27 @@ void CANReadTaskFunction(void * parameter)
 
         if (canId > 0)
         {
-            //serialPort->print("CANFRAME: ");
-            //serialPort->print(canId, HEX);
-            //serialPort->print(" ");
-            //serialPort->print(canReadMessageLength, DEC);
-            //serialPort->print(" ");
+	        if (canId == CAN_ID_MENU_BUTTONS)
+	        {
+	            CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
+	            if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
+	            {
+	                canPopupHandler->HideCurrentPopupMessage();
+	            }
+	        }
+	        if (canId == CAN_ID_DISPLAYSTATUS)
+	        {
+	            CanDisplayStatusPacket packet = DeSerialize<CanDisplayStatusPacket>(canReadMessage);
 
-            //for (size_t i = 0; i < canReadMessageLength; i++)
-            //{
-            //    snprintf(tmp, 3, "%02X", canReadMessage[i]);
-            //    if (i != canReadMessageLength - 1)
-            //    {
-            //        serialPort->print(tmp);
-            //        serialPort->print(" ");
-            //    }
-            //}
-            //serialPort->println(tmp);
-        }
-
-        if (canId == CAN_ID_MENU_BUTTONS)
-        {
-            CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
-            if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
-            {
-                canPopupHandler->HideCurrentPopupMessage();
-            }
-        }
-        if (canId == CAN_ID_DISPLAYSTATUS)
-        {
-            CanDisplayStatusPacket packet = DeSerialize<CanDisplayStatusPacket>(canReadMessage);
-
-            if (packet.data.DistanceToDestination.Km == 2)
-            {
-                ESP.restart();
-            }
-            else if (packet.data.DistanceToDestination.Km == 4)
-            {
-                //TODO enter OTA mode
-            }
+	            if (packet.data.DistanceToDestination.Km == 2)
+	            {
+	                ESP.restart();
+	            }
+	            else if (packet.data.DistanceToDestination.Km == 4)
+	            {
+	                //TODO enter OTA mode
+	            }
+	        }
         }
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -578,76 +556,6 @@ void VANTask(void * parameter)
                         vanMessage[vanMessageLength] = serialPort->read();
                         vanMessageLength++;
                     }
-                }
-                else if (inChar == 'c') { // got a sync byte?
-                    uint8_t canMsgLength = 0;
-                    while (serialPort->available()) {
-                        canMsg[canMsgLength] = serialPort->read();
-                        canMsgLength++;
-                    }
-
-                    for (size_t i = 0; i < canMsgLength; i++)
-                    {
-                        if (i != canMsgLength - 1)
-                        {
-                            printf("%02X ", canMsg[i]);
-                        }
-                        else
-                        {
-                            printf("%02X", canMsg[i]);
-                        }
-                    }
-                    uint16_t canId = (canMsg[1] & 0xFF) | (canMsg[0] << 4);//concatenate the two bytes
-                    //printf("\nid: %02X \n", canId);
-                    printf("\n");
-
-                    SendSampleCan(canId, canMsg[2], canMsg[3], canMsg[4], canMsg[5], canMsg[6], canMsg[7], canMsg[8], canMsg[9]);
-                }
-                else if (inChar == 't')
-                {
-                    tripInfoHandler->TripButtonPress();
-                }
-                else if (inChar == 'e')
-                {
-                    SendCanRadioButton(CONST_OK_BUTTON);
-                }
-                else if (inChar == 'q')
-                {
-                    SendCanRadioButton(CONST_ESC_BUTTON);
-                }
-                else if (inChar == 'w')
-                {
-                    SendCanRadioButton(CONST_UP_ARROW);
-                }
-                else if (inChar == 'a')
-                {
-                    SendCanRadioButton(CONST_LEFT_ARROW);
-                }
-                else if (inChar == 'd')
-                {
-                    SendCanRadioButton(CONST_RIGHT_ARROW);
-                }
-                else if (inChar == 's')
-                {
-                    SendCanRadioButton(CONST_DOWN_ARROW);
-                }
-                else if (inChar == 'm')
-                {
-                    SendCanRadioButton(CONST_MODE_BUTTON);
-                }
-                else if (inChar == 'n')
-                {
-                    SendCanRadioButton(CONST_MENU_BUTTON);
-                }
-                else if (inChar == 'x')
-                {
-                    SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-                    msgId++;
-                }
-                else if (inChar == 'y')
-                {
-                    SendSampleCan(msgId, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-                    msgId--;
                 }
             }
             //*/
@@ -982,44 +890,6 @@ bool IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
 int SwapHiByteAndLoByte(int input)
 {
     return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
-}
-
-void SendSampleCan(unsigned long canId, uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6, uint8_t byte7)
-{
-    PacketGenerator<CanDisplayPacket> generator;
-
-    unsigned char *serializedPacket = generator.GetSerializedPacket();
-    /*
-    serializedPacket[0] = 255;
-    serializedPacket[1] = 255;
-    serializedPacket[2] = 255;
-    serializedPacket[3] = 255;
-    serializedPacket[4] = 255;
-    serializedPacket[5] = 255;
-    serializedPacket[6] = 255;
-    serializedPacket[7] = 255;
-    */
-    serializedPacket[0] = byte0;
-    serializedPacket[1] = byte1;
-    serializedPacket[2] = byte2;
-    serializedPacket[3] = byte3;
-    serializedPacket[4] = byte4;
-    serializedPacket[5] = byte5;
-    serializedPacket[6] = byte6;
-    serializedPacket[7] = byte7;
-    serialPort->println(canId,HEX);
-    SendCANMessage(canId, 0, 8, serializedPacket);
-}
-
-void SendCANMessage(unsigned long canId, uint8_t ext, uint8_t sizeOfByteArray, unsigned char *byteArray)
-{
-    CANInterface->SendMessage(canId, ext, sizeOfByteArray, byteArray);
-}
-
-void SendCanRadioButton(int buttonId)
-{
-    CanRadioButtonPacketSender radioButtonSender(CANInterface);
-    radioButtonSender.SendButtonCode(buttonId);
 }
 
 void loop()
