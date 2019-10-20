@@ -1,2 +1,11 @@
+*.h                     text diff=cpp eol=crlf
+*.c                     text diff=cpp eol=crlf
+*.cpp                   text diff=cpp eol=crlf
+*.ino                   text diff=cpp eol=crlf
+
+*.sln                   -text diff -merge eol=crlf
 *.vcxproj               -text diff -merge eol=crlf
 *.vcxproj.filters       -text diff -merge eol=crlf
+
+.gitignore              text
+.gitattributes          text
