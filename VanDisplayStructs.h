@@ -312,7 +312,6 @@ public:
         vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_DISPLAY_POPUP, serializedPacket, sizeof(packet), 0);
         memset(&packet, 0, 0);
         delete[] serializedPacket;
-        vanMessageSender->disable_channel(channelId);
     }
 };
 #pragma endregion
