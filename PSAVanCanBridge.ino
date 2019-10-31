@@ -1,4 +1,4 @@
-/* ESP32 VAN bus to CAN bus protocol bridge software for Peugeot 307
+﻿/* ESP32 VAN bus to CAN bus protocol bridge software for Peugeot 307
  * 
  * The software is distributed under Public Domain (or CC0 licensed, at your option.)
  *

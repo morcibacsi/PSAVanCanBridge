@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PeugeotVanCanBridge.ino" />
+    <None Include="PSAVanCanBridge.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h">
+    <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AbstractCanMessageSender.h">
@@ -270,9 +270,6 @@
     <ClInclude Include="VanRadioRemoteHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OTAUpdate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VanInstrumentClusterV1Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -286,6 +283,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VanDashboardMileageStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
