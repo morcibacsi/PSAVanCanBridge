@@ -25,7 +25,7 @@ const uint8_t CAN_DASH_GEAR_1 = 0x90;
 typedef struct {
     uint8_t                       : 1; // bit 0
     uint8_t                       : 1; // bit 1
-    uint8_t                       : 1; // bit 2
+    uint8_t pre_heat_light        : 1; // bit 2
     uint8_t                       : 1; // bit 3
     uint8_t fuel_low_light        : 1; // bit 4
     uint8_t                       : 1; // bit 5
@@ -91,7 +91,7 @@ typedef struct {
     uint8_t                : 1; // bit 2
     uint8_t                : 1; // bit 3
     uint8_t                : 1; // bit 4
-    uint8_t gear_s         : 1; // bit 5
+    uint8_t gear_sport     : 1; // bit 5
     uint8_t gear_snow      : 1; // bit 6 //if bit 
     uint8_t                : 1; // bit 7
 } CanDash2Byte8Struct;

@@ -53,9 +53,9 @@ typedef struct {
 typedef struct CanDash1Struct {
     CanDash1Byte1Struct IgnitionField;
     uint8_t CoolantTemperature;
-    uint8_t OdometerPart1;
-    uint8_t OdometerPart2;
-    uint8_t OdometerPart3;
+    uint8_t MileageByte1;
+    uint8_t MileageByte2;
+    uint8_t MileageByte3;
     uint8_t Field6;
     uint8_t ExternalTemperature;
     CanDash1Byte8Struct LightsStatus;

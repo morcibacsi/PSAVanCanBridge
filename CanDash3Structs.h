@@ -18,8 +18,8 @@ typedef struct {
     uint8_t                       : 1; // bit 3
     uint8_t                       : 1; // bit 4
     uint8_t                       : 1; // bit 5
-    uint8_t                       : 1; // bit 6
-    uint8_t water_temp_max : 1; // bit 7
+    uint8_t oil_temp_max          : 1; // bit 6
+    uint8_t water_temp_max        : 1; // bit 7
 } CanDash3Byte1Struct;
 
 typedef struct {
