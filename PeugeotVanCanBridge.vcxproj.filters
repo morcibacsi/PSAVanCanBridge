@@ -201,9 +201,6 @@
     <ClInclude Include="VanDataToBridgeToCan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanLightsStatusStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CanDash3Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -244,6 +241,51 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CanDisplayStatusStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractVanMessageHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDisplayHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanIgnitionDataToBridgeToCan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanSpeedAndRpmHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanCarStatusWithTripComputerHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDashboardHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanAirConditioner1Handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanAirConditioner2Handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanRadioRemoteHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OTAUpdate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanInstrumentClusterV1Handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanInstrumentClusterV1Structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanInstrumentClusterV2Handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanInstrumentClusterV2Structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDashboardMileageStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

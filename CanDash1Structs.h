@@ -36,8 +36,6 @@ typedef struct {
     uint8_t economy_mode : 1; // bit 7
 } CanDash1Byte2Struct;
 
-
-
 typedef struct {
     uint8_t turn_left_light    : 1; // bit 0
     uint8_t turn_right_light   : 1; // bit 1
@@ -85,7 +83,7 @@ class CanDashIgnitionPacketSender
         canMessageSender = object;
     }
 
-    void SendIgnition(uint8_t ignition, int coolantTemperature, int externalTemperature)
+    void SendIgnition(uint8_t ignition, int16_t coolantTemperature, int8_t externalTemperature, uint8_t mileageByte1, uint8_t mileageByte2, uint8_t mileageByte3)
     {
         if (!ignition)
         {
@@ -95,6 +93,9 @@ class CanDashIgnitionPacketSender
         PacketGenerator<CanDash1Packet> generator;
         generator.packet.data.IgnitionField.ignition = ignition;
         generator.packet.data.CoolantTemperature = CanGetCoolantTemperatureToDisplay(coolantTemperature);
+        generator.packet.data.MileageByte1 = mileageByte1;
+        generator.packet.data.MileageByte2 = mileageByte2;
+        generator.packet.data.MileageByte3 = mileageByte3;
         generator.packet.data.ExternalTemperature = CanGetExternalTemperatureToDisplay(externalTemperature);
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_DASH1, 0, sizeof(CanDash1Packet), serializedPacket);

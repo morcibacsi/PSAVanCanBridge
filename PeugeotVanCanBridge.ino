@@ -16,13 +16,11 @@
 #include <esp32_arduino_rmt_van_rx.h>
 #include <ArduinoLog.h>
 #include <BluetoothSerial.h>
-#include "driver/can.h"
 #include "AbstractSerial.h"
 #include "HardwareSerialAbs.h"
 #include "BluetoothSerialAbs.h"
 
 #include "Serializer.h"
-#include "PacketGenerator.h"
 
 #include "AbstractCanMessageSender.h"
 //#include "CanMessageSender.h"
@@ -31,7 +29,6 @@
 #include "CanDash1Structs.h"
 #include "CanIgnitionStructs.h"
 #include "CanMenuStructs.h"
-#include "CanDoorStatusStructs.h"
 #include "CanDisplayPopupItem.h"
 #include "CanRadioRemoteMessageHandler.h"
 #include "CanVinHandler.h"
@@ -52,21 +49,22 @@
 #include "VanCanDisplayPopupMap.h"
 
 #include "VanMessageSender.h"
-#include "VanCdChangerStructs.h"
-#include "VanAirConditioner1Structs.h"
-#include "VanAirConditioner2Structs.h"
-#include "VanDisplayStructs.h"
-#include "VanSpeedAndRpmStructs.h"
-#include "VanCarStatusWithTripComputerStructs.h"
-#include "VanDashboardStructs.h"
-#include "VanLightsStatusStructs.h"
 #include "VanVinStructs.h"
-#include "VanRadioRemoteStructs.h"
 #include "VanCanAirConditionerSpeedMap.h"
 #include "DoorStatus.h"
-#include "LightStatus.h"
-#include "DashIcons1.h"
 #include "VanDataToBridgeToCan.h"
+#include "VanIgnitionDataToBridgeToCan.h"
+
+#include "AbstractVanMessageHandler.h"
+#include "VanAirConditioner1Handler.h"
+#include "VanAirConditioner2Handler.h"
+#include "VanCarStatusWithTripComputerHandler.h"
+#include "VanDashboardHandler.h"
+#include "VanDisplayHandler.h"
+#include "VanInstrumentClusterV1Handler.h"
+#include "VanInstrumentClusterV2Handler.h"
+#include "VanRadioRemoteHandler.h"
+#include "VanSpeedAndRpmHandler.h"
 
 #pragma endregion
 
@@ -89,22 +87,12 @@ const uint8_t CAN_TX_PIN = 32;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
-
+const uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 const bool SILENT_MODE = false;
 
 struct VanVinToBridgeToCan
 {
     uint8_t Vin[17] = { 0 };
-};
-
-struct VanIgnitionDataToBridgeToCan
-{
-    int OutsideTemperature = 0;
-    int WaterTemperature = 0;
-    uint8_t EconomyModeActive = 0;
-    uint8_t Ignition = 0;
-    uint8_t DashboardLightingEnabled = 0;
-    uint8_t NightMode = 0;
 };
 
 TaskHandle_t CANSendIgnitionTask;
@@ -113,145 +101,36 @@ TaskHandle_t CANSendDataTask;
 TaskHandle_t VANReadTask;
 TaskHandle_t CANReadTask;
 
-uint8_t queueSize = 1;
+const uint8_t QUEUE_SIZE = 1;
 QueueHandle_t dataQueue;
 QueueHandle_t ignitionQueue;
 QueueHandle_t vinQueue;
 
-AbstractCanMessageSender *CANInterface;
-CanDisplayPopupHandler *canPopupHandler;
-VanCanDisplayPopupMap *popupMapping;
-CanVinHandler *canVinHandler;
-CanTripInfoHandler *tripInfoHandler;
-CanAirConOnDisplayHandler *canAirConOnDisplayHandler;
-CanRadioRemoteMessageHandler *canRadioRemoteMessageHandler;
-VanCanAirConditionerSpeedMap *vanCanAirConditionerSpeedMap;
-CanStatusOfFunctionsHandler *canStatusOfFunctionsHandler;
-CanWarningLogHandler *canWarningLogHandler;
-CanSpeedAndRpmHandler *canSpeedAndRpmHandler;
-CanDash2MessageHandler *canDash2MessageHandler;
-CanDash3MessageHandler *canDash3MessageHandler;
-CanDash4MessageHandler *canDash4MessageHandler;
+AbstractCanMessageSender* CANInterface;
+CanDisplayPopupHandler* canPopupHandler;
+VanCanDisplayPopupMap* popupMapping;
+CanVinHandler* canVinHandler;
+CanTripInfoHandler* tripInfoHandler;
+CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
+CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
+VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
+CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
+CanWarningLogHandler* canWarningLogHandler;
+CanSpeedAndRpmHandler* canSpeedAndRpmHandler;
+CanDash2MessageHandler* canDash2MessageHandler;
+CanDash3MessageHandler* canDash3MessageHandler;
+CanDash4MessageHandler* canDash4MessageHandler;
+CanIgnitionPacketSender* radioIgnition;
+CanDashIgnitionPacketSender* dashIgnition;
+
+const uint8_t VAN_MESSAGE_HANDLER_COUNT = 9;
+AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
 AbsSer *serialPort;
 
 #ifdef USE_BLUETOOTH_SERIAL
     BluetoothSerial SerialBT;
 #endif
-
-void setup()
-{
-    uint64_t macAddress;
-    macAddress = ESP.getEfuseMac();
-    uint16_t uniqueIdForBluetooth = (uint16_t)(macAddress >> 32);
-    char bluetoothDeviceName[27];
-    snprintf(bluetoothDeviceName, 27, "ESP32 VAN bus monitor %04X", uniqueIdForBluetooth);
-
-    #ifdef USE_BLUETOOTH_SERIAL
-    serialPort = new BluetoothSerAbs(SerialBT, bluetoothDeviceName);
-    #else
-    serialPort = new HwSerAbs(Serial);
-    #endif
-
-    //serialPort->begin(115200);
-    //serialPort->begin(230400);
-    serialPort->begin(500000);
-    serialPort->println(bluetoothDeviceName);
-
-    // Pass log level, whether to show log level, and print interface.
-    /* Available levels are:
-        * 0 - LOG_LEVEL_SILENT     no output
-        * 1 - LOG_LEVEL_FATAL      fatal errors
-        * 2 - LOG_LEVEL_ERROR      all errors
-        * 3 - LOG_LEVEL_WARNING    errors, and warnings
-        * 4 - LOG_LEVEL_NOTICE     errors, warnings and notices
-        * 5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
-        * 6 - LOG_LEVEL_VERBOSE    all
-    */
-    if (SILENT_MODE)
-    {
-        #ifdef USE_BLUETOOTH_SERIAL
-        Log.begin(LOG_LEVEL_SILENT, &SerialBT);
-        #else
-        Log.begin(LOG_LEVEL_SILENT, &Serial);
-        #endif
-    }
-    else
-    {
-        #ifdef USE_BLUETOOTH_SERIAL
-        Log.begin(LOG_LEVEL_VERBOSE, &SerialBT);
-        #else
-        //Log.begin(LOG_LEVEL_WARNING, &Serial);
-        //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-        Log.begin(LOG_LEVEL_SILENT, &Serial);
-        #endif
-    }
-
-    Log.trace("ESP32 Arduino VAN bus monitor\n");
-
-    VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL);
-
-    //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
-    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
-    CANInterface->Init();
-
-    canPopupHandler = new CanDisplayPopupHandler(CANInterface);
-    popupMapping = new VanCanDisplayPopupMap();
-    canVinHandler = new CanVinHandler(CANInterface);
-    tripInfoHandler = new CanTripInfoHandler(CANInterface);
-    canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
-    canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
-    vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
-    canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
-    canWarningLogHandler = new CanWarningLogHandler(CANInterface);
-    canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
-    canDash2MessageHandler = new CanDash2MessageHandler(CANInterface);
-    canDash3MessageHandler = new CanDash3MessageHandler(CANInterface);
-    canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
-
-    dataQueue = xQueueCreate(queueSize, sizeof(VanDataToBridgeToCan));
-    ignitionQueue = xQueueCreate(queueSize, sizeof(VanIgnitionDataToBridgeToCan));
-    vinQueue = xQueueCreate(queueSize, sizeof(VanVinToBridgeToCan));
-///*
-    xTaskCreatePinnedToCore(
-        CANSendIgnitionTaskFunction,    // Function to implement the task
-        "CANSendIgnitionTask",          // Name of the task
-        15000,                          // Stack size in words
-        NULL,                           // Task input parameter
-        2,                              // Priority of the task
-        &CANSendIgnitionTask,           // Task handle.
-        0);                             // Core where the task should run
-
-    xTaskCreatePinnedToCore(
-        CANSendDataTaskFunction,        // Function to implement the task
-        "CANSendDataTask",              // Name of the task
-        15000,                          // Stack size in words
-        NULL,                           // Task input parameter 
-        0,                              // Priority of the task
-        &CANSendDataTask,               // Task handle.
-        0);                             // Core where the task should run
-//*/
-    xTaskCreatePinnedToCore(
-        VANTask,                        // Function to implement the task
-        "VANReadTask",                  // Name of the task
-        20000,                          // Stack size in words
-        NULL,                           // Task input parameter
-        1,                              // Priority of the task
-        &VANReadTask,                   // Task handle.
-        1);                             // Core where the task should run
-//*/
-
-///*
-    xTaskCreatePinnedToCore(
-        CANReadTaskFunction,            // Function to implement the task
-        "CANReadTask",                  // Name of the task
-        10000,                          // Stack size in words
-        NULL,                           // Task input parameter
-        0,                              // Priority of the task
-        &CANReadTask,                   // Task handle.
-        1);                             // Core where the task should run
-//*/
-}
 
 void CANReadTaskFunction(void * parameter)
 {
@@ -267,27 +146,14 @@ void CANReadTaskFunction(void * parameter)
 
         if (canId > 0)
         {
-	        if (canId == CAN_ID_MENU_BUTTONS)
-	        {
-	            CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
-	            if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
-	            {
-	                canPopupHandler->HideCurrentPopupMessage();
-	            }
-	        }
-	        if (canId == CAN_ID_DISPLAYSTATUS)
-	        {
-	            CanDisplayStatusPacket packet = DeSerialize<CanDisplayStatusPacket>(canReadMessage);
-
-	            if (packet.data.DistanceToDestination.Km == 2)
-	            {
-	                ESP.restart();
-	            }
-	            else if (packet.data.DistanceToDestination.Km == 4)
-	            {
-	                //TODO enter OTA mode
-	            }
-	        }
+            if (canId == CAN_ID_MENU_BUTTONS)
+            {
+                CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
+                if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
+                {
+                    canPopupHandler->HideCurrentPopupMessage();
+                }
+            }
         }
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -298,6 +164,7 @@ void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
     uint8_t ignition = 0;
+    uint8_t trip0Icon1Data = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -328,6 +195,10 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region TripInfo
 
+            //trip0Icon1Data = dataToBridge.FuelLeftToPump;
+            //trip0Icon1Data = dataToBridge.FuelLevel;
+            trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
+
             tripInfoHandler->SetTripData(
                 dataToBridge.Rpm,
                 dataToBridge.Speed,
@@ -338,9 +209,7 @@ void CANSendDataTaskFunction(void * parameter)
                 dataToBridge.Trip2Speed,
                 dataToBridge.Trip2Consumption,
                 dataToBridge.FuelConsumption,
-                //dataToBridge.FuelLeftToPump
-                dataToBridge.FuelLevel
-
+                trip0Icon1Data
             );
             tripInfoHandler->Process(currentTime);
 
@@ -354,7 +223,6 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region Radio remote
 
-            canRadioRemoteMessageHandler->SetData(dataToBridge.RadioRemoteButton, dataToBridge.RadioRemoteScroll);
             canRadioRemoteMessageHandler->Process(currentTime);
 
             #pragma endregion
@@ -363,7 +231,6 @@ void CANSendDataTaskFunction(void * parameter)
 
             if (!canPopupHandler->IsPopupVisible())
             {
-                ///*
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
                 canAirConOnDisplayHandler->SetData(
                     dataToBridge.InternalTemperature, 
@@ -469,8 +336,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma region Ignition signal for radio
 
-        CanIgnitionPacketSender radioIgnition(CANInterface);
-        radioIgnition.SendIgnition(economyMode, brightness, dataToBridge.DashboardLightingEnabled);
+        radioIgnition->SendIgnition(economyMode, brightness, dataToBridge.DashboardLightingEnabled);
 
         #pragma endregion
 
@@ -478,10 +344,18 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma region Ignition signal for display
 
-        CanDashIgnitionPacketSender dashIgnition(CANInterface);
-        dashIgnition.SendIgnition(ignition, dataToBridge.WaterTemperature, dataToBridge.OutsideTemperature);
+        dashIgnition->SendIgnition(
+            ignition, 
+            dataToBridge.WaterTemperature, 
+            dataToBridge.OutsideTemperature, 
+            dataToBridge.MileageByte1, 
+            dataToBridge.MileageByte2, 
+            dataToBridge.MileageByte3);
 
-        if (dataToBridge.OutsideTemperature <= 3 && dataToBridge.OutsideTemperature >= -3 && currentTime > 10000)
+        if (ignition == 1 &&
+            dataToBridge.OutsideTemperature <= 3 && 
+            dataToBridge.OutsideTemperature >= -3 && 
+            currentTime > 10000)
         {
             if (!canPopupHandler->IsPopupVisible())
             {
@@ -520,13 +394,11 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
 void VANTask(void * parameter)
 {
-    uint32_t currentTime = millis();
-    uint32_t lastMillis = 0;
+    unsigned long currentTime;
+    unsigned long lastMillis = 0;
     uint8_t identByte1;
     uint8_t identByte2;
-    uint8_t crcByte1;
-    uint8_t crcByte2;
-    uint16_t crcValue;
+    uint8_t vanMessageLengthWithoutId;
 
     uint8_t vanMessageLength;
     uint8_t vanMessage[34];
@@ -539,12 +411,14 @@ void VANTask(void * parameter)
     VanIgnitionDataToBridgeToCan ignitionDataToBridge;
     VanVinToBridgeToCan vinDataToBridge;
     char tmp[3];
+    bool vanMessageHandled;
 
     for (;;)
     {
         currentTime = millis();
         if (currentTime - lastMillis > 10)
         {
+            lastMillis = currentTime;
             VAN_RX.Receive(&vanMessageLength, vanMessage);
             ///*
             if (serialPort->available() > 0) {
@@ -563,14 +437,18 @@ void VANTask(void * parameter)
             {
                 identByte1 = vanMessage[1];
                 identByte2 = vanMessage[2];
+                vanMessageLengthWithoutId = vanMessageLength - 5;
 
                 //make a copy of the buffer excluding the ids and the crc (otherwise deserializing the packet gives wrong results)
-                memcpy(vanMessageWithoutId, vanMessage + 3, vanMessageLength - 5);
+                memcpy(vanMessageWithoutId, vanMessage + 3, vanMessageLengthWithoutId);
 
                 if (!VAN_RX.IsCrcOk(vanMessage, vanMessageLength))
                 {
                     Log.error("CRC ERROR\n");
                     /*
+                    uint8_t crcByte1;
+                    uint8_t crcByte2;
+                    uint16_t crcValue;
                     for (size_t i = 0; i < vanMessageLength - 3; i++)
                     {
                         snprintf(tmp, 3, "%02X", vanMessageWithoutId[i]);
@@ -585,269 +463,29 @@ void VANTask(void * parameter)
                     continue;
                 }
 
-                #pragma region Popup message
-                if (IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP))
+                vanMessageHandled = false;
+                for(uint8_t i = 0; i < VAN_MESSAGE_HANDLER_COUNT; i++)
                 {
-                    VanDisplayPacket packet = DeSerialize<VanDisplayPacket>(vanMessageWithoutId);
-                    if (packet.data.Message != 0xFF)
+                    vanMessageHandled = vanMessageHandlers[i]->ProcessMessage(identByte1, identByte2, vanMessageWithoutId, vanMessageLengthWithoutId, dataToBridge, ignitionDataToBridge, doorStatus);
+                    if (vanMessageHandled)
                     {
-                        CanDisplayPopupItem item;
-                        item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
-                        item.Category = popupMapping->GetCanCategoryFromVanMessage(packet.data.Message);
-                        item.MessageType = popupMapping->GetCanMessageIdFromVanMessage(packet.data.Message);
-                        item.DoorStatus1 = 0;
-                        item.DoorStatus2 = 0;
-                        item.VANByte = packet.data.Message;
-
-                        switch (packet.data.Message)
-                        {
-                            case VAN_POPUP_MSG_FUEL_TANK_ACCESS_OPEN:
-                            {
-                                item.DoorStatus2 = 0x40;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_TYRES_PUNCTURED:
-                            {
-                                item.DoorStatus1 = 0xFF;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_SEAT_BELT_REMINDER:
-                            {
-                                item.DoorStatus1 = 0xFF;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_HILL_HOLDER_ACTIVE:
-                            {
-                                // on some screens it displays seatbelt related message
-                                item.DoorStatus1 = 0x08;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_WHEEL_PRESSURE_SENSOR_BATTERY_LOW:
-                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING0:
-                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING1:
-                            case VAN_POPUP_MSG_X_TYRE_PRESSURE_SENSORS_MISSING2:
-                            {
-                                item.DoorStatus1 = 0xFF;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_HEADLIGHT_BEND_SYSTEM_ACTIVATED:
-                            {
-                                // on some screens it displays seatbelt related message
-                                item.DoorStatus1 = 0x02;
-                                break;
-                            }
-                            case VAN_POPUP_MSG_DEADLOCKING_ACTIVE:
-                                canStatusOfFunctionsHandler->SetAutomaticDoorLockingEnabled();
-                                break;
-                            case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_ACTIVE:
-                                canStatusOfFunctionsHandler->SetAutomaticHeadlampEnabled();
-                                break;
-                            case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_INACTIVE:
-                                canStatusOfFunctionsHandler->SetAutomaticHeadlampDisabled();
-                                break;
-                            case VAN_POPUP_MSG_PASSENGER_AIRBAG_DEACTIVATED:
-                                canStatusOfFunctionsHandler->SetPassengerAirbagDisabled();
-                                break;
-                            case VAN_POPUP_MSG_CATALYTIC_CONVERTER_FAULT:
-                            case VAN_POPUP_MSG_ANTIPOLLUTION_FAULT:
-                                canWarningLogHandler->SetEngineFaultRepairNeeded();
-                                break;
-                            case VAN_POPUP_MSG_AUTOMATIC_GEAR_FAULT:
-                                canWarningLogHandler->SetGearBoxFault();
-                                break;
-                            default:
-                                break;
-                        }
-
-                        canPopupHandler->QueueNewMessage(item);
-                    }
-
-                    dataToBridge.DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
-                    dataToBridge.DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_level_low;
-                    dataToBridge.DashIcons1Field.status.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
-                    dataToBridge.DashIcons1Field.status.Handbrake = packet.data.Field5.handbrake;
-                    dataToBridge.DashIcons1Field.status.Abs = packet.data.Field2.abs;
-                    dataToBridge.DashIcons1Field.status.Esp = packet.data.Field2.esp;
-                    dataToBridge.DashIcons1Field.status.Mil = packet.data.Field2.mil;
-                    dataToBridge.DashIcons1Field.status.Airbag = packet.data.Field3.side_airbag_faulty;
-
-                    if (packet.data.Field5.seatbelt_warning)
-                    {
-                        if (dataToBridge.Speed > 10)
-                        {
-                            CanDisplayPopupItem item;
-                            item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
-                            item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
-                            item.MessageType = CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED;
-                            item.DoorStatus1 = CAN_POPUP_SEAT_BELTS_OF_DRIVER;
-                            item.DoorStatus2 = 0;
-                            canPopupHandler->QueueNewMessage(item);
-                        }
-                        else
-                        {
-                            canPopupHandler->ResetSeatBeltWarning();
-                        }
-                    }
-                    else
-                    {
-                        canPopupHandler->ResetSeatBeltWarning();
-                    }
-                    if (packet.data.Field6.left_stick_button)
-                    {
-                        tripInfoHandler->TripButtonPress();
+                        xQueueOverwrite(ignitionQueue, (void*)&ignitionDataToBridge);
+                        xQueueOverwrite(dataQueue, (void*)&dataToBridge);
+                        break;
                     }
                 }
-                #pragma endregion
-                #pragma region Speed and RPM
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_SPEED_RPM))
-                {
-                    VanSpeedAndRpmPacket packet = DeSerialize<VanSpeedAndRpmPacket>(vanMessageWithoutId);
-                    if (packet.data.Rpm.data == 0xFFFF)
-                    {
-                        dataToBridge.Rpm = 0;
-                        dataToBridge.Speed = 0;
-                    }
-                    else
-                    {
-                        dataToBridge.Rpm = GetRpmFromVanData(packet.data.Rpm.data);
-                        dataToBridge.Speed = GetSpeedFromVanData(packet.data.Speed.data);
-                    }
-                }
-                #pragma endregion
-                #pragma region Trip computer
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_CARSTATUS))
-                {
-                    VanCarStatusWithTripComputerPacket packet = DeSerialize<VanCarStatusWithTripComputerPacket>(vanMessageWithoutId);
 
-                    dataToBridge.Trip1Consumption = SwapHiByteAndLoByte(packet.data.Trip1FuelConsumption.data);
-                    dataToBridge.Trip1Distance = SwapHiByteAndLoByte(packet.data.Trip1Distance.data);
-                    dataToBridge.Trip1Speed = packet.data.Trip1Speed;
-                    dataToBridge.Trip2Consumption = SwapHiByteAndLoByte(packet.data.Trip2FuelConsumption.data);
-                    dataToBridge.Trip2Distance = SwapHiByteAndLoByte(packet.data.Trip2Distance.data);
-                    dataToBridge.Trip2Speed = packet.data.Trip2Speed;
-                    dataToBridge.FuelConsumption = SwapHiByteAndLoByte(packet.data.FuelConsumption.data);
-                    dataToBridge.FuelLeftToPump = SwapHiByteAndLoByte(packet.data.FuelLeftToPumpInKm.data);
-
-                    if (packet.data.Field10.TripButton)
-                    {
-                        tripInfoHandler->TripButtonPress();
-                    }
-
-                    doorStatus.status.FrontLeft = packet.data.Doors.FrontLeft;
-                    doorStatus.status.FrontRight = packet.data.Doors.FrontRight;
-                    doorStatus.status.RearLeft = packet.data.Doors.RearLeft;
-                    doorStatus.status.RearRight = packet.data.Doors.RearRight;
-                    doorStatus.status.BootLid = packet.data.Doors.BootLid;
-
-                    if (doorStatus.asByte != 0)
-                    {
-                        CanDisplayPopupItem item;
-                        item.DisplayTimeInMilliSeconds = CAN_POPUP_DOOR_MESSAGE_TIME;
-                        item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
-                        item.MessageType = CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
-                        item.DoorStatus1 = doorStatus.asByte;
-                        item.DoorStatus2 = 0;
-                        canPopupHandler->QueueNewMessage(item);
-                    }
-                }
-                #pragma endregion
-                #pragma region Outside temperature
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_DASHBOARD))
-                {
-                    VanDashboardPacket packet = DeSerialize<VanDashboardPacket>(vanMessageWithoutId);
-                    ignitionDataToBridge.WaterTemperature = GetWaterTemperatureFromVANByte(packet.data.WaterTemperature.value);
-                    ignitionDataToBridge.OutsideTemperature = GetTemperatureFromVANByte(packet.data.ExternalTemperature.value);
-                    ignitionDataToBridge.EconomyModeActive = packet.data.Field1.economy_mode;
-                    ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
-                    ignitionDataToBridge.DashboardLightingEnabled = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
-
-                    dataToBridge.LightStatuses.status.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
-                    dataToBridge.Ignition = ignitionDataToBridge.Ignition;
-
-                    xQueueOverwrite(ignitionQueue, (void*)& ignitionDataToBridge);
-                }
-                #pragma endregion
                 #pragma region Vin
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_VIN))
+                if (IsVanIdent(identByte1, identByte2, VAN_ID_VIN))
                 {
                     if (!canVinHandler->IsVinSet())
                     {
-                        memcpy(vinDataToBridge.Vin, vanMessageWithoutId, vanMessageLength - 5);
-                        xQueueOverwrite(vinQueue, (void*)& vinDataToBridge);
+                        memcpy(vinDataToBridge.Vin, vanMessageWithoutId, vanMessageLengthWithoutId);
+                        xQueueOverwrite(vinQueue, (void*)&vinDataToBridge);
                     }
                 }
                 #pragma endregion
-                #pragma region AirCon1
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1))
-                {
-                    VanAirConditioner1Packet packet = DeSerialize<VanAirConditioner1Packet>(vanMessageWithoutId);
-                    if (
-                           vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)  // off
-                        || vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating
-                        || vanMessageWithoutId[0] == 0x01 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating toggle
-                        || vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x00)  // off + recycle
-                        || vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating + recycle
-                        || vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x00)  // off + rear window heating + recycle toggle
-                        || vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating + recycle toggle
-                    )
-                    {
-                        dataToBridge.IsHeatingPanelPoweredOn = 0;
-                        dataToBridge.IsAirConEnabled = 0;
-                        dataToBridge.IsAirConRunning = 0;
-                        dataToBridge.IsWindowHeatingOn = 0;
-                        dataToBridge.AirConFanSpeed = 0;
-                    }
-                    else
-                    {
-                        dataToBridge.IsHeatingPanelPoweredOn = 1;
-                        dataToBridge.IsAirConEnabled = packet.data.Status.aircon_on_if_necessary;
-                        dataToBridge.IsAirRecyclingOn = packet.data.Status.recycling_on;
 
-                        dataToBridge.AirConFanSpeed = vanCanAirConditionerSpeedMap->GetFanSpeedFromVANByte(packet.data.FanSpeed, dataToBridge.IsAirConEnabled, dataToBridge.IsWindowHeatingOn, dataToBridge.IsAirRecyclingOn);
-                    }
-                }
-                #pragma endregion
-                #pragma region AirCon2
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_2))
-                {
-                    VanAirConditioner2Packet packet = DeSerialize<VanAirConditioner2Packet>(vanMessageWithoutId);
-                    if (dataToBridge.IsHeatingPanelPoweredOn == 1)
-                    {
-                        dataToBridge.IsAirConRunning = packet.data.Status.ac_on && packet.data.Status.ac_compressor_running;
-                        dataToBridge.IsWindowHeatingOn = packet.data.Status.rear_window_heating_on;
-                    }
-
-                    dataToBridge.InternalTemperature = GetInternalTemperature(packet.data.InternalTemperature);
-                }
-                #pragma endregion
-                #pragma region Radio remote
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_RADIO_REMOTE))
-                {
-                    VanRadioRemotePacket packet = DeSerialize<VanRadioRemotePacket>(vanMessageWithoutId);
-                    dataToBridge.RadioRemoteButton = packet.VanRadioRemotePacket[0];
-                    dataToBridge.RadioRemoteScroll = packet.VanRadioRemotePacket[1];
-
-                    if (packet.data.RemoteButton.seek_down_pressed && packet.data.RemoteButton.seek_up_pressed)
-                    {
-                        tripInfoHandler->TripButtonPress();
-                    }
-                }
-                #pragma endregion
-                #pragma region Lights status
-                else if (IsVanIdent(identByte1, identByte2, VAN_ID_LIGHTS_STATUS))
-                {
-                    VanLightStatusPacket packet = DeSerialize<VanLightStatusPacket>(vanMessageWithoutId);
-                    dataToBridge.LightStatuses.status.LowBeam = packet.data.LightsStatus.dipped_beam;
-                    dataToBridge.LightStatuses.status.HighBeam = packet.data.LightsStatus.high_beam;
-                    dataToBridge.LightStatuses.status.FrontFog = packet.data.LightsStatus.front_fog;
-                    dataToBridge.LightStatuses.status.RearFog = packet.data.LightsStatus.rear_fog;
-                    dataToBridge.LightStatuses.status.LeftIndicator = packet.data.LightsStatus.left_indicator;
-                    dataToBridge.LightStatuses.status.RightIndicator = packet.data.LightsStatus.right_indicator;
-                    dataToBridge.FuelLevel = packet.data.FuelLevel;
-
-                    ignitionDataToBridge.NightMode = dataToBridge.LightStatuses.status.LowBeam || dataToBridge.LightStatuses.status.HighBeam;
-                }
-                #pragma endregion
                 if (!SILENT_MODE 
                     //&& (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1))
                     //&& (IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP))
@@ -856,7 +494,7 @@ void VANTask(void * parameter)
                     )
                 {
                     ///*
-                    for (size_t i = 0; i < vanMessageLength; i++)
+                    for (uint8_t i = 0; i < vanMessageLength; i++)
                     {
                         snprintf(tmp, 3, "%02X", vanMessage[i]);
                         if (i != vanMessageLength - 1)
@@ -871,25 +509,133 @@ void VANTask(void * parameter)
                     }
                     //*/
                 }
-                xQueueOverwrite(dataQueue, (void *)&dataToBridge);
             }
             vanMessageLength = 0;
         }
     }
 }
 
-/* Concatenates the two bytes and removes the last digit and compares the result to the IDENT */
-bool IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
+void setup()
 {
-    bool result = false;
-    uint16_t combined = byte1 << 8 | byte2;
-    result = combined >> 4 == ident;
-    return result;
-}
+    uint64_t macAddress;
+    macAddress = ESP.getEfuseMac();
+    uint16_t uniqueIdForBluetooth = (uint16_t)(macAddress >> 32);
+    char bluetoothDeviceName[27];
+    snprintf(bluetoothDeviceName, 27, "ESP32 VAN bus monitor %04X", uniqueIdForBluetooth);
 
-int SwapHiByteAndLoByte(int input)
-{
-    return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
+#ifdef USE_BLUETOOTH_SERIAL
+    serialPort = new BluetoothSerAbs(SerialBT, bluetoothDeviceName);
+#else
+    serialPort = new HwSerAbs(Serial);
+#endif
+
+    //serialPort->begin(115200);
+    //serialPort->begin(230400);
+    serialPort->begin(500000);
+    serialPort->println(bluetoothDeviceName);
+
+    // Pass log level, whether to show log level, and print interface.
+    /* Available levels are:
+        * 0 - LOG_LEVEL_SILENT     no output
+        * 1 - LOG_LEVEL_FATAL      fatal errors
+        * 2 - LOG_LEVEL_ERROR      all errors
+        * 3 - LOG_LEVEL_WARNING    errors, and warnings
+        * 4 - LOG_LEVEL_NOTICE     errors, warnings and notices
+        * 5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
+        * 6 - LOG_LEVEL_VERBOSE    all
+    */
+    if (SILENT_MODE)
+    {
+#ifdef USE_BLUETOOTH_SERIAL
+        Log.begin(LOG_LEVEL_SILENT, &SerialBT);
+#else
+        Log.begin(LOG_LEVEL_SILENT, &Serial);
+#endif
+    }
+    else
+    {
+#ifdef USE_BLUETOOTH_SERIAL
+        Log.begin(LOG_LEVEL_VERBOSE, &SerialBT);
+#else
+        //Log.begin(LOG_LEVEL_WARNING, &Serial);
+        //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+        Log.begin(LOG_LEVEL_SILENT, &Serial);
+#endif
+    }
+
+    Log.trace("ESP32 Arduino VAN bus monitor\n");
+
+    VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, VAN_NETWORK_TYPE_COMFORT);
+
+    //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
+    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
+    CANInterface->Init();
+
+    canPopupHandler = new CanDisplayPopupHandler(CANInterface);
+    popupMapping = new VanCanDisplayPopupMap();
+    canVinHandler = new CanVinHandler(CANInterface);
+    tripInfoHandler = new CanTripInfoHandler(CANInterface);
+    canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
+    canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
+    vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
+    canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
+    canWarningLogHandler = new CanWarningLogHandler(CANInterface);
+    canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
+    canDash2MessageHandler = new CanDash2MessageHandler(CANInterface);
+    canDash3MessageHandler = new CanDash3MessageHandler(CANInterface);
+    canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
+    radioIgnition = new CanIgnitionPacketSender(CANInterface);
+    dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
+
+    vanMessageHandlers[0] = new VanAirConditioner1Handler(vanCanAirConditionerSpeedMap);
+    vanMessageHandlers[1] = new VanAirConditioner2Handler();
+    vanMessageHandlers[2] = new VanCarStatusWithTripComputerHandler(canPopupHandler, tripInfoHandler);
+    vanMessageHandlers[3] = new VanDashboardHandler();
+    vanMessageHandlers[4] = new VanDisplayHandler(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
+    vanMessageHandlers[5] = new VanInstrumentClusterV1Handler();
+    vanMessageHandlers[6] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
+    vanMessageHandlers[7] = new VanSpeedAndRpmHandler();
+    vanMessageHandlers[8] = new VanInstrumentClusterV2Handler();
+
+    dataQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanDataToBridgeToCan));
+    ignitionQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanIgnitionDataToBridgeToCan));
+    vinQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanVinToBridgeToCan));
+
+    xTaskCreatePinnedToCore(
+        CANSendIgnitionTaskFunction,    // Function to implement the task
+        "CANSendIgnitionTask",          // Name of the task
+        15000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        2,                              // Priority of the task
+        &CANSendIgnitionTask,           // Task handle.
+        0);                             // Core where the task should run
+
+    xTaskCreatePinnedToCore(
+        CANSendDataTaskFunction,        // Function to implement the task
+        "CANSendDataTask",              // Name of the task
+        15000,                          // Stack size in words
+        NULL,                           // Task input parameter 
+        0,                              // Priority of the task
+        &CANSendDataTask,               // Task handle.
+        0);                             // Core where the task should run
+
+    xTaskCreatePinnedToCore(
+        VANTask,                        // Function to implement the task
+        "VANReadTask",                  // Name of the task
+        20000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        1,                              // Priority of the task
+        &VANReadTask,                   // Task handle.
+        1);                             // Core where the task should run
+
+    xTaskCreatePinnedToCore(
+        CANReadTaskFunction,            // Function to implement the task
+        "CANReadTask",                  // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        0,                              // Priority of the task
+        &CANReadTask,                   // Task handle.
+        1);                             // Core where the task should run
 }
 
 void loop()

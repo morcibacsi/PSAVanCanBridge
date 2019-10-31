@@ -110,6 +110,7 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="AbstractSerial.h" />
+    <ClInclude Include="AbstractVanMessageHandler.h" />
     <ClInclude Include="AbstractVanMessageSender.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -237,9 +238,11 @@
     <ClInclude Include="Serializer.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanAirConditioner1Handler.h" />
     <ClInclude Include="VanAirConditioner1Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanAirConditioner2Handler.h" />
     <ClInclude Include="VanAirConditioner2Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -249,30 +252,40 @@
     <ClInclude Include="VanCanDisplayPopupMap.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanCarStatusWithTripComputerHandler.h" />
     <ClInclude Include="VanCarStatusWithTripComputerStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="VanCdChangerStructs.h" />
+    <ClInclude Include="VanDashboardHandler.h" />
+    <ClInclude Include="VanDashboardMileageStructs.h" />
     <ClInclude Include="VanDashboardStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="VanDataToBridgeToCan.h" />
+    <ClInclude Include="VanDisplayHandler.h" />
     <ClInclude Include="VanDisplayStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
-    <ClInclude Include="VanLightsStatusStructs.h" />
+    <ClInclude Include="VanIgnitionDataToBridgeToCan.h" />
+    <ClInclude Include="VanInstrumentClusterV1Handler.h" />
+    <ClInclude Include="VanInstrumentClusterV1Structs.h" />
+    <ClInclude Include="VanInstrumentClusterV2Handler.h" />
+    <ClInclude Include="VanInstrumentClusterV2Structs.h" />
     <ClInclude Include="VanMessageSender.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="VanRadioInfoStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanRadioRemoteHandler.h" />
     <ClInclude Include="VanRadioRemoteStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="VanRadioTunerStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanSpeedAndRpmHandler.h" />
     <ClInclude Include="VanSpeedAndRpmStructs.h">
       <FileType>CppCode</FileType>
     </ClInclude>

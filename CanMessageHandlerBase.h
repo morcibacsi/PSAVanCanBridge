@@ -8,7 +8,7 @@
 
 class CanMessageHandlerBase
 {
-    int processInterval = 100;
+    unsigned long processInterval = 40;
     unsigned long previousTime = 0;
 
     virtual void InternalProcess() = 0;

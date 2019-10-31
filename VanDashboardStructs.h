@@ -35,18 +35,6 @@ typedef struct {
 } VanWaterTemperatureStruct;
 
 typedef struct {
-    uint8_t value         : 8;
-} VanOilLevelStruct;
-
-typedef struct {
-    uint8_t value : 8;
-} VanFuelLevelStruct;
-
-typedef struct {
-    uint8_t value : 8;
-} VanOilTemperatureStruct;
-
-typedef struct {
     uint8_t value : 8;
 } VanExternalTemperatureStruct;
 
@@ -56,9 +44,9 @@ typedef struct VanDashboardStructs {
     VanDashboardByte0Struct Field0;
     VanDashboardByte1Struct Field1;
     VanWaterTemperatureStruct WaterTemperature;
-    VanOilLevelStruct OilLevel;
-    VanFuelLevelStruct FuelLevel;
-    VanOilTemperatureStruct OilTemperature;
+    uint8_t MileageByte1;
+    uint8_t MileageByte2;
+    uint8_t MileageByte3;
     VanExternalTemperatureStruct ExternalTemperature;
 };
 
@@ -82,6 +70,11 @@ int8_t GetWaterTemperatureFromVANByte(int8_t vanByte)
     return (vanByte - 39);
 }
 
+int8_t GetVANByteFromWaterTemperature(int8_t waterTemperature)
+{
+    return (waterTemperature + 39);
+}
+
 #pragma region Sender class
 class VanDashboardPacketSender
 {
@@ -93,7 +86,7 @@ public:
         vanMessageSender = object;
     }
 
-    void Send(uint8_t channelId, int8_t externalTemperature)
+    void Send(uint8_t channelId, int8_t externalTemperature, int8_t waterTemperature)
     {
         VanDashboardPacket packet;
         memset(&packet, 0, sizeof(packet));
@@ -104,10 +97,10 @@ public:
         packet.data.Field1.ignition_on = 1;
         packet.data.Field1.accesories_on = 1;
         packet.data.Field1.engine_running = 1;
-        packet.data.WaterTemperature.value = 0x3C; // 0x3C=60/2=30 degrees?
-        packet.data.OilLevel.value = 0x1A;
-        packet.data.FuelLevel.value = 0x6E;
-        packet.data.OilTemperature.value = 0x90; // 0x90=144/2=72 degrees?
+        packet.data.WaterTemperature.value = GetVANByteFromWaterTemperature(waterTemperature);
+        packet.data.MileageByte1 = 0x1A;
+        packet.data.MileageByte2 = 0x6E;
+        packet.data.MileageByte3 = 0x90; //0x1A6E90 = 173224.0 meters
         packet.data.ExternalTemperature.value = GetTemperatureToSendToDisplay(externalTemperature);
 
         unsigned char *serializedPacket = Serialize<VanDashboardPacket>(packet);
