@@ -114,9 +114,6 @@
     <ClInclude Include="CanVinStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cppQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DoorStatus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -290,9 +287,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cppQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HardwareSerialAbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

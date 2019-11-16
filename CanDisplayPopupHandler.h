@@ -8,7 +8,7 @@
 #include "CanDisplayPopupItem.h"
 #include "CanMessageSender.h"
 #include "ByteAcceptanceHandler.h"
-#include "cppQueue.h"
+#include <cppQueue.h>
 #include <ArduinoLog.h>
 
 const int CAN_POPUP_MESSAGE_TIME = 6500;
@@ -64,7 +64,7 @@ class CanDisplayPopupHandler
         
         CanDisplayPopupItem lastPopupMessageInQueue;
         xSemaphoreTake(canSemaphore, portMAX_DELAY);
-        bool lastPeek = popupMessageQueue->peek_last(&lastPopupMessageInQueue);
+        bool lastPeek = popupMessageQueue->peekPrevious(&lastPopupMessageInQueue);
         xSemaphoreGive(canSemaphore);
         if (!lastPopupMessage.IsInited || (lastPopupMessage.IsInited && lastPopupMessage.Category != item.Category || lastPopupMessage.MessageType != item.MessageType))
         {

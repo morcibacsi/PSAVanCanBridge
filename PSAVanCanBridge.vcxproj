@@ -220,9 +220,6 @@
     </ClInclude>
     <ClInclude Include="CanWarningLogHandler.h" />
     <ClInclude Include="CanWarningLogStructs.h" />
-    <ClInclude Include="cppQueue.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
     <ClInclude Include="DashIcons1.h" />
     <ClInclude Include="DoorStatus.h">
       <FileType>CppCode</FileType>
@@ -297,7 +294,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BluetoothSerialAbs.cpp" />
-    <ClCompile Include="cppQueue.cpp" />
     <ClCompile Include="HardwareSerialAbs.cpp" />
   </ItemGroup>
   <PropertyGroup>
