@@ -74,7 +74,8 @@ typedef union VanCarStatusWithTripComputerPacket {
 class VanCarStatusPacketSender
 {
     AbstractVanMessageSender* vanMessageSender;
-public:
+
+    public:
     VanCarStatusPacketSender(AbstractVanMessageSender* object)
     {
         vanMessageSender = object;

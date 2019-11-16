@@ -28,7 +28,7 @@ public:
         VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!IsVanIdent(identByte1, identByte2, VAN_ID_DASHBOARD))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_DASHBOARD) && messageLength == 7))
         {
             return false;
         }
