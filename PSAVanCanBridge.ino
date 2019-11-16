@@ -392,7 +392,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
     }
 }
 
-void VANTask(void * parameter)
+void VANReadTaskFunction(void * parameter)
 {
     unsigned long currentTime;
     unsigned long lastMillis = 0;
@@ -620,7 +620,7 @@ void setup()
         0);                             // Core where the task should run
 
     xTaskCreatePinnedToCore(
-        VANTask,                        // Function to implement the task
+        VANReadTaskFunction,            // Function to implement the task
         "VANReadTask",                  // Name of the task
         20000,                          // Stack size in words
         NULL,                           // Task input parameter
