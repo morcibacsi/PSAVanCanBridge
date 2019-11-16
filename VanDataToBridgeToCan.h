@@ -19,7 +19,7 @@ struct VanDataToBridgeToCan
     int Trip2Consumption = 0;
     int FuelConsumption = 0;
     int FuelLeftToPump = 0;
-    int InternalTemperature = 0;
+    float InternalTemperature = 0;
     uint8_t RadioRemoteButton = 0;
     uint8_t RadioRemoteScroll = 0;
     uint8_t IsHeatingPanelPoweredOn = 0; // Displays off

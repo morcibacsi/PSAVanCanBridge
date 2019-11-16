@@ -6,8 +6,9 @@
 
 struct VanIgnitionDataToBridgeToCan
 {
-    int OutsideTemperature = 0;
-    int WaterTemperature = 0;
+    int8_t OutsideTemperature = 0;
+    int8_t WaterTemperature = 0;
+    float InternalTemperature = 0;
     uint8_t EconomyModeActive = 0;
     uint8_t Ignition = 0;
     uint8_t DashboardLightingEnabled = 0;

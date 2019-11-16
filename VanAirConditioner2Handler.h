@@ -40,7 +40,9 @@ public:
             dataToBridge.IsWindowHeatingOn = packet.data.Status.rear_window_heating_on;
         }
 
+        #if HW_VERSION == 12
         dataToBridge.InternalTemperature = GetInternalTemperature(packet.data.InternalTemperature);
+        #endif
 
         return true;
     }

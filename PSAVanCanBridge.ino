@@ -66,6 +66,7 @@
 #include "VanInstrumentClusterV2Handler.h"
 #include "VanRadioRemoteHandler.h"
 #include "VanSpeedAndRpmHandler.h"
+#include "VanAirConditionerDiagSensorHandler.h"
 
 #pragma endregion
 
@@ -100,6 +101,7 @@ TaskHandle_t CANSendIgnitionTask;
 TaskHandle_t CANSendDataTask;
 
 TaskHandle_t VANReadTask;
+TaskHandle_t VANWriteTask;
 TaskHandle_t CANReadTask;
 
 const uint8_t QUEUE_SIZE = 1;
@@ -124,7 +126,7 @@ CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 
-const uint8_t VAN_MESSAGE_HANDLER_COUNT = 9;
+const uint8_t VAN_MESSAGE_HANDLER_COUNT = 10;
 AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
 AbsSer *serialPort;
@@ -529,6 +531,57 @@ void VANReadTaskFunction(void * parameter)
     }
 }
 
+void VANWriteTaskFunction(void* parameter)
+{
+    const int SCK_PIN = 25;
+    const int MISO_PIN = 5;
+    const int MOSI_PIN = 33;
+    const int VAN_PIN = 32;
+
+    uint8_t ignition = 0;
+    VanIgnitionDataToBridgeToCan dataToBridge;
+
+    SPIClass* spi = new SPIClass();
+    spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, VAN_PIN);
+
+    AbstractVanMessageSender* VANInterface = new VanMessageSender(VAN_PIN, spi);
+    VANInterface->begin();
+
+    VanCarStatusPacketSender *carStatusSender = new VanCarStatusPacketSender(VANInterface);
+    carStatusSender->GetCarStatus(0);
+
+    VanACDiagPacketSender* acDiagSender = new VanACDiagPacketSender(VANInterface);
+    acDiagSender->GetManufacturerInfo(1);
+    acDiagSender->GetSensorStatus(2);
+    acDiagSender->QueryAirConData(3);
+
+    for (;;)
+    {
+        xQueueReceive(ignitionQueue, &dataToBridge, 0);
+
+        ignition = 0;
+#ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
+        if (dataToBridge.Ignition == 1)
+        {
+            ignition = 1;
+        }
+#else
+       ignition = 1;
+#endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
+
+        if (ignition == 1)
+        {
+            carStatusSender->GetCarStatus(0);
+            VANInterface->reactivate_channel(1);
+
+            acDiagSender->GetSensorStatus(2);
+            acDiagSender->QueryAirConData(3);
+        }
+
+        vTaskDelay(300 / portTICK_PERIOD_MS);
+    }
+}
+
 void setup()
 {
     uint64_t macAddress;
@@ -610,6 +663,7 @@ void setup()
     vanMessageHandlers[6] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
     vanMessageHandlers[7] = new VanSpeedAndRpmHandler();
     vanMessageHandlers[8] = new VanInstrumentClusterV2Handler();
+    vanMessageHandlers[9] = new VanAirConditionerDiagSensorHandler();
 
     dataQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanIgnitionDataToBridgeToCan));
@@ -650,6 +704,17 @@ void setup()
         0,                              // Priority of the task
         &CANReadTask,                   // Task handle.
         1);                             // Core where the task should run
+
+#if HW_VERSION == 14
+    xTaskCreatePinnedToCore(
+        VANWriteTaskFunction,                        // Function to implement the task
+        "VANWriteTask",                  // Name of the task
+        20000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        1,                              // Priority of the task
+        &VANWriteTask,                   // Task handle.
+        1);                             // Core where the task should run
+#endif
 }
 
 void loop()

@@ -243,6 +243,8 @@
     <ClInclude Include="VanAirConditioner2Structs.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="VanAirConditionerDiagSensorHandler.h" />
+    <ClInclude Include="VanAirConditionerDiagStructs.h" />
     <ClInclude Include="VanCanAirConditionerSpeedMap.h">
       <FileType>CppCode</FileType>
     </ClInclude>

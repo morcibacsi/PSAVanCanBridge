@@ -285,6 +285,12 @@
     <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VanAirConditionerDiagStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanAirConditionerDiagSensorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HardwareSerialAbs.cpp">

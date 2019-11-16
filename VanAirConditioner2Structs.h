@@ -39,12 +39,12 @@ typedef union VanAirConditioner2Packet {
     uint8_t VanAirConditioner2Packet[sizeof(VanAirConditioner2Struct)];
 };
 
-int8_t GetInternalTemperature(uint8_t byte)
+float GetInternalTemperature(uint8_t byte)
 {
     return (byte / 2);
 }
 
-int8_t GetEvaporatorTemperature(uint16_t input)
+float GetEvaporatorTemperature(uint16_t input)
 {
     return ((((input & 0xff) << 8) | ((input >> 8) & 0xff)) / 10)-40;
 }
