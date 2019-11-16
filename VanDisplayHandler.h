@@ -21,6 +21,10 @@ class VanDisplayHandler : public AbstractVanMessageHandler {
     CanWarningLogHandler* canWarningLogHandler;
     VanCanDisplayPopupMap* popupMapping;
 
+    const uint16_t LEFT_STICK_BUTTON_TIME = 5000;
+    unsigned long leftStickButtonReturn = 0;
+    unsigned long currentTime = 0;
+
     ~VanDisplayHandler()
     {
 
@@ -55,6 +59,8 @@ public:
         {
             return false;
         }
+
+        currentTime = millis();
 
         const VanDisplayPacket packet = DeSerialize<VanDisplayPacket>(vanMessageWithoutId);
         if (packet.data.Message != 0xFF)
@@ -199,9 +205,19 @@ public:
         {
             canPopupHandler->ResetSeatBeltWarning();
         }
+
         if (packet.data.Field6.left_stick_button)
         {
-            canTripInfoHandler->TripButtonPress();
+            leftStickButtonReturn = currentTime + LEFT_STICK_BUTTON_TIME;
+            ignitionDataToBridge.LeftStickButtonPressed = 1;
+            dataToBridge.LeftStickButtonPressed = 1;
+            //canTripInfoHandler->TripButtonPress();
+        }
+
+        if (currentTime > leftStickButtonReturn)
+        {
+            ignitionDataToBridge.LeftStickButtonPressed = 0;
+            dataToBridge.LeftStickButtonPressed = 0;
         }
 
         return true;

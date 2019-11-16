@@ -32,5 +32,6 @@ struct VanDataToBridgeToCan
     uint8_t FuelLevel = 0;
     LightStatus LightStatuses;
     DashIcons1 DashIcons1Field;
+    uint8_t LeftStickButtonPressed = 0;
 };
 #endif

@@ -195,9 +195,13 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region TripInfo
 
-            //trip0Icon1Data = dataToBridge.FuelLeftToPump;
-            //trip0Icon1Data = dataToBridge.FuelLevel;
             trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
+
+            if (dataToBridge.LeftStickButtonPressed)
+            {
+                trip0Icon1Data = dataToBridge.FuelLevel;
+            }
+            //trip0Icon1Data = dataToBridge.FuelLeftToPump;
 
             tripInfoHandler->SetTripData(
                 dataToBridge.Rpm,
@@ -296,6 +300,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
     uint8_t economyMode = 0;
     uint8_t ignition = 0;
     uint8_t brightness = 15;
+    int8_t externalTemperature = 0;
+
 
     for (;;)
     {
@@ -344,10 +350,17 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma region Ignition signal for display
 
+        externalTemperature = dataToBridge.OutsideTemperature;
+
+        if (dataToBridge.LeftStickButtonPressed)
+        {
+            externalTemperature = (dataToBridge.InternalTemperature + 0.5);
+        }
+
         dashIgnition->SendIgnition(
             ignition, 
             dataToBridge.WaterTemperature, 
-            dataToBridge.OutsideTemperature, 
+            externalTemperature, 
             dataToBridge.MileageByte1, 
             dataToBridge.MileageByte2, 
             dataToBridge.MileageByte3);

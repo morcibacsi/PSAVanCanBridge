@@ -15,5 +15,6 @@ struct VanIgnitionDataToBridgeToCan
     uint8_t MileageByte1 = 0;
     uint8_t MileageByte2 = 0;
     uint8_t MileageByte3 = 0;
+    uint8_t LeftStickButtonPressed = 0;
 };
 #endif
