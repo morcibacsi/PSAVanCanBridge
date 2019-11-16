@@ -8,7 +8,8 @@
 */
 #define USE_BLUETOOTH_SERIAL
 #define USE_IGNITION_SIGNAL_FROM_VAN_BUS
-#define HW_VERSION 2
+//#define HW_VERSION 12
+#define HW_VERSION 14
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
 
 #pragma region Includes
@@ -72,18 +73,18 @@ ESP32_RMT_VAN_RX VAN_RX;
 
 const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
 
-#if HW_VERSION == 1
-const uint8_t VAN_DATA_RX_PIN = 19;
-const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
-
-const uint8_t CAN_RX_PIN = 5;
-const uint8_t CAN_TX_PIN = 4;
-#elif HW_VERSION == 2
+#if HW_VERSION == 12
 const uint8_t VAN_DATA_RX_PIN = 21;
 const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_LOW;
 
 const uint8_t CAN_RX_PIN = 33;
 const uint8_t CAN_TX_PIN = 32;
+#elif HW_VERSION == 14
+const uint8_t VAN_DATA_RX_PIN = 21;
+const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
+
+const uint8_t CAN_RX_PIN = 18;
+const uint8_t CAN_TX_PIN = 15;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
