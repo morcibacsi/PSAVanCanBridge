@@ -5,7 +5,7 @@
     #define _VanCanDisplayPopupMap_h
 
 #include "CanDisplayStructs.h"
-#include "VanDisplayStructs.h"
+#include "VanDisplayPopupMessage.h"
 
 class VanCanDisplayPopupMap
 {

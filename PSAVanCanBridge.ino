@@ -61,7 +61,8 @@
 #include "VanAirConditioner2Handler.h"
 #include "VanCarStatusWithTripComputerHandler.h"
 #include "VanDashboardHandler.h"
-#include "VanDisplayHandler.h"
+#include "VanDisplayHandlerV1.h"
+#include "VanDisplayHandlerV2.h"
 #include "VanInstrumentClusterV1Handler.h"
 #include "VanInstrumentClusterV2Handler.h"
 #include "VanRadioRemoteHandler.h"
@@ -126,7 +127,7 @@ CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 
-const uint8_t VAN_MESSAGE_HANDLER_COUNT = 10;
+const uint8_t VAN_MESSAGE_HANDLER_COUNT = 11;
 AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
 AbsSer *serialPort;
@@ -658,12 +659,13 @@ void setup()
     vanMessageHandlers[1] = new VanAirConditioner2Handler();
     vanMessageHandlers[2] = new VanCarStatusWithTripComputerHandler(canPopupHandler, tripInfoHandler);
     vanMessageHandlers[3] = new VanDashboardHandler();
-    vanMessageHandlers[4] = new VanDisplayHandler(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-    vanMessageHandlers[5] = new VanInstrumentClusterV1Handler();
-    vanMessageHandlers[6] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
-    vanMessageHandlers[7] = new VanSpeedAndRpmHandler();
-    vanMessageHandlers[8] = new VanInstrumentClusterV2Handler();
-    vanMessageHandlers[9] = new VanAirConditionerDiagSensorHandler();
+    vanMessageHandlers[4] = new VanDisplayHandlerV1(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
+    vanMessageHandlers[5] = new VanDisplayHandlerV2(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
+    vanMessageHandlers[6] = new VanInstrumentClusterV1Handler();
+    vanMessageHandlers[7] = new VanInstrumentClusterV2Handler();
+    vanMessageHandlers[8] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
+    vanMessageHandlers[9] = new VanSpeedAndRpmHandler();
+    vanMessageHandlers[10] = new VanAirConditionerDiagSensorHandler();
 
     dataQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanIgnitionDataToBridgeToCan));

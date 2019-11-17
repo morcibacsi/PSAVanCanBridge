@@ -144,9 +144,6 @@
     <ClInclude Include="VanDashboardStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VanMessageSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -243,9 +240,6 @@
     <ClInclude Include="AbstractVanMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VanIgnitionDataToBridgeToCan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -285,10 +279,25 @@
     <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VanAirConditionerDiagSensorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="VanAirConditionerDiagStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditionerDiagSensorHandler.h">
+    <ClInclude Include="VanDisplayStructsV2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDisplayStructsV1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDisplayHandlerV1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDisplayPopupMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VanDisplayHandlerV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

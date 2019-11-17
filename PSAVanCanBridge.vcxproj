@@ -262,10 +262,11 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="VanDataToBridgeToCan.h" />
-    <ClInclude Include="VanDisplayHandler.h" />
-    <ClInclude Include="VanDisplayStructs.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
+    <ClInclude Include="VanDisplayHandlerV1.h" />
+    <ClInclude Include="VanDisplayHandlerV2.h" />
+    <ClInclude Include="VanDisplayPopupMessage.h" />
+    <ClInclude Include="VanDisplayStructsV1.h" />
+    <ClInclude Include="VanDisplayStructsV2.h" />
     <ClInclude Include="VanIgnitionDataToBridgeToCan.h" />
     <ClInclude Include="VanInstrumentClusterV1Handler.h" />
     <ClInclude Include="VanInstrumentClusterV1Structs.h" />

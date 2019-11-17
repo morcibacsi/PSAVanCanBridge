@@ -1,8 +1,8 @@
 ﻿// VanDisplayHandler.h
 #pragma once
 
-#ifndef _VanDisplayHandler_h
-    #define _VanDisplayHandler_h
+#ifndef _VanDisplayHandlerV2_h
+    #define _VanDisplayHandlerV2_h
 
 #include "AbstractVanMessageHandler.h"
 
@@ -12,9 +12,9 @@
 
 #include "CanTripInfoHandler.h"
 #include "CanDisplayPopupHandler.h"
-#include "VanDisplayStructs.h"
+#include "VanDisplayStructsV2.h"
 
-class VanDisplayHandler : public AbstractVanMessageHandler {
+class VanDisplayHandlerV2 : public AbstractVanMessageHandler {
     CanDisplayPopupHandler* canPopupHandler;
     CanTripInfoHandler* canTripInfoHandler;
     CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
@@ -25,13 +25,13 @@ class VanDisplayHandler : public AbstractVanMessageHandler {
     unsigned long leftStickButtonReturn = 0;
     unsigned long currentTime = 0;
 
-    ~VanDisplayHandler()
+    ~VanDisplayHandlerV2()
     {
 
     }
 
 public:
-    VanDisplayHandler(
+    VanDisplayHandlerV2(
         CanDisplayPopupHandler* _canPopupHandler, 
         CanTripInfoHandler* _canTripInfoHandler, 
         VanCanDisplayPopupMap* _popupMapping,
@@ -55,14 +55,14 @@ public:
         VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP) && messageLength == 14))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP_V2) && messageLength == 16))
         {
             return false;
         }
 
         currentTime = millis();
 
-        const VanDisplayPacket packet = DeSerialize<VanDisplayPacket>(vanMessageWithoutId);
+        const VanDisplayPacketV2 packet = DeSerialize<VanDisplayPacketV2>(vanMessageWithoutId);
         if (packet.data.Message != 0xFF)
         {
             CanDisplayPopupItem item;
