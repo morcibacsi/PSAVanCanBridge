@@ -28,7 +28,7 @@ public:
         VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_DIAG) && messageLength == 22 && vanMessageWithoutId[2] == 0xC0))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_DIAG) && messageLength == 22 && vanMessageWithoutId[2] == VAN_ID_AIR_CONDITIONER_DIAG_SENSOR_STATUS))
         {
             return false;
         }

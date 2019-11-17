@@ -33,5 +33,6 @@ struct VanDataToBridgeToCan
     LightStatus LightStatuses;
     DashIcons1 DashIcons1Field;
     uint8_t LeftStickButtonPressed = 0;
+    uint8_t AirConDirection = 0;
 };
 #endif

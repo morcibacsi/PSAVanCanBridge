@@ -282,6 +282,9 @@
     <ClInclude Include="VanAirConditionerDiagSensorHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VanAirConditionerDiagActuatorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="VanAirConditionerDiagStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

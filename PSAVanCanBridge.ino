@@ -127,7 +127,7 @@ CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 
-const uint8_t VAN_MESSAGE_HANDLER_COUNT = 11;
+const uint8_t VAN_MESSAGE_HANDLER_COUNT = 12;
 AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
 AbsSer *serialPort;
@@ -256,7 +256,7 @@ void CANSendDataTaskFunction(void * parameter)
                     currentTime,
                     dataToBridge.InternalTemperature,
                     dataToBridge.InternalTemperature,
-                    0,
+                    dataToBridge.AirConDirection,
                     0, // auto mode
                     dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
                     dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
@@ -540,6 +540,7 @@ void VANWriteTaskFunction(void* parameter)
     const int VAN_PIN = 32;
 
     uint8_t ignition = 0;
+    uint8_t diagStatus = 0;
     VanIgnitionDataToBridgeToCan dataToBridge;
 
     SPIClass* spi = new SPIClass();
@@ -553,8 +554,12 @@ void VANWriteTaskFunction(void* parameter)
 
     VanACDiagPacketSender* acDiagSender = new VanACDiagPacketSender(VANInterface);
     acDiagSender->GetManufacturerInfo(1);
+
     acDiagSender->GetSensorStatus(2);
-    acDiagSender->QueryAirConData(3);
+    acDiagSender->QueryAirConData(4);
+
+    acDiagSender->GetActuatorStatus(3);
+    acDiagSender->QueryAirConData(4);
 
     for (;;)
     {
@@ -575,11 +580,21 @@ void VANWriteTaskFunction(void* parameter)
             carStatusSender->GetCarStatus(0);
             VANInterface->reactivate_channel(1);
 
-            acDiagSender->GetSensorStatus(2);
-            acDiagSender->QueryAirConData(3);
+            if (diagStatus == 0)
+            {
+                acDiagSender->GetSensorStatus(2);
+                acDiagSender->QueryAirConData(4);
+                diagStatus = 1;
+            }
+            else
+            {
+                acDiagSender->GetActuatorStatus(3);
+                acDiagSender->QueryAirConData(4);
+                diagStatus = 0;
+            }
         }
 
-        vTaskDelay(300 / portTICK_PERIOD_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
 
@@ -666,6 +681,7 @@ void setup()
     vanMessageHandlers[8] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
     vanMessageHandlers[9] = new VanSpeedAndRpmHandler();
     vanMessageHandlers[10] = new VanAirConditionerDiagSensorHandler();
+    vanMessageHandlers[11] = new VanAirConditionerDiagActuatorHandler();
 
     dataQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanIgnitionDataToBridgeToCan));
