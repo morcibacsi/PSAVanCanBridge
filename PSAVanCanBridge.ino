@@ -1,4 +1,4 @@
-﻿/* ESP32 VAN bus to CAN bus protocol bridge software for Peugeot 307
+/* ESP32 VAN bus to CAN bus protocol bridge software for Peugeot 307
  * 
  * The software is distributed under Public Domain (or CC0 licensed, at your option.)
  *
@@ -16,58 +16,59 @@
 #include <Arduino.h>
 #include <esp32_arduino_rmt_van_rx.h>
 #include <ArduinoLog.h>
-#include <BluetoothSerial.h>
-#include "AbstractSerial.h"
-#include "HardwareSerialAbs.h"
-#include "BluetoothSerialAbs.h"
 
-#include "Serializer.h"
+#include "src/SerialPort/AbstractSerial.h"
 
-#include "AbstractCanMessageSender.h"
-//#include "CanMessageSender.h"
-#include "CanMessageSenderEsp32Arduino.h"
-#include "CanDisplayStructs.h"
-#include "CanDash1Structs.h"
-#include "CanIgnitionStructs.h"
-#include "CanMenuStructs.h"
-#include "CanDisplayPopupItem.h"
-#include "CanRadioRemoteMessageHandler.h"
-#include "CanVinHandler.h"
-#include "CanTripInfoHandler.h"
-#ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-    #include "CanAirConOnDisplayHandler.h"
+#ifdef USE_BLUETOOTH_SERIAL
+    #include <BluetoothSerial.h>
+    #include "src/SerialPort/BluetoothSerialAbs.h"
 #else
-    #include "CanAirConOnDisplayHandlerOrig.h"
+#include "src/SerialPort/HardwareSerialAbs.h"
 #endif
-#include "CanStatusOfFunctionsHandler.h"
-#include "CanWarningLogHandler.h"
-#include "CanSpeedAndRpmHandler.h"
-#include "CanDash2MessageHandler.h"
-#include "CanDash3MessageHandler.h"
-#include "CanDash4MessageHandler.h"
-#include "CanDisplayStatusStructs.h"
-#include "CanDisplayPopupHandler.h"
-#include "VanCanDisplayPopupMap.h"
 
-#include "VanMessageSender.h"
-#include "VanVinStructs.h"
-#include "VanCanAirConditionerSpeedMap.h"
-#include "DoorStatus.h"
-#include "VanDataToBridgeToCan.h"
-#include "VanIgnitionDataToBridgeToCan.h"
+#include "src/Can/CanMessageSenderEsp32Arduino.h"
+#include "src/Can/Structs/CanDisplayStructs.h"
+#include "src/Can/Structs/CanDisplayStatusStructs.h"
+#include "src/Can/Structs/CanDash1Structs.h"
+#include "src/Can/Structs/CanIgnitionStructs.h"
+#include "src/Can/Structs/CanMenuStructs.h"
+#include "src/Can/Handlers/CanRadioRemoteMessageHandler.h"
+#include "src/Can/Handlers/CanVinHandler.h"
+#include "src/Can/Handlers/CanTripInfoHandler.h"
+#include "src/Can/Handlers/CanStatusOfFunctionsHandler.h"
+#include "src/Can/Handlers/CanWarningLogHandler.h"
+#include "src/Can/Handlers/CanSpeedAndRpmHandler.h"
+#include "src/Can/Handlers/CanDash2MessageHandler.h"
+#include "src/Can/Handlers/CanDash3MessageHandler.h"
+#include "src/Can/Handlers/CanDash4MessageHandler.h"
+#ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
+#else
+#include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+#endif
 
-#include "AbstractVanMessageHandler.h"
-#include "VanAirConditioner1Handler.h"
-#include "VanAirConditioner2Handler.h"
-#include "VanCarStatusWithTripComputerHandler.h"
-#include "VanDashboardHandler.h"
-#include "VanDisplayHandlerV1.h"
-#include "VanDisplayHandlerV2.h"
-#include "VanInstrumentClusterV1Handler.h"
-#include "VanInstrumentClusterV2Handler.h"
-#include "VanRadioRemoteHandler.h"
-#include "VanSpeedAndRpmHandler.h"
-#include "VanAirConditionerDiagSensorHandler.h"
+#include "src/Van/VanMessageSender.h"
+#include "src/Van/Structs/VanVinStructs.h"
+
+#include "src/Helpers/CanDisplayPopupItem.h"
+#include "src/Helpers/DoorStatus.h"
+#include "src/Helpers/VanCanAirConditionerSpeedMap.h"
+#include "src/Helpers/VanDataToBridgeToCan.h"
+#include "src/Helpers/VanIgnitionDataToBridgeToCan.h"
+
+#include "src/Van/Handlers/AbstractVanMessageHandler.h"
+#include "src/Van/Handlers/VanAirConditioner1Handler.h"
+#include "src/Van/Handlers/VanAirConditioner2Handler.h"
+#include "src/Van/Handlers/VanCarStatusWithTripComputerHandler.h"
+#include "src/Van/Handlers/VanDashboardHandler.h"
+#include "src/Van/Handlers/VanDisplayHandlerV1.h"
+#include "src/Van/Handlers/VanDisplayHandlerV2.h"
+#include "src/Van/Handlers/VanInstrumentClusterV1Handler.h"
+#include "src/Van/Handlers/VanInstrumentClusterV2Handler.h"
+#include "src/Van/Handlers/VanRadioRemoteHandler.h"
+#include "src/Van/Handlers/VanSpeedAndRpmHandler.h"
+#include "src/Van/Handlers/VanAirConditionerDiagSensorHandler.h"
+#include "src/Van/Handlers/VanAirConditionerDiagActuatorHandler.h"
 
 #pragma endregion
 

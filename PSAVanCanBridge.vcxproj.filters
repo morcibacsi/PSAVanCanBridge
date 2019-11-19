@@ -21,294 +21,291 @@
     <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractCanMessageSender.h">
+    <ClInclude Include="src\Van\Handlers\VanAirConditioner1Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractVanMessageSender.h">
+    <ClInclude Include="src\Van\Structs\VanAirConditioner1Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ByteAcceptanceHandler.h">
+    <ClInclude Include="src\Van\Handlers\AbstractVanMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanAirConOnDisplayHandler.h">
+    <ClInclude Include="src\Van\Handlers\VanAirConditioner2Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanAirConOnDisplayStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanAirConditionerDiagActuatorHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanAirConStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanAirConditionerDiagSensorHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash1Structs.h">
+    <ClInclude Include="src\Van\Handlers\VanCarStatusWithTripComputerHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash2Structs.h">
+    <ClInclude Include="src\Van\Handlers\VanDashboardHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDisplayClockStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDisplayPopupHandler.h">
+    <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDisplayPopupItem.h">
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV1Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDisplayStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV2Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDoorStatusStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanRadioRemoteHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanIgnitionStructs.h">
+    <ClInclude Include="src\Van\Handlers\VanSpeedAndRpmHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanMenuStructs.h">
+    <ClInclude Include="src\Van\Structs\VanAirConditioner2Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanMessageSender.h">
+    <ClInclude Include="src\Van\Structs\VanAirConditionerDiagStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioAudioSettingsStructs.h">
+    <ClInclude Include="src\Van\Structs\VanCarStatusWithTripComputerStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioInfoStructs.h">
+    <ClInclude Include="src\Van\Structs\VanCdChangerStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioMp3Structs.h">
+    <ClInclude Include="src\Van\Structs\VanDashboardMileageStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioRdsTextStructs.h">
+    <ClInclude Include="src\Van\Structs\VanDashboardStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioRemoteStructs.h">
+    <ClInclude Include="src\Van\Structs\VanDisplayStructsV1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioStructs.h">
+    <ClInclude Include="src\Van\Structs\VanDisplayStructsV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioTextListStructs.h">
+    <ClInclude Include="src\Van\Structs\VanInstrumentClusterV1Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioTunerStructs.h">
+    <ClInclude Include="src\Van\Structs\VanInstrumentClusterV2Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioVolumeStructs.h">
+    <ClInclude Include="src\Van\Structs\VanRadioInfoStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanTrip0Structs.h">
+    <ClInclude Include="src\Van\Structs\VanRadioRemoteStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanTrip1Structs.h">
+    <ClInclude Include="src\Van\Structs\VanRadioTunerStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanTrip2Structs.h">
+    <ClInclude Include="src\Van\Structs\VanSpeedAndRpmStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanTripInfoHandler.h">
+    <ClInclude Include="src\Van\Structs\VanVinStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanVinHandler.h">
+    <ClInclude Include="src\Van\AbstractVanMessageSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanVinStructs.h">
+    <ClInclude Include="src\Van\VanMessageSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DoorStatus.h">
+    <ClInclude Include="src\Can\CanMessageSenderEsp32Arduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IntegRadioHelper.h">
+    <ClInclude Include="src\Can\AbstractCanMessageSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PacketGenerator.h">
+    <ClInclude Include="src\Can\CanMessageSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Serializer.h">
+    <ClInclude Include="src\Can\Structs\CanAirConOnDisplayStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditioner1Structs.h">
+    <ClInclude Include="src\Can\Structs\CanAirConStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditioner2Structs.h">
+    <ClInclude Include="src\Can\Structs\CanDash1Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanCanAirConditionerSpeedMap.h">
+    <ClInclude Include="src\Can\Structs\CanDash2Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanCanDisplayPopupMap.h">
+    <ClInclude Include="src\Can\Structs\CanDash3Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanCarStatusWithTripComputerStructs.h">
+    <ClInclude Include="src\Can\Structs\CanDash4Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDashboardStructs.h">
+    <ClInclude Include="src\Can\Structs\CanDefineVehicleParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanMessageSender.h">
+    <ClInclude Include="src\Can\Structs\CanDisplayClockStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanRadioInfoStructs.h">
+    <ClInclude Include="src\Can\Structs\CanDisplayStatusStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanRadioRemoteStructs.h">
+    <ClInclude Include="src\Can\Structs\CanDisplayStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanRadioTunerStructs.h">
+    <ClInclude Include="src\Can\Structs\CanDoorStatusStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanSpeedAndRpmStructs.h">
+    <ClInclude Include="src\Can\Structs\CanIgnitionStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanVinStructs.h">
+    <ClInclude Include="src\Can\Structs\CanMenuStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanWarningLogStructs.h">
+    <ClInclude Include="src\Can\Structs\CanRadioAudioSettingsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanStatusOfFunctionsStructs.h">
+    <ClInclude Include="src\Can\Structs\CanRadioInfoStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDefineVehicleParameters.h">
+    <ClInclude Include="src\Can\Structs\CanRadioMp3Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HardwareSerialAbs.h">
+    <ClInclude Include="src\Can\Structs\CanRadioRd4DiagStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BluetoothSerialAbs.h">
+    <ClInclude Include="src\Can\Structs\CanRadioRdsTextStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractSerial.h">
+    <ClInclude Include="src\Can\Structs\CanRadioRemoteStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanStatusOfFunctionsHandler.h">
+    <ClInclude Include="src\Can\Structs\CanRadioStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanWarningLogHandler.h">
+    <ClInclude Include="src\Can\Structs\CanRadioTextListStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanSpeedAndRpmStructs.h">
+    <ClInclude Include="src\Can\Structs\CanRadioTunerStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanSpeedAndRpmHandler.h">
+    <ClInclude Include="src\Can\Structs\CanRadioVolumeStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDataToBridgeToCan.h">
+    <ClInclude Include="src\Can\Structs\CanSpeedAndRpmStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash3Structs.h">
+    <ClInclude Include="src\Can\Structs\CanStatusOfFunctionsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash4Structs.h">
+    <ClInclude Include="src\Can\Structs\CanTrip0Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanMessageHandlerBase.h">
+    <ClInclude Include="src\Can\Structs\CanTrip1Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash2MessageHandler.h">
+    <ClInclude Include="src\Can\Structs\CanTrip2Structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DashIcons1.h">
+    <ClInclude Include="src\Can\Structs\CanVinStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LightStatus.h">
+    <ClInclude Include="src\Can\Structs\CanWarningLogStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash4MessageHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanAirConOnDisplayHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDash3MessageHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanAirConOnDisplayHandlerOrig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioRemoteMessageHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanDash2MessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanAirConOnDisplayHandlerOrig.h">
+    <ClInclude Include="src\Can\Handlers\CanDash3MessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanRadioRd4DiagStructs.h">
+    <ClInclude Include="src\Can\Handlers\CanDash4MessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanMessageSenderEsp32Arduino.h">
+    <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanCdChangerStructs.h">
+    <ClInclude Include="src\Can\Handlers\CanMessageHandlerBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanDisplayStatusStructs.h">
+    <ClInclude Include="src\Can\Handlers\CanRadioRemoteMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractVanMessageHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanSpeedAndRpmHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanIgnitionDataToBridgeToCan.h">
+    <ClInclude Include="src\Can\Handlers\CanStatusOfFunctionsHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanSpeedAndRpmHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanTripInfoHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanCarStatusWithTripComputerHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanVinHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDashboardHandler.h">
+    <ClInclude Include="src\Can\Handlers\CanWarningLogHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditioner1Handler.h">
+    <ClInclude Include="src\Helpers\CanDisplayPopupItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditioner2Handler.h">
+    <ClInclude Include="src\Helpers\DashIcons1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanRadioRemoteHandler.h">
+    <ClInclude Include="src\Helpers\DoorStatus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanInstrumentClusterV1Handler.h">
+    <ClInclude Include="src\Helpers\IntegRadioHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanInstrumentClusterV1Structs.h">
+    <ClInclude Include="src\Helpers\LightStatus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanInstrumentClusterV2Handler.h">
+    <ClInclude Include="src\Helpers\PacketGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanInstrumentClusterV2Structs.h">
+    <ClInclude Include="src\Helpers\Serializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDashboardMileageStructs.h">
+    <ClInclude Include="src\Helpers\VanCanAirConditionerSpeedMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h">
+    <ClInclude Include="src\Helpers\VanCanDisplayPopupMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditionerDiagSensorHandler.h">
+    <ClInclude Include="src\Helpers\VanDataToBridgeToCan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditionerDiagActuatorHandler.h">
+    <ClInclude Include="src\Helpers\VanIgnitionDataToBridgeToCan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanAirConditionerDiagStructs.h">
+    <ClInclude Include="src\Helpers\ByteAcceptanceHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayStructsV2.h">
+    <ClInclude Include="src\Van\Structs\VanDisplayPopupMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayStructsV1.h">
+    <ClInclude Include="src\SerialPort\AbstractSerial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayHandlerV1.h">
+    <ClInclude Include="src\SerialPort\BluetoothSerialAbs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VanDisplayPopupMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VanDisplayHandlerV2.h">
+    <ClInclude Include="src\SerialPort\HardwareSerialAbs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HardwareSerialAbs.cpp">
+    <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BluetoothSerialAbs.cpp">
+    <ClCompile Include="src\SerialPort\HardwareSerialAbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
