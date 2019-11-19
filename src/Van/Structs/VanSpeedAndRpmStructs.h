@@ -1,4 +1,4 @@
-﻿// VanSpeedAndRpmStructs.h
+// VanSpeedAndRpmStructs.h
 #pragma once
 
 #ifndef _VanSpeedAndRpmStructs_h
@@ -33,18 +33,18 @@ typedef union VanSpeedAndRpmPacket {
     uint8_t VanSpeedAndRpmPacket[sizeof(VanSpeedAndRpmStruct)];
 };
 
-uint16_t SwapHiByteAndLoByte(uint16_t input)
+uint16_t static SwapHiByteAndLoByte(uint16_t input)
 {
     // swap low order byte with high order byte
     return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
 }
 
-uint16_t GetRpmFromVanData(uint16_t input)
+uint16_t static GetRpmFromVanData(uint16_t input)
 {
     return SwapHiByteAndLoByte(input) / 8;
 }
 
-uint8_t GetSpeedFromVanData(uint16_t input)
+uint8_t static GetSpeedFromVanData(uint16_t input)
 {
     return SwapHiByteAndLoByte(input) / 100;
 }

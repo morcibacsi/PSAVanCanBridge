@@ -1,4 +1,4 @@
-﻿// CanTrip0Structs.h
+// CanTrip0Structs.h
 #pragma once
 
 #ifndef _CanTrip0Structs_h
@@ -6,6 +6,7 @@
 
 #include "../AbstractCanMessageSender.h"
 #include "../../Helpers/PacketGenerator.h"
+#include "../../Helpers/IntValueOnTwoBytes.h"
 
 // CANID: 221
 const uint16_t CAN_ID_TRIP0 = 0x221;
@@ -33,20 +34,6 @@ typedef struct {
 typedef struct {
     unsigned int data : 16;
 } CanRestOfRunToFinish;
-
-
-/*
-usage:
-IntValueOnTwoBytes.value = 65535;           //Assign a value to the Int var of the Union
-HighByte = IntValueOnTwoBytes.Bytes[1];     //Get the High Byte (255)
-LowByte  = IntValueOnTwoBytes.Bytes[0];     //Get the Low Byte (255)
-*/
-union u_type
-{
-    unsigned int value;
-    unsigned char bytes[2];
-}
-IntValueOnTwoBytes;
 
 //typedef struct {
 //    uint8_t bit0 : 1; // bit 0
@@ -93,17 +80,19 @@ public:
 
         generator.packet.data.Information.trip_switch_pressed = button;
 
-        IntValueOnTwoBytes.value = kmToGasStation;
-        generator.packet.data.KmToGasStationByte1 = IntValueOnTwoBytes.bytes[1];
-        generator.packet.data.KmToGasStationByte2 = IntValueOnTwoBytes.bytes[0];
+        IntValueOnTwoBytes intValueOnTwoBytes;
 
-        IntValueOnTwoBytes.value = lper100km;
-        generator.packet.data.LitersPer100KmByte1 = IntValueOnTwoBytes.bytes[1];
-        generator.packet.data.LitersPer100KmByte2 = IntValueOnTwoBytes.bytes[0];
+        intValueOnTwoBytes.value = kmToGasStation;
+        generator.packet.data.KmToGasStationByte1 = intValueOnTwoBytes.bytes[1];
+        generator.packet.data.KmToGasStationByte2 = intValueOnTwoBytes.bytes[0];
 
-        IntValueOnTwoBytes.value = kmtoFinish * 10;
-        generator.packet.data.KmToFinishByte1 = IntValueOnTwoBytes.bytes[1];
-        generator.packet.data.KmToFinishByte2 = IntValueOnTwoBytes.bytes[0];
+        intValueOnTwoBytes.value = lper100km;
+        generator.packet.data.LitersPer100KmByte1 = intValueOnTwoBytes.bytes[1];
+        generator.packet.data.LitersPer100KmByte2 = intValueOnTwoBytes.bytes[0];
+
+        intValueOnTwoBytes.value = kmtoFinish * 10;
+        generator.packet.data.KmToFinishByte1 = intValueOnTwoBytes.bytes[1];
+        generator.packet.data.KmToFinishByte2 = intValueOnTwoBytes.bytes[0];
 
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_TRIP0, 0, sizeof(CanTrip0Packet), serializedPacket);

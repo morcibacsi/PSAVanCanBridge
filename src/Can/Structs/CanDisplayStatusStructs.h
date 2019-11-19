@@ -1,4 +1,4 @@
-﻿// CanDisplayStatusStructs.h
+// CanDisplayStatusStructs.h
 #pragma once
 
 #ifndef _CanDisplayStatusStructs_h
@@ -40,7 +40,7 @@ typedef union CanDisplayStatusPacket {
     uint8_t CanDisplayStatusPacket[sizeof(CanDisplayStatusStruct)];
 };
 
-uint16_t GetKmFromCanData(uint16_t canData)
+uint16_t static GetKmFromCanData(uint16_t canData)
 {
     return canData / 2;
 }

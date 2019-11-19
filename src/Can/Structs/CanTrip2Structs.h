@@ -1,4 +1,4 @@
-﻿// CanTrip2Structs.h
+// CanTrip2Structs.h
 #pragma once
 
 #ifndef _CanTrip2Structs_h
@@ -6,6 +6,7 @@
 
 #include "../AbstractCanMessageSender.h"
 #include "../../Helpers/PacketGenerator.h"
+#include "../../Helpers/IntValueOnTwoBytes.h"
 
 // CANID: 261
 const uint16_t CAN_ID_TRIP2 = 0x261;
@@ -41,13 +42,15 @@ public:
     {
         PacketGenerator<CanTrip2Packet> generator;
 
-        IntValueOnTwoBytes.value = mileageAfterReset;
-        generator.packet.data.MileageAfterResetByte1 = IntValueOnTwoBytes.bytes[1];
-        generator.packet.data.MileageAfterResetByte2 = IntValueOnTwoBytes.bytes[0];
+        IntValueOnTwoBytes intValueOnTwoBytes;
 
-        IntValueOnTwoBytes.value = lper100km;
-        generator.packet.data.LitersPer100KmByte1 = IntValueOnTwoBytes.bytes[1];
-        generator.packet.data.LitersPer100KmByte2 = IntValueOnTwoBytes.bytes[0];
+        intValueOnTwoBytes .value = mileageAfterReset;
+        generator.packet.data.MileageAfterResetByte1 = intValueOnTwoBytes.bytes[1];
+        generator.packet.data.MileageAfterResetByte2 = intValueOnTwoBytes.bytes[0];
+
+        intValueOnTwoBytes.value = lper100km;
+        generator.packet.data.LitersPer100KmByte1 = intValueOnTwoBytes.bytes[1];
+        generator.packet.data.LitersPer100KmByte2 = intValueOnTwoBytes.bytes[0];
 
         generator.packet.data.AverageSpeed = averageSpeed;
 

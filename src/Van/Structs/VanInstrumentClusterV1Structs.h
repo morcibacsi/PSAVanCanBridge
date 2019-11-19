@@ -1,4 +1,4 @@
-﻿// VanInstrumentClusterV1Structs.h
+// VanInstrumentClusterV1Structs.h
 #pragma once
 
 #ifndef _VanInstrumentClusterV1Structs_h
@@ -70,12 +70,12 @@ typedef union VanInstrumentClusterV1Packet {
     uint8_t VanInstrumentClusterV1Packet[sizeof(VanInstrumentClusterV1Structs)];
 };
 
-int8_t GetOilTemperatureFromVANByteV1(uint8_t vanByte)
+int8_t static GetOilTemperatureFromVANByteV1(uint8_t vanByte)
 {
     return vanByte - 40;
 }
 
-uint8_t GetVANByteFromOilTemperatureV1(int8_t temperature)
+uint8_t static GetVANByteFromOilTemperatureV1(int8_t temperature)
 {
     return temperature + 40;
 }

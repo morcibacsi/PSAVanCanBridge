@@ -1,4 +1,4 @@
-﻿// CanDash1Structs.h
+// CanDash1Structs.h
 #pragma once
 
 #ifndef _CanDash1Structs_h
@@ -64,11 +64,11 @@ typedef union CanDash1Packet {
     uint8_t CanDash1Packet[sizeof(CanDash1Struct)];
 };
 
-int CanGetCoolantTemperatureToDisplay(int temperatureToDisplay) {
+int static CanGetCoolantTemperatureToDisplay(int temperatureToDisplay) {
     return (temperatureToDisplay + 39);
 }
 
-int CanGetExternalTemperatureToDisplay(int temperatureToDisplay) {
+int static CanGetExternalTemperatureToDisplay(int temperatureToDisplay) {
     //actually it should be 39.5 not 40
     return (temperatureToDisplay + 40) * 2;
 }

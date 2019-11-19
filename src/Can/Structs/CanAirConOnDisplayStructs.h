@@ -1,4 +1,4 @@
-﻿// CanAirConOnDisplayStructs.h
+// CanAirConOnDisplayStructs.h
 #pragma once
 
 #ifndef _CanAirConOnDisplayStructs_h
@@ -60,7 +60,7 @@ typedef union CanAirConOnDisplayPacket {
     uint8_t CanAirConOnDisplayPacket[sizeof(CanAirConOnDisplayStruct)];
 };
 
-uint8_t CanAirConToDisplayGetFanSpeed(uint8_t numberFrom0To8)
+uint8_t static CanAirConToDisplayGetFanSpeed(uint8_t numberFrom0To8)
 {
     // the display has a weird logic to display the fan speed
     // if 0 is sent then it will display 1
@@ -95,7 +95,7 @@ uint8_t CanAirConToDisplayGetFanSpeed(uint8_t numberFrom0To8)
     return result;
 }
 
-uint8_t CanAirConToDisplayGetTemperature(float temperature) {
+uint8_t static CanAirConToDisplayGetTemperature(float temperature) {
     //0x00 : Min
     //0x01 - 0x05: 11 - 15
     //0x06 - 0x10: 15.5 - 20.5 (in 0.5C steps)

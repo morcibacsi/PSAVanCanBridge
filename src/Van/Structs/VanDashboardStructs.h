@@ -1,4 +1,4 @@
-﻿// VanDashboardStructs.h
+// VanDashboardStructs.h
 #pragma once
 
 #ifndef _VanDashboardStructs_h
@@ -55,22 +55,22 @@ typedef union VanDashboardPacket {
     uint8_t VanDashboardPacket[sizeof(VanDashboardStructs)];
 };
 
-int8_t GetTemperatureToSendToDisplay(int8_t externalTemperature)
+int8_t static GetTemperatureToSendToDisplay(int8_t externalTemperature)
 {
     return (externalTemperature * 2) + 0x50;
 }
 
-int8_t GetTemperatureFromVANByte(int8_t vanByte)
+int8_t static GetTemperatureFromVANByte(int8_t vanByte)
 {
     return (vanByte - 0x50) / 2;
 }
 
-int8_t GetWaterTemperatureFromVANByte(int8_t vanByte)
+int8_t static GetWaterTemperatureFromVANByte(int8_t vanByte)
 {
     return (vanByte - 39);
 }
 
-int8_t GetVANByteFromWaterTemperature(int8_t waterTemperature)
+int8_t static GetVANByteFromWaterTemperature(int8_t waterTemperature)
 {
     return (waterTemperature + 39);
 }

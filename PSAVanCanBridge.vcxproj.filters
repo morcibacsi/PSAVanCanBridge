@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PSAVanCanBridge.ino" />
+    <None Include="src\Helpers\IntValueOnTwoBytes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h">
@@ -300,12 +301,21 @@
     <ClInclude Include="src\SerialPort\HardwareSerialAbs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PSAVanCanBridgeMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SerialPort\HardwareSerialAbs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PSAVanCanBridgeMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -101,11 +101,16 @@
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\Helpers\IntValueOnTwoBytes.h">
+      <FileType>CppCode</FileType>
+    </None>
     <None Include="PSAVanCanBridge.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="PSAVanCanBridgeMain.h" />
     <ClInclude Include="src\Can\AbstractCanMessageSender.h" />
     <ClInclude Include="src\Can\CanMessageSender.h" />
     <ClInclude Include="src\Can\CanMessageSenderEsp32Arduino.h" />
@@ -199,10 +204,10 @@
     <ClInclude Include="src\Van\Structs\VanSpeedAndRpmStructs.h" />
     <ClInclude Include="src\Van\Structs\VanVinStructs.h" />
     <ClInclude Include="src\Van\VanMessageSender.h" />
-    <ClInclude Include="__vm\.PeugeotVanCanBridge.vsarduino.h" />
     <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="PSAVanCanBridgeMain.cpp" />
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp" />
     <ClCompile Include="src\SerialPort\HardwareSerialAbs.cpp" />
   </ItemGroup>

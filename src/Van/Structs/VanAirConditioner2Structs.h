@@ -1,4 +1,4 @@
-﻿// VanAirConditioner2Structs.h
+// VanAirConditioner2Structs.h
 #pragma once
 
 #ifndef _VanAirConditioner2Structs_h
@@ -39,12 +39,12 @@ typedef union VanAirConditioner2Packet {
     uint8_t VanAirConditioner2Packet[sizeof(VanAirConditioner2Struct)];
 };
 
-float GetInternalTemperature(uint8_t byte)
+float static GetInternalTemperature(uint8_t byte)
 {
     return (byte / 2);
 }
 
-float GetEvaporatorTemperature(uint16_t input)
+float static GetEvaporatorTemperature(uint16_t input)
 {
     return ((((input & 0xff) << 8) | ((input >> 8) & 0xff)) / 10)-40;
 }

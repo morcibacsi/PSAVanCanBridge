@@ -48,7 +48,7 @@ class CanDash4PacketSender
     }
 };
 
-uint8_t CanGetOilTemperatureToDisplay(uint8_t temperature)
+uint8_t static CanGetOilTemperatureToDisplay(uint8_t temperature)
 {
     // The oil temperature display is not a precise display the following chart shows where the display changes
     // The left value indicates when the display changes when the temperature goes from low to high direction
@@ -65,7 +65,7 @@ uint8_t CanGetOilTemperatureToDisplay(uint8_t temperature)
     return temperature + 39;
 }
 
-uint8_t CanGetOilTemperatureToFromByte(uint8_t canByte)
+uint8_t static CanGetOilTemperatureToFromByte(uint8_t canByte)
 {
     return canByte - 39;
 }

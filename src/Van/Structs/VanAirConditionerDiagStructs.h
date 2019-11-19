@@ -1,4 +1,4 @@
-﻿// VanAirConditionerDiagSensorStructs.h
+// VanAirConditionerDiagSensorStructs.h
 #pragma once
 
 #ifndef _VanAirConditionerDiagSensorStructs_h
@@ -74,7 +74,7 @@ typedef union VanAirConditionerDiagActuatorStatusPacket {
 };
 #pragma endregion
 
-float GetACDiagTemperatureFromVanValue(uint8_t byte1, uint8_t byte2)
+float static GetACDiagTemperatureFromVanValue(uint8_t byte1, uint8_t byte2)
 {
     TwoBytes temperature;
     temperature.bytes[0] = byte1;
@@ -82,12 +82,12 @@ float GetACDiagTemperatureFromVanValue(uint8_t byte1, uint8_t byte2)
     return (SwapHiByteAndLoByte(temperature.value) / 10.0) - 40;
 }
 
-float GetACDiagTemperatureFromVanValue(uint16_t vanValue)
+float static GetACDiagTemperatureFromVanValue(uint16_t vanValue)
 {
     return (SwapHiByteAndLoByte(vanValue) / 10.0) - 40;
 }
 
-float GetACDiagVoltageFromVanValue(uint16_t vanValue)
+float static GetACDiagVoltageFromVanValue(uint16_t vanValue)
 {
     return vanValue / 10.0;
 }

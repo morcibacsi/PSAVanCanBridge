@@ -1,4 +1,4 @@
-﻿// CanDisplayStructs.h
+// CanDisplayStructs.h
 #pragma once
 
 #ifndef _CanDisplayStructs_h
@@ -201,11 +201,11 @@ typedef union CanDisplayPacket {
     uint8_t CanDisplayPacket[sizeof(CanDisplayStruct)];
 };
 
-int CanGetHighKmToDisplay(int kmToDisplay) {
+int static CanGetHighKmToDisplay(int kmToDisplay) {
     return kmToDisplay / 256;
 }
 
-int CanGetLowKmToDisplay(int kmToDisplay){
+int static CanGetLowKmToDisplay(int kmToDisplay){
     return kmToDisplay - (CanGetHighKmToDisplay(kmToDisplay) * 256);
 }
 

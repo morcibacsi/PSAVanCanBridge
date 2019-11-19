@@ -1,4 +1,4 @@
-﻿// AbstractVanMessageHandler.h
+// AbstractVanMessageHandler.h
 #pragma once
 
 #ifndef _AbstractVanMessageHandler_h
@@ -20,7 +20,7 @@ public:
 
 
 /* Concatenates the two bytes and removes the last digit and compares the result to the IDENT */
-bool IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
+bool static IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
 {
     bool result = false;
     uint16_t combined = byte1 << 8 | byte2;
@@ -28,7 +28,7 @@ bool IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
     return result;
 }
 
-int SwapHiByteAndLoByte(int input)
+int static SwapHiByteAndLoByte(int input)
 {
     return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
 }
