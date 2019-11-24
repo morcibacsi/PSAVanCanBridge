@@ -169,6 +169,7 @@ void CANReadTaskFunction(void * parameter)
         }
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
+        esp_task_wdt_reset();
     }
 }
 
@@ -301,6 +302,7 @@ void CANSendDataTaskFunction(void * parameter)
             #pragma endregion
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
+        esp_task_wdt_reset();
     }
 }
 
@@ -415,6 +417,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
         canWarningLogHandler->Init();
 
         vTaskDelay(65 / portTICK_PERIOD_MS);
+        esp_task_wdt_reset();
     }
 }
 
@@ -505,6 +508,7 @@ void VANReadTaskFunction(void * parameter)
             vanMessageLength = 0;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
+        esp_task_wdt_reset();
     }
 }
 
@@ -571,6 +575,7 @@ void VANWriteTaskFunction(void* parameter)
         }
 
         vTaskDelay(200 / portTICK_PERIOD_MS);
+        esp_task_wdt_reset();
     }
 }
 
@@ -702,6 +707,9 @@ void setup()
         &VANWriteTask,                   // Task handle.
         1);                             // Core where the task should run
 #endif
+
+    esp_task_wdt_init(TASK_WATCHDOG_TIMEOUT, true);
+    esp_task_wdt_add(VANReadTask);
 }
 
 void loop()
