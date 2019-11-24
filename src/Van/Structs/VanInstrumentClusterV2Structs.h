@@ -74,7 +74,7 @@ typedef struct VanInstrumentClusterV2Structs {
     uint8_t Field13;
 };
 
-typedef union VanInstrumentClusterV2Packet {
+typedef union VanInstrumentClusterPacketV2 {
     VanInstrumentClusterV2Structs data;
     uint8_t VanInstrumentClusterV2Packet[sizeof(VanInstrumentClusterV2Structs)];
 };

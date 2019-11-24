@@ -182,8 +182,8 @@
     <ClInclude Include="src\Van\Handlers\VanDashboardHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV1.h" />
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV2.h" />
-    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV1Handler.h" />
-    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV2Handler.h" />
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV1.h" />
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h" />
     <ClInclude Include="src\Van\Handlers\VanRadioRemoteHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanSpeedAndRpmHandler.h" />
     <ClInclude Include="src\Van\Structs\VanAirConditioner1Structs.h" />

@@ -52,12 +52,6 @@
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV1Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterV2Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Van\Handlers\VanRadioRemoteHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -305,6 +299,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

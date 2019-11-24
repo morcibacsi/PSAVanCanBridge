@@ -52,8 +52,8 @@
 #include "src/Van/Handlers/VanDashboardHandler.h"
 #include "src/Van/Handlers/VanDisplayHandlerV1.h"
 #include "src/Van/Handlers/VanDisplayHandlerV2.h"
-#include "src/Van/Handlers/VanInstrumentClusterV1Handler.h"
-#include "src/Van/Handlers/VanInstrumentClusterV2Handler.h"
+#include "src/Van/Handlers/VanInstrumentClusterHandlerV1.h"
+#include "src/Van/Handlers/VanInstrumentClusterHandlerV2.h"
 #include "src/Van/Handlers/VanRadioRemoteHandler.h"
 #include "src/Van/Handlers/VanSpeedAndRpmHandler.h"
 #include "src/Van/Handlers/VanAirConditionerDiagSensorHandler.h"
@@ -666,10 +666,13 @@ void setup()
     vanMessageHandlers[1] = new VanAirConditioner2Handler();
     vanMessageHandlers[2] = new VanCarStatusWithTripComputerHandler(canPopupHandler, tripInfoHandler);
     vanMessageHandlers[3] = new VanDashboardHandler();
-    vanMessageHandlers[4] = new VanDisplayHandlerV1(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-    vanMessageHandlers[5] = new VanDisplayHandlerV2(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-    vanMessageHandlers[6] = new VanInstrumentClusterV1Handler();
-    vanMessageHandlers[7] = new VanInstrumentClusterV2Handler();
+
+    vanMessageHandlers[4] = new VanDisplayHandlerV2(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
+    vanMessageHandlers[5] = new VanDisplayHandlerV1(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler, vanMessageHandlers[4]);
+
+    vanMessageHandlers[6] = new VanInstrumentClusterHandlerV2();
+    vanMessageHandlers[7] = new VanInstrumentClusterHandlerV1(vanMessageHandlers[6]);
+
     vanMessageHandlers[8] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
     vanMessageHandlers[9] = new VanSpeedAndRpmHandler();
     vanMessageHandlers[10] = new VanAirConditionerDiagSensorHandler();

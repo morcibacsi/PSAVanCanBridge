@@ -1,19 +1,20 @@
-﻿// VanInstrumentClusterV2Handler.h
+// VanInstrumentClusterHandlerV2.h
 #pragma once
 
-#ifndef _VanInstrumentClusterV2Handler_h
-    #define _VanInstrumentClusterV2Handler_h
+#ifndef _VanInstrumentClusterHandlerV2_h
+    #define _VanInstrumentClusterHandlerV2_h
 
 #include "../Handlers/AbstractVanMessageHandler.h"
 
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanInstrumentClusterV2Structs.h"
 
-class VanInstrumentClusterV2Handler : public AbstractVanMessageHandler {
-    ~VanInstrumentClusterV2Handler()
+class VanInstrumentClusterHandlerV2 : public AbstractVanMessageHandler {
+    ~VanInstrumentClusterHandlerV2()
     {
 
     }
@@ -33,7 +34,7 @@ public:
             return false;
         }
 
-        const VanInstrumentClusterV2Packet packet = DeSerialize<VanInstrumentClusterV2Packet>(vanMessageWithoutId);
+        const VanInstrumentClusterPacketV2 packet = DeSerialize<VanInstrumentClusterPacketV2>(vanMessageWithoutId);
         dataToBridge.LightStatuses.status.LowBeam = packet.data.LightsStatus.dipped_beam;
         dataToBridge.LightStatuses.status.HighBeam = packet.data.LightsStatus.high_beam;
         dataToBridge.LightStatuses.status.FrontFog = packet.data.LightsStatus.front_fog;
