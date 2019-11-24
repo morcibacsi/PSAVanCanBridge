@@ -420,8 +420,6 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
 void VANReadTaskFunction(void * parameter)
 {
-    unsigned long currentTime;
-    unsigned long lastMillis = 0;
     uint8_t identByte1;
     uint8_t identByte2;
     uint8_t vanMessageLengthWithoutId;
@@ -436,19 +434,14 @@ void VANReadTaskFunction(void * parameter)
     VanDataToBridgeToCan dataToBridge;
     VanIgnitionDataToBridgeToCan ignitionDataToBridge;
     VanVinToBridgeToCan vinDataToBridge;
-    char tmp[3];
     bool vanMessageHandled;
 
     for (;;)
     {
-        currentTime = millis();
-        if (currentTime - lastMillis > 10)
         {
-            lastMillis = currentTime;
             VAN_RX.Receive(&vanMessageLength, vanMessage);
             ///*
             if (serialPort->available() > 0) {
-                ///*
                 vanMessageLength = 0;
                 uint8_t inChar = (uint8_t)serialPort->read();
                 if (inChar == 'v') { // got a sync byte?
@@ -511,6 +504,7 @@ void VANReadTaskFunction(void * parameter)
             }
             vanMessageLength = 0;
         }
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -712,5 +706,5 @@ void setup()
 
 void loop()
 {
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
