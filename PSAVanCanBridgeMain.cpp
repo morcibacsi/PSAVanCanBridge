@@ -126,6 +126,24 @@ AbsSer *serialPort;
     BluetoothSerial SerialBT;
 #endif
 
+void PrintArrayToSerial(const uint8_t vanMessage[], uint8_t vanMessageLength)
+{
+    char tmp[3];
+    for (uint8_t i = 0; i < vanMessageLength; i++)
+    {
+        snprintf(tmp, 3, "%02X", vanMessage[i]);
+        if (i != vanMessageLength - 1)
+        {
+            serialPort->print(tmp);
+            serialPort->print(" ");
+        }
+        else
+        {
+            serialPort->println(tmp);
+        }
+    }
+}
+
 void CANReadTaskFunction(void * parameter)
 {
     uint8_t canReadMessage[20] = { 0 };
@@ -453,21 +471,7 @@ void VANReadTaskFunction(void * parameter)
                 if (!VAN_RX.IsCrcOk(vanMessage, vanMessageLength))
                 {
                     Log.error("CRC ERROR\n");
-                    /*
-                    uint8_t crcByte1;
-                    uint8_t crcByte2;
-                    uint16_t crcValue;
-                    for (size_t i = 0; i < vanMessageLength - 3; i++)
-                    {
-                        snprintf(tmp, 3, "%02X", vanMessageWithoutId[i]);
-                        serialPort->print(tmp);
-                        serialPort->print(" ");
-                    }
-                    serialPort->println();
-                    Log.error("CRC byte 1: %X\n", crcByte1);
-                    Log.error("CRC byte 2: %X\n", crcByte2);
-                    Log.error("CRC : %X\n", crcValue);
-                    */
+                    //PrintArrayToSerial(vanMessage, vanMessageLength);
                     continue;
                 }
 
@@ -502,21 +506,7 @@ void VANReadTaskFunction(void * parameter)
                     //|| (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_2))
                     )
                 {
-                    //                    /*
-                    for (uint8_t i = 0; i < vanMessageLength; i++)
-                    {
-                        snprintf(tmp, 3, "%02X", vanMessage[i]);
-                        if (i != vanMessageLength - 1)
-                        {
-                            serialPort->print(tmp);
-                            serialPort->print(" ");
-                        }
-                        else
-                        {
-                            serialPort->println(tmp);
-                        }
-                    }
-                    //*/
+                    PrintArrayToSerial(vanMessage, vanMessageLength);
                 }
             }
             vanMessageLength = 0;
@@ -621,24 +611,14 @@ void setup()
     */
     if (SILENT_MODE)
     {
-#ifdef USE_BLUETOOTH_SERIAL
-        Log.begin(LOG_LEVEL_SILENT, &SerialBT);
-#else
-        Log.begin(LOG_LEVEL_SILENT, &Serial);
-#endif
+        Log.begin(LOG_LEVEL_SILENT, serialPort);
     }
     else
     {
-#ifdef USE_BLUETOOTH_SERIAL
-        Log.begin(LOG_LEVEL_VERBOSE, &SerialBT);
-#else
-        //Log.begin(LOG_LEVEL_WARNING, &Serial);
-        //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-        Log.begin(LOG_LEVEL_SILENT, &Serial);
-#endif
+        //Log.begin(LOG_LEVEL_WARNING, serialPort);
+        //Log.begin(LOG_LEVEL_VERBOSE, serialPort);
+        Log.begin(LOG_LEVEL_SILENT, serialPort);
     }
-
-    Log.trace("ESP32 Arduino VAN bus monitor\n");
 
     VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, VAN_NETWORK_TYPE_COMFORT);
 
