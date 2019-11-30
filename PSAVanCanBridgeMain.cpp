@@ -36,7 +36,11 @@
 #include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
 #endif
 
+#include "src/Van/AbstractVanMessageSender.h"
+#if HW_VERSION == 14
 #include "src/Van/VanMessageSender.h"
+#endif
+
 #include "src/Van/Structs/VanVinStructs.h"
 
 #include "src/Helpers/CanDisplayPopupItem.h"
@@ -512,6 +516,7 @@ void VANReadTaskFunction(void * parameter)
     }
 }
 
+#if HW_VERSION == 14
 void VANWriteTaskFunction(void* parameter)
 {
     const int SCK_PIN = 25;
@@ -578,6 +583,7 @@ void VANWriteTaskFunction(void* parameter)
         esp_task_wdt_reset();
     }
 }
+#endif
 
 void setup()
 {
