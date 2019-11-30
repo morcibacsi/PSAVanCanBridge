@@ -1,4 +1,4 @@
-﻿// VanDataToBridgeToCan.h
+// VanDataToBridgeToCan.h
 #pragma once
 
 #ifndef _VanDataToBridgeToCan_h
@@ -34,5 +34,6 @@ struct VanDataToBridgeToCan
     DashIcons1 DashIcons1Field;
     uint8_t LeftStickButtonPressed = 0;
     uint8_t AirConDirection = 0;
+    uint8_t OilTemperature = 0;
 };
 #endif

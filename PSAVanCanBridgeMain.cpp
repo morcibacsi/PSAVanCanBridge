@@ -182,6 +182,7 @@ void CANSendDataTaskFunction(void * parameter)
     unsigned long currentTime = millis();
     uint8_t ignition = 0;
     uint8_t trip0Icon1Data = 0;
+    uint8_t trip0Icon3Data = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -213,16 +214,19 @@ void CANSendDataTaskFunction(void * parameter)
             #pragma region TripInfo
 
             trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
+            trip0Icon3Data = dataToBridge.Speed;
+
 
             if (dataToBridge.LeftStickButtonPressed)
             {
                 trip0Icon1Data = dataToBridge.FuelLevel;
+                trip0Icon3Data = dataToBridge.OilTemperature;
             }
             //trip0Icon1Data = dataToBridge.FuelLeftToPump;
 
             tripInfoHandler->SetTripData(
                 dataToBridge.Rpm,
-                dataToBridge.Speed,
+                trip0Icon3Data,
                 dataToBridge.Trip1Distance,
                 dataToBridge.Trip1Speed,
                 dataToBridge.Trip1Consumption,

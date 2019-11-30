@@ -42,6 +42,7 @@ public:
         dataToBridge.LightStatuses.status.LeftIndicator = packet.data.LightsStatus.left_indicator;
         dataToBridge.LightStatuses.status.RightIndicator = packet.data.LightsStatus.right_indicator;
         dataToBridge.FuelLevel = packet.data.FuelLevel;
+        dataToBridge.OilTemperature = GetOilTemperatureFromVANByteV2(packet.data.OilTemperature);
 
         ignitionDataToBridge.NightMode = dataToBridge.LightStatuses.status.LowBeam || dataToBridge.LightStatuses.status.HighBeam;
 
