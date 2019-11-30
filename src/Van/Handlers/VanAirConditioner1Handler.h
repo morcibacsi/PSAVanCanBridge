@@ -16,6 +16,16 @@
 class VanAirConditioner1Handler : public AbstractVanMessageHandler {
     VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
 
+    const uint16_t SPEED_QUERY_SUPPRESS_TIME = 3500;
+
+    uint8_t previousFanSpeed = 0;
+    uint8_t prevACEnabled = 0;
+    uint8_t prevWindowHeatingOn = 0;
+    uint8_t prevAirRecycling = 0;
+
+    unsigned long speedQuerySuppresedUntilTime = 0;
+    unsigned long currentTime = 0;
+
     ~VanAirConditioner1Handler()
     {
 
@@ -41,9 +51,11 @@ public:
             return false;
         }
 
+        currentTime = millis();
+
         const VanAirConditioner1Packet packet = DeSerialize<VanAirConditioner1Packet>(vanMessageWithoutId);
         if (
-            vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)  // off
+               vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)  // off
             || vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating
             || vanMessageWithoutId[0] == 0x01 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating toggle
             || vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x00)  // off + recycle
@@ -64,7 +76,32 @@ public:
             dataToBridge.IsAirConEnabled = packet.data.Status.aircon_on_if_necessary;
             dataToBridge.IsAirRecyclingOn = packet.data.Status.recycling_on;
 
-            dataToBridge.AirConFanSpeed = vanCanAirConditionerSpeedMap->GetFanSpeedFromVANByte(packet.data.FanSpeed, dataToBridge.IsAirConEnabled, dataToBridge.IsWindowHeatingOn, dataToBridge.IsAirRecyclingOn);
+            const bool isModifierChanged =
+                dataToBridge.IsAirConEnabled != prevACEnabled ||
+                dataToBridge.IsWindowHeatingOn != prevWindowHeatingOn ||
+                dataToBridge.IsAirRecyclingOn != prevAirRecycling;
+
+            if (!isModifierChanged)
+            {
+                if (currentTime > speedQuerySuppresedUntilTime)
+                {
+                    previousFanSpeed = vanCanAirConditionerSpeedMap->GetFanSpeedFromVANByte(
+                        packet.data.FanSpeed,
+                        dataToBridge.IsAirConEnabled,
+                        dataToBridge.IsWindowHeatingOn,
+                        dataToBridge.IsAirRecyclingOn);
+                }
+            }
+            else
+            {
+                speedQuerySuppresedUntilTime = currentTime + SPEED_QUERY_SUPPRESS_TIME;
+
+                prevACEnabled = dataToBridge.IsAirConEnabled;
+                prevWindowHeatingOn = dataToBridge.IsWindowHeatingOn;
+                prevAirRecycling = dataToBridge.IsAirRecyclingOn;
+            }
+
+            dataToBridge.AirConFanSpeed = previousFanSpeed;
         }
 
         return true;

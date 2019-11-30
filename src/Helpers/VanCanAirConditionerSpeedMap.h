@@ -24,6 +24,7 @@ class VanCanAirConditionerSpeedMap
     const uint8_t *arrayToUse;
 
     private:
+        uint8_t previousSpeed;
     public:
         VanCanAirConditionerSpeedMap()
         {
@@ -31,7 +32,7 @@ class VanCanAirConditionerSpeedMap
 
         uint8_t GetFanSpeedFromVANByte(uint8_t vanByte, uint8_t isAcOn, uint8_t isRearWindowHeatingOn, uint8_t isRecycleOn)
         {
-            uint8_t result = 0;
+            uint8_t result = previousSpeed;
 
             if (isAcOn == 1 && isRearWindowHeatingOn == 0 && (isRecycleOn == 0 || isRecycleOn == 1))
             {
@@ -64,6 +65,7 @@ class VanCanAirConditionerSpeedMap
                 if (*(arrayToUse + i) == vanByte)
                 {
                     result = i + 1;
+                    previousSpeed = result;
                     break;
                 }
             }
