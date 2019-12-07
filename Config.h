@@ -8,7 +8,7 @@
 
 #define TASK_WATCHDOG_TIMEOUT 7
 
-//#define HW_VERSION 12
+//#define HW_VERSION 11
 #define HW_VERSION 14
 
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
