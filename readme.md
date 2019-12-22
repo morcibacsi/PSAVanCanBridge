@@ -31,7 +31,7 @@ I used the software in my car for months, without any sign of errors. However I 
 
 I implemented the functions which came with the original V2C boards (see what are those in the history section in the wiki), and even more! I created a video which demonstrates most of the functionality:
 
-[![SEE IT ON YOUTUBE](https://img.youtube.com/vi/Qk_8EhsqwUA/0.jpg)](https://www.youtube.com/watch?v=Qk_8EhsqwUA "See it on YouTube")
+[![WATCH IT ON YOUTUBE](https://img.youtube.com/vi/Qk_8EhsqwUA/0.jpg)](https://www.youtube.com/watch?v=Qk_8EhsqwUA "Watch it on YouTube")
 
 But here is the list of the bridged functions:
 
@@ -71,6 +71,8 @@ The software was tested on a Peugeot 307 SW made in 2004 however most probably i
 
 ### Installation
 The easiest place to install the hardware in a car is the connectors of the original head unit. In the wiki you can see the schematics of a patch lead which converts the ISO connector to Quadlock type and exposes the VAN and CAN data pins to a JST XH 6 connector where you can connect the PSA VAN-CAN bridge hardware.
+
+![iso_quadlock_mfd_bridge](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/iso_quadlock_mfd_bridge.png)
 
 ### Project structure
 
