@@ -19,7 +19,7 @@ The components needed for the project to work in your car is the following:
 - ISO-fakra aerial antenna converter
 - PSA VAN-CAN protocol bridge hardware
 
-I built a ìshieldî for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
+I built a ‚Äúshield‚Äù for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
 
 ![components](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/components.png)
 
@@ -70,7 +70,7 @@ The software was tested on a Peugeot 307 SW made in 2004 however most probably i
 - Citroen Xsara Picasso
 
 ### Installation
-The easiest place to install the hardware in a car is the connectors of the original head unit. In the wiki you can see the schematics of a patch lead which converts the ISO connector to Quadlock type and exposes the VAN and CAN data pins to a JST XH 6 connector where you can connect the PSA VAN-CAN bridge hardware.
+The easiest place to install the hardware in a car is the connectors of the original head unit. Below you can see the schematics of a patch lead which converts the ISO connector to Quadlock type and exposes the VAN and CAN data pins to a JST XH 6 connector where you can connect the PSA VAN-CAN bridge hardware.
 
 ![iso_quadlock_mfd_bridge](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/iso_quadlock_mfd_bridge.png)
 
