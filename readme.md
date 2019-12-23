@@ -8,7 +8,7 @@ The goal of this project is to have the new peripherals (mainly the head unit an
 
 ### Why ?
 
-Because it is fun. But other than that I wanted to replace the head unit of my car with another one which supports playing MP3 and also supports the original remote stalk behind the steering wheel. I also wanted to have the new shiny display working in my car from newer models. If you are interested, you can read the whole story behind the development at the History section in the wiki.
+Because it is fun. But other than that I wanted to replace the head unit of my car with another one which supports playing MP3 and also supports the original remote stalk behind the steering wheel. I also wanted to have the new shiny display working in my car from newer models. If you are interested, you can read the whole story behind the development at the [History section in the wiki][history].
 
 ### Components
 
@@ -114,3 +114,4 @@ In order to build the project you need to have the following:
 [lib_queue]: https://github.com/SMFSW/Queue
 [lib_arduinolog]: https://github.com/thijse/Arduino-Log/
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
+[history]: https://github.com/morcibacsi/PSAVanCanBridge/wiki/History
