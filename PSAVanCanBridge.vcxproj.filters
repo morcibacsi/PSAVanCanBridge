@@ -307,6 +307,9 @@
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Can\Structs\CanRadioRd45DiagStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">

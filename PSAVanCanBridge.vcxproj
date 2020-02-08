@@ -143,6 +143,7 @@
     <ClInclude Include="src\Can\Structs\CanRadioAudioSettingsStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioInfoStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioMp3Structs.h" />
+    <ClInclude Include="src\Can\Structs\CanRadioRd45DiagStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioRd4DiagStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioRdsTextStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioRemoteStructs.h" />
