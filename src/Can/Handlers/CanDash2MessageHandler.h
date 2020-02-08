@@ -1,4 +1,4 @@
-﻿// CanDash2MessageHandler.h
+// CanDash2MessageHandler.h
 #pragma once
 
 #ifndef _CanDash2MessageHandler_h
@@ -33,8 +33,10 @@ class CanDash2MessageHandler : public CanMessageHandlerBase
             _LightStatus.status.RightIndicator,
             _Ignition,
             _DashIcons1.status.FuelLowLight,
-            _DashIcons1.status.PassengerAirbag
-
+            _DashIcons1.status.PassengerAirbag,
+            0,
+            0,
+            0
         );
     }
 

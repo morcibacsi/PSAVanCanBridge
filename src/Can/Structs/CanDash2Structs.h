@@ -25,11 +25,11 @@ const uint8_t CAN_DASH_GEAR_1 = 0x90;
 typedef struct {
     uint8_t                       : 1; // bit 0
     uint8_t                       : 1; // bit 1
-    uint8_t pre_heat_light        : 1; // bit 2
+    uint8_t pre_heat_light        : 1; // bit 2 //not lit up on petrol cars
     uint8_t                       : 1; // bit 3
     uint8_t fuel_low_light        : 1; // bit 4
     uint8_t                       : 1; // bit 5
-    uint8_t driver_seatbelt_light : 1; // bit 6
+    uint8_t driver_seatbelt_light : 1; // bit 6 //doesn't work on all dials
     uint8_t passenger_airbag_deactivated : 1; // bit 7
 } CanDash2Byte1Struct;
 
@@ -54,6 +54,17 @@ typedef struct {
     uint8_t               : 1; // bit 6
     uint8_t               : 1; // bit 7
 } CanDash2Byte3Struct;
+
+typedef struct {
+    uint8_t : 1; // bit 0
+    uint8_t : 1; // bit 1
+    uint8_t : 1; // bit 2
+    uint8_t : 1; // bit 3
+    uint8_t : 1; // bit 4
+    uint8_t : 1; // bit 5
+    uint8_t : 1; // bit 6
+    uint8_t seatbelt_blinks : 1; // bit 7
+} CanDash2Byte4Struct;
 
 typedef struct {
     uint8_t                    : 1; // bit 0
@@ -135,12 +146,20 @@ class CanDash2PacketSender
         uint8_t rightIndicator,
         uint8_t dashEnabled,
         uint8_t fuelLowLight,
-        uint8_t passengerAirbagDeactivated)
+        uint8_t passengerAirbagDeactivated,
+        uint8_t preHeat,
+        uint8_t stop,
+        uint8_t warning
+        )
     {
         PacketGenerator<CanDash2Packet> generator;
         generator.packet.data.Field1.driver_seatbelt_light = driversSeatbeltLight;
         generator.packet.data.Field1.fuel_low_light = fuelLowLight;
         generator.packet.data.Field1.passenger_airbag_deactivated = passengerAirbagDeactivated;
+        generator.packet.data.Field1.pre_heat_light = preHeat;
+
+        generator.packet.data.Field2.stop = stop;
+        generator.packet.data.Field2.warning = warning;
 
         generator.packet.data.Field5.side_lights_on = sideLights;
         generator.packet.data.Field5.low_beam_on = lowBeam;
