@@ -1,4 +1,4 @@
-﻿// CanVinStructs.h
+// CanVinStructs.h
 #pragma once
 
 #ifndef _CanVinStructs_h
@@ -80,7 +80,7 @@ public:
         canMessageSender = object;
     }
 
-    void SendVinPart1(uint8_t vin[])
+    void SendVinPart1(uint8_t vin[17])
     {
         PacketGenerator<CanVin1_3LettersStruct> generator1;
         generator1.packet.Letter1InAscii = vin[0];
@@ -91,7 +91,7 @@ public:
         canMessageSender->SendMessage(CAN_ID_VIN_PART1, 0, sizeof(CanVin1_3LettersStruct), serializedPacket1);
     }
 
-    void SendVinPart2(uint8_t vin[])
+    void SendVinPart2(uint8_t vin[17])
     {
         PacketGenerator<CanVin4_9LettersStruct> generator;
         generator.packet.Letter4InAscii = vin[3];
@@ -105,7 +105,7 @@ public:
         canMessageSender->SendMessage(CAN_ID_VIN_PART2, 0, sizeof(CanVin4_9LettersStruct), serializedPacket);
     }
 
-    void SendVinPart3(uint8_t vin[])
+    void SendVinPart3(uint8_t vin[17])
     {
         PacketGenerator<CanVin10_17LettersStruct> generator;
         generator.packet.Letter10InAscii = vin[9];

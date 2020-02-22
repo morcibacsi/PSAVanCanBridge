@@ -17,6 +17,16 @@
 // 2: my layout
 #define DISPLAY_MODE 2
 
+//#define USE_VIN_AUTO_MATCHING
+#ifdef USE_VIN_AUTO_MATCHING
+    uint8_t Vin[17] = { 0 };
+#else
+    // Fake V2C sends this VIN:
+    uint8_t Vin[17] = { 'L', 'D', 'C', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8' };
+    // Original V2C sends this VIN:
+    //uint8_t Vin[17] = { 'L', 'D', 'C', '9', '4', '3', 'X', '4', '7', 'D', '1', '5', '6', '6', '7', '7', '2' };
+#endif
+
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
 
 #endif
