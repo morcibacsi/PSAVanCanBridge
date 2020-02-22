@@ -180,8 +180,17 @@ void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
     uint8_t ignition = 0;
-    uint8_t trip0Icon1Data = 0;
-    uint8_t trip0Icon3Data = 0;
+    uint16_t trip0Icon1Data = 0;
+    uint16_t trip0Icon2Data = 0;
+    uint16_t trip0Icon3Data = 0;
+
+    uint16_t trip1Icon1Data = 0;
+    uint16_t trip1Icon2Data = 0;
+    uint16_t trip1Icon3Data = 0;
+
+    uint16_t trip2Icon1Data = 0;
+    uint16_t trip2Icon2Data = 0;
+    uint16_t trip2Icon3Data = 0;
 
     VanDataToBridgeToCan dataToBridgeReceived;
     VanDataToBridgeToCan dataToBridge;
@@ -212,27 +221,48 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region TripInfo
 
+#if DISPLAY_MODE == 1
+            trip0Icon1Data = dataToBridge.FuelLeftToPump; //the distance remaining to be travelled
+            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
+            trip0Icon3Data = dataToBridge.Trip1Distance; //the range
+
+            trip1Icon1Data = dataToBridge.Trip1Distance;
+            trip1Icon2Data = dataToBridge.Trip1Consumption;
+            trip1Icon3Data = dataToBridge.Trip1Speed;
+
+            trip2Icon1Data = dataToBridge.Trip2Distance;
+            trip2Icon2Data = dataToBridge.Trip2Consumption;
+            trip2Icon3Data = dataToBridge.Trip2Speed;
+#endif
+#if DISPLAY_MODE == 2
             trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
+            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
             trip0Icon3Data = dataToBridge.Speed;
 
+            trip1Icon1Data = dataToBridge.Trip1Distance;
+            trip1Icon2Data = dataToBridge.Trip1Consumption;
+            trip1Icon3Data = dataToBridge.Trip1Speed;
+
+            trip2Icon1Data = dataToBridge.Rpm;
+            trip2Icon2Data = dataToBridge.FuelConsumption;
+            trip2Icon3Data = dataToBridge.Speed;
 
             if (dataToBridge.LeftStickButtonPressed)
             {
                 trip0Icon1Data = dataToBridge.FuelLevel;
                 trip0Icon3Data = dataToBridge.OilTemperature;
             }
-            //trip0Icon1Data = dataToBridge.FuelLeftToPump;
-
+#endif
             tripInfoHandler->SetTripData(
-                dataToBridge.Rpm,
+                trip2Icon1Data,
                 trip0Icon3Data,
-                dataToBridge.Trip1Distance,
-                dataToBridge.Trip1Speed,
-                dataToBridge.Trip1Consumption,
-                dataToBridge.Trip2Distance,
-                dataToBridge.Trip2Speed,
-                dataToBridge.Trip2Consumption,
-                dataToBridge.FuelConsumption,
+                trip1Icon1Data,
+                trip1Icon3Data,
+                trip1Icon2Data,
+                trip2Icon1Data,
+                trip2Icon3Data,
+                trip2Icon2Data,
+                trip0Icon2Data,
                 trip0Icon1Data
             );
             tripInfoHandler->Process(currentTime);
