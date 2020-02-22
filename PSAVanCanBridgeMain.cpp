@@ -82,7 +82,6 @@ const uint8_t CAN_TX_PIN = 15;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
-const uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 const bool SILENT_MODE = false;
 
 ESP32_RMT_VAN_RX VAN_RX;

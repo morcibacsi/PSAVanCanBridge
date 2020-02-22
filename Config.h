@@ -7,8 +7,10 @@
 #define USE_IGNITION_SIGNAL_FROM_VAN_BUS
 
 #define TASK_WATCHDOG_TIMEOUT 7
+#define FUEL_TANK_CAPACITY_IN_LITERS 60
 
-//#define HW_VERSION 11
+// 11: HW revision v1.1
+// 14: HW revision v1.4
 #define HW_VERSION 14
 
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
