@@ -9,16 +9,16 @@
 
 struct VanDataToBridgeToCan
 {
-    int Speed = 0;
-    int Rpm = 0;
-    int Trip1Distance = 0;
-    int Trip1Speed = 0;
-    int Trip1Consumption = 0;
-    int Trip2Distance = 0;
-    int Trip2Speed = 0;
-    int Trip2Consumption = 0;
-    int FuelConsumption = 0;
-    int FuelLeftToPump = 0;
+    uint8_t Speed = 0;
+    uint16_t Rpm = 0;
+    uint16_t Trip1Distance = 0;
+    uint8_t Trip1Speed = 0;
+    uint16_t Trip1Consumption = 0;
+    uint16_t Trip2Distance = 0;
+    uint8_t Trip2Speed = 0;
+    uint16_t Trip2Consumption = 0;
+    uint16_t FuelConsumption = 0;
+    uint16_t FuelLeftToPump = 0;
     float InternalTemperature = 0;
     uint8_t RadioRemoteButton = 0;
     uint8_t RadioRemoteScroll = 0;

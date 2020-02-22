@@ -28,7 +28,7 @@ bool static IsVanIdent(uint8_t byte1, uint8_t byte2, uint16_t ident)
     return result;
 }
 
-int static SwapHiByteAndLoByte(int input)
+uint16_t static SwapHiByteAndLoByte(int input)
 {
     return ((input & 0xff) << 8) | ((input >> 8) & 0xff);
 }
