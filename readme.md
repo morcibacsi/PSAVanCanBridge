@@ -19,7 +19,7 @@ The components needed for the project to work in your car is the following:
 - ISO-fakra aerial antenna converter
 - PSA VAN-CAN protocol bridge hardware
 
-I built a ‚Äúshield‚Äù for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
+I built a ìshieldî for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
 
 ![components](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/components.png)
 
@@ -90,10 +90,22 @@ In order to avoid cluttering the main sketch with the message conversions every 
 
 ### Building the project
 
-In order to build the project you need to have the following:
+Follow these steps to build the project:
 
- - Arduino IDE with ESP32 board support installed
- - Libraries installed from the Used libraries section
+ - Install the ESP32 boards into the Arduino IDE (follow the [instructions here][install_esp32])
+ - Install the libraries from the Used libraries section
+	 - They should be installed under your documents folder. Which should be something like this: 
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries
+	 - At the end you should have a folder structure similar to this:
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_rmt_van_rx\
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\tss463_van\
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\Queue\
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_can\
+		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\ArduinoLog\
+ - Extract the contents of the zip file to a folder named **PSAVanCanBridge**
+ - Open the empty **PSAVanCanBridge.ino** file from the Arduino IDE *(do not rename any file or whatsoever)*
+ - Select ESP32 Dev module from Tools\Board menu
+ - Now you should be able to compile it by clicking on the menu Sketch\Verify/Compile
 
 ### Used libraries
 
@@ -115,3 +127,4 @@ In order to build the project you need to have the following:
 [lib_arduinolog]: https://github.com/thijse/Arduino-Log/
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
 [history]: https://github.com/morcibacsi/PSAVanCanBridge/wiki/History
+[install_esp32]: https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions
