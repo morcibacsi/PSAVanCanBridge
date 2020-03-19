@@ -3,8 +3,14 @@
 #ifndef _Config_h
     #define _Config_h
 
+// if defined messages are sent on bluetooth connection, otherwise standard serial is used
 #define USE_BLUETOOTH_SERIAL
+
+// if defined then the ignition signal is used from the VAN bus otherwise the ignition is considered as always on
 #define USE_IGNITION_SIGNAL_FROM_VAN_BUS
+
+// if defined the AC status is queried with a diagnostic message (only works with rev 1.4)
+#define QUERY_AC_STATUS
 
 #define TASK_WATCHDOG_TIMEOUT 7
 #define FUEL_TANK_CAPACITY_IN_LITERS 60

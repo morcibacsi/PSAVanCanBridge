@@ -570,6 +570,7 @@ void VANWriteTaskFunction(void* parameter)
     VanCarStatusPacketSender *carStatusSender = new VanCarStatusPacketSender(VANInterface);
     carStatusSender->GetCarStatus(0);
 
+#ifdef QUERY_AC_STATUS
     VanACDiagPacketSender* acDiagSender = new VanACDiagPacketSender(VANInterface);
     acDiagSender->GetManufacturerInfo(1);
 
@@ -578,6 +579,7 @@ void VANWriteTaskFunction(void* parameter)
 
     acDiagSender->GetActuatorStatus(3);
     acDiagSender->QueryAirConData(4);
+#endif
 
     for (;;)
     {
@@ -598,6 +600,7 @@ void VANWriteTaskFunction(void* parameter)
             carStatusSender->GetCarStatus(0);
             VANInterface->reactivate_channel(1);
 
+#ifdef QUERY_AC_STATUS
             if (diagStatus == 0)
             {
                 acDiagSender->GetSensorStatus(2);
@@ -610,6 +613,7 @@ void VANWriteTaskFunction(void* parameter)
                 acDiagSender->QueryAirConData(4);
                 diagStatus = 0;
             }
+#endif
         }
 
         vTaskDelay(200 / portTICK_PERIOD_MS);

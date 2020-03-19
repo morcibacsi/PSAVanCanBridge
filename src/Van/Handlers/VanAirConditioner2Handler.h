@@ -1,4 +1,4 @@
-﻿// VanAirConditioner2Handler.h
+// VanAirConditioner2Handler.h
 #pragma once
 
 #ifndef _VanAirConditioner2Handler_h
@@ -40,7 +40,7 @@ public:
             dataToBridge.IsWindowHeatingOn = packet.data.Status.rear_window_heating_on;
         }
 
-        #if HW_VERSION == 11
+        #if HW_VERSION == 11 || !defined(QUERY_AC_STATUS)
         dataToBridge.InternalTemperature = GetInternalTemperature(packet.data.InternalTemperature);
         #endif
 
