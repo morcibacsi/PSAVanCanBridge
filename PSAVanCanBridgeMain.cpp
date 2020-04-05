@@ -616,7 +616,7 @@ void VANWriteTaskFunction(void* parameter)
 #endif
         }
 
-        vTaskDelay(200 / portTICK_PERIOD_MS);
+        vTaskDelay(120 / portTICK_PERIOD_MS);
         esp_task_wdt_reset();
     }
 }
