@@ -598,9 +598,9 @@ void VANWriteTaskFunction(void* parameter)
         if (ignition == 1)
         {
             carStatusSender->GetCarStatus(0);
-            VANInterface->reactivate_channel(1);
 
 #ifdef QUERY_AC_STATUS
+            VANInterface->reactivate_channel(1);
             if (diagStatus == 0)
             {
                 acDiagSender->GetSensorStatus(2);
