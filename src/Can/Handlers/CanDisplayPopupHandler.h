@@ -209,7 +209,6 @@ class CanDisplayPopupHandler
         xSemaphoreGive(canSemaphore);
         riskOfIceShown = false;
         canDisplayPopupStartTime = 0;
-        int popupCounter = 0;
 
         HideCurrentPopupMessage();
         ResetSeatBeltWarning();
