@@ -207,13 +207,11 @@ class CanDisplayPopupHandler
         xSemaphoreTake(canSemaphore, portMAX_DELAY);
         popupMessageQueue->flush();
         xSemaphoreGive(canSemaphore);
-        lastPopupMessage.DisplayTimeInMilliSeconds = 0;
-        lastPopupMessage.Visible = false;
-        canPopupVisible = false;
         riskOfIceShown = false;
         canDisplayPopupStartTime = 0;
         int popupCounter = 0;
 
+        HideCurrentPopupMessage();
         ResetSeatBeltWarning();
     }
 
