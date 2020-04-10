@@ -21,6 +21,7 @@
 #include "src/Can/Structs/CanDash1Structs.h"
 #include "src/Can/Structs/CanIgnitionStructs.h"
 #include "src/Can/Structs/CanMenuStructs.h"
+#include "src/Can/Handlers/CanRadioRd4DiagHandler.h"
 #include "src/Can/Handlers/CanRadioRemoteMessageHandler.h"
 #include "src/Can/Handlers/CanVinHandler.h"
 #include "src/Can/Handlers/CanTripInfoHandler.h"
@@ -119,6 +120,7 @@ CanDash3MessageHandler* canDash3MessageHandler;
 CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
+CanRadioRd4DiagHandler* canRadioDiag;
 
 const uint8_t VAN_MESSAGE_HANDLER_COUNT = 12;
 AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
@@ -168,6 +170,10 @@ void CANReadTaskFunction(void * parameter)
                 {
                     canPopupHandler->HideCurrentPopupMessage();
                 }
+            }
+            if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER)
+            {
+                canRadioDiag->ProcessReceivedCanMessage(canId, canReadMessageLength, canReadMessage);
             }
         }
 
@@ -490,6 +496,9 @@ void VANReadTaskFunction(void * parameter)
                         vanMessageLength++;
                     }
                 }
+                if (inChar == 'n') {
+                    canRadioDiag->GetVin();
+                }
             }
             //*/
             if (vanMessageLength > 0 && vanMessage[0] == 0x0E)
@@ -683,6 +692,7 @@ void setup()
     canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
     radioIgnition = new CanIgnitionPacketSender(CANInterface);
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
+    canRadioDiag = new CanRadioRd4DiagHandler(CANInterface, serialPort);
 
     vanMessageHandlers[0] = new VanAirConditioner1Handler(vanCanAirConditionerSpeedMap);
     vanMessageHandlers[1] = new VanAirConditioner2Handler();

@@ -8,6 +8,7 @@
 
 // CANID: 760
 const uint16_t CAN_ID_RADIO_RD4_DIAG = 0x760;
+// CANID: 660
 const uint16_t CAN_ID_RADIO_RD4_DIAG_ANSWER = 0x660;
 
 const uint8_t CAN_RD4_GEO_LOCATION_WESTERN_EU      = 0;
@@ -194,7 +195,7 @@ class CanRadioRd4DiagPacketSender
         // The first byte of the data which follows the Continue() message are numbered from 0x21
 
         // For example:
-        // 760 02 21 B0                  Get VIN number
+        // 760 02 21 CC                  Get VIN number
         // 660 10 13 61 B0 4C 44 43 32   VIN part 1 (first byte indicates that we need to call Continue, second byte means that 13 bytes of additional useful data will arrive)
         // 760 30 00 0A                  Issue continue command
         // 660 21 38 38 38 38 38 38 38   VIN part 2 (21 is a kind of an indexer, not part of the VIN)
@@ -208,6 +209,11 @@ class CanRadioRd4DiagPacketSender
         if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 3 && canMsg[0] == 0x02 && canMsg[1] == 0x7B && canMsg[2] == 0xC0)
         {
             GetOptions1();
+        }
+
+        if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 3 && canMsg[0] == 0x02 && canMsg[1] == 0x50 && canMsg[2] == 0xC0)
+        {
+            GetVinNumber();
         }
     }
 };
