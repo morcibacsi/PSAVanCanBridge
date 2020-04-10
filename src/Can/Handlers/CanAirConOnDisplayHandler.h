@@ -2,7 +2,7 @@
 #pragma once
 
 #ifndef _CanAirConOnDisplayHandler_h
-    #define _CanAirConOnDisplayHandler_h
+#define _CanAirConOnDisplayHandler_h
 
 #include "../Structs/CanAirConOnDisplayStructs.h"
 #include "../AbstractCanMessageSender.h"
@@ -10,7 +10,8 @@
 
 class CanAirConOnDisplayHandler : public CanMessageHandlerBase
 {
-    static const int CAN_AIRCON_INTERVAL = 100;
+    static const int CAN_AIRCON_INTERVAL = 10;
+    static const int FAN_SPEED_CHANGED_TIMEOUT = 50;
 
     uint8_t FanSpeed;
     uint8_t FanSpeedChangedCounter;
@@ -24,6 +25,7 @@ class CanAirConOnDisplayHandler : public CanMessageHandlerBase
     uint8_t prevWindshield;
     uint8_t prevFanSpeed;
     uint8_t prevRecyclingOn;
+    unsigned long prevFanSpeedChanged;
 
     bool sendMessageOnCan;
 
@@ -33,20 +35,17 @@ class CanAirConOnDisplayHandler : public CanMessageHandlerBase
     {
         if (sendMessageOnCan)
         {
-            if (sendMessageOnCan)
-            {
-                acSender->SendACDataToDisplay(
-                    prevTemperatureLeft,
-                    prevTemperatureRight,
-                    prevDirection,
-                    prevAutoMode,
-                    prevAcOff,
-                    prevOff,
-                    prevWindshield,
-                    prevFanSpeed,
-                    prevRecyclingOn
-                );
-            }
+            acSender->SendACDataToDisplay(
+                prevTemperatureLeft,
+                prevTemperatureRight,
+                prevDirection,
+                prevAutoMode,
+                prevAcOff,
+                prevOff,
+                prevWindshield,
+                prevFanSpeed,
+                prevRecyclingOn
+            );
         }
     }
 
@@ -70,20 +69,6 @@ public:
     )
     {
         // add some tolerance on the fan speed to avoid 'flickering'
-        if (FanSpeed != fanSpeed)
-        {
-            FanSpeedChangedCounter++;
-
-            if (FanSpeedChangedCounter == 3)
-            {
-                FanSpeed = fanSpeed;
-                FanSpeedChangedCounter = 0;
-            }
-        }
-        else
-        {
-            FanSpeedChangedCounter = 0;
-        }
 
         // spare some bandwidth on CAN bus
         sendMessageOnCan =
@@ -94,7 +79,7 @@ public:
             prevAcOff != acOff ||
             prevOff != off ||
             prevWindshield != windshield ||
-            prevFanSpeed != FanSpeed ||
+            prevFanSpeed != fanSpeed ||
             prevRecyclingOn != recyclingOn;
 
         if (sendMessageOnCan)
@@ -106,7 +91,7 @@ public:
             prevAcOff = acOff;
             prevOff = off;
             prevWindshield = windshield;
-            prevFanSpeed = FanSpeed;
+            prevFanSpeed = fanSpeed;
             prevRecyclingOn = recyclingOn;
         }
     }

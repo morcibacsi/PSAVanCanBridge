@@ -16,7 +16,7 @@
 class VanAirConditioner1Handler : public AbstractVanMessageHandler {
     VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
 
-    const uint16_t SPEED_QUERY_SUPPRESS_TIME = 3500;
+    const uint16_t SPEED_QUERY_SUPPRESS_TIME = 4000;
 
     uint8_t previousFanSpeed = 0;
     uint8_t prevACEnabled = 0;

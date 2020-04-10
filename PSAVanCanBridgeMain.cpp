@@ -311,7 +311,7 @@ void CANSendDataTaskFunction(void * parameter)
                     dataToBridge.InternalTemperature,
                     dataToBridge.AirConDirection,
                     0, // auto mode
-                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
+                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
                     dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
                     dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
                     dataToBridge.AirConFanSpeed,

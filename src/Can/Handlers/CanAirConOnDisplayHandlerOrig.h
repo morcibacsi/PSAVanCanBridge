@@ -1,4 +1,4 @@
-﻿// CanAirConOnDisplayHandlerOrig.h
+// CanAirConOnDisplayHandlerOrig.h
 #pragma once
 
 #ifndef _CanAirConOnDisplayHandlerOrig_h
@@ -10,7 +10,10 @@
 class CanAirConOnDisplayHandler
 {
     const int CAN_AIRCON_INTERVAL = 100;
+    const int CAN_AIRCON_FORCE_TIMEOUT = 3000;
+
     unsigned long previousTime = millis();
+    unsigned long lastForceSentTime = 0;
 
     AbstractCanMessageSender *canMessageSender;
     uint8_t FanSpeed;
@@ -67,8 +70,10 @@ class CanAirConOnDisplayHandler
                 prevFanSpeed != FanSpeed || 
                 prevRecyclingOn != recyclingOn;
 
-            if (sendMessageOnCan)
+            if (sendMessageOnCan || (currentTime - lastForceSentTime) > CAN_AIRCON_FORCE_TIMEOUT)
             {
+                lastForceSentTime = currentTime;
+
                 prevTemperatureLeft = temperatureLeft;
                 prevTemperatureRight = temperatureRight;
                 prevDirection = direction;
