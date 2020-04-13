@@ -1,4 +1,4 @@
-﻿// CanWarningLogHandler.h
+// CanWarningLogHandler.h
 #pragma once
 
 #ifndef _CanWarningLogHandler_h
@@ -12,17 +12,17 @@ class CanWarningLogHandler
 {
     AbstractCanMessageSender *canMessageSender;
 
-    int GearBoxFault = 0;
-    int EngineFaultRepairNeeded = 0;
-    int EngineFaultStopTheVehicle = 0;
-    int PowerSteeringFault = 0;
+    uint8_t GearBoxFault = 0;
+    uint8_t EngineFaultRepairNeeded = 0;
+    uint8_t EngineFaultStopTheVehicle = 0;
+    uint8_t PowerSteeringFault = 0;
 
-    int gearboxFaultSent = 0;
-    int engineFaultRepairNeededSent = 0;
-    int engineFaultStopTheVehicleSent = 0;
-    int powerSteeringFaultSent = 0;
+    uint8_t gearboxFaultSent = 0;
+    uint8_t engineFaultRepairNeededSent = 0;
+    uint8_t engineFaultStopTheVehicleSent = 0;
+    uint8_t powerSteeringFaultSent = 0;
 
-    int isInited = 0;
+    uint8_t isInited = 0;
 
     void SendData()
     {

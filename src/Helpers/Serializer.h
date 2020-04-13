@@ -1,4 +1,4 @@
-﻿// Serializer.h
+// Serializer.h
 #pragma once
 
 #ifndef _Serializer_h
@@ -17,10 +17,10 @@ template <class T> T DeSerialize(const uint8_t b[])
     return tmp;
 }
 
-template <class T> unsigned char * Serialize(const T& packet)
+template <class T> uint8_t* Serialize(const T& packet)
 {
     //https://stackoverflow.com/a/14760796/5453350
-    unsigned char * b = new unsigned char[sizeof(packet)];
+    uint8_t* b = new unsigned char[sizeof(packet)];
     memcpy(b, &packet, sizeof(packet));//convert to byte array
 
     return b;

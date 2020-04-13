@@ -1,4 +1,4 @@
-﻿// PacketGenerator.h
+// PacketGenerator.h
 #pragma once
 
 #ifndef _PacketGenerator_H
@@ -15,10 +15,10 @@ class PacketGenerator
 
         T packet;
 
-        unsigned char * GetSerializedPacket();
+        uint8_t* GetSerializedPacket();
 
     private:
-        unsigned char * serializedPacket;
+        uint8_t* serializedPacket;
 };
 
 template <class T>
@@ -35,7 +35,7 @@ PacketGenerator<T>::~PacketGenerator()
 }
 
 template <class T>
-unsigned char * PacketGenerator<T>::GetSerializedPacket() {
+uint8_t* PacketGenerator<T>::GetSerializedPacket() {
     serializedPacket = Serialize<T>(packet);
     return serializedPacket;
 }
