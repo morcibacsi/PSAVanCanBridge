@@ -23,8 +23,8 @@
 // 2: my layout
 #define DISPLAY_MODE 2
 
-//#define USE_VIN_AUTO_MATCHING
-#ifdef USE_VIN_AUTO_MATCHING
+//#define USE_VIN_FROM_BSI
+#ifdef USE_VIN_FROM_BSI
     uint8_t Vin[17] = { 0 };
 #else
     // Fake V2C sends this VIN:

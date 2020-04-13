@@ -205,7 +205,12 @@
     <ClInclude Include="src\Van\Structs\VanRadioTunerStructs.h" />
     <ClInclude Include="src\Van\Structs\VanSpeedAndRpmStructs.h" />
     <ClInclude Include="src\Van\Structs\VanVinStructs.h" />
+    <ClInclude Include="src\Van\VanHandlerContainer.h" />
     <ClInclude Include="src\Van\VanMessageSender.h" />
+    <ClInclude Include="src\Van\VanWriterContainer.h" />
+    <ClInclude Include="src\Van\Writers\VanMessageWriterBase.h" />
+    <ClInclude Include="src\Van\Writers\VanQueryAirCon.h" />
+    <ClInclude Include="src\Van\Writers\VanQueryTripComputer.h" />
     <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>

@@ -38,31 +38,20 @@
 #endif
 
 #include "src/Van/AbstractVanMessageSender.h"
+
 #if HW_VERSION == 14
 #include "src/Van/VanMessageSender.h"
+#include "src/Van/VanWriterContainer.h"
 #endif
 
 #include "src/Van/Structs/VanVinStructs.h"
 
 #include "src/Helpers/CanDisplayPopupItem.h"
 #include "src/Helpers/DoorStatus.h"
-#include "src/Helpers/VanCanAirConditionerSpeedMap.h"
 #include "src/Helpers/VanDataToBridgeToCan.h"
 #include "src/Helpers/VanIgnitionDataToBridgeToCan.h"
 
-#include "src/Van/Handlers/AbstractVanMessageHandler.h"
-#include "src/Van/Handlers/VanAirConditioner1Handler.h"
-#include "src/Van/Handlers/VanAirConditioner2Handler.h"
-#include "src/Van/Handlers/VanCarStatusWithTripComputerHandler.h"
-#include "src/Van/Handlers/VanDashboardHandler.h"
-#include "src/Van/Handlers/VanDisplayHandlerV1.h"
-#include "src/Van/Handlers/VanDisplayHandlerV2.h"
-#include "src/Van/Handlers/VanInstrumentClusterHandlerV1.h"
-#include "src/Van/Handlers/VanInstrumentClusterHandlerV2.h"
-#include "src/Van/Handlers/VanRadioRemoteHandler.h"
-#include "src/Van/Handlers/VanSpeedAndRpmHandler.h"
-#include "src/Van/Handlers/VanAirConditionerDiagSensorHandler.h"
-#include "src/Van/Handlers/VanAirConditionerDiagActuatorHandler.h"
+#include "src/Van/VanHandlerContainer.h"
 
 #pragma endregion
 
@@ -80,6 +69,8 @@ const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
 
 const uint8_t CAN_RX_PIN = 18;
 const uint8_t CAN_TX_PIN = 15;
+
+TaskHandle_t VANWriteTask;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
@@ -96,7 +87,6 @@ TaskHandle_t CANSendIgnitionTask;
 TaskHandle_t CANSendDataTask;
 
 TaskHandle_t VANReadTask;
-TaskHandle_t VANWriteTask;
 TaskHandle_t CANReadTask;
 
 const uint8_t QUEUE_SIZE = 1;
@@ -106,12 +96,10 @@ QueueHandle_t vinQueue;
 
 AbstractCanMessageSender* CANInterface;
 CanDisplayPopupHandler* canPopupHandler;
-VanCanDisplayPopupMap* popupMapping;
 CanVinHandler* canVinHandler;
 CanTripInfoHandler* tripInfoHandler;
 CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
 CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
-VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
 CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
 CanWarningLogHandler* canWarningLogHandler;
 CanSpeedAndRpmHandler* canSpeedAndRpmHandler;
@@ -122,8 +110,7 @@ CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 CanRadioRd4DiagHandler* canRadioDiag;
 
-const uint8_t VAN_MESSAGE_HANDLER_COUNT = 12;
-AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
+VanHandlerContainer* vanHandlerContainer;
 
 AbsSer *serialPort;
 
@@ -480,7 +467,6 @@ void VANReadTaskFunction(void * parameter)
     VanDataToBridgeToCan dataToBridge;
     VanIgnitionDataToBridgeToCan ignitionDataToBridge;
     VanVinToBridgeToCan vinDataToBridge;
-    bool vanMessageHandled;
 
     for (;;)
     {
@@ -517,16 +503,12 @@ void VANReadTaskFunction(void * parameter)
                     continue;
                 }
 
-                vanMessageHandled = false;
-                for(uint8_t i = 0; i < VAN_MESSAGE_HANDLER_COUNT; i++)
+                const bool vanMessageHandled = vanHandlerContainer->ProcessMessage(identByte1, identByte2, vanMessageWithoutId, vanMessageLengthWithoutId, dataToBridge, ignitionDataToBridge, doorStatus);
+
+                if (vanMessageHandled)
                 {
-                    vanMessageHandled = vanMessageHandlers[i]->ProcessMessage(identByte1, identByte2, vanMessageWithoutId, vanMessageLengthWithoutId, dataToBridge, ignitionDataToBridge, doorStatus);
-                    if (vanMessageHandled)
-                    {
-                        xQueueOverwrite(ignitionQueue, (void*)&ignitionDataToBridge);
-                        xQueueOverwrite(dataQueue, (void*)&dataToBridge);
-                        break;
-                    }
+                    xQueueOverwrite(ignitionQueue, (void*)&ignitionDataToBridge);
+                    xQueueOverwrite(dataQueue, (void*)&dataToBridge);
                 }
 
                 #pragma region Vin
@@ -566,8 +548,8 @@ void VANWriteTaskFunction(void* parameter)
     const int MOSI_PIN = 33;
     const int VAN_PIN = 32;
 
+    unsigned long currentTime = 0;
     uint8_t ignition = 0;
-    uint8_t diagStatus = 0;
     VanIgnitionDataToBridgeToCan dataToBridge;
 
     SPIClass* spi = new SPIClass();
@@ -576,56 +558,23 @@ void VANWriteTaskFunction(void* parameter)
     AbstractVanMessageSender* VANInterface = new VanMessageSender(VAN_PIN, spi);
     VANInterface->begin();
 
-    VanCarStatusPacketSender *carStatusSender = new VanCarStatusPacketSender(VANInterface);
-    carStatusSender->GetCarStatus(0);
-
-#ifdef QUERY_AC_STATUS
-    VanACDiagPacketSender* acDiagSender = new VanACDiagPacketSender(VANInterface);
-    acDiagSender->GetManufacturerInfo(1);
-
-    acDiagSender->GetSensorStatus(2);
-    acDiagSender->QueryAirConData(4);
-
-    acDiagSender->GetActuatorStatus(3);
-    acDiagSender->QueryAirConData(4);
-#endif
+    VanWriterContainer* vanWriterContainer = new VanWriterContainer(VANInterface);
 
     for (;;)
     {
+        currentTime = millis();
+
         xQueueReceive(ignitionQueue, &dataToBridge, 0);
 
-        ignition = 0;
+        ignition = 1;
 #ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
-        if (dataToBridge.Ignition == 1)
-        {
-            ignition = 1;
-        }
+        ignition = dataToBridge.Ignition == 1;
 #else
-       ignition = 1;
-#endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
-
-        if (ignition == 1)
-        {
-            carStatusSender->GetCarStatus(0);
-
-#ifdef QUERY_AC_STATUS
-            VANInterface->reactivate_channel(1);
-            if (diagStatus == 0)
-            {
-                acDiagSender->GetSensorStatus(2);
-                acDiagSender->QueryAirConData(4);
-                diagStatus = 1;
-            }
-            else
-            {
-                acDiagSender->GetActuatorStatus(3);
-                acDiagSender->QueryAirConData(4);
-                diagStatus = 0;
-            }
+        dataToBridge.Ignition = ignition;
 #endif
-        }
+        vanWriterContainer->Process(dataToBridge, currentTime);
 
-        vTaskDelay(120 / portTICK_PERIOD_MS);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
         esp_task_wdt_reset();
     }
 }
@@ -678,12 +627,10 @@ void setup()
     CANInterface->Init();
 
     canPopupHandler = new CanDisplayPopupHandler(CANInterface);
-    popupMapping = new VanCanDisplayPopupMap();
     canVinHandler = new CanVinHandler(CANInterface);
     tripInfoHandler = new CanTripInfoHandler(CANInterface);
     canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
     canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
-    vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
     canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
@@ -694,21 +641,12 @@ void setup()
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
     canRadioDiag = new CanRadioRd4DiagHandler(CANInterface, serialPort);
 
-    vanMessageHandlers[0] = new VanAirConditioner1Handler(vanCanAirConditionerSpeedMap);
-    vanMessageHandlers[1] = new VanAirConditioner2Handler();
-    vanMessageHandlers[2] = new VanCarStatusWithTripComputerHandler(canPopupHandler, tripInfoHandler);
-    vanMessageHandlers[3] = new VanDashboardHandler();
-
-    vanMessageHandlers[4] = new VanDisplayHandlerV2(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-    vanMessageHandlers[5] = new VanDisplayHandlerV1(canPopupHandler, tripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler, vanMessageHandlers[4]);
-
-    vanMessageHandlers[6] = new VanInstrumentClusterHandlerV2();
-    vanMessageHandlers[7] = new VanInstrumentClusterHandlerV1(vanMessageHandlers[6]);
-
-    vanMessageHandlers[8] = new VanRadioRemoteHandler(tripInfoHandler, canRadioRemoteMessageHandler);
-    vanMessageHandlers[9] = new VanSpeedAndRpmHandler();
-    vanMessageHandlers[10] = new VanAirConditionerDiagSensorHandler();
-    vanMessageHandlers[11] = new VanAirConditionerDiagActuatorHandler();
+    vanHandlerContainer = new VanHandlerContainer(
+        canPopupHandler,
+        tripInfoHandler,
+        canStatusOfFunctionsHandler,
+        canWarningLogHandler,
+        canRadioRemoteMessageHandler);
 
     dataQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanDataToBridgeToCan));
     ignitionQueue = xQueueCreate(QUEUE_SIZE, sizeof(VanIgnitionDataToBridgeToCan));

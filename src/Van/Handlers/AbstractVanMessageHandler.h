@@ -4,6 +4,10 @@
 #ifndef _AbstractVanMessageHandler_h
     #define _AbstractVanMessageHandler_h
 
+#include "../../Helpers/VanDataToBridgeToCan.h"
+#include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
+#include "../../Helpers/DoorStatus.h"
+
 class AbstractVanMessageHandler {
 public:
     virtual bool ProcessMessage(

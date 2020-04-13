@@ -1,4 +1,4 @@
-﻿// VanCarStatusWithTripComputerStructs.h
+// VanCarStatusWithTripComputerStructs.h
 #pragma once
 
 #ifndef _VanCarStatusWithTripComputerStructs_h
@@ -81,9 +81,9 @@ class VanCarStatusPacketSender
         vanMessageSender = object;
     }
 
-    void GetCarStatus(uint8_t channelId)
+    bool GetCarStatus(uint8_t channelId)
     {
-        vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_CARSTATUS, 29, 1);
+        return vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_CARSTATUS, 29, 1);
     }
 };
 #pragma endregion
