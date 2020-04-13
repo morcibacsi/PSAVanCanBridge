@@ -21,6 +21,7 @@
 #include "src/Can/Structs/CanDash1Structs.h"
 #include "src/Can/Structs/CanIgnitionStructs.h"
 #include "src/Can/Structs/CanMenuStructs.h"
+#include "src/Can/Structs/CanParkingAidStructs.h"
 #include "src/Can/Handlers/CanRadioRd4DiagHandler.h"
 #include "src/Can/Handlers/CanRadioRemoteMessageHandler.h"
 #include "src/Can/Handlers/CanVinHandler.h"
@@ -31,6 +32,7 @@
 #include "src/Can/Handlers/CanDash2MessageHandler.h"
 #include "src/Can/Handlers/CanDash3MessageHandler.h"
 #include "src/Can/Handlers/CanDash4MessageHandler.h"
+#include "src/Can/Handlers/CanParkingAidHandler.h"
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
 #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
 #else
@@ -76,6 +78,8 @@ TaskHandle_t VANWriteTask;
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 const bool SILENT_MODE = false;
 
+bool reverseEngaged = false;
+
 ESP32_RMT_VAN_RX VAN_RX;
 
 struct VanVinToBridgeToCan
@@ -109,6 +113,7 @@ CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 CanRadioRd4DiagHandler* canRadioDiag;
+CanParkingAidHandler* canParkingAid;
 
 VanHandlerContainer* vanHandlerContainer;
 
@@ -443,6 +448,16 @@ void CANSendIgnitionTaskFunction(void * parameter)
 
         #pragma endregion
 
+#pragma region Parking aid
+        reverseEngaged = dataToBridge.IsReverseEngaged;
+
+        if (dataToBridge.IsReverseEngaged && dataToBridge.HaveDataFromParkingAid == 1)
+        {
+            canParkingAid->SetData(dataToBridge.IsReverseEngaged, dataToBridge.IsTrailerPresent, dataToBridge.ExteriorRearLeftDistanceInCm, dataToBridge.ExteriorRearRightDistanceInCm, dataToBridge.InteriorRearLeftDistanceInCm, dataToBridge.InteriorRearRightDistanceInCm, currentTime);
+            canParkingAid->Process(currentTime);
+        }
+#pragma endregion
+
         canStatusOfFunctionsHandler->Init();
         canWarningLogHandler->Init();
 
@@ -640,6 +655,7 @@ void setup()
     radioIgnition = new CanIgnitionPacketSender(CANInterface);
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
     canRadioDiag = new CanRadioRd4DiagHandler(CANInterface, serialPort);
+    canParkingAid = new CanParkingAidHandler(CANInterface);
 
     vanHandlerContainer = new VanHandlerContainer(
         canPopupHandler,

@@ -313,6 +313,21 @@
     <ClInclude Include="src\Can\Handlers\CanRadioRd4DiagHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Can\Handlers\CanParkingAidHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Can\Structs\CanParkingAidStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Handlers\VanParkingAidDiagDistanceHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Structs\VanParkingAidDiagStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Handlers\VanParkingAidDiagInputStateHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Van\VanHandlerContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -326,6 +341,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Van\Writers\VanQueryAirCon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Writers\VanQueryParkingAid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

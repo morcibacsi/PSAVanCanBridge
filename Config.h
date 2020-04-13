@@ -12,6 +12,11 @@
 // if defined the AC status is queried with a diagnostic message (only works with rev 1.4)
 #define QUERY_AC_STATUS
 
+//if defined the distance data from the parking aid is queried with a diagnostic message (only works with rev 1.4)
+//#define QUERY_PARKING_AID_DISTANCE
+
+#define ENABLE_PARKING_AID_SOUND_FROM_SPEAKER 0
+
 #define TASK_WATCHDOG_TIMEOUT 7
 #define FUEL_TANK_CAPACITY_IN_LITERS 60
 

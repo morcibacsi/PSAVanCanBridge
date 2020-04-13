@@ -1,4 +1,4 @@
-﻿// CanMessageHandlerBase.h
+// CanMessageHandlerBase.h
 #pragma once
 
 #ifndef _CanMessageHandlerBase_h
@@ -8,12 +8,14 @@
 
 class CanMessageHandlerBase
 {
-    unsigned long processInterval = 40;
     unsigned long previousTime = 0;
 
     virtual void InternalProcess() = 0;
 
     protected:
+    unsigned long processInterval = 40;
+    unsigned long _currentTime = 0;
+
     AbstractCanMessageSender *canMessageSender;
     CanMessageHandlerBase(AbstractCanMessageSender * object, int interval)
     {
@@ -27,6 +29,7 @@ class CanMessageHandlerBase
         if (currentTime - previousTime > processInterval)
         {
             previousTime = currentTime;
+            _currentTime = currentTime;
 
             InternalProcess();
         }

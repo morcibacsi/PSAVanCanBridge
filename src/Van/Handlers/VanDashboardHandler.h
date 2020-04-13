@@ -1,4 +1,4 @@
-﻿// VanDashboardHandler.h
+// VanDashboardHandler.h
 #pragma once
 
 #ifndef _VanDashboardHandler_h
@@ -42,6 +42,9 @@ public:
 
         dataToBridge.LightStatuses.status.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
         dataToBridge.Ignition = ignitionDataToBridge.Ignition;
+
+        ignitionDataToBridge.IsTrailerPresent = packet.data.Field1.trailer_present;
+        ignitionDataToBridge.IsReverseEngaged = packet.data.Field1.reverse_gear;
         ignitionDataToBridge.MileageByte1 = packet.data.MileageByte1;
         ignitionDataToBridge.MileageByte2 = packet.data.MileageByte2;
         ignitionDataToBridge.MileageByte3 = packet.data.MileageByte3;

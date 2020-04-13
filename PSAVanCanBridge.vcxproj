@@ -121,6 +121,7 @@
     <ClInclude Include="src\Can\Handlers\CanDash4MessageHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanMessageHandlerBase.h" />
+    <ClInclude Include="src\Can\Handlers\CanParkingAidHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRd4DiagHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRemoteMessageHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanSpeedAndRpmHandler.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="src\Can\Structs\CanDoorStatusStructs.h" />
     <ClInclude Include="src\Can\Structs\CanIgnitionStructs.h" />
     <ClInclude Include="src\Can\Structs\CanMenuStructs.h" />
+    <ClInclude Include="src\Can\Structs\CanParkingAidStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioAudioSettingsStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioInfoStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioMp3Structs.h" />
@@ -186,6 +188,8 @@
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV2.h" />
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV1.h" />
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h" />
+    <ClInclude Include="src\Van\Handlers\VanParkingAidDiagDistanceHandler.h" />
+    <ClInclude Include="src\Van\Handlers\VanParkingAidDiagInputStateHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanRadioRemoteHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanSpeedAndRpmHandler.h" />
     <ClInclude Include="src\Van\Structs\VanAirConditioner1Structs.h" />
@@ -200,6 +204,7 @@
     <ClInclude Include="src\Van\Structs\VanDisplayStructsV2.h" />
     <ClInclude Include="src\Van\Structs\VanInstrumentClusterV1Structs.h" />
     <ClInclude Include="src\Van\Structs\VanInstrumentClusterV2Structs.h" />
+    <ClInclude Include="src\Van\Structs\VanParkingAidDiagStructs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioInfoStructs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioRemoteStructs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioTunerStructs.h" />
@@ -210,6 +215,7 @@
     <ClInclude Include="src\Van\VanWriterContainer.h" />
     <ClInclude Include="src\Van\Writers\VanMessageWriterBase.h" />
     <ClInclude Include="src\Van\Writers\VanQueryAirCon.h" />
+    <ClInclude Include="src\Van\Writers\VanQueryParkingAid.h" />
     <ClInclude Include="src\Van\Writers\VanQueryTripComputer.h" />
     <ClInclude Include="__vm\.PSAVanCanBridge.vsarduino.h" />
   </ItemGroup>
