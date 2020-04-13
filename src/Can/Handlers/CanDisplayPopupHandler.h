@@ -11,7 +11,7 @@
 #include "../../Helpers/CanDisplayPopupItem.h"
 #include "../../Helpers/ByteAcceptanceHandler.h"
 
-const int CAN_POPUP_MESSAGE_TIME = 6500;
+const int CAN_POPUP_MESSAGE_TIME = 4000;
 const int CAN_POPUP_DOOR_MESSAGE_TIME = 6500;
 const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT =  10;
 
@@ -209,8 +209,10 @@ class CanDisplayPopupHandler
         xSemaphoreGive(canSemaphore);
         riskOfIceShown = false;
         canDisplayPopupStartTime = 0;
-
-        HideCurrentPopupMessage();
+        if (IsPopupVisible())
+        {
+            HideCurrentPopupMessage();
+        }
         ResetSeatBeltWarning();
     }
 
