@@ -214,7 +214,7 @@ public:
             leftStickButtonReturn = currentTime + LEFT_STICK_BUTTON_TIME;
             ignitionDataToBridge.LeftStickButtonPressed = 1;
             dataToBridge.LeftStickButtonPressed = 1;
-            //canTripInfoHandler->TripButtonPress();
+            canTripInfoHandler->TripButtonPress();
         }
 
         if (currentTime > leftStickButtonReturn)
