@@ -33,7 +33,7 @@ class VanHandlerContainer {
 
     public:
     VanHandlerContainer(
-        CanDisplayPopupHandler* canPopupHandler,
+        ICanDisplayPopupHandler* canPopupHandler,
         CanTripInfoHandler* canTripInfoHandler,
         CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler,
         CanWarningLogHandler* canWarningLogHandler,

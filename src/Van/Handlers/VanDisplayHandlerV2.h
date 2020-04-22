@@ -1,4 +1,4 @@
-﻿// VanDisplayHandler.h
+// VanDisplayHandler.h
 #pragma once
 
 #ifndef _VanDisplayHandlerV2_h
@@ -12,13 +12,13 @@
 #include "../../Helpers/VanCanDisplayPopupMap.h"
 
 #include "../../Can/Handlers/CanTripInfoHandler.h"
-#include "../../Can/Handlers/CanDisplayPopupHandler.h"
+#include "../../Can/Handlers/ICanDisplayPopupHandler.h"
 #include "../../Can/Handlers/CanStatusOfFunctionsHandler.h"
 #include "../../Can/Handlers/CanWarningLogHandler.h"
 #include "../Structs/VanDisplayStructsV2.h"
 
 class VanDisplayHandlerV2 : public AbstractVanMessageHandler {
-    CanDisplayPopupHandler* canPopupHandler;
+    ICanDisplayPopupHandler* canPopupHandler;
     CanTripInfoHandler* canTripInfoHandler;
     CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
     CanWarningLogHandler* canWarningLogHandler;
@@ -35,7 +35,7 @@ class VanDisplayHandlerV2 : public AbstractVanMessageHandler {
 
 public:
     VanDisplayHandlerV2(
-        CanDisplayPopupHandler* _canPopupHandler, 
+        ICanDisplayPopupHandler* _canPopupHandler, 
         CanTripInfoHandler* _canTripInfoHandler, 
         VanCanDisplayPopupMap* _popupMapping,
         CanStatusOfFunctionsHandler* _canStatusOfFunctionsHandler,
@@ -69,7 +69,6 @@ public:
         if (packet.data.Message != 0xFF)
         {
             CanDisplayPopupItem item;
-            item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
             item.Category = popupMapping->GetCanCategoryFromVanMessage(packet.data.Message);
             item.MessageType = popupMapping->GetCanMessageIdFromVanMessage(packet.data.Message);
             item.DoorStatus1 = 0;
@@ -118,25 +117,6 @@ public:
                     item.DoorStatus1 = 0x02;
                     break;
                 }
-                //case VAN_POPUP_MSG_DEADLOCKING_ACTIVE:
-                //    canStatusOfFunctionsHandler->SetAutomaticDoorLockingEnabled();
-                //    break;
-                //case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_ACTIVE:
-                //    canStatusOfFunctionsHandler->SetAutomaticHeadlampEnabled();
-                //    break;
-                //case VAN_POPUP_MSG_AUTOMATIC_LIGHTING_INACTIVE:
-                //    canStatusOfFunctionsHandler->SetAutomaticHeadlampDisabled();
-                //    break;
-                //case VAN_POPUP_MSG_PASSENGER_AIRBAG_DEACTIVATED:
-                //    canStatusOfFunctionsHandler->SetPassengerAirbagDisabled();
-                //    break;
-                //case VAN_POPUP_MSG_CATALYTIC_CONVERTER_FAULT:
-                //case VAN_POPUP_MSG_ANTIPOLLUTION_FAULT:
-                //    canWarningLogHandler->SetEngineFaultRepairNeeded();
-                //    break;
-                //case VAN_POPUP_MSG_AUTOMATIC_GEAR_FAULT:
-                //    canWarningLogHandler->SetGearBoxFault();
-                //    break;
                 default:
                     break;
             }
@@ -186,7 +166,6 @@ public:
             if (dataToBridge.Speed > 10)
             {
                 CanDisplayPopupItem item;
-                item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
                 item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
                 item.MessageType = CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED;
                 item.DoorStatus1 = CAN_POPUP_SEAT_BELTS_OF_DRIVER;
@@ -214,7 +193,6 @@ public:
             leftStickButtonReturn = currentTime + LEFT_STICK_BUTTON_TIME;
             ignitionDataToBridge.LeftStickButtonPressed = 1;
             dataToBridge.LeftStickButtonPressed = 1;
-            //canTripInfoHandler->TripButtonPress();
         }
 
         if (currentTime > leftStickButtonReturn)

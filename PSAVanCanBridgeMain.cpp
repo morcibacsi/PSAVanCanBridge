@@ -33,11 +33,18 @@
 #include "src/Can/Handlers/CanDash3MessageHandler.h"
 #include "src/Can/Handlers/CanDash4MessageHandler.h"
 #include "src/Can/Handlers/CanParkingAidHandler.h"
-#include "src/Can/Handlers/CanDisplayPopupHandler2.h"
+
+#if POPUP_HANDLER == 1
+    #include "src/Can/Handlers/CanDisplayPopupHandler.h"
+#endif
+#if POPUP_HANDLER == 2
+    #include "src/Can/Handlers/CanDisplayPopupHandler2.h"
+#endif
+
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
+    #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
 #else
-#include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+    #include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
 #endif
 
 #include "src/Van/AbstractVanMessageSender.h"
@@ -55,6 +62,7 @@
 #include "src/Helpers/VanIgnitionDataToBridgeToCan.h"
 
 #include "src/Van/VanHandlerContainer.h"
+#include "src/Can/Handlers/ICanDisplayPopupHandler.h"
 
 #pragma endregion
 
@@ -430,7 +438,6 @@ void CANSendIgnitionTaskFunction(void * parameter)
             if (!canPopupHandler->IsPopupVisible())
             {
                 CanDisplayPopupItem item;
-                item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
                 item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
                 item.MessageType = CAN_POPUP_MSG_RISK_OF_ICE;
                 item.DoorStatus1 = 0;
@@ -648,7 +655,13 @@ void setup()
     CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
     CANInterface->Init();
 
+#if POPUP_HANDLER == 1
     canPopupHandler = new CanDisplayPopupHandler(CANInterface);
+#endif
+#if POPUP_HANDLER == 2
+    canPopupHandler = new CanDisplayPopupHandler2(CANInterface);
+#endif
+
     canVinHandler = new CanVinHandler(CANInterface);
     tripInfoHandler = new CanTripInfoHandler(CANInterface);
     canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);

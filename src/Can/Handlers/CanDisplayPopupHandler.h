@@ -10,14 +10,15 @@
 #include "../Structs/CanDisplayStructs.h"
 #include "../../Helpers/CanDisplayPopupItem.h"
 #include "../../Helpers/ByteAcceptanceHandler.h"
+#include "ICanDisplayPopupHandler.h"
 
-const int CAN_POPUP_MESSAGE_TIME = 4000;
-const int CAN_POPUP_DOOR_MESSAGE_TIME = 6500;
-const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT =  10;
-
-class CanDisplayPopupHandler
+class CanDisplayPopupHandler : public ICanDisplayPopupHandler
 {
+    const int CAN_POPUP_MESSAGE_TIME = 4000;
+    const int CAN_POPUP_DOOR_MESSAGE_TIME = 6500;
+
     const int CAN_POPUP_INTERVAL = 200;
+    const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT = 10;
 
     AbstractCanMessageSender *canMessageSender;
     //ByteAcceptanceHandler* byteAcceptanceHandler;
@@ -45,6 +46,19 @@ class CanDisplayPopupHandler
 
     void QueueNewMessage(CanDisplayPopupItem item)
     {
+        if (item.Category == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
+        {
+            if (item.DoorStatus1 == 0x00)
+            {
+                return;
+            }
+            item.DisplayTimeInMilliSeconds = CAN_POPUP_DOOR_MESSAGE_TIME;
+        }
+        else
+        {
+            item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
+        }
+
         //if (byteAcceptanceHandler->GetAcceptedByte(item.MessageType) != item.MessageType)
         //{
         //    return;
@@ -224,6 +238,14 @@ class CanDisplayPopupHandler
         {
             HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
         }
+    }
+
+    void SetEngineRunning(bool isRunning)
+    {
+    }
+
+    void SetIgnition(bool isOn)
+    {
     }
 };
 

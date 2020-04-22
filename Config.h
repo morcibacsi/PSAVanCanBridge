@@ -25,8 +25,12 @@
 #define HW_VERSION 14
 
 // 1: original layout
-// 2: my layout
+// 2: my layout (displays fuel level, vehicle speed, rpm instead of the basic trip computer data)
 #define DISPLAY_MODE 2
+
+// 1: original popup handler (displays all messages)
+// 2: Karol's popup handler  (applies some filtering, better user experience)
+#define POPUP_HANDLER 2
 
 //#define USE_VIN_FROM_BSI
 #ifdef USE_VIN_FROM_BSI
