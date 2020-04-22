@@ -108,7 +108,7 @@ QueueHandle_t ignitionQueue;
 QueueHandle_t vinQueue;
 
 AbstractCanMessageSender* CANInterface;
-CanDisplayPopupHandler* canPopupHandler;
+ICanDisplayPopupHandler* canPopupHandler;
 CanVinHandler* canVinHandler;
 CanTripInfoHandler* tripInfoHandler;
 CanAirConOnDisplayHandler* canAirConOnDisplayHandler;

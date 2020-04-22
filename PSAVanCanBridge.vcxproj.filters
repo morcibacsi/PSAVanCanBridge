@@ -349,6 +349,9 @@
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Can\Handlers\ICanDisplayPopupHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">

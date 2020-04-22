@@ -130,6 +130,7 @@
     <ClInclude Include="src\Can\Handlers\CanTripInfoHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanVinHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanWarningLogHandler.h" />
+    <ClInclude Include="src\Can\Handlers\ICanDisplayPopupHandler.h" />
     <ClInclude Include="src\Can\Structs\CanAirConOnDisplayStructs.h" />
     <ClInclude Include="src\Can\Structs\CanAirConStructs.h" />
     <ClInclude Include="src\Can\Structs\CanDash1Structs.h" />
