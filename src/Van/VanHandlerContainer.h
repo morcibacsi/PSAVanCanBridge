@@ -48,7 +48,7 @@ class VanHandlerContainer {
         vanMessageHandlers[3] = new VanDashboardHandler();
 
         vanMessageHandlers[4] = new VanDisplayHandlerV2(canPopupHandler, canTripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-        vanMessageHandlers[5] = new VanDisplayHandlerV1(canPopupHandler, canTripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler, vanMessageHandlers[4]);
+        vanMessageHandlers[5] = new VanDisplayHandlerV1(vanMessageHandlers[4]);
 
         vanMessageHandlers[6] = new VanInstrumentClusterHandlerV2();
         vanMessageHandlers[7] = new VanInstrumentClusterHandlerV1(vanMessageHandlers[6]);
