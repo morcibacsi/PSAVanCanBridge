@@ -154,14 +154,13 @@ public:
         int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2,
         int counter) {
 
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
         canDisplayPopupStartTime = millis();
 
         popupVisible = true;
         uint8_t messageSentCount = 0;
 
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT) {
-            displayMessageSender.ShowPopup(category, messageType, kmToDisplay,
+            displayMessageSender->ShowPopup(category, messageType, kmToDisplay,
                 doorStatus1, doorStatus2);
             messageSentCount++;
 
@@ -175,10 +174,9 @@ public:
     }
 
     void HideCanPopupMessage(uint8_t messageType, uint8_t doorStatus, int counter) {
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT) {
-            displayMessageSender.HidePopup(messageType);
+            displayMessageSender->HidePopup(messageType);
             messageSentCount++;
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }
@@ -245,6 +243,7 @@ public:
 private:
 
     AbstractCanMessageSender* canMessageSender;
+    CanDisplayPacketSender* displayMessageSender;
     //ByteAcceptanceHandler* byteAcceptanceHandler;
 
     bool riskOfIceShown = false;

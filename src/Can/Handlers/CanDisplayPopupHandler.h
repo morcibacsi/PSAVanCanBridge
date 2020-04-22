@@ -21,6 +21,8 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
     const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT = 10;
 
     AbstractCanMessageSender *canMessageSender;
+    CanDisplayPacketSender *displayMessageSender;
+
     //ByteAcceptanceHandler* byteAcceptanceHandler;
 
     bool riskOfIceShown = false;
@@ -42,6 +44,7 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
         canSemaphore = xSemaphoreCreateMutex();
         lastPopupMessage.IsInited = false;
         //byteAcceptanceHandler = new ByteAcceptanceHandler(2);
+        displayMessageSender = new CanDisplayPacketSender(canMessageSender);
     }
 
     void QueueNewMessage(CanDisplayPopupItem item)
@@ -166,12 +169,10 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
 
     void ShowCanPopupMessage(uint8_t category, uint8_t messageType, int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2, int counter) {
         //Log.notice("%d: Show message(%d): %x doors: %x\n", millis(), counter, messageType, doorStatus1);
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
-
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
-            displayMessageSender.ShowPopup(category, messageType, kmToDisplay, doorStatus1, doorStatus2);
+            displayMessageSender->ShowPopup(category, messageType, kmToDisplay, doorStatus1, doorStatus2);
             messageSentCount++;
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }
@@ -192,11 +193,10 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
     void HideCanPopupMessage(uint8_t messageType, uint8_t doorStatus, int counter)
     {
         //Log.notice("%d: Hide message(%d): %x  doors: %x\n", millis() - lastPopupMessage.SetVisibleOnDisplayTime, counter, messageType, doorStatus);
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
-            displayMessageSender.HidePopup(messageType);
+            displayMessageSender->HidePopup(messageType);
             messageSentCount++;
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }
