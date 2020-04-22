@@ -82,8 +82,8 @@ public:
         doorStatus.status.RearRight = packet.data.Doors.RearRight;
         doorStatus.status.BootLid = packet.data.Doors.BootLid;
 
-        if (doorStatus.asByte != 0)
-        {
+       // if (doorStatus.asByte != 0)
+      //  {
             CanDisplayPopupItem item;
             item.DisplayTimeInMilliSeconds = CAN_POPUP_DOOR_MESSAGE_TIME;
             item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
@@ -97,7 +97,7 @@ public:
             item.SetVisibleOnDisplayTime = 0;
             item.VANByte = 0x02;
             canPopupHandler->QueueNewMessage(item);
-        }
+      //  }
 
         return true;
     }

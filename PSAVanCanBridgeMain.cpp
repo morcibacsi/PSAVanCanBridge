@@ -33,6 +33,7 @@
 #include "src/Can/Handlers/CanDash3MessageHandler.h"
 #include "src/Can/Handlers/CanDash4MessageHandler.h"
 #include "src/Can/Handlers/CanParkingAidHandler.h"
+#include "src/Can/Handlers/CanDisplayPopupHandler2.h"
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
 #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
 #else
@@ -269,6 +270,10 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma region PopupMessage
 
+            if (dataToBridge.Rpm > 500) {
+            	canPopupHandler->SetEngineRunning(true);
+            }
+
             canPopupHandler->Process(currentTime);
 
             #pragma endregion
@@ -414,6 +419,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
             dataToBridge.MileageByte1, 
             dataToBridge.MileageByte2, 
             dataToBridge.MileageByte3);
+
+        canPopupHandler->SetIgnition(true);
 
         if (ignition == 1 &&
             dataToBridge.OutsideTemperature <= 3 && 
