@@ -6,19 +6,19 @@
 // if defined messages are sent on bluetooth connection, otherwise standard serial is used
 #define USE_BLUETOOTH_SERIAL
 
-// if defined then the ignition signal is used from the VAN bus otherwise the ignition is considered as always on
-#define USE_IGNITION_SIGNAL_FROM_VAN_BUS
+// if true then the ignition signal is used from the VAN bus otherwise the ignition is considered as always on
+constexpr bool USE_IGNITION_SIGNAL_FROM_VAN_BUS = true;
 
-// if defined the AC status is queried with a diagnostic message (only works with rev 1.4)
-#define QUERY_AC_STATUS
+// if true the AC status is queried with a diagnostic message (only works with rev 1.4)
+constexpr bool QUERY_AC_STATUS = false;
 
-//if defined the distance data from the parking aid is queried with a diagnostic message (only works with rev 1.4)
-//#define QUERY_PARKING_AID_DISTANCE
+//if true the distance data from the parking aid is queried with a diagnostic message (only works with rev 1.4)
+constexpr bool QUERY_PARKING_AID_DISTANCE = false;
 
-#define ENABLE_PARKING_AID_SOUND_FROM_SPEAKER 0
+constexpr uint8_t ENABLE_PARKING_AID_SOUND_FROM_SPEAKER = 0;
 
-#define TASK_WATCHDOG_TIMEOUT 7
-#define FUEL_TANK_CAPACITY_IN_LITERS 60
+constexpr uint8_t TASK_WATCHDOG_TIMEOUT = 7;
+constexpr uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 
 // 11: HW revision v1.1
 // 14: HW revision v1.4
@@ -26,7 +26,7 @@
 
 // 1: original layout
 // 2: my layout (displays fuel level, vehicle speed, rpm instead of the basic trip computer data)
-#define DISPLAY_MODE 2
+constexpr uint8_t DISPLAY_MODE = 1;
 
 // 1: original popup handler (displays all messages)
 // 2: Karol's popup handler  (applies some filtering, better user experience)

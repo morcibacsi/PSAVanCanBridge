@@ -50,8 +50,8 @@
 #include "src/Van/AbstractVanMessageSender.h"
 
 #if HW_VERSION == 14
-#include "src/Van/VanMessageSender.h"
-#include "src/Van/VanWriterContainer.h"
+    #include "src/Van/VanMessageSender.h"
+    #include "src/Van/VanWriterContainer.h"
 #endif
 
 #include "src/Van/Structs/VanVinStructs.h"
@@ -69,19 +69,19 @@
 const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
 
 #if HW_VERSION == 11
-const uint8_t VAN_DATA_RX_PIN = 21;
-const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
+    const uint8_t VAN_DATA_RX_PIN = 21;
+    const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
 
-const uint8_t CAN_RX_PIN = 33;
-const uint8_t CAN_TX_PIN = 32;
+    const uint8_t CAN_RX_PIN = 33;
+    const uint8_t CAN_TX_PIN = 32;
 #elif HW_VERSION == 14
-const uint8_t VAN_DATA_RX_PIN = 21;
-const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
+    const uint8_t VAN_DATA_RX_PIN = 21;
+    const VAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = VAN_LINE_LEVEL_HIGH;
 
-const uint8_t CAN_RX_PIN = 18;
-const uint8_t CAN_TX_PIN = 15;
+    const uint8_t CAN_RX_PIN = 18;
+    const uint8_t CAN_TX_PIN = 15;
 
-TaskHandle_t VANWriteTask;
+    TaskHandle_t VANWriteTask;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
@@ -206,14 +206,17 @@ void CANSendDataTaskFunction(void * parameter)
     {
         currentTime = millis();
 
-        #ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
+        if (USE_IGNITION_SIGNAL_FROM_VAN_BUS)
+        {
             ignition = dataToBridge.Ignition;
-        #else
+        }
+        else
+        {
             ignition = 1;
 
             canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
             canSpeedAndRpmHandler->Process(currentTime);
-        #endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
+        }
 
         if (xQueueReceive(dataQueue, &dataToBridgeReceived, portMAX_DELAY) == pdTRUE)
         {
@@ -224,42 +227,44 @@ void CANSendDataTaskFunction(void * parameter)
             canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
             canSpeedAndRpmHandler->Process(currentTime);
 
-            #pragma endregion
+#pragma endregion
 
-            #pragma region TripInfo
+#pragma region TripInfo
 
-#if DISPLAY_MODE == 1
-            trip0Icon1Data = dataToBridge.FuelLeftToPump; //the distance remaining to be travelled
-            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
-            trip0Icon3Data = dataToBridge.Trip1Distance; //the range
-
-            trip1Icon1Data = dataToBridge.Trip1Distance;
-            trip1Icon2Data = dataToBridge.Trip1Consumption;
-            trip1Icon3Data = dataToBridge.Trip1Speed;
-
-            trip2Icon1Data = dataToBridge.Trip2Distance;
-            trip2Icon2Data = dataToBridge.Trip2Consumption;
-            trip2Icon3Data = dataToBridge.Trip2Speed;
-#endif
-#if DISPLAY_MODE == 2
-            trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
-            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
-            trip0Icon3Data = dataToBridge.Speed;
-
-            trip1Icon1Data = dataToBridge.Trip1Distance;
-            trip1Icon2Data = dataToBridge.Trip1Consumption;
-            trip1Icon3Data = dataToBridge.Trip1Speed;
-
-            trip2Icon1Data = dataToBridge.Rpm;
-            trip2Icon2Data = dataToBridge.FuelConsumption;
-            trip2Icon3Data = dataToBridge.Speed;
-
-            if (dataToBridge.LeftStickButtonPressed)
+            if (DISPLAY_MODE == 1)
             {
-                trip0Icon1Data = dataToBridge.FuelLevel;
-                trip0Icon3Data = dataToBridge.OilTemperature;
+                trip0Icon1Data = dataToBridge.FuelLeftToPump; //the distance remaining to be travelled
+                trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
+                trip0Icon3Data = dataToBridge.Trip1Distance; //the range
+
+                trip1Icon1Data = dataToBridge.Trip1Distance;
+                trip1Icon2Data = dataToBridge.Trip1Consumption;
+                trip1Icon3Data = dataToBridge.Trip1Speed;
+
+                trip2Icon1Data = dataToBridge.Trip2Distance;
+                trip2Icon2Data = dataToBridge.Trip2Consumption;
+                trip2Icon3Data = dataToBridge.Trip2Speed;
             }
-#endif
+            if (DISPLAY_MODE == 2)
+            {
+                trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
+                trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
+                trip0Icon3Data = dataToBridge.Speed;
+
+                trip1Icon1Data = dataToBridge.Trip1Distance;
+                trip1Icon2Data = dataToBridge.Trip1Consumption;
+                trip1Icon3Data = dataToBridge.Trip1Speed;
+
+                trip2Icon1Data = dataToBridge.Rpm;
+                trip2Icon2Data = dataToBridge.FuelConsumption;
+                trip2Icon3Data = dataToBridge.Speed;
+
+                if (dataToBridge.LeftStickButtonPressed)
+                {
+                    trip0Icon1Data = dataToBridge.FuelLevel;
+                    trip0Icon3Data = dataToBridge.OilTemperature;
+                }
+            }
             tripInfoHandler->SetTripData(
                 trip2Icon1Data,
                 trip0Icon3Data,
@@ -373,7 +378,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
         currentTime = millis();
 
         ignition = 0;
-        #ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
+        if(USE_IGNITION_SIGNAL_FROM_VAN_BUS)
+        {
             if (dataToBridge.Ignition == 1)
             {
                 ignition = 1;
@@ -389,10 +395,12 @@ void CANSendIgnitionTaskFunction(void * parameter)
             {
                 economyMode = 1;
             }
-        #else
+        }
+        else
+        {
             ignition = 1;
             economyMode = 0;
-        #endif // USE_IGNITION_SIGNAL_FROM_VAN_BUS
+        }
 
         if (dataToBridge.NightMode)
         {
@@ -596,11 +604,12 @@ void VANWriteTaskFunction(void* parameter)
         xQueueReceive(ignitionQueue, &dataToBridge, 0);
 
         ignition = 1;
-#ifdef USE_IGNITION_SIGNAL_FROM_VAN_BUS
-        ignition = dataToBridge.Ignition == 1;
-#else
+        if (USE_IGNITION_SIGNAL_FROM_VAN_BUS)
+        {
+            ignition = dataToBridge.Ignition;
+        }
         dataToBridge.Ignition = ignition;
-#endif
+
         vanWriterContainer->Process(dataToBridge, currentTime);
 
         vTaskDelay(20 / portTICK_PERIOD_MS);
