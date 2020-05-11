@@ -592,7 +592,7 @@ void VANWriteTaskFunction(void* parameter)
     SPIClass* spi = new SPIClass();
     spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, VAN_PIN);
 
-    AbstractVanMessageSender* VANInterface = new VanMessageSender(VAN_PIN, spi);
+    AbstractVanMessageSender* VANInterface = new VanMessageSender(VAN_PIN, spi, VAN_COMFORT);
     VANInterface->begin();
 
     VanWriterContainer* vanWriterContainer = new VanWriterContainer(VANInterface);

@@ -65,7 +65,7 @@ public:
     /// <returns> True if channel was set up otherwise False </returns>
     virtual bool set_channel_for_reply_request_detection_message(uint8_t channelId, uint16_t identifier, uint8_t messageLength) = 0;
 
-    /// <summary> Activates a channel which was previously set with by one of the set_channel_ prefixed method </summary>
+    /// <summary> Activates a channel which was previously set by one of the set_channel_ prefixed method </summary>
     /// <returns> True if channel was reactivated otherwise False </returns>
     virtual bool reactivate_channel(uint8_t channelId) = 0;
 
@@ -77,7 +77,7 @@ public:
     /// <param name="channelId"> Channel identifier (0-14) </param>
     /// <param name="length"> Message length will be written to this variable </param>
     /// <param name="buffer"> Message data will be written to this variable </param>
-    virtual void read_message(const uint8_t channelId, uint8_t* length, uint8_t buffer[]) = 0;
+    virtual void read_message(uint8_t channelId, uint8_t* length, uint8_t buffer[]) = 0;
 
     /// <summary> Returns the channel which transferred or received a message last time </summary>
     virtual uint8_t get_last_channel() = 0;
@@ -87,6 +87,12 @@ public:
 
     /// <summary> Resets all channels to their initial states </summary>
     virtual void reset_channels() = 0;
+
+    /// <summary> Sets an individual byte inside an already active channel. If we have a long message it is much faster to send only the changed byte instad of the full packet </summary>
+    /// <param name="channelId"> Channel identifier (0-14) </param>
+    /// <param name="index0"> Zero based index of data to be set </param>
+    /// <param name="value"> Value to be set </param>
+    virtual void set_value_in_channel(uint8_t channelId, uint8_t index0, uint8_t value) = 0;
 };
 
 #endif
