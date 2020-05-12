@@ -20,8 +20,8 @@ public:
     }
 
     CanDisplayPopupHandler2(AbstractCanMessageSender* msgSender) {
-
         canMessageSender = msgSender;
+		displayMessageSender = new CanDisplayPacketSender(canMessageSender);
         popupMessageQueue = new Queue(sizeof(CanDisplayPopupItem), 20, FIFO); // Instantiate queue for popup messages
         canSemaphore = xSemaphoreCreateMutex();
     }
