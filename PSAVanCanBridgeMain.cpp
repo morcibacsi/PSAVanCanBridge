@@ -434,7 +434,8 @@ void CANSendIgnitionTaskFunction(void * parameter)
             externalTemperature, 
             dataToBridge.MileageByte1, 
             dataToBridge.MileageByte2, 
-            dataToBridge.MileageByte3);
+            dataToBridge.MileageByte3,
+            dataToBridge.IsReverseEngaged);
 
         canPopupHandler->SetIgnition(true);
 
