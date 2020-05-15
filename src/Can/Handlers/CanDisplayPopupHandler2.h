@@ -3,7 +3,6 @@
 #define _CanDisplayPopupHandler2_h
 
 #include <cppQueue.h>
-#include <ArduinoLog.h>
 #include "../AbstractCanMessageSender.h"
 #include "../Structs/CanDisplayStructs.h"
 #include "../../Helpers/CanDisplayPopupItem.h"
@@ -21,7 +20,7 @@ public:
 
     CanDisplayPopupHandler2(AbstractCanMessageSender* msgSender) {
         canMessageSender = msgSender;
-		displayMessageSender = new CanDisplayPacketSender(canMessageSender);
+        displayMessageSender = new CanDisplayPacketSender(canMessageSender);
         popupMessageQueue = new Queue(sizeof(CanDisplayPopupItem), 20, FIFO); // Instantiate queue for popup messages
         canSemaphore = xSemaphoreCreateMutex();
     }
@@ -39,30 +38,34 @@ public:
 
         if (item.MessageType
             == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN
-            && item.DoorStatus1 != 0) {
-            if (IsPopupVisible() && canBeVisible)
+            && item.DoorStatus1 != 0) 
+        {
+            if ((IsPopupVisible() && canBeVisible) || (lastDoorStatus != item.DoorStatus1))
+            {
+                lastDoorStatus = item.DoorStatus1;
                 HideCurrentPopupMessage();
+            }
             ShowCanPopupMessage(item.Category, item.MessageType, item.KmToDisplay, item.DoorStatus1, item.DoorStatus2, item.DisplayTimeInMilliSeconds);
             canBeVisible = false;
             popupVisible = true;
             return;
-
         }
 
         if (item.MessageType
             == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN
-            && item.DoorStatus1 == 0 && !canBeVisible) {
-            HideCanPopupMessage(item.MessageType, item.DoorStatus1,
-                item.DisplayTimeInMilliSeconds);
+            && item.DoorStatus1 == 0 && !canBeVisible) 
+        {
+            HideCanPopupMessage(item.MessageType, item.DoorStatus1, item.DisplayTimeInMilliSeconds);
+            lastDoorStatus = item.DoorStatus1;
             canBeVisible = true;
             popupVisible = false;
             return;
-
         }
 
         if (item.MessageType
             == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN
-            && item.DoorStatus1 == 0) {
+            && item.DoorStatus1 == 0) 
+        {
             //we need to ignore frames when doors are closed and popup just hides (because we need to know when door changes status from opened to closed),
             //otherwise we are sending unnecessary frames
             return;
@@ -79,7 +82,6 @@ public:
                 PushPopupMsg(&item, canSemaphore, popupMessageQueue);
                 automaticLightingShownOnIgnition = true;
                 itemlight = item;
-
             }
 
             if (automaticLightingShownOnEngineRunning)
@@ -99,7 +101,6 @@ public:
                 PushPopupMsg(&item, canSemaphore, popupMessageQueue);
                 automaticDoorLockShownOnIgnition = true;
                 itemdoor = item;
-
             }
 
             if (automaticDoorLockShownOnEngineRunning)
@@ -226,6 +227,7 @@ public:
         automaticDoorLockShownOnEngineRunning = false;
         automaticDoorLockShownOnIgnition = false;
         enginerunning = false;
+        lastDoorStatus = 0;
 
         ResetSeatBeltWarning();
         HideCurrentPopupMessage();
@@ -256,6 +258,7 @@ private:
     bool enginerunning = false;
     bool ignition = false;
     bool canBeVisible = true;
+    uint8_t lastDoorStatus = 0;
     unsigned long canDisplayPopupStartTime = 0;
     unsigned long previousCanPopupTime = millis();
     CanDisplayPopupItem currentPopupMessage;
