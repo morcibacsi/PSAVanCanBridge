@@ -536,8 +536,11 @@ void VANReadTaskFunction(void * parameter)
 
                 if (!VAN_RX.IsCrcOk(vanMessage, vanMessageLength))
                 {
-                    Log.error("CRC ERROR\n");
-                    //PrintArrayToSerial(vanMessage, vanMessageLength);
+                    if (LOG_MSG_WITH_CRC_ERROR)
+                    {
+                        serialPort->print("CRC ERROR: ");
+                        PrintArrayToSerial(vanMessage, vanMessageLength);
+                    }
                     continue;
                 }
 
