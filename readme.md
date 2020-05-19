@@ -108,11 +108,10 @@ Follow these steps to build the project:
 
 ### Used libraries
 
-- [Arduino abstract serial][lib_abstract_serial] (tested version - commit: cda61dd)
-- [ESP32 RMT peripheral VAN bus reader][lib_esp32_van_rx]
-- [TSS463C VAN interface library][lib_tss463c_van]
+- [Arduino abstract serial][lib_abstract_serial] (you don't need to install this one as the required files are included in the src/SerialPort folder)
+- [ESP32 RMT peripheral VAN bus reader][lib_esp32_van_rx] (can be installed from the library manager from the Arduino IDE)
+- [TSS463C VAN interface library][lib_tss463c_van] (can be installed from the library manager from the Arduino IDE)
 - [Arduino Library for the ESP32 CAN Bus][lib_esp32_can]
-- [BluetoothSerial][lib_bluetoothserial]
 - [Queue][lib_queue]
 
 
@@ -120,7 +119,6 @@ Follow these steps to build the project:
 [lib_tss463c_van]: https://github.com/morcibacsi/arduino_tss463_van
 [lib_esp32_van_rx]: https://github.com/morcibacsi/esp32_rmt_van_rx
 [lib_esp32_can]: https://github.com/morcibacsi/ESP32-Arduino-CAN/tree/fix/can_cfg_to_constructor
-[lib_bluetoothserial]: https://github.com/espressif/arduino-esp32/tree/master/libraries/BluetoothSerial
 [lib_queue]: https://github.com/SMFSW/Queue
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
 [history]: https://github.com/morcibacsi/PSAVanCanBridge/wiki/History
