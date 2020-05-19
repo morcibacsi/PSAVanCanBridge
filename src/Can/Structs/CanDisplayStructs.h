@@ -260,7 +260,7 @@ public:
     void HidePopup(uint8_t messageType)
     {
         PacketGenerator<CanDisplayPacket> generator;
-        generator.packet.data.ShowPopup = CAN_POPUP_MSG_CLEAR;
+        generator.packet.data.ShowPopup = CAN_POPUP_MSG_HIDE;
         generator.packet.data.PopupMessageType = messageType;
         generator.packet.data.Field2.show_popup = 0;
         generator.packet.data.KmDividedBy256 = 0;
