@@ -101,7 +101,6 @@ Follow these steps to build the project:
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\tss463_van\
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\Queue\
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_can\
-		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\ArduinoLog\
  - Extract the contents of the zip file to a folder named **PSAVanCanBridge**
  - Open the empty **PSAVanCanBridge.ino** file from the Arduino IDE *(do not rename any file or whatsoever)*
  - Select ESP32 Dev module from Tools\Board menu
@@ -115,7 +114,6 @@ Follow these steps to build the project:
 - [Arduino Library for the ESP32 CAN Bus][lib_esp32_can]
 - [BluetoothSerial][lib_bluetoothserial]
 - [Queue][lib_queue]
-- [ArduinoLog][lib_arduinolog] (tested version - commit: 6843026)
 
 
 [lib_abstract_serial]: https://github.com/computergeek125/arduino-abstract-serial
@@ -124,7 +122,6 @@ Follow these steps to build the project:
 [lib_esp32_can]: https://github.com/morcibacsi/ESP32-Arduino-CAN/tree/fix/can_cfg_to_constructor
 [lib_bluetoothserial]: https://github.com/espressif/arduino-esp32/tree/master/libraries/BluetoothSerial
 [lib_queue]: https://github.com/SMFSW/Queue
-[lib_arduinolog]: https://github.com/thijse/Arduino-Log/
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
 [history]: https://github.com/morcibacsi/PSAVanCanBridge/wiki/History
 [install_esp32]: https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions

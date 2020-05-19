@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <esp_task_wdt.h>
 #include <esp32_arduino_rmt_van_rx.h>
-#include <ArduinoLog.h>
 
 #include "Config.h"
 #include "src/SerialPort/AbstractSerial.h"
@@ -85,8 +84,8 @@ const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
 #endif
 
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
-const bool SILENT_MODE = false;
 
+bool PrintVanMessageToSerial = true;
 bool reverseEngaged = false;
 
 ESP32_RMT_VAN_RX VAN_RX;
@@ -222,7 +221,7 @@ void CANSendDataTaskFunction(void * parameter)
         {
             dataToBridge = dataToBridgeReceived;
 
-            #pragma  region SpeedAndRpm
+#pragma  region SpeedAndRpm
 
             canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
             canSpeedAndRpmHandler->Process(currentTime);
@@ -523,6 +522,9 @@ void VANReadTaskFunction(void * parameter)
                 if (inChar == 'n') {
                     canRadioDiag->GetVin();
                 }
+                if (inChar == 'm') {
+                    PrintVanMessageToSerial = !PrintVanMessageToSerial;
+                }
             }
             //*/
             if (vanMessageLength > 0 && vanMessage[0] == 0x0E)
@@ -563,13 +565,7 @@ void VANReadTaskFunction(void * parameter)
                 }
                 #pragma endregion
 
-                if (!SILENT_MODE 
-                    //&& (IsVanIdent(identByte1, identByte2, VAN_ID_RADIO_REMOTE))
-                    //&& (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1))
-                    //&& (IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP))
-                    //&& identByte1 == 0x8a
-                    //|| (IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_2))
-                    )
+                if (PrintVanMessageToSerial)
                 {
                     PrintArrayToSerial(vanMessage, vanMessageLength);
                 }
@@ -640,27 +636,6 @@ void setup()
     //serialPort->begin(230400);
     serialPort->begin(500000);
     serialPort->println(bluetoothDeviceName);
-
-    // Pass log level, whether to show log level, and print interface.
-    /* Available levels are:
-        * 0 - LOG_LEVEL_SILENT     no output
-        * 1 - LOG_LEVEL_FATAL      fatal errors
-        * 2 - LOG_LEVEL_ERROR      all errors
-        * 3 - LOG_LEVEL_WARNING    errors, and warnings
-        * 4 - LOG_LEVEL_NOTICE     errors, warnings and notices
-        * 5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
-        * 6 - LOG_LEVEL_VERBOSE    all
-    */
-    if (SILENT_MODE)
-    {
-        Log.begin(LOG_LEVEL_SILENT, serialPort);
-    }
-    else
-    {
-        //Log.begin(LOG_LEVEL_WARNING, serialPort);
-        //Log.begin(LOG_LEVEL_VERBOSE, serialPort);
-        Log.begin(LOG_LEVEL_SILENT, serialPort);
-    }
 
     VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, VAN_NETWORK_TYPE_COMFORT);
 

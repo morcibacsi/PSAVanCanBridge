@@ -5,7 +5,6 @@
     #define _CanDisplayPopupHandler_h
 
 #include <cppQueue.h>
-#include <ArduinoLog.h>
 #include "../AbstractCanMessageSender.h"
 #include "../Structs/CanDisplayStructs.h"
 #include "../../Helpers/CanDisplayPopupItem.h"
@@ -124,7 +123,6 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
 
         if (itemCanBeQueued)
         {
-            //Log.notice("%d: Queue message(%d): %x doors: %x\n", millis(), item.Counter, item.MessageType, item.DoorStatus1);
             xSemaphoreTake(canSemaphore, portMAX_DELAY);
             popupMessageQueue->push(&item);
             xSemaphoreGive(canSemaphore);
@@ -168,7 +166,6 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
     }
 
     void ShowCanPopupMessage(uint8_t category, uint8_t messageType, int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2, int counter) {
-        //Log.notice("%d: Show message(%d): %x doors: %x\n", millis(), counter, messageType, doorStatus1);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
@@ -192,7 +189,6 @@ class CanDisplayPopupHandler : public ICanDisplayPopupHandler
 
     void HideCanPopupMessage(uint8_t messageType, uint8_t doorStatus, int counter)
     {
-        //Log.notice("%d: Hide message(%d): %x  doors: %x\n", millis() - lastPopupMessage.SetVisibleOnDisplayTime, counter, messageType, doorStatus);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
