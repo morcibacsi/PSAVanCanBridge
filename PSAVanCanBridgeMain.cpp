@@ -401,7 +401,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
             economyMode = 0;
         }
 
-        if (dataToBridge.NightMode)
+        if (dataToBridge.DashboardLightingEnabled && dataToBridge.NightMode)
         {
             brightness = 7;
         }
