@@ -1,4 +1,4 @@
-﻿// VanDisplayPopupMessage.h
+// VanDisplayPopupMessage.h
 
 #pragma once
 
@@ -54,7 +54,7 @@ const uint8_t VAN_POPUP_MSG_TOP_UP_WASHER_FLUID                     = 0x2B;
 const uint8_t VAN_POPUP_MSG_SPEED_TOO_HIGH                          = 0x2C;
 const uint8_t VAN_POPUP_MSG_KEY_REMINDER                            = 0x2D;
 const uint8_t VAN_POPUP_MSG_SIDE_LIGHTS_REMINDER                    = 0x2E;
-const uint8_t VAN_POPUP_MSG_HILL_HOLDER_ACTIVE                      = 0x2F; //On RT3 monochrome: Driver seatbelt not fastened
+const uint8_t VAN_POPUP_MSG_HILL_HOLDER_ACTIVE                      = 0x2F; // On RT3 monochrome: Driver seatbelt not fastened
 const uint8_t VAN_POPUP_MSG_IMPACT_SENSOR_FAULT                     = 0x30;
 
 const uint8_t VAN_POPUP_MSG_WHEEL_PRESSURE_SENSOR_BATTERY_LOW       = 0x32;
@@ -95,7 +95,20 @@ const uint8_t VAN_POPUP_MSG_STOP_AND_START_DEFERRED                 = 0x5D;
 const uint8_t VAN_POPUP_MSG_XSARA_DYNALTO                           = 0x5E;
 const uint8_t VAN_POPUP_MSG_307_DYNALTO                             = 0x5F;
 
-const uint8_t VAN_POPUP_MSG_PLACE_LEVER_IN_NEUTRAL                  = 0x67; //On RT3 monochrome: Change to neutral
+const uint8_t VAN_POPUP_MSG_PLACE_LEVER_IN_NEUTRAL                  = 0x67; // On RT3 monochrome: Change to neutral
+
+const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_COMPLETE                 = 0x70;
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SCREEN_NOT_IN_PLACE= 0x71;
+const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_NOT_LOCKED               = 0x72;
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_BOOT_OPEN          = 0x73;
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SPEED_TOO_HIGH     = 0x74;
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_EXT_TEMP_TOO_LOW   = 0x75;
+const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_FAULTY                   = 0x76; // On RT3 monochrome: Folding roof mechanism faulty
+const uint8_t VAN_POPUP_MSG_BOOT_MECHANICS_NOT_LOCKED               = 0x77;
+
+const uint8_t VAN_POPUP_MSG_BOW_FAULT                               = 0x7C; // On RT3 monochrome: Roof frame fault
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_ROOF_NOT_UNLOCKED  = 0x7D;
+const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_INCOMPLETE               = 0x7F;
 
 #pragma endregion
 
