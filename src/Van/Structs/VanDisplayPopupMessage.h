@@ -104,7 +104,7 @@ const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_BOOT_OPEN          = 0x73;
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SPEED_TOO_HIGH     = 0x74;
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_EXT_TEMP_TOO_LOW   = 0x75;
 const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_FAULTY                   = 0x76; // On RT3 monochrome: Folding roof mechanism faulty
-const uint8_t VAN_POPUP_MSG_BOOT_MECHANICS_NOT_LOCKED               = 0x77;
+const uint8_t VAN_POPUP_MSG_BOOT_MECHANISM_NOT_LOCKED               = 0x77;
 
 const uint8_t VAN_POPUP_MSG_BOW_FAULT                               = 0x7C; // On RT3 monochrome: Roof frame fault
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_ROOF_NOT_UNLOCKED  = 0x7D;
