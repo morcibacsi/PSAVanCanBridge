@@ -5,21 +5,23 @@
     #define _CanDisplayPopupHandler_h
 
 #include <cppQueue.h>
-#include <ArduinoLog.h>
 #include "../AbstractCanMessageSender.h"
 #include "../Structs/CanDisplayStructs.h"
 #include "../../Helpers/CanDisplayPopupItem.h"
 #include "../../Helpers/ByteAcceptanceHandler.h"
+#include "ICanDisplayPopupHandler.h"
 
-const int CAN_POPUP_MESSAGE_TIME = 4000;
-const int CAN_POPUP_DOOR_MESSAGE_TIME = 6500;
-const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT =  10;
-
-class CanDisplayPopupHandler
+class CanDisplayPopupHandler : public ICanDisplayPopupHandler
 {
+    const int CAN_POPUP_MESSAGE_TIME = 4000;
+    const int CAN_POPUP_DOOR_MESSAGE_TIME = 6500;
+
     const int CAN_POPUP_INTERVAL = 200;
+    const uint8_t CAN_POPUP_MESSAGE_SEND_COUNT = 10;
 
     AbstractCanMessageSender *canMessageSender;
+    CanDisplayPacketSender *displayMessageSender;
+
     //ByteAcceptanceHandler* byteAcceptanceHandler;
 
     bool riskOfIceShown = false;
@@ -41,10 +43,24 @@ class CanDisplayPopupHandler
         canSemaphore = xSemaphoreCreateMutex();
         lastPopupMessage.IsInited = false;
         //byteAcceptanceHandler = new ByteAcceptanceHandler(2);
+        displayMessageSender = new CanDisplayPacketSender(canMessageSender);
     }
 
     void QueueNewMessage(CanDisplayPopupItem item)
     {
+        if (item.Category == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
+        {
+            if (item.DoorStatus1 == 0x00)
+            {
+                return;
+            }
+            item.DisplayTimeInMilliSeconds = CAN_POPUP_DOOR_MESSAGE_TIME;
+        }
+        else
+        {
+            item.DisplayTimeInMilliSeconds = CAN_POPUP_MESSAGE_TIME;
+        }
+
         //if (byteAcceptanceHandler->GetAcceptedByte(item.MessageType) != item.MessageType)
         //{
         //    return;
@@ -107,7 +123,6 @@ class CanDisplayPopupHandler
 
         if (itemCanBeQueued)
         {
-            //Log.notice("%d: Queue message(%d): %x doors: %x\n", millis(), item.Counter, item.MessageType, item.DoorStatus1);
             xSemaphoreTake(canSemaphore, portMAX_DELAY);
             popupMessageQueue->push(&item);
             xSemaphoreGive(canSemaphore);
@@ -151,13 +166,10 @@ class CanDisplayPopupHandler
     }
 
     void ShowCanPopupMessage(uint8_t category, uint8_t messageType, int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2, int counter) {
-        //Log.notice("%d: Show message(%d): %x doors: %x\n", millis(), counter, messageType, doorStatus1);
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
-
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
-            displayMessageSender.ShowPopup(category, messageType, kmToDisplay, doorStatus1, doorStatus2);
+            displayMessageSender->ShowPopup(category, messageType, kmToDisplay, doorStatus1, doorStatus2);
             messageSentCount++;
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }
@@ -177,12 +189,10 @@ class CanDisplayPopupHandler
 
     void HideCanPopupMessage(uint8_t messageType, uint8_t doorStatus, int counter)
     {
-        //Log.notice("%d: Hide message(%d): %x  doors: %x\n", millis() - lastPopupMessage.SetVisibleOnDisplayTime, counter, messageType, doorStatus);
-        CanDisplayPacketSender displayMessageSender(canMessageSender);
         uint8_t messageSentCount = 0;
         while (messageSentCount < CAN_POPUP_MESSAGE_SEND_COUNT)
         {
-            displayMessageSender.HidePopup(messageType);
+            displayMessageSender->HidePopup(messageType);
             messageSentCount++;
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }
@@ -224,6 +234,14 @@ class CanDisplayPopupHandler
         {
             HideCanPopupMessage(lastPopupMessage.MessageType, lastPopupMessage.DoorStatus1, lastPopupMessage.Counter);
         }
+    }
+
+    void SetEngineRunning(bool isRunning)
+    {
+    }
+
+    void SetIgnition(bool isOn)
+    {
     }
 };
 

@@ -15,14 +15,8 @@
 class VanWriterContainer {
     AbstractVanMessageSender* vanInterface;
     VanQueryTripComputer* tripComputerQuery;
-
-#ifdef QUERY_AC_STATUS
     VanQueryAirCon* acQuery;
-#endif
-
-#ifdef QUERY_PARKING_AID_DISTANCE
     VanQueryParkingAid* parkingAidQuery;
-#endif
 
     public:
 
@@ -31,13 +25,15 @@ class VanWriterContainer {
 
         tripComputerQuery = new VanQueryTripComputer(vanInterface);
 
-#ifdef QUERY_AC_STATUS
-        acQuery = new VanQueryAirCon(vanInterface);
-#endif
+        if (QUERY_AC_STATUS)
+        {
+            acQuery = new VanQueryAirCon(vanInterface);
+        }
 
-#ifdef QUERY_PARKING_AID_DISTANCE
-        parkingAidQuery = new VanQueryParkingAid(vanInterface);
-#endif
+        if(QUERY_PARKING_AID_DISTANCE)
+        {
+            parkingAidQuery = new VanQueryParkingAid(vanInterface);
+        }
     }
 
     void Process(VanIgnitionDataToBridgeToCan ignitionData, unsigned long currentTime)
@@ -45,15 +41,17 @@ class VanWriterContainer {
         tripComputerQuery->SetData(ignitionData.Ignition);
         tripComputerQuery->Process(currentTime);
 
-#ifdef QUERY_AC_STATUS
-        acQuery->SetData(ignitionData.Ignition);
-        acQuery->Process(currentTime);
-#endif
+        if (QUERY_AC_STATUS)
+        {
+            acQuery->SetData(ignitionData.Ignition);
+            acQuery->Process(currentTime);
+        }
 
-#ifdef QUERY_PARKING_AID_DISTANCE
-        parkingAidQuery->SetData(ignitionData.Ignition, ignitionData.IsReverseEngaged);
-        parkingAidQuery->Process(currentTime);
-#endif
+        if(QUERY_PARKING_AID_DISTANCE)
+        {
+            parkingAidQuery->SetData(ignitionData.Ignition, ignitionData.IsReverseEngaged);
+            parkingAidQuery->Process(currentTime);
+        }
     }
 };
 

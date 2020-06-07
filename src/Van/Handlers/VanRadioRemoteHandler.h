@@ -13,10 +13,12 @@
 #include "../../Can/Handlers/CanTripInfoHandler.h"
 #include "../../Can/Handlers/CanRadioRemoteMessageHandler.h"
 #include "../Structs/VanRadioRemoteStructs.h"
+#include "../../Can/Structs/CanMenuStructs.h"
 
 class VanRadioRemoteHandler : public AbstractVanMessageHandler {
     CanTripInfoHandler* canTripInfoHandler;
     CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
+    CanRadioButtonPacketSender* canRadioButtonPacketSender;
 
     ~VanRadioRemoteHandler()
     {
@@ -24,10 +26,17 @@ class VanRadioRemoteHandler : public AbstractVanMessageHandler {
     }
 
 public:
-    VanRadioRemoteHandler(CanTripInfoHandler* _canTripInfoHandler, CanRadioRemoteMessageHandler* _canRadioRemoteMessageHandler)
+    VanRadioRemoteHandler(CanTripInfoHandler* _canTripInfoHandler, CanRadioRemoteMessageHandler* _canRadioRemoteMessageHandler, CanRadioButtonPacketSender* _canRadioButtonPacketSender)
     {
         canTripInfoHandler = _canTripInfoHandler;
         canRadioRemoteMessageHandler = _canRadioRemoteMessageHandler;
+        canRadioButtonPacketSender = _canRadioButtonPacketSender;
+    }
+
+
+    void buttonReset(int delay){
+    	vTaskDelay(delay / portTICK_PERIOD_MS);
+    	canRadioButtonPacketSender->SendButtonCode(0);
     }
 
     bool ProcessMessage(
@@ -51,9 +60,43 @@ public:
         canRadioRemoteMessageHandler->SetData(dataToBridge.RadioRemoteButton, dataToBridge.RadioRemoteScroll);
 
         if (packet.data.RemoteButton.seek_down_pressed && packet.data.RemoteButton.seek_up_pressed)
-        {
-            canTripInfoHandler->TripButtonPress();
-        }
+                {
+                	canRadioButtonPacketSender->SendButtonCode(CONST_MENU_BUTTON);
+                	buttonReset(20);
+
+                }
+
+                if (packet.data.RemoteButton.volume_up_pressed && packet.data.RemoteButton.volume_down_pressed)
+                     {
+                      	canRadioButtonPacketSender->SendButtonCode(CONST_ESC_BUTTON);
+                      	buttonReset(20);
+
+
+
+                      }
+
+                if (packet.data.RemoteButton.seek_down_pressed){
+                	canRadioButtonPacketSender->SendButtonCode(CONST_UP_ARROW);
+                	buttonReset(20);
+                }
+
+                if (packet.data.RemoteButton.seek_up_pressed){
+                       	canRadioButtonPacketSender->SendButtonCode(CONST_DOWN_ARROW);
+                       	buttonReset(20);
+                       }
+                if (packet.data.RemoteButton.volume_up_pressed){
+                        canRadioButtonPacketSender->SendButtonCode(CONST_RIGHT_ARROW);
+                        buttonReset(20);
+                               }
+                if (packet.data.RemoteButton.volume_down_pressed){
+                        canRadioButtonPacketSender->SendButtonCode(CONST_LEFT_ARROW);
+                        buttonReset(20);
+                                      }
+                if (packet.data.RemoteButton.source_pressed){
+                        canRadioButtonPacketSender->SendButtonCode(CONST_OK_BUTTON);
+                        buttonReset(20);
+                                              }
+                buttonReset(50);
 
         return true;
     }

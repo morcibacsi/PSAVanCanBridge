@@ -13,6 +13,11 @@
 #include <tss463_van.h>
 #include "AbstractVanMessageSender.h"
 
+enum VAN_NETWORK {
+    VAN_BODY,
+    VAN_COMFORT,
+};
+
 /// <summary> 
 /// This is just an abstraction layer around the VAN library in case you need it
 /// It is perfectly fine to use the library directly
@@ -24,9 +29,19 @@ public:
     /// <summary> Constructor for the VAN bus library </summary>
     /// <param name="vanPin"> CS (chip select) also known as SS (slave select) pin to use </param>
     /// <param name="spi"> An initialized SPI class </param>
-    VanMessageSender(uint8_t vanPin, SPIClass* spi)
+    /// <param name="vanNetwork"> The type of the network we want to connect to </param>
+    VanMessageSender(uint8_t vanPin, SPIClass* spi, VAN_NETWORK vanNetwork)
     {
-        VAN = new TSS463_VAN(vanPin, spi);
+        VAN_SPEED vanSpeed;
+        switch (vanNetwork)
+        {
+            case VAN_BODY:
+                vanSpeed = VAN_62K5BPS;
+            case VAN_COMFORT:
+                vanSpeed = VAN_125KBPS;
+        }
+
+        VAN = new TSS463_VAN(vanPin, spi, vanSpeed);
     }
 
     bool set_channel_for_transmit_message(uint8_t channelId, uint16_t identifier, const uint8_t values[], uint8_t messageLength, uint8_t requireAck) override
@@ -69,7 +84,7 @@ public:
         return VAN->message_available(channelId);
     }
 
-    void read_message(const uint8_t channelId, uint8_t* length, uint8_t buffer[]) override
+    void read_message(uint8_t channelId, uint8_t* length, uint8_t buffer[]) override
     {
         VAN->read_message(channelId, length, buffer);
     }
@@ -92,6 +107,11 @@ public:
     void reset_channels() override
     {
         VAN->reset_channels();
+    }
+
+    void set_value_in_channel(uint8_t channelId, uint8_t index0, uint8_t value) override
+    {
+        VAN->set_value_in_channel(channelId, index0, value);
     }
 };
 

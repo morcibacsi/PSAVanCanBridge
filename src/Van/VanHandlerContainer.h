@@ -33,11 +33,12 @@ class VanHandlerContainer {
 
     public:
     VanHandlerContainer(
-        CanDisplayPopupHandler* canPopupHandler,
+        ICanDisplayPopupHandler* canPopupHandler,
         CanTripInfoHandler* canTripInfoHandler,
         CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler,
         CanWarningLogHandler* canWarningLogHandler,
-        CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler
+        CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler,
+		CanRadioButtonPacketSender* radioButtons
     ) {
         vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
         popupMapping = new VanCanDisplayPopupMap();
@@ -48,12 +49,12 @@ class VanHandlerContainer {
         vanMessageHandlers[3] = new VanDashboardHandler();
 
         vanMessageHandlers[4] = new VanDisplayHandlerV2(canPopupHandler, canTripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler);
-        vanMessageHandlers[5] = new VanDisplayHandlerV1(canPopupHandler, canTripInfoHandler, popupMapping, canStatusOfFunctionsHandler, canWarningLogHandler, vanMessageHandlers[4]);
+        vanMessageHandlers[5] = new VanDisplayHandlerV1(vanMessageHandlers[4]);
 
         vanMessageHandlers[6] = new VanInstrumentClusterHandlerV2();
         vanMessageHandlers[7] = new VanInstrumentClusterHandlerV1(vanMessageHandlers[6]);
 
-        vanMessageHandlers[8] = new VanRadioRemoteHandler(canTripInfoHandler, canRadioRemoteMessageHandler);
+        vanMessageHandlers[8] = new VanRadioRemoteHandler(canTripInfoHandler, canRadioRemoteMessageHandler, radioButtons);
         vanMessageHandlers[9] = new VanSpeedAndRpmHandler();
         vanMessageHandlers[10] = new VanAirConditionerDiagSensorHandler();
         vanMessageHandlers[11] = new VanAirConditionerDiagActuatorHandler();

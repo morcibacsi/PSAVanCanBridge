@@ -83,7 +83,7 @@ class CanDashIgnitionPacketSender
         canMessageSender = object;
     }
 
-    void SendIgnition(uint8_t ignition, int16_t coolantTemperature, int8_t externalTemperature, uint8_t mileageByte1, uint8_t mileageByte2, uint8_t mileageByte3)
+    void SendIgnition(uint8_t ignition, int16_t coolantTemperature, int8_t externalTemperature, uint8_t mileageByte1, uint8_t mileageByte2, uint8_t mileageByte3, uint8_t isReverseEngaged)
     {
         if (!ignition)
         {
@@ -97,6 +97,7 @@ class CanDashIgnitionPacketSender
         generator.packet.data.MileageByte2 = mileageByte2;
         generator.packet.data.MileageByte3 = mileageByte3;
         generator.packet.data.ExternalTemperature = CanGetExternalTemperatureToDisplay(externalTemperature);
+        generator.packet.data.LightsStatus.reverse_gear_light = isReverseEngaged;
         unsigned char *serializedPacket = generator.GetSerializedPacket();
         canMessageSender->SendMessage(CAN_ID_DASH1, 0, sizeof(CanDash1Packet), serializedPacket);
     }
