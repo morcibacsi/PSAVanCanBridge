@@ -1,4 +1,4 @@
-// VanCarStatusWithTripComputerHandler.h
+﻿// VanCarStatusWithTripComputerHandler.h
 #pragma once
 
 #ifndef _VanCarStatusWithTripComputerHandler_h
@@ -10,12 +10,12 @@
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
 
-#include "../../Can/Handlers/ICanDisplayPopupHandler.h"
+#include "../../Can/Handlers/CanDisplayPopupHandler.h"
 #include "../../Can/Handlers/CanTripInfoHandler.h"
 #include "../Structs/VanCarStatusWithTripComputerStructs.h"
 
 class VanCarStatusWithTripComputerHandler : public AbstractVanMessageHandler {
-    ICanDisplayPopupHandler* canPopupHandler;
+    CanDisplayPopupHandler* canPopupHandler;
     CanTripInfoHandler* canTripInfoHandler;
 
     ~VanCarStatusWithTripComputerHandler()
@@ -24,7 +24,7 @@ class VanCarStatusWithTripComputerHandler : public AbstractVanMessageHandler {
     }
 
 public:
-    VanCarStatusWithTripComputerHandler(ICanDisplayPopupHandler* _canPopupHandler, CanTripInfoHandler* _canTripInfoHandler)
+    VanCarStatusWithTripComputerHandler(CanDisplayPopupHandler* _canPopupHandler, CanTripInfoHandler* _canTripInfoHandler)
     {
         canPopupHandler = _canPopupHandler;
         canTripInfoHandler = _canTripInfoHandler;
@@ -82,18 +82,22 @@ public:
         doorStatus.status.RearRight = packet.data.Doors.RearRight;
         doorStatus.status.BootLid = packet.data.Doors.BootLid;
 
-        CanDisplayPopupItem item;
-        item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
-        item.MessageType = CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
-        item.DoorStatus1 = doorStatus.asByte;
-        item.DoorStatus2 = 0;
-        item.KmToDisplay = 0;
-        item.IsInited = false;
-        item.Counter = 0;
-        item.Visible = false;
-        item.SetVisibleOnDisplayTime = 0;
-        item.VANByte = 0x02;
-        canPopupHandler->QueueNewMessage(item);
+       // if (doorStatus.asByte != 0)
+      //  {
+            CanDisplayPopupItem item;
+            item.DisplayTimeInMilliSeconds = CAN_POPUP_DOOR_MESSAGE_TIME;
+            item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
+            item.MessageType = CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
+            item.DoorStatus1 = doorStatus.asByte;
+            item.DoorStatus2 = 0;
+            item.KmToDisplay = 0;
+            item.IsInited = false;
+            item.Counter = 0;
+            item.Visible = false;
+            item.SetVisibleOnDisplayTime = 0;
+            item.VANByte = 0x02;
+            canPopupHandler->QueueNewMessage(item);
+      //  }
 
         return true;
     }
