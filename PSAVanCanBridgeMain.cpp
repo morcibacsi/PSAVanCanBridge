@@ -283,7 +283,11 @@ void CANSendDataTaskFunction(void * parameter)
             #pragma region PopupMessage
 
             if (dataToBridge.Rpm > 500) {
-            	canPopupHandler->SetEngineRunning(true);
+                canPopupHandler->SetEngineRunning(true);
+            }
+            else
+            {
+                canPopupHandler->SetEngineRunning(false);
             }
 
             canPopupHandler->Process(currentTime);
@@ -436,7 +440,7 @@ void CANSendIgnitionTaskFunction(void * parameter)
             dataToBridge.MileageByte3,
             dataToBridge.IsReverseEngaged);
 
-        canPopupHandler->SetIgnition(true);
+        canPopupHandler->SetIgnition(ignition);
 
         if (ignition == 1 &&
             dataToBridge.OutsideTemperature <= 3 && 
