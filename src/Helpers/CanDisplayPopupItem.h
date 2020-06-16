@@ -1,4 +1,4 @@
-﻿// CanDisplayPopupItem.h
+// CanDisplayPopupItem.h
 #pragma once
 
 #ifndef _CanDisplayPopupItem_h
@@ -7,14 +7,14 @@
 typedef struct {
     uint8_t Category;
     uint8_t MessageType;
-    int DisplayTimeInMilliSeconds;
+    uint32_t DisplayTimeInMilliSeconds;
     uint8_t DoorStatus1;
     uint8_t DoorStatus2;
-    int KmToDisplay;
+    uint16_t KmToDisplay;
     bool IsInited;
-    int Counter;
+    uint16_t Counter;
     bool Visible;
-    ulong SetVisibleOnDisplayTime;
+    uint32_t SetVisibleOnDisplayTime;
     uint8_t VANByte;
 } CanDisplayPopupItem;
 
