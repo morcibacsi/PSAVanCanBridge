@@ -19,9 +19,6 @@ class VanInstrumentClusterHandlerV2 : public AbstractVanMessageHandler {
 
     }
 
-    unsigned long _lightsOnTime = 0;
-    uint8_t const CONSIDER_NIGHT_MODE_AFTER_SEC = 2;
-
 public:
     bool ProcessMessage(
         const uint8_t identByte1,
@@ -37,8 +34,6 @@ public:
             return false;
         }
 
-        unsigned long currentTime = millis();
-
         const VanInstrumentClusterPacketV2 packet = DeSerialize<VanInstrumentClusterPacketV2>(vanMessageWithoutId);
         dataToBridge.LightStatuses.status.LowBeam = packet.data.LightsStatus.dipped_beam;
         dataToBridge.LightStatuses.status.HighBeam = packet.data.LightsStatus.high_beam;
@@ -48,27 +43,6 @@ public:
         dataToBridge.LightStatuses.status.RightIndicator = packet.data.LightsStatus.right_indicator;
         dataToBridge.FuelLevel = packet.data.FuelLevel;
         dataToBridge.OilTemperature = GetOilTemperatureFromVANByteV2(packet.data.OilTemperature);
-
-        if (dataToBridge.LightStatuses.status.LowBeam || dataToBridge.LightStatuses.status.HighBeam)
-        {
-            if (_lightsOnTime == 0)
-            {
-                _lightsOnTime = currentTime;
-            }
-        }
-        else
-        {
-            _lightsOnTime = 0;
-        }
-
-        if (_lightsOnTime != 0 && currentTime - _lightsOnTime > CONSIDER_NIGHT_MODE_AFTER_SEC*1000)
-        {
-            ignitionDataToBridge.NightMode = 1;
-        }
-        else
-        {
-            ignitionDataToBridge.NightMode = 0;
-        }
 
         return true;
     }
