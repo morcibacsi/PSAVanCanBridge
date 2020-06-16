@@ -1,4 +1,4 @@
-﻿// VanSpeedAndRpmHandler.h
+// VanSpeedAndRpmHandler.h
 #pragma once
 
 #ifndef _VanSpeedAndRpmHandler_h
@@ -34,16 +34,9 @@ public:
         }
 
         const VanSpeedAndRpmPacket packet = DeSerialize<VanSpeedAndRpmPacket>(vanMessageWithoutId);
-        if (packet.data.Rpm.data == 0xFFFF)
-        {
-            dataToBridge.Rpm = 0;
-            dataToBridge.Speed = 0;
-        }
-        else
-        {
-            dataToBridge.Rpm = GetRpmFromVanData(packet.data.Rpm.data);
-            dataToBridge.Speed = GetSpeedFromVanData(packet.data.Speed.data);
-        }
+
+        dataToBridge.Rpm = GetRpmFromVanData(packet.data.Rpm.data);
+        dataToBridge.Speed = GetSpeedFromVanData(packet.data.Speed.data);
 
         return true;
     }

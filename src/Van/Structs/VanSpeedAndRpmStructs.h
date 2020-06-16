@@ -41,11 +41,19 @@ uint16_t static SwapHiByteAndLoByte(uint16_t input)
 
 uint16_t static GetRpmFromVanData(uint16_t input)
 {
+    if (input == 0xFFFF)
+    {
+        return 0;
+    }
     return SwapHiByteAndLoByte(input) / 8;
 }
 
 uint8_t static GetSpeedFromVanData(uint16_t input)
 {
+    if (input == 0xFFFF)
+    {
+        return 0;
+    }
     return SwapHiByteAndLoByte(input) / 100;
 }
 
