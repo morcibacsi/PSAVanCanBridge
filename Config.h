@@ -31,9 +31,10 @@ constexpr uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 // 2: my layout (displays fuel level, vehicle speed, rpm instead of the basic trip computer data)
 constexpr uint8_t DISPLAY_MODE = 1;
 
-// 1: original popup handler (displays all messages)
-// 2: Karol's popup handler  (applies some filtering, better user experience)
-#define POPUP_HANDLER 2
+// 1: initial version of the popup handler (displays all messages)
+// 2: Karol's version of the popup handler  (applies some filtering, better user experience)
+// 3: new rewritten version of the popup handler (displays all messages, supports type A display)
+#define POPUP_HANDLER 3
 
 //#define USE_VIN_FROM_BSI
 #ifdef USE_VIN_FROM_BSI

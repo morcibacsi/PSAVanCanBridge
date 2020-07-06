@@ -39,6 +39,9 @@
 #if POPUP_HANDLER == 2
     #include "src/Can/Handlers/CanDisplayPopupHandler2.h"
 #endif
+#if POPUP_HANDLER == 3
+    #include "src/Can/Handlers/CanDisplayPopupHandler3.h"
+#endif
 
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
     #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
@@ -652,6 +655,9 @@ void setup()
 #endif
 #if POPUP_HANDLER == 2
     canPopupHandler = new CanDisplayPopupHandler2(CANInterface);
+#endif
+#if POPUP_HANDLER == 3
+    canPopupHandler = new CanDisplayPopupHandler3(CANInterface);
 #endif
 
     canVinHandler = new CanVinHandler(CANInterface);

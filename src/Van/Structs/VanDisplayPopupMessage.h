@@ -110,6 +110,8 @@ const uint8_t VAN_POPUP_MSG_BOW_FAULT                               = 0x7C; // O
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_ROOF_NOT_UNLOCKED  = 0x7D;
 const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_INCOMPLETE               = 0x7F;
 
+const uint8_t VAN_POPUP_MSG_NONE                                    = 0xFF;
+
 #pragma endregion
 
 #endif

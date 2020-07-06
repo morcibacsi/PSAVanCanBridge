@@ -128,6 +128,8 @@ const uint8_t CAN_POPUP_MSG_ECO_DEACTIVATED                                     
 const uint8_t CAN_POPUP_MSG_PRESS_THE_CLUTCH_FULLY                                   = 0x22;
 const uint8_t CAN_POPUP_MSG_ENGINE_FAULT_STOP_THE_VEHICLE                            = 0x2E;
 
+const uint8_t CAN_POPUP_MSG_NONE                                                     = 0xFF;
+
 #pragma endregion
 
 // CANID: 0x1A1
@@ -233,14 +235,6 @@ public:
 
         generator.packet.data.DoorStatus1.asByte = doorStatus1;
         generator.packet.data.DoorStatus2.asByte = doorStatus2;
-        //generator.packet.data.DoorStatus1.is_bonnet_open = doorStatus1.is_bonnet_open;
-        //generator.packet.data.DoorStatus1.is_front_right_open = doorStatus1.is_front_right_open;
-        //generator.packet.data.DoorStatus1.is_front_left_open = doorStatus1.is_front_left_open;
-        //generator.packet.data.DoorStatus1.is_rear_left_open = doorStatus1.is_rear_left_open;
-        //generator.packet.data.DoorStatus1.is_rear_right_open = doorStatus1.is_rear_right_open;
-        //generator.packet.data.DoorStatus1.is_boot_open = doorStatus1.is_boot_open;
-
-        //generator.packet.data.DoorStatus2.is_fuel_flap_open = doorStatus2.is_fuel_flap_open;
 
         generator.packet.data.KmDividedBy256 = bytes7;
         generator.packet.data.KmRemainderUpTo255 = bytes8;
@@ -249,11 +243,6 @@ public:
         {
             serializedPacket[3] = 0x80;
         }
-        //serializedPacket[3] = 0xff;
-        //serializedPacket[4] = 0xff;
-        //serializedPacket[5] = 0xff;
-        //serializedPacket[6] = 0xff;
-        //serializedPacket[7] = 0xff;
 
         canMessageSender->SendMessage(CAN_ID_DISPLAY_POPUP, 0, sizeof(CanDisplayPacket), serializedPacket);
     }

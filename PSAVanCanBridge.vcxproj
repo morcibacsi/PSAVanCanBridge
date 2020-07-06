@@ -121,6 +121,7 @@
     <ClInclude Include="src\Can\Handlers\CanDash4MessageHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler2.h" />
+    <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler3.h" />
     <ClInclude Include="src\Can\Handlers\CanMessageHandlerBase.h" />
     <ClInclude Include="src\Can\Handlers\CanParkingAidHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRd4DiagHandler.h" />
