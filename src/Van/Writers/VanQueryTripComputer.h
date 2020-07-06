@@ -10,7 +10,7 @@
 
 class VanQueryTripComputer : public VanMessageWriterBase
 {
-    const static uint16_t TRIP_COMPUTER_QUERY_INTERVAL = 120;
+    const static uint16_t TRIP_COMPUTER_QUERY_INTERVAL = 420;
     const static uint8_t  TRIP_COMPUTER_CHANNEL = 0;
 
     uint8_t _ignition = 0;
