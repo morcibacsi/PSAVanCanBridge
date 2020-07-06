@@ -46,7 +46,7 @@
 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
     #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
 #else
-    #include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+    //#include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
 #endif
 
 #include "src/Van/AbstractVanMessageSender.h"
@@ -113,7 +113,7 @@ AbstractCanMessageSender* CANInterface;
 ICanDisplayPopupHandler* canPopupHandler;
 CanVinHandler* canVinHandler;
 CanTripInfoHandler* tripInfoHandler;
-CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
+//CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
 CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
 CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
 CanWarningLogHandler* canWarningLogHandler;
@@ -321,17 +321,17 @@ void CANSendDataTaskFunction(void * parameter)
                 canAirConOnDisplayHandler->Process(currentTime);
 #else
 
-                canAirConOnDisplayHandler->SendCanAirConToDisplay(
-                    currentTime,
-                    dataToBridge.InternalTemperature,
-                    dataToBridge.InternalTemperature,
-                    dataToBridge.AirConDirection,
-                    0, // auto mode
-                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
-                    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                    dataToBridge.AirConFanSpeed,
-                    dataToBridge.IsAirRecyclingOn);
+                //canAirConOnDisplayHandler->SendCanAirConToDisplay(
+                //    currentTime,
+                //    dataToBridge.InternalTemperature,
+                //    dataToBridge.InternalTemperature,
+                //    dataToBridge.AirConDirection,
+                //    0, // auto mode
+                //    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
+                //    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                //    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                //    dataToBridge.AirConFanSpeed,
+                //    dataToBridge.IsAirRecyclingOn);
 #endif
             }
 
@@ -662,7 +662,7 @@ void setup()
 
     canVinHandler = new CanVinHandler(CANInterface);
     tripInfoHandler = new CanTripInfoHandler(CANInterface);
-    canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
+    //canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
     canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
