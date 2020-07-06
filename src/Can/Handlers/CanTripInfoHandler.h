@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _CanTripInfoHandler_h
     #define _CanTripInfoHandler_h
@@ -30,6 +30,7 @@ class CanTripInfoHandler
     int TripButtonPressed = 0;
 
     int IsSendingEnabled = 1;
+    uint8_t ValueToUpdate = 0;
 
     void SendCanTripInfo0(int kmToGasStation, int lper100km, int kmtoFinish, uint8_t button)
     {
@@ -113,9 +114,30 @@ class CanTripInfoHandler
                 Trip1Consumption = 0;
             }
 
-            SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, TripButtonPressed);
-            SendCanTripInfo1(Trip1Distance, Trip1Consumption, Trip1Speed);
-            SendCanTripInfo2(Rpm, FuelConsumption, Speed);
+            switch (ValueToUpdate)
+            {
+                case 0:
+                {
+                    SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, TripButtonPressed);
+                    break;
+                }
+                case 1:
+                {
+                    SendCanTripInfo1(Trip1Distance, Trip1Consumption, Trip1Speed);
+                    break;
+                }
+                case 2:
+                {
+                    SendCanTripInfo2(Rpm, FuelConsumption, Speed);
+                    ValueToUpdate = -1;
+                    break;
+                }
+                default:
+                {
+                    ValueToUpdate = -1;
+                }
+            }
+            ValueToUpdate++;
         }
     }
 };
