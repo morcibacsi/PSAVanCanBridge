@@ -125,6 +125,7 @@ CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 CanRadioRd4DiagHandler* canRadioDiag;
 CanParkingAidHandler* canParkingAid;
+CanRadioButtonPacketSender* canRadioButtonSender;
 
 VanHandlerContainer* vanHandlerContainer;
 
@@ -188,6 +189,8 @@ void CANReadTaskFunction(void * parameter)
 void CANSendDataTaskFunction(void * parameter)
 {
     unsigned long currentTime = millis();
+    unsigned long prevRadioButtonTime = currentTime;
+
     uint8_t ignition = 0;
     uint16_t trip0Icon1Data = 0;
     uint16_t trip0Icon2Data = 0;
@@ -359,6 +362,15 @@ void CANSendDataTaskFunction(void * parameter)
             canDash4MessageHandler->Process(currentTime);
 
             #pragma endregion
+
+            if (IS_AFTERMARKET_HEAD_UNIT_INSTALLED)
+            {
+                if (currentTime - prevRadioButtonTime > 950)
+                {
+                    prevRadioButtonTime = currentTime;
+                    canRadioButtonSender->SendButtonCode(0);
+                }
+            }
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
         esp_task_wdt_reset();
@@ -674,6 +686,7 @@ void setup()
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
     canRadioDiag = new CanRadioRd4DiagHandler(CANInterface, serialPort);
     canParkingAid = new CanParkingAidHandler(CANInterface);
+    canRadioButtonSender = new CanRadioButtonPacketSender(CANInterface);
 
     vanHandlerContainer = new VanHandlerContainer(
         canPopupHandler,
