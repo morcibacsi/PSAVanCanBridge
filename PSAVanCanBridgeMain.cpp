@@ -180,9 +180,11 @@ void CANReadTaskFunction(void * parameter)
             {
                 canRadioDiag->ProcessReceivedCanMessage(canId, canReadMessageLength, canReadMessage);
             }
-            if (SendNoRadioButtonMessage && canId == CAN_ID_MENU_BUTTONS)
+            if (canId == CAN_ID_MENU_BUTTONS)
             {
+                // the RD4/43/45 units are sending this regularly so if we get this message we can be sure that we have one of those installed
                 SendNoRadioButtonMessage = false;
+                canRadioRemoteMessageHandler->IsAndroidInstalled(false);
             }
         }
 
@@ -409,6 +411,10 @@ void CANSendIgnitionTaskFunction(void * parameter)
             }
             else
             {
+                // we reset these when the ignition is switched off to get a clean state
+                SendNoRadioButtonMessage = true;
+                canRadioRemoteMessageHandler->IsAndroidInstalled(true);
+
                 canPopupHandler->Reset();
                 canStatusOfFunctionsHandler->Reset();
                 canWarningLogHandler->Reset();

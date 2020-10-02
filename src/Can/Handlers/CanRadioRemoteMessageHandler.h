@@ -1,4 +1,4 @@
-﻿// CanRadioRemoteMessageHandler.h
+// CanRadioRemoteMessageHandler.h
 #pragma once
 
 #ifndef _CanRadioRemoteMessageHandler_h
@@ -20,9 +20,16 @@ class CanRadioRemoteMessageHandler : public CanMessageHandlerBase
     uint8_t PrevScrollByte;
     bool SendEmpty = false;
 
+    /*
+     * Android head units are working in a different way that the RD4/43/45 units. We need to send new packets if something changed otherwise we get repeated keypresses
+     * However if we have an RD4/43/45 unit we need to send the button states regularly otherwise we miss out some keypresses
+    */
+
+    bool isAndroidHeadUnitInstalled = true;
+
     virtual void InternalProcess()
     {
-        if (IS_ANDROID_HEAD_UNIT_INSTALLED == true)
+        if (isAndroidHeadUnitInstalled == true)
         {
             if (SendEmpty)
             {
@@ -47,7 +54,7 @@ class CanRadioRemoteMessageHandler : public CanMessageHandlerBase
         uint8_t scrollByte
     )
     {
-        if (IS_ANDROID_HEAD_UNIT_INSTALLED == true)
+        if (isAndroidHeadUnitInstalled == true)
         {
             if (PrevScrollByte == scrollByte)
             {
@@ -73,6 +80,11 @@ class CanRadioRemoteMessageHandler : public CanMessageHandlerBase
 
             RadioRemoteSender->SendAsByte(ButtonByte, ScrollByte);
         }
+    }
+
+    void IsAndroidInstalled(bool isInstalled)
+    {
+        isAndroidHeadUnitInstalled = isInstalled;
     }
 };
 
