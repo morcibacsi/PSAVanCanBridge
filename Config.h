@@ -46,8 +46,6 @@ constexpr uint8_t DISPLAY_MODE = 1;
     //uint8_t Vin[17] = { 'L', 'D', 'C', '9', '4', '3', 'X', '4', '7', 'D', '1', '5', '6', '6', '7', '7', '2' };
 #endif
 
-constexpr bool IS_AFTERMARKET_HEAD_UNIT_INSTALLED = false;
-
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
 
 #endif

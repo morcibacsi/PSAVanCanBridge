@@ -89,6 +89,7 @@ const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 
 bool PrintVanMessageToSerial = true;
+bool SendNoRadioButtonMessage = true;
 bool reverseEngaged = false;
 
 ESP32_RMT_VAN_RX VAN_RX;
@@ -178,6 +179,10 @@ void CANReadTaskFunction(void * parameter)
             if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER)
             {
                 canRadioDiag->ProcessReceivedCanMessage(canId, canReadMessageLength, canReadMessage);
+            }
+            if (SendNoRadioButtonMessage && canId == CAN_ID_MENU_BUTTONS)
+            {
+                SendNoRadioButtonMessage = false;
             }
         }
 
@@ -363,7 +368,7 @@ void CANSendDataTaskFunction(void * parameter)
 
             #pragma endregion
 
-            if (IS_AFTERMARKET_HEAD_UNIT_INSTALLED)
+            if (SendNoRadioButtonMessage)
             {
                 if (currentTime - prevRadioButtonTime > 950)
                 {
