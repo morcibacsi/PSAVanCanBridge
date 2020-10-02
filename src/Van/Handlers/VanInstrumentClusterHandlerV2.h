@@ -44,6 +44,8 @@ public:
         dataToBridge.FuelLevel = packet.data.FuelLevel;
         dataToBridge.OilTemperature = GetOilTemperatureFromVANByteV2(packet.data.OilTemperature);
 
+        ignitionDataToBridge.LowBeamOn = dataToBridge.LightStatuses.status.LowBeam;
+
         return true;
     }
 };
