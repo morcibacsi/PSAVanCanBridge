@@ -13,11 +13,11 @@ class CanMessageHandlerBase
     virtual void InternalProcess() = 0;
 
     protected:
-    unsigned long processInterval = 40;
+    uint16_t processInterval = 40;
     unsigned long _currentTime = 0;
 
     AbstractCanMessageSender *canMessageSender;
-    CanMessageHandlerBase(AbstractCanMessageSender * object, int interval)
+    CanMessageHandlerBase(AbstractCanMessageSender * object, uint16_t interval)
     {
         processInterval = interval;
         canMessageSender = object;

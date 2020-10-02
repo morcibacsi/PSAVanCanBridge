@@ -10,7 +10,7 @@
 
 class CanRadioRemoteMessageHandler : public CanMessageHandlerBase
 {
-    static const uint8_t CAN_RADIO_REMOTE_MESSAGE_INTERVAL = 50;
+    static const uint16_t CAN_RADIO_REMOTE_MESSAGE_INTERVAL = 50;
 
     CanRadioRemoteButtonPacketSender* RadioRemoteSender;
     uint8_t ButtonByte;
