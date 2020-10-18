@@ -23,6 +23,7 @@ const uint8_t CAN_POPUP_MSG_SUSPENSION_FAULTY_MAX_SPEED_90_KMH                  
 const uint8_t CAN_POPUP_MSG_SUSPENSION_FAULTY                                        = 0x12;
 const uint8_t CAN_POPUP_MSG_POWER_STEERING_FAULTY                                    = 0x13;
 const uint8_t CAN_POPUP_MSG_SUSPENSION_10_KMH                                        = 0x14;
+const uint8_t CAN_POPUP_MSG_UP_IN_PROGRESS                                           = 0x16;
 const uint8_t CAN_POPUP_MSG_PARKING_BRAKE_APPLIED                                    = 0x61;
 const uint8_t CAN_POPUP_MSG_PARKING_BRAKE_RELEASED                                   = 0x62;
 const uint8_t CAN_POPUP_MSG_PARKING_BRAKE_CONTROL_FAULTY_AUTO_PARKING_BRAKE_ACTIVATED= 0x64;
@@ -40,6 +41,7 @@ const uint8_t CAN_POPUP_MSG_SIDELAMP_BULBS_FAULTY                               
 const uint8_t CAN_POPUP_MSG_AUTOMATIC_HEADLAMP_ADJUSTMENT_FAULTY                     = 0x75;
 const uint8_t CAN_POPUP_MSG_DIRECTIONAL_HEADLAMPS_FAULTY                             = 0x76;
 const uint8_t CAN_POPUP_MSG_AIRBAGS_OR_PRETENSIONER_SEAT_BELTS_FAULTY                = 0x78;//
+const uint8_t CAN_POPUP_MSG_ACTIVE_BONNET_FAULTY                                     = 0x79;//
 const uint8_t CAN_POPUP_MSG_GEARBOX_FAULT_REPAIR_NEEDED_2                            = 0x7A;
 const uint8_t CAN_POPUP_MSG_APPLY_FOOT_ON_BRAKE_AND_LEVER_IN_POSITION_N              = 0x7B;
 const uint8_t CAN_POPUP_MSG_PRESENCE_OF_WATER_IN_DIESEL_FILTER_REPAIR_NEEDED         = 0x7D;
@@ -47,10 +49,14 @@ const uint8_t CAN_POPUP_MSG_ENGINE_FAULT_REPAIR_NEEDED__DEPOLLUTION_SYSTEM_FAULT
 const uint8_t CAN_POPUP_MSG_ENGINE_FAULT_REPAIR_NEEDED__DEPOLLUTION_SYSTEM_FAULTY2   = 0x7F;
 const uint8_t CAN_POPUP_MSG_PARTICLE_FILTER_ADDITIVE_LEVEL_TOO_LOW                   = 0x81;//??ENG_fault
 const uint8_t CAN_POPUP_MSG_ELECTRONIC_ANTI_THEFT_FAULTY                             = 0x83;
+const uint8_t CAN_POPUP_MSG_RIGHT_REAR_SLIDING_DOOR_FAULTY                           = 0x86;
+const uint8_t CAN_POPUP_MSG_LEFT_REAR_SLIDING_DOOR_FAULTY                            = 0x87;
 const uint8_t CAN_POPUP_MSG_PARKING_ASSISTANCE_SYSTEM_FAULTY                         = 0x88;
 const uint8_t CAN_POPUP_MSG_SPACE_MEASURING_SYSTEM_FAULTY                            = 0x89;
 const uint8_t CAN_POPUP_MSG_BATTERY_CHARGE_OR_ELECTRICAL_SUPPLY_FAULTY               = 0x8A;
 const uint8_t CAN_POPUP_MSG_TYRE_PRESSURES_TOO_LOW                                   = 0x8D;
+const uint8_t CAN_POPUP_MSG_OVERTAKING_ASSISTANCE_SYSTEM_FAULTY                      = 0x92;
+const uint8_t CAN_POPUP_MSG_LANE_MONITORING_SYSTEM_DEACTIVATED                       = 0x95;
 const uint8_t CAN_POPUP_MSG_ANTI_WANDER_SYSTEM_LANE_CROSSING_WARNING_DEVICE_FAULTY   = 0x97;
 const uint8_t CAN_POPUP_MSG_DIPPED_BEAM_BULBS_FAULTY                                 = 0x9A;
 const uint8_t CAN_POPUP_MSG_MAIN_BEAM_BULBS_FAULTY                                   = 0x9B;
@@ -59,6 +65,7 @@ const uint8_t CAN_POPUP_MSG_FOGLAMP_BULBS_FAULTY                                
 const uint8_t CAN_POPUP_MSG_DIRECTION_INDICATORS_FAULTY                              = 0x9E;
 const uint8_t CAN_POPUP_MSG_REVERSING_LAMP_BULBS_FAULTY                              = 0x9F;
 const uint8_t CAN_POPUP_MSG_SIDELAMP_BULBS_FAULTY_2                                  = 0xA0;
+const uint8_t CAN_POPUP_MSG_PARKING_LAMPS_ACTIVATED                                  = 0xA1;
 const uint8_t CAN_POPUP_MSG_TYRE_PRESSURES_REGISTERED                                = 0xB4;
 const uint8_t CAN_POPUP_MSG_UNDER_INFLATION_MONITORING_FAULT                         = 0xB5;
 const uint8_t CAN_POPUP_MSG_ADJUST_THE_TYRE_PRESSURES_THEN_REINITIALISE              = 0xB7;
@@ -72,6 +79,7 @@ const uint8_t CAN_POPUP_MSG_REINITIALISATION_IMPOSSIBLE_WHEN_DRIVING            
 const uint8_t CAN_POPUP_MSG_REMOVE_IGNITION_KEY                                      = 0xCA;//ruforum
 const uint8_t CAN_POPUP_MSG_CRUISE_CONTROL_NOT_POSSIBLE_SPEED_TOO_LOW                = 0xCD;
 const uint8_t CAN_POPUP_MSG_CONTROL_ACTIVATION_NOT_POSSIBLE_ENTER_THE_SPEED          = 0xCE;
+const uint8_t CAN_POPUP_MSG_ACTIVE_BONNET_DEPLOYED                                   = 0xD1;
 const uint8_t CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED                            = 0xD2;
 const uint8_t CAN_POPUP_MSG_REAR_PASSENGER_SEAT_BELTS_FASTENED                       = 0xD3;
 const uint8_t CAN_POPUP_MSG_PLACE_AUTOMATIC_GEARBOX_IN_POSITION_P                    = 0xD7;
@@ -82,9 +90,15 @@ const uint8_t CAN_POPUP_MSG_SCREEN_WASH_FLUID_LEVEL_TOO_LOW                     
 const uint8_t CAN_POPUP_MSG_FUEL_LEVEL_TOO_LOW                                       = 0xE0;
 const uint8_t CAN_POPUP_MSG_FUEL_CIRCUIT_DEACTIVATED                                 = 0xE1;
 const uint8_t CAN_POPUP_MSG_REMOTE_CONTROL_BATTERY_FLAT                              = 0xE3;
+const uint8_t CAN_POPUP_MSG_CHECK_AND_REINITIALIZE_TYRE_PRESSURE                     = 0xE4;
 const uint8_t CAN_POPUP_MSG_TYRE_PRESSURES_NOT_MONITORED                             = 0xE5;
 const uint8_t CAN_POPUP_MSG_HIGH_SPEED_CHECK_TYRE_PRESSURES_CORRECT                  = 0xE7;
 const uint8_t CAN_POPUP_MSG_TYRE_PRESSURES_TOO_LOW_2                                 = 0xE8;
+const uint8_t CAN_POPUP_MSG_HANDS_FREE_STARTING_SYSTEM_FAULTY                        = 0xEA;
+const uint8_t CAN_POPUP_MSG_STARTING_PHASE_HAS_FAILED_CONSULT_HANDBOOK               = 0xEB;
+const uint8_t CAN_POPUP_MSG_PROLONGED_START_IN_PROGRESS                              = 0xEC;
+const uint8_t CAN_POPUP_MSG_STARTING_IMPOSSIBLE_UNLOCK_STEERING                      = 0xED;
+const uint8_t CAN_POPUP_MSG_REMOTE_CONTROL_NOT_DETECTED                              = 0xEF;
 const uint8_t CAN_POPUP_MSG_DIAGNOSIS_IN_PROGRESS                                    = 0xF0;
 const uint8_t CAN_POPUP_MSG_DIAGNOSIS_COMPLETED                                      = 0xF1;
 const uint8_t CAN_POPUP_MSG_REAR_LEFT_HAND_PASSENGER_SEAT_BELT_UNFASTENED            = 0xF7;
@@ -115,6 +129,7 @@ const uint8_t CAN_POPUP_MSG_FOLDING_ROOF_MECHANISM_FAULTY                       
 const uint8_t CAN_POPUP_MSG_OPERATION_IMPOSSIBLE_REAR_SCREEN_OPEN                    = 0xFF;
 //0x82
 const uint8_t CAN_POPUP_MSG_ROOF_MOVEMENT_NOT_POSSIBLE_CASETTE_OPEN                  = 0x00;
+const uint8_t CAN_POPUP_MSG_OPERATION_IMPOSIBBLE_LOCK_ROOF                           = 0x01;
 const uint8_t CAN_POPUP_MSG_ANTI_ROLLBACK_SYSTEM_FAULTY                              = 0x02;
 const uint8_t CAN_POPUP_MSG_ENHANCED_TRACTION_NORMAL_MODE                            = 0x03;
 const uint8_t CAN_POPUP_MSG_ENHANCED_TRACTION_MUD_MODE                               = 0x04;
