@@ -154,6 +154,16 @@ void PrintArrayToSerial(const uint8_t vanMessage[], uint8_t vanMessageLength)
     }
 }
 
+void SendRadioButton(uint8_t button)
+{
+    uint8_t sendCount = 2;
+    for (int i = 0; i < sendCount; ++i)
+    {
+        canRadioButtonSender->SendButtonCode(button);
+    }
+    canRadioButtonSender->SendButtonCode(0);
+}
+
 void CANReadTaskFunction(void * parameter)
 {
     uint8_t canReadMessage[20] = { 0 };
@@ -170,6 +180,10 @@ void CANReadTaskFunction(void * parameter)
         {
             if (canId == CAN_ID_MENU_BUTTONS)
             {
+                // the RD4/43/45 units are sending this regularly so if we get this message we can be sure that we have one of those installed
+                SendNoRadioButtonMessage = false;
+                canRadioRemoteMessageHandler->IsAndroidInstalled(false);
+
                 CanMenuPacket packet = DeSerialize<CanMenuPacket>(canReadMessage);
                 if (packet.data.EscOkField.esc == 1 && canPopupHandler->IsPopupVisible())
                 {
@@ -179,12 +193,6 @@ void CANReadTaskFunction(void * parameter)
             if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER)
             {
                 canRadioDiag->ProcessReceivedCanMessage(canId, canReadMessageLength, canReadMessage);
-            }
-            if (canId == CAN_ID_MENU_BUTTONS)
-            {
-                // the RD4/43/45 units are sending this regularly so if we get this message we can be sure that we have one of those installed
-                SendNoRadioButtonMessage = false;
-                canRadioRemoteMessageHandler->IsAndroidInstalled(false);
             }
         }
 
@@ -554,6 +562,55 @@ void VANReadTaskFunction(void * parameter)
                 }
                 if (inChar == 'm') {
                     PrintVanMessageToSerial = !PrintVanMessageToSerial;
+                }
+                if (inChar == 'W')
+                {
+                    SendRadioButton(CONST_UP_ARROW);
+                }
+                if (inChar == 'A')
+                {
+                    SendRadioButton(CONST_LEFT_ARROW);
+                }
+                if (inChar == 'S')
+                {
+                    SendRadioButton(CONST_DOWN_ARROW);
+                }
+                if (inChar == 'D')
+                {
+                    SendRadioButton(CONST_RIGHT_ARROW);
+                }
+                if (inChar == 'E')
+                {
+                    SendRadioButton(CONST_OK_BUTTON);
+                }
+                if (inChar == 'X')
+                {
+                    // Something is wrong with this method that's why the workaround
+                    //SendRadioButton(CONST_ESC_BUTTON);
+
+                    uint8_t data[] = { 0x00, 0x00, 0x10, 0x00, 0x00, 0x00 };
+                    CANInterface->SendMessage(CAN_ID_MENU_BUTTONS, 0, 6, data);
+                }
+                if (inChar == 'x')
+                {
+                    SendRadioButton(CONST_ESC_BUTTON);
+                }
+                if (inChar == 'O')
+                {
+                    SendRadioButton(CONST_MODE_BUTTON);
+                }
+                if (inChar == 'M')
+                {
+                    SendRadioButton(CONST_MENU_BUTTON);
+                }
+                if (inChar == 'T')
+                {
+                    //Serial.println("M pressed");
+
+                    for (int i = 0; i < 10; ++i)
+                    {
+                        tripInfoHandler->TripButtonPress();
+                    }
                 }
             }
             //*/
