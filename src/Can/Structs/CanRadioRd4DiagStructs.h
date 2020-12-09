@@ -36,6 +36,9 @@ const uint8_t CAN_RD4_AUX_MODE_ACTIVATED = 1;
 const uint8_t CAN_RD4_AUX_MODE_EXTERNAL_MUTE = 2;
 const uint8_t CAN_RD4_AUX_MODE_RESERVED_FOR_NOMAD = 3;
 
+const uint8_t CAN_DIAG_RADIO_RD4_RD43 = 0xCC;
+const uint8_t CAN_DIAG_RADIO_RD45 = 0xB0;
+
 // Read right to left in documentation
 typedef struct {
     uint8_t volume_auto_control       : 1; // bit 0
@@ -101,7 +104,8 @@ class CanRadioRd4DiagPacketSender
 {
     AbstractCanMessageSender * canMessageSender;
 
-    uint8_t Vin[17];
+    uint8_t _vinIndex = 0;
+    uint8_t _radioType = CAN_DIAG_RADIO_RD4_RD43;
 
     void SetVinPart2()
     {
@@ -119,14 +123,23 @@ class CanRadioRd4DiagPacketSender
     }
 
     public:
+    bool IsVinRead = false;
+    uint8_t Vin[17];
+
     CanRadioRd4DiagPacketSender(AbstractCanMessageSender * object)
     {
         canMessageSender = object;
     }
 
+    void SetRadioType(uint8_t radioType)
+    {
+        _radioType = radioType;
+    }
+
     // We need to tell the radio to enter into diagnostics mode, and after that we can issue the other commands
     void EnterDiagMode()
     {
+        IsVinRead = false;
         uint8_t diagStart[] = { 0x02, 0x10, 0xC0 };
         canMessageSender->SendMessage(CAN_ID_RADIO_RD4_DIAG, 0, 3, diagStart);
     }
@@ -135,7 +148,9 @@ class CanRadioRd4DiagPacketSender
     // Take care that when you issue this command you need to watch for the answers from the radio and forward it to the ProcessReceivedCanMessage() method to successfully get the second part of the VIN
     void GetVinNumber()
     {
-        uint8_t getVin[] = { 0x02, 0x21, 0xCC };
+        // RD4, RD43: 2nd byte: 0xCC
+        // RD45     : 2nd byte: 0xB0
+        uint8_t getVin[] = { 0x02, 0x21, _radioType };
         canMessageSender->SendMessage(CAN_ID_RADIO_RD4_DIAG, 0, 3, getVin);
     }
 
@@ -169,9 +184,10 @@ class CanRadioRd4DiagPacketSender
     // Take care that when you issue this command you need to watch for the answers from the radio and forward it to the ProcessReceivedCanMessage() method to successfully program the VIN
     void SetVin(uint8_t vinAsciiBytes[17])
     {
-        // on RD45 the 4th byte is 0xB0 instead of 0xCC 
+        // RD4, RD43: 3rd byte: 0xCC
+        // RD45     : 3rd byte: 0xB0
         memcpy(Vin, vinAsciiBytes, (17 * sizeof(uint8_t)));
-        uint8_t vinPart1[] = { 0x10, 0x13, 0x3B, 0xCC, Vin[0], Vin[1], Vin[2], Vin[3] };
+        uint8_t vinPart1[] = { 0x10, 0x13, 0x3B, _radioType, Vin[0], Vin[1], Vin[2], Vin[3] };
         canMessageSender->SendMessage(CAN_ID_RADIO_RD4_DIAG, 0, 8, vinPart1);
     }
 
@@ -183,7 +199,7 @@ class CanRadioRd4DiagPacketSender
     }
 
     // While we are reading/writing diagnostics data we need to watch for the answers from the radio and based on the answer we need to reply immediately
-    void ProcessReceivedCanMessage(uint16_t canId, uint8_t length, uint8_t canMsg[])
+    void ProcessReceivedCanMessage(const uint16_t canId, const uint8_t length, const uint8_t canMsg[])
     {
         // We start coding the VIN with the SetVin() method and when we get the following reply from the radio, we continue with setting the second part of the VIN
         if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 3 && canMsg[0] == 0x30 && canMsg[1] == 0x00 && canMsg[2] == 0x0A)
@@ -203,7 +219,44 @@ class CanRadioRd4DiagPacketSender
 
         if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 8 && canMsg[0] == 0x10)
         {
+            // RD4, RD43: 3rd byte: 0xCC
+            // RD45     : 3rd byte: 0xB0
+
+            // Store 1st part of VIN
+            if (canMsg[1] == 0x13 && canMsg[2] == 0x61 && canMsg[3] == _radioType){
+                _vinIndex = 0;
+                for (int i = 4; i < 8; ++i)
+                {
+                    Vin[_vinIndex] = canMsg[i];
+                    _vinIndex++;
+                }
+            }
             Continue();
+        }
+
+        // Store 2nd part of VIN
+        if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 8 && canMsg[0] == 0x21)
+        {
+            if(_vinIndex > 0){
+                for (int i = 1; i < 8; ++i)
+                {
+                    Vin[_vinIndex] = canMsg[i];
+                    _vinIndex++;
+                }
+            }
+        }
+
+        // Store 3rd part of VIN
+        if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 7 && canMsg[0] == 0x22)
+        {
+            if(_vinIndex > 0){
+                for (int i = 1; i < 7; ++i)
+                {
+                    Vin[_vinIndex] = canMsg[i];
+                    _vinIndex++;
+                }
+                IsVinRead = true;
+            }
         }
 
         if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 3 && canMsg[0] == 0x02 && canMsg[1] == 0x7B && canMsg[2] == 0xC0)
@@ -213,6 +266,7 @@ class CanRadioRd4DiagPacketSender
 
         if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER && length == 3 && canMsg[0] == 0x02 && canMsg[1] == 0x50 && canMsg[2] == 0xC0)
         {
+            // After we got a reply when opening the diag channel, we query the VIN number from the radio
             GetVinNumber();
         }
     }

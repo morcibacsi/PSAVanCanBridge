@@ -5,6 +5,7 @@
 #include <esp32_arduino_rmt_van_rx.h>
 
 #include "Config.h"
+#include "src/ESPFlash/ESPFlash.h"
 #include "src/SerialPort/AbstractSerial.h"
 
 #ifdef USE_BLUETOOTH_SERIAL
@@ -62,7 +63,9 @@
 #include "src/Helpers/DoorStatus.h"
 #include "src/Helpers/VanDataToBridgeToCan.h"
 #include "src/Helpers/VanIgnitionDataToBridgeToCan.h"
+#include "src/Helpers/VinFlashStorage.h"
 
+#include "src/Can/CanMessageHandlerContainer.h"
 #include "src/Van/VanHandlerContainer.h"
 #include "src/Can/Handlers/ICanDisplayPopupHandler.h"
 
@@ -124,12 +127,13 @@ CanDash3MessageHandler* canDash3MessageHandler;
 CanDash4MessageHandler* canDash4MessageHandler;
 CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
-CanRadioRd4DiagHandler* canRadioDiag;
 CanParkingAidHandler* canParkingAid;
 CanRadioButtonPacketSender* canRadioButtonSender;
 
+CanMessageHandlerContainer* canMessageHandlerContainer;
 VanHandlerContainer* vanHandlerContainer;
 
+VinFlashStorage* vinFlashStorage;
 AbsSer *serialPort;
 
 #ifdef USE_BLUETOOTH_SERIAL
@@ -190,10 +194,7 @@ void CANReadTaskFunction(void * parameter)
                     canPopupHandler->HideCurrentPopupMessage();
                 }
             }
-            if (canId == CAN_ID_RADIO_RD4_DIAG_ANSWER)
-            {
-                canRadioDiag->ProcessReceivedCanMessage(canId, canReadMessageLength, canReadMessage);
-            }
+            canMessageHandlerContainer->ProcessMessage(canId, canReadMessageLength, canReadMessage);
         }
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -557,11 +558,19 @@ void VANReadTaskFunction(void * parameter)
                         vanMessageLength++;
                     }
                 }
-                if (inChar == 'n') {
-                    canRadioDiag->GetVin();
-                }
                 if (inChar == 'm') {
                     PrintVanMessageToSerial = !PrintVanMessageToSerial;
+                }
+                if (inChar == 'r') {
+                    vinFlashStorage->Remove();
+                }
+                if (inChar == 'V') {
+                    serialPort->print("VIN: ");
+                    for (int i = 0; i < 17; ++i)
+                    {
+                        serialPort->write(Vin[i]);
+                    }
+                    serialPort->println();
                 }
                 if (inChar == 'W')
                 {
@@ -724,6 +733,13 @@ void setup()
     serialPort->begin(500000);
     serialPort->println(bluetoothDeviceName);
 
+    vinFlashStorage = new VinFlashStorage();
+    const bool success = vinFlashStorage->Load();
+    if (success)
+    {
+        serialPort->println("Using VIN from flash");
+    }
+
     VAN_RX.Init(VAN_DATA_RX_RMT_CHANNEL, VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, VAN_NETWORK_TYPE_COMFORT);
 
     //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
@@ -752,9 +768,10 @@ void setup()
     canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
     radioIgnition = new CanIgnitionPacketSender(CANInterface);
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
-    canRadioDiag = new CanRadioRd4DiagHandler(CANInterface, serialPort);
     canParkingAid = new CanParkingAidHandler(CANInterface);
     canRadioButtonSender = new CanRadioButtonPacketSender(CANInterface);
+
+    canMessageHandlerContainer = new CanMessageHandlerContainer(CANInterface, serialPort, vinFlashStorage);
 
     vanHandlerContainer = new VanHandlerContainer(
         canPopupHandler,

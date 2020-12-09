@@ -355,6 +355,21 @@
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Can\Structs\CanDisplayMenuStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Can\Handlers\CanPinConfigHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Can\CanMessageHandlerContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Can\Handlers\AbstractCanMessageHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\VinFlashStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">

@@ -4,31 +4,30 @@
 #ifndef _CanRadioRd4DiagHandler_h
     #define _CanRadioRd4DiagHandler_h
 
+
+#include "AbstractCanMessageHandler.h"
 #include "../AbstractCanMessageSender.h"
 #include "../Structs/CanRadioRd4DiagStructs.h"
+#include "../../SerialPort/AbstractSerial.h"
+#include "../../Helpers/VinFlashStorage.h"
 
-class CanRadioRd4DiagHandler
+class CanRadioRd4DiagHandler : public AbstractCanMessageHandler
 {
     CanRadioRd4DiagPacketSender* _packetSender;
     AbsSer* _serialPort;
-
-    uint8_t vinNumber[17] = { 0 };
-    uint8_t vinIndex = 0;
-
-    void PrintArrayToSerialAsChar(const uint8_t vanMessage[], uint8_t vanMessageLength)
-    {
-        for (uint8_t i = 0; i < vanMessageLength; i++)
-        {
-            _serialPort->write(vanMessage[i]);
-        }
-        _serialPort->println();
-    }
+    VinFlashStorage* _vinFlashStorage;
 
     public:
-    CanRadioRd4DiagHandler(AbstractCanMessageSender* object, AbsSer* serialPort)
+    CanRadioRd4DiagHandler(AbstractCanMessageSender* object, AbsSer* serialPort, VinFlashStorage* vinFlashStorage)
     {
         _packetSender = new CanRadioRd4DiagPacketSender(object);
         _serialPort = serialPort;
+        _vinFlashStorage = vinFlashStorage;
+    }
+
+    void SetRadioType(uint8_t radioType)
+    {
+        _packetSender->SetRadioType(radioType);
     }
 
     void GetVin()
@@ -36,42 +35,37 @@ class CanRadioRd4DiagHandler
         _packetSender->EnterDiagMode();
     }
 
-    void ProcessReceivedCanMessage(uint16_t canId, uint8_t length, uint8_t canMsg[])
+    bool ProcessMessage(const uint16_t canId, const uint8_t length, const uint8_t canMsg[]) override
     {
-        _packetSender->ProcessReceivedCanMessage(canId, length, canMsg);
-
-        if (length > 3)
+        if (canId != CAN_ID_RADIO_RD4_DIAG_ANSWER)
         {
-            uint8_t startPosition = 0;
-            uint8_t endPosition = 0;
-            if (canMsg[0] == 0x10)
-            {
-                vinIndex = 0;
-                startPosition = 4;
-                endPosition = 7;
-            }
-            if (canMsg[0] == 0x21)
-            {
-                startPosition = 1;
-                endPosition = 7;
-            }
-            if (canMsg[0] == 0x22)
-            {
-                startPosition = 1;
-                endPosition = 6;
-            }
-
-            for (uint8_t i = startPosition; i < endPosition + 1; i++)
-            {
-                vinNumber[vinIndex] = canMsg[i];
-                vinIndex++;
-            }
-
-            if (vinIndex == 17)
-            {
-                PrintArrayToSerialAsChar(vinNumber, 17);
-            }
+            return false;
         }
+
+        _packetSender->ProcessReceivedCanMessage(canId, length, canMsg);
+        delayMicroseconds(40);
+        if (_packetSender->IsVinRead)
+        {
+            for (int i = 0; i < 17; ++i)
+            {
+                Vin[i] = _packetSender->Vin[i];
+            }
+
+            const bool success = _vinFlashStorage->Save();
+
+            if (success)
+            {
+                _serialPort->println("VIN save success");
+            }
+            else
+            {
+                _serialPort->println("VIN save failed");
+            }
+
+            _packetSender->IsVinRead = false;
+        }
+
+        return false;
     }
 };
 

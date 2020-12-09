@@ -51,10 +51,26 @@ But here is the list of the bridged functions:
  - Display the remaining fuel in percentage
  - Display the remaining fuel in liters
  - Display the oil temperature
+ - Semi-automatic VIN coding for the headunit to stop beeping (anti theft protection)
 
 ### Removing the old display from the car
 
 If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system stops working. Fixing the air conditioner is pretty easy, you just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins) as the VAN bus lines for the aircon go through the display. The reason behind the missing functionality is due to the fact that the display queries the BSI for the trip computer data, and the door statuses. If you would like to remove the original display from your car you need to build a hardware revision which contains a TSS463C.
+
+### Head unit anti-theft protection
+
+In cars made by PSA the the head unit contains the VIN number. The BSI sends it's VIN on the CAN bus. If the head unit detects a mismatch between the VIN coded inside it and the VIN received on the CAN bus then signals it with a beeping every few seconds. To prevent this you need to configure the VIN coded into your head unit in the config.h file. If you don't know the VIN inside your head unit then you can do it via the following semi-automatic method. You only need to do this once as the device stores the correct VIN number for the radio.
+
+1. Turn on the radio (source should be tuner)  
+2. Switch to AM band and set it to 545 kHz (if you have an RD45) or 543 kHz (if you have an RD4 or RD43)
+![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/display.jpg)
+3. Press the Menu button on the radio (you should see this menu). It doesn't matter which item is selected.
+![menu](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/menu.jpg)
+4. Press the following combination with the arrows on your radio:
+Left-Right-Left-Right (almost like the Konami code :smiley:)
+If you mistype the combination, then exit the menu, and return to it again.
+![rd43](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/rd43.jpg)
+5. Now the beeping should stop
 
 ### Compatibility
 
@@ -63,6 +79,7 @@ The software was tested on a Peugeot 307 SW made in 2004 however most probably i
 - Peugeot 206 multiplexed (MUX) versions (2001.09 - )
 - Peugeot 307 (2001-2005 first quarter)
 - Peugeot 406 (2000-)
+- Peugeot 1007 (2005-2007)
 - Citroen C2
 - Citroen C5 (2001-2005)
 - Citroen C8 (2001-2005)

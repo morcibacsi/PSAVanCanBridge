@@ -112,8 +112,10 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="PSAVanCanBridgeMain.h" />
     <ClInclude Include="src\Can\AbstractCanMessageSender.h" />
+    <ClInclude Include="src\Can\CanMessageHandlerContainer.h" />
     <ClInclude Include="src\Can\CanMessageSender.h" />
     <ClInclude Include="src\Can\CanMessageSenderEsp32Arduino.h" />
+    <ClInclude Include="src\Can\Handlers\AbstractCanMessageHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanAirConOnDisplayHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanAirConOnDisplayHandlerOrig.h" />
     <ClInclude Include="src\Can\Handlers\CanDash2MessageHandler.h" />
@@ -124,6 +126,7 @@
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler3.h" />
     <ClInclude Include="src\Can\Handlers\CanMessageHandlerBase.h" />
     <ClInclude Include="src\Can\Handlers\CanParkingAidHandler.h" />
+    <ClInclude Include="src\Can\Handlers\CanPinConfigHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRd4DiagHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRemoteMessageHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanSpeedAndRpmHandler.h" />
@@ -140,6 +143,7 @@
     <ClInclude Include="src\Can\Structs\CanDash4Structs.h" />
     <ClInclude Include="src\Can\Structs\CanDefineVehicleParameters.h" />
     <ClInclude Include="src\Can\Structs\CanDisplayClockStructs.h" />
+    <ClInclude Include="src\Can\Structs\CanDisplayMenuStructs.h" />
     <ClInclude Include="src\Can\Structs\CanDisplayStatusStructs.h" />
     <ClInclude Include="src\Can\Structs\CanDisplayStructs.h" />
     <ClInclude Include="src\Can\Structs\CanDoorStatusStructs.h" />
@@ -176,6 +180,7 @@
     <ClInclude Include="src\Helpers\VanCanDisplayPopupMap.h" />
     <ClInclude Include="src\Helpers\VanDataToBridgeToCan.h" />
     <ClInclude Include="src\Helpers\VanIgnitionDataToBridgeToCan.h" />
+    <ClInclude Include="src\Helpers\VinFlashStorage.h" />
     <ClInclude Include="src\SerialPort\AbstractSerial.h" />
     <ClInclude Include="src\SerialPort\BluetoothSerialAbs.h" />
     <ClInclude Include="src\SerialPort\HardwareSerialAbs.h" />
