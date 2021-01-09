@@ -66,7 +66,7 @@ public:
         currentTime = millis();
 
         const VanDisplayPacketV2 packet = DeSerialize<VanDisplayPacketV2>(vanMessageWithoutId);
-        if (packet.data.Message != 0xFF)
+        if (packet.data.Message != VAN_POPUP_MSG_NONE && packet.data.Message != VAN_POPUP_MSG_DOOR_OPEN)
         {
             CanDisplayPopupItem item;
             item.Category = popupMapping->GetCanCategoryFromVanMessage(packet.data.Message);
