@@ -38,9 +38,9 @@ public:
         ignitionDataToBridge.OutsideTemperature = GetTemperatureFromVANByte(packet.data.ExternalTemperature.value);
         ignitionDataToBridge.EconomyModeActive = packet.data.Field1.economy_mode;
         ignitionDataToBridge.Ignition = packet.data.Field1.ignition_on || packet.data.Field1.accesories_on || packet.data.Field1.engine_running;
-        ignitionDataToBridge.DashboardLightingEnabled = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+        ignitionDataToBridge.DashboardLightingEnabled = packet.data.Field0.is_backlight_off == 0;
 
-        dataToBridge.LightStatuses.status.SideLights = packet.VanDashboardPacket[0] != VAN_DASHBOARD_LIGHTS_OFF;
+        dataToBridge.LightStatuses.status.SideLights = packet.data.Field0.is_backlight_off == 0;
         dataToBridge.Ignition = ignitionDataToBridge.Ignition;
 
         ignitionDataToBridge.IsTrailerPresent = packet.data.Field1.trailer_present;

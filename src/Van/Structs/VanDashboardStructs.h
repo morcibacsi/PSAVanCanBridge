@@ -6,16 +6,15 @@
 
 // VANID: 8A4
 const uint16_t VAN_ID_DASHBOARD = 0x8A4;
-const uint8_t VAN_DASHBOARD_LIGHTS_OFF = 0x8F;
 
 // Read right to left in documentation
 typedef struct {
     // 0-7
-    uint8_t brightness  : 4; // bit 0-3 (0-15, 0x8F when sidelights is off)
-    uint8_t heartbeat   : 1; // bit 4
-    uint8_t             : 1; // bit 5
-    uint8_t             : 1; // bit 6
-    uint8_t             : 1; // bit 7
+    uint8_t brightness       : 4; // bit 0-3 (0-15)
+    uint8_t heartbeat        : 1; // bit 4
+    uint8_t                  : 1; // bit 5
+    uint8_t                  : 1; // bit 6
+    uint8_t is_backlight_off : 1; // bit 7 (1 when the sidelights are off)
 } VanDashboardByte0Struct;
 
 
