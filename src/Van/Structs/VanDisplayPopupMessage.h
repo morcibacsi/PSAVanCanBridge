@@ -79,14 +79,16 @@ const uint8_t VAN_POPUP_MSG_AUTOMATIC_LIGHTING_ACTIVE               = 0x44;
 const uint8_t VAN_POPUP_MSG_AUTOMATIC_WIPING_ACTIVE                 = 0x45;
 const uint8_t VAN_POPUP_MSG_ENGINE_IMMOBILISER_FAULT                = 0x46;
 const uint8_t VAN_POPUP_MSG_SPORTS_SUSPENSION_ACTIVE                = 0x47;
-const uint8_t VAN_POPUP_MSG_FLH_DIPPED_HEADLIGHT_BULB_BLOWN         = 0x4E;
+
+const uint8_t VAN_POPUP_MSG_LPG_DEFAULT                             = 0x4B; // Seen on a display from Peugeot 1007
+const uint8_t VAN_POPUP_MSG_FLH_DIPPED_HEADLIGHT_BULB_BLOWN         = 0x4E; // Stop and start system active (Peugeot 1007)
 
 const uint8_t VAN_POPUP_MSG_CHANGE_OF_FUEL_USED_IN_PROGRESS         = 0x53;
-const uint8_t VAN_POPUP_MSG_LPG_FUEL_REFUSED                        = 0x54;
-const uint8_t VAN_POPUP_MSG_LPG_SYSTEM_FAULTY                       = 0x55;
+const uint8_t VAN_POPUP_MSG_LPG_FUEL_REFUSED                        = 0x54; // LPG combustion refused (Peugeot 1007)
+const uint8_t VAN_POPUP_MSG_LPG_SYSTEM_FAULTY                       = 0x55; // LPG default (Peugeot 1007)
 const uint8_t VAN_POPUP_MSG_LPG_IN_USE                              = 0x56;
 const uint8_t VAN_POPUP_MSG_MIN_LEVEL_LPG                           = 0x57;
-const uint8_t VAN_POPUP_MSG_ADIN_FAULT                              = 0x58;
+const uint8_t VAN_POPUP_MSG_ADIN_FAULT                              = 0x58; // Dynalto system fault (Peugeot 1007)
 const uint8_t VAN_POPUP_MSG_USE_STOP_AND_START                      = 0x59;
 const uint8_t VAN_POPUP_MSG_STOP_AND_START_AVAILABLE                = 0x5A;
 const uint8_t VAN_POPUP_MSG_STOP_AND_START_SYSTEM_ACTIVE            = 0x5B;
@@ -97,18 +99,18 @@ const uint8_t VAN_POPUP_MSG_307_DYNALTO                             = 0x5F;
 
 const uint8_t VAN_POPUP_MSG_PLACE_LEVER_IN_NEUTRAL                  = 0x67; // On RT3 monochrome: Change to neutral
 
-const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_COMPLETE                 = 0x70;
-const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SCREEN_NOT_IN_PLACE= 0x71;
-const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_NOT_LOCKED               = 0x72;
-const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_BOOT_OPEN          = 0x73;
+const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_COMPLETE                 = 0x70; // Roof folded in cabriolet position (Peugeot 1007)
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SCREEN_NOT_IN_PLACE= 0x71; // Operation imposibble pull the screen (Peugeot 1007)
+const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_NOT_LOCKED               = 0x72; // Folding roof locking fault(Peugeot 1007)
+const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_BOOT_OPEN          = 0x73; // Action imposibble boot open
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_SPEED_TOO_HIGH     = 0x74;
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_EXT_TEMP_TOO_LOW   = 0x75;
 const uint8_t VAN_POPUP_MSG_ROOF_MECHANISM_FAULTY                   = 0x76; // On RT3 monochrome: Folding roof mechanism faulty
-const uint8_t VAN_POPUP_MSG_BOOT_MECHANISM_NOT_LOCKED               = 0x77;
+const uint8_t VAN_POPUP_MSG_BOOT_MECHANISM_NOT_LOCKED               = 0x77; // Folding roo compartment fault (Peugeot 1007)
 
 const uint8_t VAN_POPUP_MSG_BOW_FAULT                               = 0x7C; // On RT3 monochrome: Roof frame fault
 const uint8_t VAN_POPUP_MSG_OPERATION_IMPOSSIBLE_ROOF_NOT_UNLOCKED  = 0x7D;
-const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_INCOMPLETE               = 0x7F;
+const uint8_t VAN_POPUP_MSG_ROOF_OPERATION_INCOMPLETE               = 0x7F; // Folding roof in coupe position (Peugeot 1007)
 
 const uint8_t VAN_POPUP_MSG_NONE                                    = 0xFF;
 
