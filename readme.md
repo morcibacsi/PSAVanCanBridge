@@ -2,7 +2,7 @@
 
 ### What is it ?
 
-In the beginning of 2000's the PSA group (Peugeot and Citroen) used VAN bus as a communication protocol between the various comfort-related equipments. Later around 2005 they started to replace this protocol in their newer cars with the CAN bus protocol, however some cars had VAN bus inside them until 2009.
+In the beginning of 2000's the PSA group (Peugeot and Citroen) used VAN bus as a communication protocol between the various comfort-related equipment. Later around 2005 they started to replace this protocol in their newer cars with the CAN bus protocol, however some cars had VAN bus inside them until 2009.
 
 The goal of this project is to have the new peripherals (mainly the head unit and the multi function display) using the CAN bus protocol working inside cars utilizing VAN bus.
 
@@ -41,7 +41,7 @@ But here is the list of the bridged functions:
  - Speed and RPM (for automatic volume correction functionality in the head unit)
  - Messages shown on the multifunction display (MFD)
  - Air conditioning status (speed, air recycling, rear window demist, A/C enabled status also the internal temperature, and the directions are read via diagnostic messages)
- - Most of the odometer funtionality (fuel level, coolant temperature, lights and turn-indicator status, mil, airbag lights, only the battery and the heating spark indicator is missing)
+ - Most of the odometer functionality (fuel level, coolant temperature, lights and turn-indicator status, mil, airbag lights, only the battery and the heating spark indicator is missing)
  - Display and radio lights based on the side lights and dipped beam status
  - Trip computer related data
  - Door statuses
@@ -55,7 +55,11 @@ But here is the list of the bridged functions:
 
 ### Removing the old display from the car
 
-If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system stops working. Fixing the air conditioner is pretty easy, you just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins) as the VAN bus lines for the aircon go through the display. The reason behind the missing functionality is due to the fact that the display queries the BSI for the trip computer data, and the door statuses. If you would like to remove the original display from your car you need to build a hardware revision which contains a TSS463C.
+If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system may stop working. In the 307 the VAN data wires for the A/C are routed through the display. So obviously if you remove the display the circuit will be broken, which is pretty easy to fix. You just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins). 
+
+![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/mfd_connector_shortcut_photo.jpg)
+
+The reason behind the missing functionality is due to the fact that the display queries the BSI for the trip computer data, and the door statuses. If you would like to remove the original display from your car you need to build a hardware revision which contains a TSS463C.
 
 ### Head unit anti-theft protection
 
