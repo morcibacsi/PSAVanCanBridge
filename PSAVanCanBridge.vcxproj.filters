@@ -370,6 +370,12 @@
     <ClInclude Include="src\Helpers\VinFlashStorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Van\Writers\VanDisplayStatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Van\Structs\VanDisplayStatusStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">

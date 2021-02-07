@@ -85,6 +85,11 @@ class VanCarStatusPacketSender
     {
         return vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_CARSTATUS, 29, 1);
     }
+
+    void Disable(uint8_t channelId)
+    {
+        vanMessageSender->disable_channel(channelId);
+    }
 };
 #pragma endregion
 

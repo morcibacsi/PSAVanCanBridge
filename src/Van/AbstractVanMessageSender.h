@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _AbstractVanMessageSender_h
     #define _AbstractVanMessageSender_h
@@ -93,6 +93,12 @@ public:
     /// <param name="index0"> Zero based index of data to be set </param>
     /// <param name="value"> Value to be set </param>
     virtual void set_value_in_channel(uint8_t channelId, uint8_t index0, uint8_t value) = 0;
+
+    /// <summary>
+    /// Disables a previously used channel
+    /// </summary>
+    /// <param name="channelId"> Channel identifier (0-14)</param>
+    virtual void disable_channel(uint8_t channelId);
 };
 
 #endif

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _VanMessageSender_h
     #define _VanMessageSender_h
@@ -112,6 +112,11 @@ public:
     void set_value_in_channel(uint8_t channelId, uint8_t index0, uint8_t value) override
     {
         VAN->set_value_in_channel(channelId, index0, value);
+    }
+
+    void disable_channel(uint8_t channelId) override
+    {
+        VAN->disable_channel(channelId);
     }
 };
 

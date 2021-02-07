@@ -24,5 +24,6 @@ struct VanIgnitionDataToBridgeToCan
     uint8_t InteriorRearRightDistanceInCm = 0xFF;
     uint8_t HaveDataFromParkingAid = 0;
     uint8_t LowBeamOn = 0;
+    uint8_t TripButtonPressed = 0;
 };
 #endif

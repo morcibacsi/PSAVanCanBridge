@@ -57,6 +57,8 @@ public:
         dataToBridge.FuelConsumption = SwapHiByteAndLoByte(packet.data.FuelConsumption.data);
         dataToBridge.FuelLeftToPump = SwapHiByteAndLoByte(packet.data.FuelLeftToPumpInKm.data);
 
+        ignitionDataToBridge.TripButtonPressed = packet.data.Field10.TripButton;
+
         //canTripInfoHandler->SetTripData(
         //    dataToBridge.Rpm,
         //    dataToBridge.Speed,

@@ -37,6 +37,10 @@ class VanQueryTripComputer : public VanMessageWriterBase
         _ignition = ignition;
     }
 
+    void Stop()
+    {
+        carStatusSender->Disable(TRIP_COMPUTER_CHANNEL);
+    }
 };
 
 #endif
