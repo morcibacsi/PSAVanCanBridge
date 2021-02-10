@@ -55,7 +55,7 @@ class VanWriterContainer {
         {
             tripComputerQuery->Stop();
 
-            displayStatus->SetData(ignitionData.TripButtonPressed, currentTime);
+            displayStatus->SetData(ignitionData.Ignition, ignitionData.TripButtonPressed, currentTime);
             displayStatus->Process(currentTime);
             _sendTripDataQuery = 1;
         }

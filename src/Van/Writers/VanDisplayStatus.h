@@ -17,20 +17,24 @@ class VanDisplayStatus : public VanMessageWriterBase
     uint8_t _resetTrip = 0;
     uint8_t _resetSent = 0;
     unsigned long _tripButtonPressedTime = 0;
+    uint8_t _ignition = 0;
 
     VanDisplayStatusPacketSender* displayStatusSender;
 
     virtual void InternalProcess() override
     {
-        if (_resetTrip == 1 && _resetSent == 0)
+        if (_ignition)
         {
-            displayStatusSender->SendTripReset(SEND_STATUS_CHANNEL);
-            _resetTrip = 0;
-            _resetSent = 1;
-        }
-        else
-        {
-            displayStatusSender->SendReady(SEND_STATUS_CHANNEL);
+            if (_resetTrip == 1 && _resetSent == 0)
+            {
+                displayStatusSender->SendTripReset(SEND_STATUS_CHANNEL);
+                _resetTrip = 0;
+                _resetSent = 1;
+            }
+            else
+            {
+                displayStatusSender->SendReady(SEND_STATUS_CHANNEL);
+            }
         }
     }
 
@@ -41,22 +45,26 @@ class VanDisplayStatus : public VanMessageWriterBase
         displayStatusSender->SendReady(SEND_STATUS_CHANNEL);
     }
 
-    void SetData(uint8_t tripButton, unsigned long currentTime)
+    void SetData(uint8_t ignition, uint8_t tripButton, unsigned long currentTime)
     {
-        if (tripButton == 1 && _tripButtonState == 0)
+        _ignition = ignition;
+        if (_ignition)
         {
-            _tripButtonState = 1;
-            _tripButtonPressedTime = currentTime;
-        }
-        if (tripButton == 0 && _tripButtonState == 1)
-        {
-            _tripButtonState = 0;
-            _resetSent = 0;
-            _resetTrip = 0;
-        }
-        if (tripButton == 1 && _tripButtonState == 1 && currentTime - _tripButtonPressedTime > 2000)
-        {
-            _resetTrip = 1;
+            if (tripButton == 1 && _tripButtonState == 0)
+            {
+                _tripButtonState = 1;
+                _tripButtonPressedTime = currentTime;
+            }
+            if (tripButton == 0 && _tripButtonState == 1)
+            {
+                _tripButtonState = 0;
+                _resetSent = 0;
+                _resetTrip = 0;
+            }
+            if (tripButton == 1 && _tripButtonState == 1 && currentTime - _tripButtonPressedTime > 2000)
+            {
+                _resetTrip = 1;
+            }
         }
     }
 
