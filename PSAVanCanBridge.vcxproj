@@ -125,6 +125,7 @@
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler2.h" />
     <ClInclude Include="src\Can\Handlers\CanDisplayPopupHandler3.h" />
     <ClInclude Include="src\Can\Handlers\CanMessageHandlerBase.h" />
+    <ClInclude Include="src\Can\Handlers\CanNaviPositionHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanParkingAidHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanPinConfigHandler.h" />
     <ClInclude Include="src\Can\Handlers\CanRadioRd4DiagHandler.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="src\Can\Structs\CanDoorStatusStructs.h" />
     <ClInclude Include="src\Can\Structs\CanIgnitionStructs.h" />
     <ClInclude Include="src\Can\Structs\CanMenuStructs.h" />
+    <ClInclude Include="src\Can\Structs\CanNaviPositionStructs.h" />
     <ClInclude Include="src\Can\Structs\CanParkingAidStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioAudioSettingsStructs.h" />
     <ClInclude Include="src\Can\Structs\CanRadioInfoStructs.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h" />
     <ClInclude Include="src\Van\Handlers\VanParkingAidDiagDistanceHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanParkingAidDiagInputStateHandler.h" />
+    <ClInclude Include="src\Van\Handlers\VanPositionForRt3Handler.h" />
     <ClInclude Include="src\Van\Handlers\VanRadioRemoteHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanSpeedAndRpmHandler.h" />
     <ClInclude Include="src\Van\Structs\VanAirConditioner1Structs.h" />
@@ -214,6 +217,7 @@
     <ClInclude Include="src\Van\Structs\VanInstrumentClusterV1Structs.h" />
     <ClInclude Include="src\Van\Structs\VanInstrumentClusterV2Structs.h" />
     <ClInclude Include="src\Van\Structs\VanParkingAidDiagStructs.h" />
+    <ClInclude Include="src\Van\Structs\VanPositionForRt3Structs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioInfoStructs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioRemoteStructs.h" />
     <ClInclude Include="src\Van\Structs\VanRadioTunerStructs.h" />

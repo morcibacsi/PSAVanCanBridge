@@ -66,6 +66,7 @@
 #include "src/Helpers/VinFlashStorage.h"
 
 #include "src/Can/CanMessageHandlerContainer.h"
+#include "src/Can/Handlers/CanNaviPositionHandler.h"
 #include "src/Van/VanHandlerContainer.h"
 #include "src/Can/Handlers/ICanDisplayPopupHandler.h"
 
@@ -129,6 +130,7 @@ CanIgnitionPacketSender* radioIgnition;
 CanDashIgnitionPacketSender* dashIgnition;
 CanParkingAidHandler* canParkingAid;
 CanRadioButtonPacketSender* canRadioButtonSender;
+CanNaviPositionHandler* canNaviPositionHandler;
 
 CanMessageHandlerContainer* canMessageHandlerContainer;
 VanHandlerContainer* vanHandlerContainer;
@@ -378,6 +380,13 @@ void CANSendDataTaskFunction(void * parameter)
             canDash4MessageHandler->Process(currentTime);
 
             #pragma endregion
+
+            #pragma region Navigation
+
+            canNaviPositionHandler->SetData(dataToBridge.RightWheelPosition, dataToBridge.LeftWheelPosition);
+            canNaviPositionHandler->Process(currentTime);
+
+            #pragma endregion 
 
             if (SendNoRadioButtonMessage)
             {
@@ -770,6 +779,7 @@ void setup()
     dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
     canParkingAid = new CanParkingAidHandler(CANInterface);
     canRadioButtonSender = new CanRadioButtonPacketSender(CANInterface);
+    canNaviPositionHandler = new CanNaviPositionHandler(CANInterface);
 
     canMessageHandlerContainer = new CanMessageHandlerContainer(CANInterface, serialPort, vinFlashStorage);
 
