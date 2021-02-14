@@ -18,6 +18,8 @@ class VanCarStatusWithTripComputerHandler : public AbstractVanMessageHandler {
     ICanDisplayPopupHandler* canPopupHandler;
     CanTripInfoHandler* canTripInfoHandler;
 
+    uint8_t previousTripButtonState = 0;
+
     ~VanCarStatusWithTripComputerHandler()
     {
 
@@ -73,9 +75,13 @@ public:
         //    dataToBridge.FuelLevel
         //);
 
-        if (packet.data.Field10.TripButton)
+        if (previousTripButtonState != packet.data.Field10.TripButton)
         {
-            canTripInfoHandler->TripButtonPress();
+            previousTripButtonState = packet.data.Field10.TripButton;
+            if (previousTripButtonState == 0)
+            {
+                canTripInfoHandler->TripButtonPress();
+            }
         }
 
         doorStatus.status.FrontLeft = packet.data.Doors.FrontLeft;

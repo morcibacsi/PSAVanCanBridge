@@ -27,13 +27,13 @@ class VanDisplayStatus : public VanMessageWriterBase
         {
             if (_resetTrip == 1 && _resetSent == 0)
             {
-                displayStatusSender->SendTripReset(SEND_STATUS_CHANNEL);
+                displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, 1);
                 _resetTrip = 0;
                 _resetSent = 1;
             }
             else
             {
-                displayStatusSender->SendReady(SEND_STATUS_CHANNEL);
+                displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, 0);
             }
         }
     }
@@ -42,7 +42,7 @@ class VanDisplayStatus : public VanMessageWriterBase
     VanDisplayStatus(AbstractVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, SEND_STATUS_INTERVAL)
     {
         displayStatusSender = new VanDisplayStatusPacketSender(vanMessageSender);
-        displayStatusSender->SendReady(SEND_STATUS_CHANNEL);
+        displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, 0);
     }
 
     void SetData(uint8_t ignition, uint8_t tripButton, unsigned long currentTime)

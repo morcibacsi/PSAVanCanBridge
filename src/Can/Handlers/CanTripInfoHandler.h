@@ -31,6 +31,7 @@ class CanTripInfoHandler
 
     int IsSendingEnabled = 1;
     uint8_t ValueToUpdate = 0;
+    bool PreventTripChange = false;
 
     void SendCanTripInfo0(int kmToGasStation, int lper100km, int kmtoFinish, uint8_t button)
     {
@@ -57,8 +58,20 @@ class CanTripInfoHandler
         IsSendingEnabled = 1;
     }
 
+    void TripResetHappened()
+    {
+        // After we reset the trip data we have a message with the trip button status set to 1.
+        // To prevent the display from cycling the trip data we swallow this status
+        PreventTripChange = true;
+    }
+
     void TripButtonPress()
     {
+        if (PreventTripChange)
+        {
+            PreventTripChange = false;
+            return;
+        }
         if (TripButtonPressed == 0 && IsSendingEnabled == 1)
         {
             TripButtonPressed = 1;

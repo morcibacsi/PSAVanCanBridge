@@ -196,6 +196,7 @@
     <ClInclude Include="src\Van\Handlers\VanDashboardHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV1.h" />
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV2.h" />
+    <ClInclude Include="src\Van\Handlers\VanEmfBsiRequestHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV1.h" />
     <ClInclude Include="src\Van\Handlers\VanInstrumentClusterHandlerV2.h" />
     <ClInclude Include="src\Van\Handlers\VanParkingAidDiagDistanceHandler.h" />

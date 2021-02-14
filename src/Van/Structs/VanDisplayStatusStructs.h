@@ -9,11 +9,22 @@
 
 // VANID: 5E4
 const uint16_t VAN_ID_DISPLAY_STATUS = 0x5E4;
+const uint8_t VAN_ID_EMF_BSI_REQUEST_LENGTH = 2;
+
+typedef struct {
+    uint8_t unused                             : 2; // bit 0-1
+    uint8_t alert_reminder_request             : 1; // bit 2
+    uint8_t overspeed_memorization_request     : 1; // bit 3
+    uint8_t overspeed_alert                    : 1; // bit 4
+    uint8_t request_for_keep_van_comfort_alive : 1; // bit 5
+    uint8_t request_to_reset_cumulative        : 1; // bit 6
+    uint8_t request_to_reset_course_totals     : 1; // bit 7
+} VanEmfBsiRequestByte1;
 
 // Read left to right in documentation
 typedef struct VanDisplayStatusStruct {
-    uint8_t Byte0;
-    uint8_t Byte1;
+    VanEmfBsiRequestByte1 Requests;
+    uint8_t OverSpeedAlertValue;
 };
 
 typedef union VanDisplayStatusPacket {
@@ -33,27 +44,15 @@ public:
         vanMessageSender = object;
     }
 
-    void SendReady(uint8_t channelId)
+    void SendStatus(uint8_t channelId, uint8_t resetTrip)
     {
         VanDisplayStatusPacket packet;
         memset(&packet, 0, sizeof(packet));
 
-        packet.data.Byte0 = 0x20;
-        packet.data.Byte1 = 0x1E;
+        packet.data.Requests.request_for_keep_van_comfort_alive = 1;
+        packet.data.Requests.request_to_reset_course_totals = resetTrip;
 
-        unsigned char *serializedPacket = Serialize<VanDisplayStatusPacket>(packet);
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_DISPLAY_STATUS, serializedPacket, sizeof(packet), 1);
-        memset(&packet, 0, 0);
-        delete[] serializedPacket;
-    }
-
-    void SendTripReset(uint8_t channelId)
-    {
-        VanDisplayStatusPacket packet;
-        memset(&packet, 0, sizeof(packet));
-
-        packet.data.Byte0 = 0xA0;
-        packet.data.Byte1 = 0x1E;
+        packet.data.OverSpeedAlertValue = 0x1E;
 
         unsigned char *serializedPacket = Serialize<VanDisplayStatusPacket>(packet);
         vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_DISPLAY_STATUS, serializedPacket, sizeof(packet), 1);

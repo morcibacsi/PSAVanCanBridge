@@ -388,6 +388,9 @@
     <ClInclude Include="src\Van\Handlers\VanPositionForRt3Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Van\Handlers\VanEmfBsiRequestHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">

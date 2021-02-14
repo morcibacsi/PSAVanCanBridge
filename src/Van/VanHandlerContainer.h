@@ -24,9 +24,10 @@
 #include "Handlers/VanParkingAidDiagDistanceHandler.h"
 #include "Handlers/VanParkingAidDiagInputStateHandler.h"
 #include "Handlers/VanPositionForRt3Handler.h"
+#include "Handlers/VanEmfBsiRequestHandler.h"
 
 class VanHandlerContainer {
-    const static uint8_t VAN_MESSAGE_HANDLER_COUNT = 14;
+    const static uint8_t VAN_MESSAGE_HANDLER_COUNT = 15;
     AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
     VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
@@ -60,6 +61,7 @@ class VanHandlerContainer {
         vanMessageHandlers[11] = new VanAirConditionerDiagActuatorHandler();
         vanMessageHandlers[12] = new VanParkingAidDiagDistanceHandler();
         vanMessageHandlers[13] = new VanPositionForRt3Handler();
+        vanMessageHandlers[14] = new VanEmfBsiRequestHandler(canTripInfoHandler);
     }
 
     bool ProcessMessage(
