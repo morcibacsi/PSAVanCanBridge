@@ -192,6 +192,7 @@
     <ClInclude Include="src\Van\Handlers\VanAirConditioner2Handler.h" />
     <ClInclude Include="src\Van\Handlers\VanAirConditionerDiagActuatorHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanAirConditionerDiagSensorHandler.h" />
+    <ClInclude Include="src\Van\Handlers\VanBsiEventsHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanCarStatusWithTripComputerHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanDashboardHandler.h" />
     <ClInclude Include="src\Van\Handlers\VanDisplayHandlerV1.h" />
@@ -207,6 +208,7 @@
     <ClInclude Include="src\Van\Structs\VanAirConditioner1Structs.h" />
     <ClInclude Include="src\Van\Structs\VanAirConditioner2Structs.h" />
     <ClInclude Include="src\Van\Structs\VanAirConditionerDiagStructs.h" />
+    <ClInclude Include="src\Van\Structs\VanBsiEventsStructs.h" />
     <ClInclude Include="src\Van\Structs\VanCarStatusWithTripComputerStructs.h" />
     <ClInclude Include="src\Van\Structs\VanCdChangerStructs.h" />
     <ClInclude Include="src\Van\Structs\VanDashboardMileageStructs.h" />

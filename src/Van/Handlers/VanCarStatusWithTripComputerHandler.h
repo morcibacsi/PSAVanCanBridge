@@ -75,14 +75,6 @@ public:
         //    dataToBridge.FuelLevel
         //);
 
-        if (previousTripButtonState != packet.data.Field10.TripButton)
-        {
-            previousTripButtonState = packet.data.Field10.TripButton;
-            if (previousTripButtonState == 0)
-            {
-                canTripInfoHandler->TripButtonPress();
-            }
-        }
 
         doorStatus.status.FrontLeft = packet.data.Doors.FrontLeft;
         doorStatus.status.FrontRight = packet.data.Doors.FrontRight;
