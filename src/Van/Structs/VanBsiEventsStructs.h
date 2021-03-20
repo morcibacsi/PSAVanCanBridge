@@ -24,12 +24,14 @@ typedef struct {
 } VanBsiEventByte1;
 
 typedef struct {
-    uint8_t unused02              : 3; // bit 0-2
-    uint8_t trip_button_pressed   : 1; // bit 3
-    uint8_t unused4               : 1; // bit 4
-    uint8_t door_status_changed   : 1; // bit 5
-    uint8_t signal_changed        : 1; // bit 6
-    uint8_t display_alert_changed : 1; // bit 7
+    uint8_t parking_aid_display_request : 1; // bit 0
+    uint8_t parking_aid_beep_request    : 1; // bit 1
+    uint8_t unused2                     : 1; // bit 2
+    uint8_t trip_button_pressed         : 1; // bit 3
+    uint8_t unused4                     : 1; // bit 4
+    uint8_t door_status_changed         : 1; // bit 5
+    uint8_t signal_changed              : 1; // bit 6
+    uint8_t display_alert_changed       : 1; // bit 7
 } VanBsiEventByte2;
 
 // Read left to right in documentation
