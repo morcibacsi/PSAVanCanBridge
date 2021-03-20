@@ -66,15 +66,18 @@ int8_t static GetTemperatureFromVANByte(int8_t vanByte)
 
 int8_t static GetWaterTemperatureFromVANByte(int8_t vanByte)
 {
-    return (vanByte - 39);
+    return (vanByte - 40);
 }
 
 int8_t static GetVANByteFromWaterTemperature(int8_t waterTemperature)
 {
-    return (waterTemperature + 39);
+    return (waterTemperature + 40);
 }
 
 #pragma region Sender class
+#include "../AbstractVanMessageSender.h"
+#include "../../Helpers/Serializer.h"
+
 class VanDashboardPacketSender
 {
     AbstractVanMessageSender * vanMessageSender;
