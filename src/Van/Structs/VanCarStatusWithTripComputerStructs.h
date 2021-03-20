@@ -71,6 +71,9 @@ typedef union VanCarStatusWithTripComputerPacket {
 };
 
 #pragma region Sender class
+
+#include "../AbstractVanMessageSender.h"
+
 class VanCarStatusPacketSender
 {
     AbstractVanMessageSender* vanMessageSender;

@@ -1,10 +1,8 @@
-﻿// VanDisplayStructs.h
+// VanDisplayStructs.h
 #pragma once
 
 #ifndef _VanDisplayStructsV1_h
     #define _VanDisplayStructsV1_h
-
-#include "../AbstractVanMessageSender.h"
 
 /*
     This packet is mainly dedicated to the central display and it's messages however some bits might be used by the instrument cluster also.
@@ -181,6 +179,9 @@ typedef union VanDisplayPacketV1 {
 };
 
 #pragma region Sender class
+#include "../AbstractVanMessageSender.h"
+#include "../../Helpers/Serializer.h"
+
 class VanDisplayPacketV1Sender
 {
     AbstractVanMessageSender * vanMessageSender;

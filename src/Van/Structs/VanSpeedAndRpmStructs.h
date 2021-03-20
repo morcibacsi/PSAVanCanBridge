@@ -58,6 +58,10 @@ uint8_t static GetSpeedFromVanData(uint16_t input)
 }
 
 #pragma region Sender class
+
+#include "../AbstractVanMessageSender.h"
+#include "../../Helpers/Serializer.h"
+
 class VanSpeedAndRpmPacketSender
 {
     AbstractVanMessageSender * vanMessageSender;

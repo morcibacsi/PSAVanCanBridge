@@ -4,8 +4,6 @@
 #ifndef _VanParkingAidDiagStructs_h
     #define _VanParkingAidDiagStructs_h
 
-#include "../AbstractVanMessageSender.h"
-
 // VANID: AE8
 const uint16_t VAN_ID_PARKING_AID_DIAG_ANSWER = 0xAE8;
 // VANID: A68
@@ -194,6 +192,9 @@ typedef union VanParkingAidInputStatePacket {
 #pragma endregion 
 
 #pragma region Sender class
+
+#include "../AbstractVanMessageSender.h"
+
 class VanParkingAidDiagPacketSender
 {
     AbstractVanMessageSender* vanMessageSender;

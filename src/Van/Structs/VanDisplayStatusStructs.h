@@ -4,9 +4,6 @@
 #ifndef _VanDisplayStatusStructs_h
     #define _VanDisplayStatusStructs_h
 
-#include "../../Helpers/Serializer.h"
-#include "../AbstractVanMessageSender.h"
-
 // VANID: 5E4
 const uint16_t VAN_ID_DISPLAY_STATUS = 0x5E4;
 const uint8_t VAN_ID_EMF_BSI_REQUEST_LENGTH = 2;
@@ -32,8 +29,11 @@ typedef union VanDisplayStatusPacket {
     uint8_t VanDisplayStatusPacket[sizeof(VanDisplayStatusStruct)];
 };
 
-
 #pragma region Sender class
+
+#include "../AbstractVanMessageSender.h"
+#include "../../Helpers/Serializer.h"
+
 class VanDisplayStatusPacketSender
 {
     AbstractVanMessageSender * vanMessageSender;

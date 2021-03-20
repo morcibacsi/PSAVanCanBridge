@@ -1,4 +1,4 @@
-﻿// VanCdChangerStructs.h
+// VanCdChangerStructs.h
 #pragma once
 
 #ifndef _VanCdChangerStructs_h
@@ -51,6 +51,9 @@ typedef union VanCdChangerPacket {
 };
 
 #pragma region Sender class
+#include "../AbstractVanMessageSender.h"
+#include "../../Helpers/Serializer.h"
+
 class VanCdChangerPacketSender
 {
     AbstractVanMessageSender * vanMessageSender;

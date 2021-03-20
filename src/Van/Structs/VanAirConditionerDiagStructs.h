@@ -4,8 +4,6 @@
 #ifndef _VanAirConditionerDiagSensorStructs_h
     #define _VanAirConditionerDiagSensorStructs_h
 
-#include "../Handlers/AbstractVanMessageHandler.h"
-
 // VANID: ADC
 const uint16_t VAN_ID_AIR_CONDITIONER_DIAG = 0xADC;
 // VANID: A5C
@@ -95,6 +93,8 @@ float static GetACDiagVoltageFromVanValue(uint16_t vanValue)
 }
 
 #pragma region Sender class
+#include "../AbstractVanMessageSender.h"
+
 class VanACDiagPacketSender
 {
     AbstractVanMessageSender* vanMessageSender;

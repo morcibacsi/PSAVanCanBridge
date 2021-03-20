@@ -1,4 +1,4 @@
-﻿// VanDashboardMileageStructs.h
+// VanDashboardMileageStructs.h
 #pragma once
 
 #ifndef _VanDashboardMileageStructs_h
@@ -23,6 +23,8 @@ typedef union VanDashboardMileagePacket {
 };
 
 #pragma region Sender class
+#include "../AbstractVanMessageSender.h"
+
 class VanDashboardMileagePacketSender
 {
     AbstractVanMessageSender* vanMessageSender;
