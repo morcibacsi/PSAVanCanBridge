@@ -25,8 +25,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_PARKING_AID_DIAG_ANSWER) && messageLength == 5 && vanMessageWithoutId[2] == PR_DIAG_ANSWER_STATE_OF_INPUT))
@@ -36,8 +36,8 @@ public:
 
         const VanParkingAidInputStatePacket packet = DeSerialize<VanParkingAidInputStatePacket>(vanMessageWithoutId);
 
-        ignitionDataToBridge.IsReverseEngaged = packet.data.Status.system_active;
-        ignitionDataToBridge.IsTrailerPresent = packet.data.Status.trailer_present;
+        ignitionDataToBridge->IsReverseEngaged = packet.data.Status.system_active;
+        ignitionDataToBridge->IsTrailerPresent = packet.data.Status.trailer_present;
 
         return true;
     }

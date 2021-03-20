@@ -10,7 +10,7 @@
 
 class CanTripInfoHandler
 {
-    const int CAN_TRIP_INTERVAL = 50;
+    const int CAN_TRIP_INTERVAL = 333;
     const int CAN_TRIP_SEND_COUNT = 10;
 
     AbstractCanMessageSender *canMessageSender;
@@ -27,10 +27,10 @@ class CanTripInfoHandler
     int Trip2Consumption = 0;
     int FuelConsumption = 0;
     int FuelLeftToPump = 0;
-    int TripButtonPressed = 0;
+    uint8_t TripButtonPressed = 0;
 
     int IsSendingEnabled = 1;
-    uint8_t ValueToUpdate = 0;
+    uint8_t ValueToUpdate = 1;
     bool PreventTripChange = false;
 
     void SendCanTripInfo0(int kmToGasStation, int lper100km, int kmtoFinish, uint8_t button)
@@ -87,7 +87,7 @@ class CanTripInfoHandler
                 messageSentCount++;
                 vTaskDelay(5 / portTICK_PERIOD_MS);
             }
-
+            SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, 0);
             TripButtonPressed = 0;
             IsSendingEnabled = 1;
         }
@@ -129,25 +129,25 @@ class CanTripInfoHandler
 
             switch (ValueToUpdate)
             {
-                case 0:
+                case 1:
                 {
                     SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, TripButtonPressed);
                     break;
                 }
-                case 1:
+                case 2:
                 {
                     SendCanTripInfo1(Trip1Distance, Trip1Consumption, Trip1Speed);
                     break;
                 }
-                case 2:
+                case 3:
                 {
                     SendCanTripInfo2(Rpm, FuelConsumption, Speed);
-                    ValueToUpdate = -1;
+                    ValueToUpdate = 0;
                     break;
                 }
                 default:
                 {
-                    ValueToUpdate = -1;
+                    ValueToUpdate = 0;
                 }
             }
             ValueToUpdate++;

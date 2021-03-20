@@ -46,7 +46,7 @@ class VanWriterContainer {
         if (_sendTripDataQuery == 1)
         {
             displayStatus->Stop();
-
+            delay(5);
             tripComputerQuery->SetData(ignitionData.Ignition);
             tripComputerQuery->Process(currentTime);
             _sendTripDataQuery = 0;
@@ -54,7 +54,7 @@ class VanWriterContainer {
         else
         {
             tripComputerQuery->Stop();
-
+            delay(5);
             displayStatus->SetData(ignitionData.Ignition, ignitionData.TripButtonPressed, currentTime);
             displayStatus->Process(currentTime);
             _sendTripDataQuery = 1;

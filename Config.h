@@ -18,6 +18,8 @@ constexpr bool QUERY_PARKING_AID_DISTANCE = false;
 //if true the VAN messages with CRC ERROR are logged
 constexpr bool LOG_MSG_WITH_CRC_ERROR = true;
 
+constexpr bool READ_SERIAL_PORT_FOR_COMMANDS = false;
+
 constexpr uint8_t ENABLE_PARKING_AID_SOUND_FROM_SPEAKER = 0;
 
 constexpr uint8_t TASK_WATCHDOG_TIMEOUT = 7;

@@ -10,7 +10,8 @@
     #include "WProgram.h"
 #endif
 
-#include <tss463_van.h>
+#include <tss46x_van.h>
+#include <tss463.h>
 #include "AbstractVanMessageSender.h"
 
 enum VAN_NETWORK {
@@ -23,7 +24,8 @@ enum VAN_NETWORK {
 /// It is perfectly fine to use the library directly
 /// </summary>
 class VanMessageSender : public AbstractVanMessageSender {
-    TSS463_VAN* VAN;
+    ITss46x* vanSender;
+    TSS46X_VAN* VAN;
 
 public:
     /// <summary> Constructor for the VAN bus library </summary>
@@ -41,7 +43,8 @@ public:
                 vanSpeed = VAN_125KBPS;
         }
 
-        VAN = new TSS463_VAN(vanPin, spi, vanSpeed);
+        vanSender = new Tss463(vanPin, spi);
+        VAN = new TSS46X_VAN(vanSender, vanSpeed);
     }
 
     bool set_channel_for_transmit_message(uint8_t channelId, uint16_t identifier, const uint8_t values[], uint8_t messageLength, uint8_t requireAck) override

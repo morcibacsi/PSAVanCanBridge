@@ -10,6 +10,7 @@
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
 #include "../../Helpers/VanCanDisplayPopupMap.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../../Can/Handlers/CanTripInfoHandler.h"
 #include "../../Can/Handlers/ICanDisplayPopupHandler.h"
@@ -54,8 +55,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_POPUP_V2) && messageLength == 16))
@@ -152,18 +153,18 @@ public:
             canPopupHandler->QueueNewMessage(item);
         }
 
-        dataToBridge.DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
-        dataToBridge.DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_level_low;
-        dataToBridge.DashIcons1Field.status.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
-        dataToBridge.DashIcons1Field.status.Handbrake = packet.data.Field5.handbrake;
-        dataToBridge.DashIcons1Field.status.Abs = packet.data.Field2.abs;
-        dataToBridge.DashIcons1Field.status.Esp = packet.data.Field2.esp;
-        dataToBridge.DashIcons1Field.status.Mil = packet.data.Field2.mil;
-        dataToBridge.DashIcons1Field.status.Airbag = packet.data.Field3.side_airbag_faulty;
+        dataToBridge->DashIcons1Field.status.SeatBeltWarning = packet.data.Field5.seatbelt_warning;
+        dataToBridge->DashIcons1Field.status.FuelLowLight = packet.data.Field6.fuel_level_low;
+        dataToBridge->DashIcons1Field.status.PassengerAirbag = packet.data.Field5.passenger_airbag_deactivated;
+        dataToBridge->DashIcons1Field.status.Handbrake = packet.data.Field5.handbrake;
+        dataToBridge->DashIcons1Field.status.Abs = packet.data.Field2.abs;
+        dataToBridge->DashIcons1Field.status.Esp = packet.data.Field2.esp;
+        dataToBridge->DashIcons1Field.status.Mil = packet.data.Field2.mil;
+        dataToBridge->DashIcons1Field.status.Airbag = packet.data.Field3.side_airbag_faulty;
 
         if (packet.data.Field5.seatbelt_warning)
         {
-            if (dataToBridge.Speed > 10)
+            if (dataToBridge->Speed > 10)
             {
                 CanDisplayPopupItem item;
                 item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
@@ -191,14 +192,14 @@ public:
         if (packet.data.Field6.left_stick_button)
         {
             leftStickButtonReturn = currentTime + LEFT_STICK_BUTTON_TIME;
-            ignitionDataToBridge.LeftStickButtonPressed = 1;
-            dataToBridge.LeftStickButtonPressed = 1;
+            ignitionDataToBridge->LeftStickButtonPressed = 1;
+            dataToBridge->LeftStickButtonPressed = 1;
         }
 
         if (currentTime > leftStickButtonReturn)
         {
-            ignitionDataToBridge.LeftStickButtonPressed = 0;
-            dataToBridge.LeftStickButtonPressed = 0;
+            ignitionDataToBridge->LeftStickButtonPressed = 0;
+            dataToBridge->LeftStickButtonPressed = 0;
         }
 
         return true;

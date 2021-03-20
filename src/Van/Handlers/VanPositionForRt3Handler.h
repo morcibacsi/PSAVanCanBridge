@@ -25,8 +25,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_POSITION_FOR_RT3) && messageLength == VAN_ID_POSITION_FOR_RT3_LENGTH))
@@ -35,8 +35,8 @@ public:
         }
 
         const VanPositionForRt3Packet packet = DeSerialize<VanPositionForRt3Packet>(vanMessageWithoutId);
-        dataToBridge.RightWheelPosition = packet.data.RearRightAbsStatus.asRawValue;
-        dataToBridge.LeftWheelPosition = packet.data.RearLeftAbsStatus.asRawValue;
+        dataToBridge->RightWheelPosition = packet.data.RearRightAbsStatus.asRawValue;
+        dataToBridge->LeftWheelPosition = packet.data.RearLeftAbsStatus.asRawValue;
 
         return true;
     }

@@ -1,4 +1,4 @@
-﻿// VanAirConditionerDiagSensorHandler.h
+// VanAirConditionerDiagSensorHandler.h
 #pragma once
 
 #ifndef _VanAirConditionerDiagSensorHandler_h
@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanAirConditionerDiagStructs.h"
 
@@ -24,8 +25,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_DIAG) && messageLength == 22 && vanMessageWithoutId[2] == VAN_ID_AIR_CONDITIONER_DIAG_SENSOR_STATUS))
@@ -34,8 +35,8 @@ public:
         }
 
         const VanAirConditionerDiagSensorStatusPacket packet = DeSerialize<VanAirConditionerDiagSensorStatusPacket>(vanMessageWithoutId);
-        ignitionDataToBridge.InternalTemperature = GetACDiagTemperatureFromVanValue(packet.data.InternalTemperature1, packet.data.InternalTemperature2);
-        dataToBridge.InternalTemperature = ignitionDataToBridge.InternalTemperature;
+        ignitionDataToBridge->InternalTemperature = GetACDiagTemperatureFromVanValue(packet.data.InternalTemperature1, packet.data.InternalTemperature2);
+        dataToBridge->InternalTemperature = ignitionDataToBridge->InternalTemperature;
         return true;
     }
 };

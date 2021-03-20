@@ -9,7 +9,7 @@
     #include "WProgram.h"
 #endif
 
-#include <tss463_channel_registers_struct.h>
+#include <tss46x_register_structs.h>
 
 /// <summary> An abstract class around the library in case if you want to write custom logic </summary>
 class AbstractVanMessageSender {

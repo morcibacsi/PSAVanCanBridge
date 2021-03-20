@@ -1,4 +1,4 @@
-﻿// VanAirConditionerDiagActuatorHandler.h
+// VanAirConditionerDiagActuatorHandler.h
 #pragma once
 
 #ifndef _VanAirConditionerDiagActuatorHandler_h
@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanAirConditionerDiagStructs.h"
 #include "../../Can/Structs/CanAirConOnDisplayStructs.h"
@@ -52,8 +53,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_DIAG) && messageLength == 12 && vanMessageWithoutId[2] == VAN_ID_AIR_CONDITIONER_DIAG_ACTUATOR_STATUS))
@@ -63,7 +64,7 @@ public:
 
         const VanAirConditionerDiagActuatorStatusPacket packet = DeSerialize<VanAirConditionerDiagActuatorStatusPacket>(vanMessageWithoutId);
 
-        dataToBridge.AirConDirection = GetACDirection(packet.data.DistributionStatus);
+        dataToBridge->AirConDirection = GetACDirection(packet.data.DistributionStatus);
 
         return true;
     }

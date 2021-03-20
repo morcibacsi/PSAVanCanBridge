@@ -42,8 +42,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1) && messageLength == 5))
@@ -64,22 +64,22 @@ public:
             || vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating + recycle toggle
             )
         {
-            dataToBridge.IsHeatingPanelPoweredOn = 0;
-            dataToBridge.IsAirConEnabled = 0;
-            dataToBridge.IsAirConRunning = 0;
-            dataToBridge.IsWindowHeatingOn = 0;
-            dataToBridge.AirConFanSpeed = 0;
+            dataToBridge->IsHeatingPanelPoweredOn = 0;
+            dataToBridge->IsAirConEnabled = 0;
+            dataToBridge->IsAirConRunning = 0;
+            dataToBridge->IsWindowHeatingOn = 0;
+            dataToBridge->AirConFanSpeed = 0;
         }
         else
         {
-            dataToBridge.IsHeatingPanelPoweredOn = 1;
-            dataToBridge.IsAirConEnabled = packet.data.Status.aircon_on_if_necessary;
-            dataToBridge.IsAirRecyclingOn = packet.data.Status.recycling_on;
+            dataToBridge->IsHeatingPanelPoweredOn = 1;
+            dataToBridge->IsAirConEnabled = packet.data.Status.aircon_on_if_necessary;
+            dataToBridge->IsAirRecyclingOn = packet.data.Status.recycling_on;
 
             const bool isModifierChanged =
-                dataToBridge.IsAirConEnabled != prevACEnabled ||
-                dataToBridge.IsWindowHeatingOn != prevWindowHeatingOn ||
-                dataToBridge.IsAirRecyclingOn != prevAirRecycling;
+                dataToBridge->IsAirConEnabled != prevACEnabled ||
+                dataToBridge->IsWindowHeatingOn != prevWindowHeatingOn ||
+                dataToBridge->IsAirRecyclingOn != prevAirRecycling;
 
             if (!isModifierChanged)
             {
@@ -87,21 +87,21 @@ public:
                 {
                     previousFanSpeed = vanCanAirConditionerSpeedMap->GetFanSpeedFromVANByte(
                         packet.data.FanSpeed,
-                        dataToBridge.IsAirConEnabled,
-                        dataToBridge.IsWindowHeatingOn,
-                        dataToBridge.IsAirRecyclingOn);
+                        dataToBridge->IsAirConEnabled,
+                        dataToBridge->IsWindowHeatingOn,
+                        dataToBridge->IsAirRecyclingOn);
                 }
             }
             else
             {
                 speedQuerySuppresedUntilTime = currentTime + SPEED_QUERY_SUPPRESS_TIME;
 
-                prevACEnabled = dataToBridge.IsAirConEnabled;
-                prevWindowHeatingOn = dataToBridge.IsWindowHeatingOn;
-                prevAirRecycling = dataToBridge.IsAirRecyclingOn;
+                prevACEnabled = dataToBridge->IsAirConEnabled;
+                prevWindowHeatingOn = dataToBridge->IsWindowHeatingOn;
+                prevAirRecycling = dataToBridge->IsAirRecyclingOn;
             }
 
-            dataToBridge.AirConFanSpeed = previousFanSpeed;
+            dataToBridge->AirConFanSpeed = previousFanSpeed;
         }
 
         return true;

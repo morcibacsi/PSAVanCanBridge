@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanDisplayStatusStructs.h"
 #include "../../Can/Handlers/CanTripInfoHandler.h"
@@ -32,8 +33,8 @@ class VanEmfBsiRequestHandler : public AbstractVanMessageHandler {
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_DISPLAY_STATUS) && messageLength == VAN_ID_EMF_BSI_REQUEST_LENGTH))

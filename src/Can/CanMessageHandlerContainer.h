@@ -18,7 +18,7 @@ class CanMessageHandlerContainer {
     CanMessageHandlerContainer(
         AbstractCanMessageSender* canInterface,
         AbsSer* serialPort,
-        VinFlashStorage* vinFlashStorage
+        IVinFlashStorage* vinFlashStorage
     ) {
         canMessageHandlers[0] = new CanRadioRd4DiagHandler(canInterface, serialPort, vinFlashStorage);
         canMessageHandlers[1] = new CanPinConfigHandler(canInterface, static_cast<CanRadioRd4DiagHandler*>(canMessageHandlers[0]));

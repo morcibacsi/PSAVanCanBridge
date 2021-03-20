@@ -28,20 +28,20 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         const unsigned long currentTime = millis();
 
         if (currentTime - _lastTimeDataArrived > VAN_PARKING_AID_DATA_TIMEOUT)
         {
-            ignitionDataToBridge.ExteriorRearLeftDistanceInCm = 0xFF;
-            ignitionDataToBridge.ExteriorRearRightDistanceInCm = 0xFF;
+            ignitionDataToBridge->ExteriorRearLeftDistanceInCm = 0xFF;
+            ignitionDataToBridge->ExteriorRearRightDistanceInCm = 0xFF;
 
-            ignitionDataToBridge.InteriorRearLeftDistanceInCm = 0xFF;
-            ignitionDataToBridge.InteriorRearRightDistanceInCm = 0xFF;
-            ignitionDataToBridge.HaveDataFromParkingAid = 0;
+            ignitionDataToBridge->InteriorRearLeftDistanceInCm = 0xFF;
+            ignitionDataToBridge->InteriorRearRightDistanceInCm = 0xFF;
+            ignitionDataToBridge->HaveDataFromParkingAid = 0;
         }
 
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_PARKING_AID_DIAG_ANSWER) && messageLength == 24 && vanMessageWithoutId[2] == PR_DIAG_ANSWER_DISTANCE))
@@ -53,12 +53,12 @@ public:
 
         const VanParkingAidDiagDistancePacket packet = DeSerialize<VanParkingAidDiagDistancePacket>(vanMessageWithoutId);
 
-        ignitionDataToBridge.ExteriorRearLeftDistanceInCm = packet.data.ExteriorRearLeftDistanceInCm;
-        ignitionDataToBridge.ExteriorRearRightDistanceInCm = packet.data.ExteriorRearRightDistanceInCm;
+        ignitionDataToBridge->ExteriorRearLeftDistanceInCm = packet.data.ExteriorRearLeftDistanceInCm;
+        ignitionDataToBridge->ExteriorRearRightDistanceInCm = packet.data.ExteriorRearRightDistanceInCm;
 
-        ignitionDataToBridge.InteriorRearLeftDistanceInCm = packet.data.InteriorRearLeftDistanceInCm;
-        ignitionDataToBridge.InteriorRearRightDistanceInCm = packet.data.InteriorRearRightDistanceInCm;
-        ignitionDataToBridge.HaveDataFromParkingAid = 1;
+        ignitionDataToBridge->InteriorRearLeftDistanceInCm = packet.data.InteriorRearLeftDistanceInCm;
+        ignitionDataToBridge->InteriorRearRightDistanceInCm = packet.data.InteriorRearRightDistanceInCm;
+        ignitionDataToBridge->HaveDataFromParkingAid = 1;
 
         return true;
     }

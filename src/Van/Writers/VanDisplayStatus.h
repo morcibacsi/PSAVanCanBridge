@@ -11,6 +11,9 @@
 class VanDisplayStatus : public VanMessageWriterBase
 {
     const static uint16_t SEND_STATUS_INTERVAL = 420;
+    const static uint8_t SEND_RESET_COUNT = 1;
+
+    // We use the same channel for the status as the trip computer query because otherwise it clashes somehow
     const static uint8_t  SEND_STATUS_CHANNEL = 0;
 
     uint8_t _tripButtonState = 0;
@@ -21,13 +24,22 @@ class VanDisplayStatus : public VanMessageWriterBase
 
     VanDisplayStatusPacketSender* displayStatusSender;
 
+    void SendStatus(uint8_t resetTrip)
+    {
+        for (int i = 0; i < SEND_RESET_COUNT; ++i)
+        {
+            displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, resetTrip);
+            delay(5);
+        }
+    }
+
     virtual void InternalProcess() override
     {
         if (_ignition)
         {
             if (_resetTrip == 1 && _resetSent == 0)
             {
-                displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, 1);
+                SendStatus(1);
                 _resetTrip = 0;
                 _resetSent = 1;
             }
@@ -42,7 +54,6 @@ class VanDisplayStatus : public VanMessageWriterBase
     VanDisplayStatus(AbstractVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, SEND_STATUS_INTERVAL)
     {
         displayStatusSender = new VanDisplayStatusPacketSender(vanMessageSender);
-        displayStatusSender->SendStatus(SEND_STATUS_CHANNEL, 0);
     }
 
     void SetData(uint8_t ignition, uint8_t tripButton, unsigned long currentTime)

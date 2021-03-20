@@ -28,7 +28,7 @@
 #include "Handlers/VanBsiEventsHandler.h"
 
 class VanHandlerContainer {
-    const static uint8_t VAN_MESSAGE_HANDLER_COUNT = 16;
+    const static uint8_t VAN_MESSAGE_HANDLER_COUNT = 15;
     AbstractVanMessageHandler* vanMessageHandlers[VAN_MESSAGE_HANDLER_COUNT];
 
     VanCanAirConditionerSpeedMap* vanCanAirConditionerSpeedMap;
@@ -63,7 +63,7 @@ class VanHandlerContainer {
         vanMessageHandlers[12] = new VanParkingAidDiagDistanceHandler();
         vanMessageHandlers[13] = new VanPositionForRt3Handler();
         vanMessageHandlers[14] = new VanEmfBsiRequestHandler(canTripInfoHandler);
-        vanMessageHandlers[15] = new VanBsiEventsHandler(canTripInfoHandler);
+        //vanMessageHandlers[15] = new VanBsiEventsHandler(canTripInfoHandler);
     }
 
     bool ProcessMessage(
@@ -71,8 +71,8 @@ class VanHandlerContainer {
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus)
     {
         bool vanMessageHandled = false;

@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanSpeedAndRpmStructs.h"
 
@@ -24,8 +25,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_SPEED_RPM) && messageLength == 7))
@@ -35,8 +36,8 @@ public:
 
         const VanSpeedAndRpmPacket packet = DeSerialize<VanSpeedAndRpmPacket>(vanMessageWithoutId);
 
-        dataToBridge.Rpm = GetRpmFromVanData(packet.data.Rpm.data);
-        dataToBridge.Speed = GetSpeedFromVanData(packet.data.Speed.data);
+        dataToBridge->Rpm = GetRpmFromVanData(packet.data.Rpm.data);
+        dataToBridge->Speed = GetSpeedFromVanData(packet.data.Speed.data);
 
         return true;
     }

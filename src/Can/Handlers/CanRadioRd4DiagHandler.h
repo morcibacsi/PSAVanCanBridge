@@ -9,16 +9,16 @@
 #include "../AbstractCanMessageSender.h"
 #include "../Structs/CanRadioRd4DiagStructs.h"
 #include "../../SerialPort/AbstractSerial.h"
-#include "../../Helpers/VinFlashStorage.h"
+#include "../../Helpers/IVinFlashStorage.h"
 
 class CanRadioRd4DiagHandler : public AbstractCanMessageHandler
 {
     CanRadioRd4DiagPacketSender* _packetSender;
     AbsSer* _serialPort;
-    VinFlashStorage* _vinFlashStorage;
+    IVinFlashStorage* _vinFlashStorage;
 
     public:
-    CanRadioRd4DiagHandler(AbstractCanMessageSender* object, AbsSer* serialPort, VinFlashStorage* vinFlashStorage)
+    CanRadioRd4DiagHandler(AbstractCanMessageSender* object, AbsSer* serialPort, IVinFlashStorage* vinFlashStorage)
     {
         _packetSender = new CanRadioRd4DiagPacketSender(object);
         _serialPort = serialPort;
@@ -41,9 +41,8 @@ class CanRadioRd4DiagHandler : public AbstractCanMessageHandler
         {
             return false;
         }
-
         _packetSender->ProcessReceivedCanMessage(canId, length, canMsg);
-        delayMicroseconds(40);
+        //delayMicroseconds(40);
         if (_packetSender->IsVinRead)
         {
             for (int i = 0; i < 17; ++i)

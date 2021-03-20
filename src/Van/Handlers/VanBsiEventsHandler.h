@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../Structs/VanBsiEventsStructs.h"
 #include "../../Can/Handlers/CanTripInfoHandler.h"
@@ -35,8 +36,8 @@ class VanBsiEventsHandler : public AbstractVanMessageHandler {
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_BSI_EVENTS) && messageLength == VAN_ID_BSI_EVENTS_LENGTH))
@@ -50,6 +51,7 @@ class VanBsiEventsHandler : public AbstractVanMessageHandler {
         {
             if (packet.data.Cause.trip_button_pressed == 1)
             {
+                // this is wrong as this message is sent periodically, even if the button is not pressed, you should check 0x564 for the trip button press info
                 uint32_t currentTime = millis();
                 if (currentTime - lastTimeButtonPressed > chillTime)
                 {

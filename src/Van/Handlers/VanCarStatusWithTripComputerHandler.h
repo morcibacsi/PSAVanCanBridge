@@ -9,6 +9,7 @@
 #include "../../Helpers/VanDataToBridgeToCan.h"
 #include "../../Helpers/VanIgnitionDataToBridgeToCan.h"
 #include "../../Helpers/DoorStatus.h"
+#include "../../Helpers/Serializer.h"
 
 #include "../../Can/Handlers/ICanDisplayPopupHandler.h"
 #include "../../Can/Handlers/CanTripInfoHandler.h"
@@ -37,8 +38,8 @@ public:
         const uint8_t identByte2,
         const uint8_t vanMessageWithoutId[],
         const uint8_t messageLength,
-        VanDataToBridgeToCan& dataToBridge,
-        VanIgnitionDataToBridgeToCan& ignitionDataToBridge,
+        VanDataToBridgeToCan *dataToBridge,
+        VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
         if (!(IsVanIdent(identByte1, identByte2, VAN_ID_CARSTATUS) && messageLength == 27))
@@ -48,33 +49,28 @@ public:
 
         const VanCarStatusWithTripComputerPacket packet = DeSerialize<VanCarStatusWithTripComputerPacket>(vanMessageWithoutId);
 
-        dataToBridge.Trip1Consumption = SwapHiByteAndLoByte(packet.data.Trip1FuelConsumption.data);
-        dataToBridge.Trip1Distance = SwapHiByteAndLoByte(packet.data.Trip1Distance.data);
-        dataToBridge.Trip1Speed = packet.data.Trip1Speed;
+        dataToBridge->Trip1Consumption = SwapHiByteAndLoByte(packet.data.Trip1FuelConsumption.data);
+        dataToBridge->Trip1Distance = SwapHiByteAndLoByte(packet.data.Trip1Distance.data);
+        dataToBridge->Trip1Speed = packet.data.Trip1Speed;
 
-        dataToBridge.Trip2Consumption = SwapHiByteAndLoByte(packet.data.Trip2FuelConsumption.data);
-        dataToBridge.Trip2Distance = SwapHiByteAndLoByte(packet.data.Trip2Distance.data);
-        dataToBridge.Trip2Speed = packet.data.Trip2Speed;
+        dataToBridge->Trip2Consumption = SwapHiByteAndLoByte(packet.data.Trip2FuelConsumption.data);
+        dataToBridge->Trip2Distance = SwapHiByteAndLoByte(packet.data.Trip2Distance.data);
+        dataToBridge->Trip2Speed = packet.data.Trip2Speed;
 
-        dataToBridge.FuelConsumption = SwapHiByteAndLoByte(packet.data.FuelConsumption.data);
-        dataToBridge.FuelLeftToPump = SwapHiByteAndLoByte(packet.data.FuelLeftToPumpInKm.data);
+        dataToBridge->FuelConsumption = SwapHiByteAndLoByte(packet.data.FuelConsumption.data);
+        dataToBridge->FuelLeftToPump = SwapHiByteAndLoByte(packet.data.FuelLeftToPumpInKm.data);
 
-        ignitionDataToBridge.TripButtonPressed = packet.data.Field10.TripButton;
+        ignitionDataToBridge->TripButtonPressed = packet.data.Field10.TripButton;
 
-        //canTripInfoHandler->SetTripData(
-        //    dataToBridge.Rpm,
-        //    dataToBridge.Speed,
-        //    dataToBridge.Trip1Distance,
-        //    dataToBridge.Trip1Speed,
-        //    dataToBridge.Trip1Consumption,
-        //    dataToBridge.Trip2Distance,
-        //    dataToBridge.Trip2Speed,
-        //    dataToBridge.Trip2Consumption,
-        //    dataToBridge.FuelConsumption,
-        //    //dataToBridge.FuelLeftToPump
-        //    dataToBridge.FuelLevel
-        //);
 
+        if (previousTripButtonState != packet.data.Field10.TripButton)
+        {
+            previousTripButtonState = packet.data.Field10.TripButton;
+            if (previousTripButtonState == 0)
+            {
+                canTripInfoHandler->TripButtonPress();
+            }
+        }
 
         doorStatus.status.FrontLeft = packet.data.Doors.FrontLeft;
         doorStatus.status.FrontRight = packet.data.Doors.FrontRight;
