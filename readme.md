@@ -81,14 +81,18 @@ If you mistype the combination, then exit the menu, and return to it again.
 The software was tested on a Peugeot 307 SW made in 2004 however most probably it is compatible with all of the cars with VAN bus made by the PSA group. Here is a short list about the cars which should be compatible:
 
 - Peugeot 206 multiplexed (MUX) versions (2001.09 - )
+- Peugeot 206+
 - Peugeot 307 (2001-2005 first quarter)
 - Peugeot 406 (2000-)
 - Peugeot 1007 (2005-2007)
+- Peugeot Partner
 - Citroen C2
+- Citroen C3 (2001-2005)
 - Citroen C5 (2001-2005)
 - Citroen C8 (2001-2005)
 - Citroen Berlingo
-- Citroen Xsara Picasso
+- Citroen Xsara/Picasso
+- EuroVan2 (Peugeot 807,Citroen C8, Fiat Ulysse, Lancia Phedra)
 
 ### Installation
 The easiest place to install the hardware in a car is the connectors of the original head unit. Below you can see the schematics of a patch lead which converts the ISO connector to Quadlock type and exposes the VAN and CAN data pins to a JST XH 6 connector where you can connect the PSA VAN-CAN bridge hardware.
@@ -111,8 +115,8 @@ In order to avoid cluttering the main sketch with the message conversions every 
 
 ### Building the project
 
+#### From Arduino
 Follow these steps to build the project:
-
  - Install the ESP32 boards into the Arduino IDE (follow the [instructions here][install_esp32])
  - Install the libraries from the Used libraries section
 	 - They should be installed under your documents folder. Which should be something like this: 
@@ -122,10 +126,13 @@ Follow these steps to build the project:
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\tss463_van\
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\Queue\
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_can\
- - Extract the contents of the zip file to a folder named **PSAVanCanBridge**
- - Open the empty **PSAVanCanBridge.ino** file from the Arduino IDE *(do not rename any file or whatsoever)*
+ - Extract the contents of the zip file
+ - Open the empty **PSAVanCanBridge\PSAVanCanBridge.ino** file from the Arduino IDE *(do not rename any file or whatsoever)*
  - Select ESP32 Dev module from Tools\Board menu
  - Now you should be able to compile it by clicking on the menu Sketch\Verify/Compile
+
+#### From PlatformIO
+You can also open the project from PlatformIO. It will download the necessary libraries so you don't have to worry about them.
 
 ### Used libraries
 
