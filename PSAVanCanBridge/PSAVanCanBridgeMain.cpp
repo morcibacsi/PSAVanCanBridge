@@ -269,8 +269,6 @@ void setup()
     vinFlashStorage = new VinFlashStorageEsp32();
     deviceInfo = new GetDeviceInfoEsp32();
 
-    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
-
     vanReader = new VanMessageReaderEsp32Rmt();
     vanReader->Init(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
 
@@ -283,7 +281,7 @@ void setup()
     }
 
     //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
-    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN);
+    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN, true);
     CANInterface->Init();
 
 #if POPUP_HANDLER == 1
@@ -341,7 +339,7 @@ void setup()
         CANSendDataTaskFunction,        // Function to implement the task
         "CANSendDataTask",              // Name of the task
         15000,                          // Stack size in words
-        NULL,                           // Task input parameter 
+        NULL,                           // Task input parameter
         0,                              // Priority of the task
         &CANSendDataTask,               // Task handle.
         0);                             // Core where the task should run
