@@ -12,8 +12,8 @@ const uint8_t VAN_ID_POSITION_FOR_RT3_LENGTH = 12;
 //Read right to left in documentation
 
 typedef struct {
-    uint8_t wheel_counter       : 15; // bit 0-6
-    uint8_t error_status        : 1; // bit 7
+    uint16_t wheel_counter       : 15;
+    uint16_t error_status        : 1;
 } VanWheelCounterAndStatus;
 
 typedef union {

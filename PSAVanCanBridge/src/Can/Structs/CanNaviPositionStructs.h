@@ -28,8 +28,8 @@ typedef union {
 } CanAbsStatusUnion;
 
 typedef struct {
-    uint8_t wheel_counter : 15; // bit 0-6
-    uint8_t error_status  : 1; // bit 7
+    uint16_t wheel_counter : 15;
+    uint16_t error_status  : 1;
 } CanWheelCounterAndStatus;
 
 typedef union {
