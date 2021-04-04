@@ -308,6 +308,7 @@ class CanParkingAidPacketSender
             // silence
             return 0x3F;
         }
+        return 0x3F;
     }
 
 public:

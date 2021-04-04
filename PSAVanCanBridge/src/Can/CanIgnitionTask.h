@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CanIgnitionTask.h
-    #define _CanIgnitionTask.h
+#ifndef _CanIgnitionTask_h
+    #define _CanIgnitionTask_h
 
 #include "Handlers/ICanDisplayPopupHandler.h"
 #include "../Helpers/VanIgnitionDataToBridgeToCan.h"

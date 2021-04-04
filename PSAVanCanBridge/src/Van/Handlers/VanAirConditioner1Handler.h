@@ -55,13 +55,13 @@ public:
 
         const VanAirConditioner1Packet packet = DeSerialize<VanAirConditioner1Packet>(vanMessageWithoutId);
         if (
-               vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)  // off
-            || vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating
-            || vanMessageWithoutId[0] == 0x01 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating toggle
-            || vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x00)  // off + recycle
-            || vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating + recycle
-            || vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x00)  // off + rear window heating + recycle toggle
-            || vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x0E)  // off + rear window heating + recycle toggle
+               (vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)) // off
+            || (vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating
+            || (vanMessageWithoutId[0] == 0x01 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating toggle
+            || (vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x00))  // off + recycle
+            || (vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating + recycle
+            || (vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x00))  // off + rear window heating + recycle toggle
+            || (vanMessageWithoutId[0] == 0x05 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating + recycle toggle
             )
         {
             dataToBridge->IsHeatingPanelPoweredOn = 0;
