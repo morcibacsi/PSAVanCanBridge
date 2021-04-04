@@ -9,8 +9,8 @@
 
 class VanCanDisplayPopupMap
 {
-    uint8_t VanToCanPopupMap[255];
-    uint8_t VanToCanPopupCategoryMap[255];
+    uint8_t VanToCanPopupMap[256];
+    uint8_t VanToCanPopupCategoryMap[256];
 
     private:
 
