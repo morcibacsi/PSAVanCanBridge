@@ -22,13 +22,13 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct VanSpeedAndRpmStruct {
+struct VanSpeedAndRpmStruct {
     VanRpmStruct Rpm;
     VanSpeedStruct Speed;
     VanSequenceStruct Sequence;
 };
 
-typedef union VanSpeedAndRpmPacket {
+union VanSpeedAndRpmPacket {
     VanSpeedAndRpmStruct data;
     uint8_t VanSpeedAndRpmPacket[sizeof(VanSpeedAndRpmStruct)];
 };

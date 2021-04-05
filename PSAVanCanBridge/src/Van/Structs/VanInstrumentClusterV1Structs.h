@@ -51,7 +51,7 @@ typedef struct {
 } VanInstrumentClusterV1Byte5Struct;
 
 // Read left to right in documentation
-typedef struct VanInstrumentClusterV1Structs {
+struct VanInstrumentClusterV1Structs {
     VanInstrumentClusterV1Byte0Struct Field0;
     uint8_t Field1;
     uint8_t ServiceIntervalByte1;
@@ -65,7 +65,7 @@ typedef struct VanInstrumentClusterV1Structs {
     uint8_t LPGFuelLevel;
 };
 
-typedef union VanInstrumentClusterV1Packet {
+union VanInstrumentClusterV1Packet {
     VanInstrumentClusterV1Structs data;
     uint8_t VanInstrumentClusterV1Packet[sizeof(VanInstrumentClusterV1Structs)];
 };

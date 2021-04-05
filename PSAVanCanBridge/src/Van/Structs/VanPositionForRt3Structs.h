@@ -30,7 +30,7 @@ typedef struct {
 } SteeringWheelStruct;
 
 // Read left to right in documentation
-typedef struct VanPositionForRt3Struct {
+struct VanPositionForRt3Struct {
     uint16_t RearRightWheelSpeed;
     uint16_t RearLeftWheelSpeed;
     VanWheelCounterAndStatusUnion RearRightAbsStatus;
@@ -40,7 +40,7 @@ typedef struct VanPositionForRt3Struct {
     SteeringWheelStruct SteeringWheelSensorStatus;
 };
 
-typedef union VanPositionForRt3Packet {
+union VanPositionForRt3Packet {
     VanPositionForRt3Struct data;
     uint8_t VanPositionForRt3Packet[sizeof(VanPositionForRt3Struct)];
 };

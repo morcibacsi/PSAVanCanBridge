@@ -103,12 +103,12 @@ typedef struct {
     uint8_t                : 1; // bit 3
     uint8_t                : 1; // bit 4
     uint8_t gear_sport     : 1; // bit 5
-    uint8_t gear_snow      : 1; // bit 6 //if bit 
+    uint8_t gear_snow      : 1; // bit 6 //if bit
     uint8_t                : 1; // bit 7
 } CanDash2Byte8Struct;
 
 // Read left to right in documentation
-typedef struct CanDash2Struct {
+struct CanDash2Struct {
     CanDash2Byte1Struct Field1;
     CanDash2Byte2Struct Field2;
     CanDash2Byte3Struct Field3;
@@ -119,11 +119,10 @@ typedef struct CanDash2Struct {
     uint8_t Field8;
 };
 
-typedef union CanDash2Packet {
+union CanDash2Packet {
     CanDash2Struct data;
     uint8_t CanDash2Packet[sizeof(CanDash2Struct)];
 };
-
 
 class CanDash2PacketSender
 {

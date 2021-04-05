@@ -78,7 +78,7 @@ typedef struct {
     uint8_t       : 1; // bit 7
 } CanModeButtonStruct;
 
-typedef struct CanMenuStruct {
+struct CanMenuStruct {
     CanMenuButtonStruct MenuField;
     CanModeButtonStruct ModeField;
     CanEscOkButtonStruct EscOkField;
@@ -87,7 +87,7 @@ typedef struct CanMenuStruct {
     CanArrowsOnRadioStruct ArrowsField;
 };
 
-typedef union CanMenuPacket {
+union CanMenuPacket {
     CanMenuStruct data;
     uint8_t CanMenuPacket[sizeof(CanMenuStruct)];
 };

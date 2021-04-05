@@ -156,7 +156,7 @@ typedef struct {
 
 
 //Read left to right in documentation
-typedef struct VanDisplayV2Struct {
+struct VanDisplayV2Struct {
     VanDisplayMsgV2Byte0Struct Field0;
     VanDisplayMsgV2Byte1Struct Field1;
     VanDisplayMsgV2Byte2Struct Field2;
@@ -175,7 +175,7 @@ typedef struct VanDisplayV2Struct {
     uint8_t Field15;
 };
 
-typedef union VanDisplayPacketV2 {
+union VanDisplayPacketV2 {
     VanDisplayV2Struct data;
     uint8_t VanDisplayPacketV2[sizeof(VanDisplayV2Struct)];
 };

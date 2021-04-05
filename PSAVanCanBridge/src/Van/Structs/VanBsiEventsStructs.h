@@ -35,12 +35,12 @@ typedef struct {
 } VanBsiEventByte2;
 
 // Read left to right in documentation
-typedef struct VanBsiEventsStruct {
+struct VanBsiEventsStruct {
     VanBsiEventByte1 Ident;
     VanBsiEventByte2 Cause;
 };
 
-typedef union VanBsiEventsPacket {
+union VanBsiEventsPacket {
     VanBsiEventsStruct data;
     uint8_t VanBsiEventsPacket[sizeof(VanBsiEventsStruct)];
 };

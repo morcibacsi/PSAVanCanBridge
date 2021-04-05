@@ -10,7 +10,7 @@ const uint16_t CAN_ID_STATUS_OF_FUNCTIONS = 0x2E1;
 // Read right to left in documentation
 typedef struct {
     uint8_t AutomaticDoorLocking               : 1; // bit 0
-    uint8_t AutomaticDoorLockingActivated      : 1; // bit 1 
+    uint8_t AutomaticDoorLockingActivated      : 1; // bit 1
     uint8_t AutomaticHeadLampLighting          : 1; // bit 2 gearbox fault repair needed
     uint8_t AutomaticHeadLampLightingActivated : 1; // bit 3
     uint8_t PassengersAirbag                   : 1; // bit 4
@@ -43,13 +43,13 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct CanStatusOfFunctionsStruct {
+struct CanStatusOfFunctionsStruct {
     CanStatusOfFunctionsByte0Struct FunctionsCategory0;
     CanStatusOfFunctionsByte1Struct FunctionsCategory1;
     CanStatusOfFunctionsByte2Struct FunctionsCategory2;
 };
 
-typedef union CanStatusOfFunctionsPacket {
+union CanStatusOfFunctionsPacket {
     CanStatusOfFunctionsStruct data;
     uint8_t CanStatusOfFunctionsPacket[sizeof(CanStatusOfFunctionsStruct)];
 };

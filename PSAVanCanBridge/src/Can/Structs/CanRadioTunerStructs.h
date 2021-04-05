@@ -65,7 +65,7 @@ union {
 
 
 // Read left to right in documentation
-typedef struct CanRadioTunerStruct {
+struct CanRadioTunerStruct {
     CanRadioTunerByte1Struct FeatureActivityState;
     CanRadioTunerByte2Struct BandPosition;
     CanRadioTunerByte3Struct Band;
@@ -73,7 +73,7 @@ typedef struct CanRadioTunerStruct {
     uint8_t Frequency2;
 };
 
-typedef union CanRadioTunerPacket {
+union CanRadioTunerPacket {
     CanRadioTunerStruct data;
     uint8_t CanRadioTunerPacket[sizeof(CanRadioTunerStruct)];
 };

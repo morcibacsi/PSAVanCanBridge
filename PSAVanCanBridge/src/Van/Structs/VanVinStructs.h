@@ -8,7 +8,7 @@
 const uint16_t VAN_ID_VIN = 0xE24;
 
 // Read left to right in documentation
-typedef struct VanVinStruct {
+struct VanVinStruct {
     uint8_t Vin1;
     uint8_t Vin2;
     uint8_t Vin3;
@@ -28,7 +28,7 @@ typedef struct VanVinStruct {
     uint8_t Vin17;
 };
 
-typedef union VanVinPacket {
+union VanVinPacket {
     VanVinStruct data;
     uint8_t VanVinPacket[sizeof(VanVinStruct)];
 };

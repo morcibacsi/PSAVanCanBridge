@@ -12,7 +12,7 @@
 const uint16_t CAN_ID_TRIP1 = 0x2A1;
 
 // Read left to right in documentation
-typedef struct CanTrip1Struct {
+struct CanTrip1Struct {
     uint8_t AverageSpeed;
     uint8_t MileageAfterResetByte1;
     uint8_t MileageAfterResetByte2;
@@ -22,7 +22,7 @@ typedef struct CanTrip1Struct {
     uint8_t Field7;
 };
 
-typedef union CanTrip1Packet {
+union CanTrip1Packet {
     CanTrip1Struct data;
     uint8_t CanTrip1Packet[sizeof(CanTrip1Struct)];
 };

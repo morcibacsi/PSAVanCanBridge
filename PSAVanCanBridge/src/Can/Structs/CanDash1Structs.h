@@ -48,7 +48,7 @@ typedef struct {
 } CanDash1Byte8Struct;
 
 // Read left to right in documentation
-typedef struct CanDash1Struct {
+struct CanDash1Struct {
     CanDash1Byte1Struct IgnitionField;
     uint8_t CoolantTemperature;
     uint8_t MileageByte1;
@@ -59,7 +59,7 @@ typedef struct CanDash1Struct {
     CanDash1Byte8Struct LightsStatus;
 };
 
-typedef union CanDash1Packet {
+union CanDash1Packet {
     CanDash1Struct data;
     uint8_t CanDash1Packet[sizeof(CanDash1Struct)];
 };

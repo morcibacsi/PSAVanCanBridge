@@ -19,7 +19,7 @@ typedef struct {
 } CanSpeedStruct;
 
 // Read left to right in documentation
-typedef struct CanSpeedAndRpmStruct {
+struct CanSpeedAndRpmStruct {
     CanRpmStruct Rpm;
     CanSpeedStruct Speed;
     CanSpeedStruct Odometer;
@@ -27,7 +27,7 @@ typedef struct CanSpeedAndRpmStruct {
     uint8_t Field4;
 };
 
-typedef union CanSpeedAndRpmPacket {
+union CanSpeedAndRpmPacket {
     CanSpeedAndRpmStruct data;
     uint8_t CanSpeedAndRpmPacket[sizeof(CanSpeedAndRpmStruct)];
 };

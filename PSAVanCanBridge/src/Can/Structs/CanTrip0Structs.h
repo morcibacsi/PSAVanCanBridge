@@ -48,7 +48,7 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct CanTrip0Struct {
+struct CanTrip0Struct {
     CanTripByte1Struct Information;
     uint8_t LitersPer100KmByte1;
     uint8_t LitersPer100KmByte2;
@@ -58,7 +58,7 @@ typedef struct CanTrip0Struct {
     uint8_t KmToFinishByte2;
 };
 
-typedef union CanTrip0Packet {
+union CanTrip0Packet {
     CanTrip0Struct data;
     uint8_t CanTrip0Packet[sizeof(CanTrip0Struct)];
 };

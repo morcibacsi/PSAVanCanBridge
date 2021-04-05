@@ -21,7 +21,7 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct VanAirConditioner1Struct {
+struct VanAirConditioner1Struct {
     VanAirCon1Byte0Struct Status;
     uint8_t Byte1;
     uint8_t Byte2;
@@ -29,7 +29,7 @@ typedef struct VanAirConditioner1Struct {
     uint8_t FanSpeed;
 };
 
-typedef union VanAirConditioner1Packet {
+union VanAirConditioner1Packet {
     VanAirConditioner1Struct data;
     uint8_t VanAirConditioner1Packet[sizeof(VanAirConditioner1Struct)];
 };

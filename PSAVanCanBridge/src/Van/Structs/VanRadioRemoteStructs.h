@@ -20,12 +20,12 @@ typedef struct {
 } VanRadioRemoteButtonStruct;
 
 // Read left to right in documentation
-typedef struct VanRadioRemoteStructs {
+struct VanRadioRemoteStructs {
     VanRadioRemoteButtonStruct RemoteButton;
     uint8_t ScrollPosition;
 };
 
-typedef union VanRadioRemotePacket {
+union VanRadioRemotePacket {
     VanRadioRemoteStructs data;
     uint8_t VanRadioRemotePacket[sizeof(VanRadioRemoteStructs)];
 };

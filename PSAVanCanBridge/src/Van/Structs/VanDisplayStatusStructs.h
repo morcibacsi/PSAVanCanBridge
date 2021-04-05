@@ -19,12 +19,12 @@ typedef struct {
 } VanEmfBsiRequestByte1;
 
 // Read left to right in documentation
-typedef struct VanDisplayStatusStruct {
+struct VanDisplayStatusStruct {
     VanEmfBsiRequestByte1 Requests;
     uint8_t OverSpeedAlertValue;
 };
 
-typedef union VanDisplayStatusPacket {
+union VanDisplayStatusPacket {
     VanDisplayStatusStruct data;
     uint8_t VanDisplayStatusPacket[sizeof(VanDisplayStatusStruct)];
 };

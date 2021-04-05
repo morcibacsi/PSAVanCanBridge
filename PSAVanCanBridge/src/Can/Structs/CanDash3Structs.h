@@ -46,7 +46,7 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct CanDash3Struct {
+struct CanDash3Struct {
     CanDash3Byte1Struct Field1;
     uint8_t Field2;
     uint8_t Field3;
@@ -57,11 +57,10 @@ typedef struct CanDash3Struct {
     uint8_t Field8;
 };
 
-typedef union CanDash3Packet {
+union CanDash3Packet {
     CanDash3Struct data;
     uint8_t CanDash3Packet[sizeof(CanDash3Struct)];
 };
-
 
 class CanDash3PacketSender
 {

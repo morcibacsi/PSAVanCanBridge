@@ -32,13 +32,13 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct CanDisplayMenuStruct {
+struct CanDisplayMenuStruct {
     CanDisplayMenuStructByte1 Byte1;
     uint8_t Byte2;
     CanDisplayMenuStructByte2 Byte3;
 };
 
-typedef union CanDisplayMenuPacket {
+union CanDisplayMenuPacket {
     CanDisplayMenuStruct data;
     uint8_t CanDisplayMenuPacket[sizeof(CanDisplayMenuStruct)];
 };

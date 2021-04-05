@@ -39,14 +39,14 @@ typedef struct {
 } CanRadioByte3Struct;
 
 // Read left to right in documentation
-typedef struct CanRadioStruct {
+struct CanRadioStruct {
     CanRadioByte1Struct Field1;
     uint8_t CdInfo;
     CanRadioByte3Struct Source;
     uint8_t Field4;
 };
 
-typedef union CanRadioPacket {
+union CanRadioPacket {
     CanRadioStruct data;
     uint8_t CanRadioPacket[sizeof(CanRadioStruct)];
 };

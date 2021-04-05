@@ -17,7 +17,7 @@ typedef struct {
 } VanTripConsumption;
 
 typedef struct {
-    uint8_t Unknown0    : 1; // bit 0 
+    uint8_t Unknown0    : 1; // bit 0
     uint8_t Unknown1    : 1; // bit 1
     uint8_t Unknown2    : 1; // bit 2
     uint8_t BootLid     : 1; // bit 3
@@ -28,7 +28,7 @@ typedef struct {
 } VanDoorStatus;
 
 typedef struct {
-    uint8_t TripButton  : 1; // bit 0 
+    uint8_t TripButton  : 1; // bit 0
     uint8_t Unknown1    : 1; // bit 1
     uint8_t Unknown2    : 1; // bit 2
     uint8_t Unknown3    : 1; // bit 3
@@ -39,7 +39,7 @@ typedef struct {
 } VanCarStatusWithTripComputerField10ByteStruct;
 
 // Read left to right in documentation
-typedef struct VanCarStatusWithTripComputerStruct {
+struct VanCarStatusWithTripComputerStruct {
     uint8_t Header;
     uint8_t Field1;
     uint8_t Field2;
@@ -65,7 +65,7 @@ typedef struct VanCarStatusWithTripComputerStruct {
     uint8_t Footer;
 };
 
-typedef union VanCarStatusWithTripComputerPacket {
+union VanCarStatusWithTripComputerPacket {
     VanCarStatusWithTripComputerStruct data;
     uint8_t VanCarStatusWithTripComputerPacket[sizeof(VanCarStatusWithTripComputerStruct)];
 };

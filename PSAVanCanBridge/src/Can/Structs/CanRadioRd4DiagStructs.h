@@ -84,7 +84,7 @@ typedef struct {
 } CanRadioRd4DiagOptions1Byte7Struct;
 
 // Read left to right in documentation
-typedef struct CanRadioRd4DiagOptions1Struct {
+struct CanRadioRd4DiagOptions1Struct {
     uint8_t Field0;
     uint8_t Field1;
     uint8_t Field2;
@@ -95,7 +95,7 @@ typedef struct CanRadioRd4DiagOptions1Struct {
     CanRadioRd4DiagOptions1Byte7Struct Field7;
 };
 
-typedef union CanRadioRd4DiagOptions1Packet {
+union CanRadioRd4DiagOptions1Packet {
     CanRadioRd4DiagOptions1Struct data;
     uint8_t CanRadioRd4DiagOptions1Packet[sizeof(CanRadioRd4DiagOptions1Struct)];
 };
@@ -180,7 +180,7 @@ class CanRadioRd4DiagPacketSender
         canMessageSender->SendMessage(CAN_ID_RADIO_RD4_DIAG, 0, 3, getBrightnessLevels);
     }
 
-    // Used to set the VIN number 
+    // Used to set the VIN number
     // Take care that when you issue this command you need to watch for the answers from the radio and forward it to the ProcessReceivedCanMessage() method to successfully program the VIN
     void SetVin(uint8_t vinAsciiBytes[17])
     {

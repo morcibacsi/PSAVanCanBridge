@@ -13,14 +13,14 @@ const uint8_t VAN_ID_AIR_CONDITIONER_DIAG_SENSOR_STATUS = 0xC0;
 // C1
 const uint8_t VAN_ID_AIR_CONDITIONER_DIAG_ACTUATOR_STATUS = 0xC1;
 
-typedef union TwoBytes {
+union TwoBytes {
     uint16_t value;
     uint8_t bytes[2];
 };
 
 #pragma region Sensor status
 // Read left to right in documentation
-typedef struct VanAirConditionerDiagSensorStatusStruct {
+struct VanAirConditionerDiagSensorStatusStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -45,7 +45,7 @@ typedef struct VanAirConditionerDiagSensorStatusStruct {
     uint8_t Footer;
 };
 
-typedef union VanAirConditionerDiagSensorStatusPacket {
+union VanAirConditionerDiagSensorStatusPacket {
     VanAirConditionerDiagSensorStatusStruct data;
     uint8_t VanAirConditionerDiagSensorStatusPacket[sizeof(VanAirConditionerDiagSensorStatusStruct)];
 };
@@ -53,7 +53,7 @@ typedef union VanAirConditionerDiagSensorStatusPacket {
 
 #pragma region Actuator status
 // Read left to right in documentation
-typedef struct VanAirConditionerDiagActuatorStatusStruct {
+struct VanAirConditionerDiagActuatorStatusStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -68,7 +68,7 @@ typedef struct VanAirConditionerDiagActuatorStatusStruct {
     uint8_t Footer;
 };
 
-typedef union VanAirConditionerDiagActuatorStatusPacket {
+union VanAirConditionerDiagActuatorStatusPacket {
     VanAirConditionerDiagActuatorStatusStruct data;
     uint8_t VanAirConditionerDiagActuatorStatusPacket[sizeof(VanAirConditionerDiagActuatorStatusStruct)];
 };

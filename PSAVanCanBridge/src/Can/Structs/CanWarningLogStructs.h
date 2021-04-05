@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
     uint8_t unknown0                 : 1; // bit 0
-    uint8_t unknown1                 : 1; // bit 1 
+    uint8_t unknown1                 : 1; // bit 1
     uint8_t GearboxFaultRepairNeeded : 1; // bit 2 Gearbox fault repair needed
     uint8_t unknown3                 : 1; // bit 3
     uint8_t unknown4                 : 1; // bit 4
@@ -68,7 +68,7 @@ typedef struct {
 
 typedef struct {
     uint8_t unknown0                  : 1; // bit 0
-    uint8_t unknown1                  : 1; // bit 1 
+    uint8_t unknown1                  : 1; // bit 1
     uint8_t EngineFaultStopTheVehicle : 1; // bit 2 Engine fault stop the vehicle
     uint8_t unknown3                  : 1; // bit 3
     uint8_t unknown4                  : 1; // bit 4
@@ -78,7 +78,7 @@ typedef struct {
 } CanWarningLogByte6Struct;
 
 // Read left to right in documentation
-typedef struct CanWarningLogStruct {
+struct CanWarningLogStruct {
     uint8_t EnableLog;
     CanWarningLogByte1Struct WarningCategory1;
     CanWarningLogByte2Struct WarningCategory2;
@@ -89,7 +89,7 @@ typedef struct CanWarningLogStruct {
     uint8_t Field7;
 };
 
-typedef union CanWarningLogPacket {
+union CanWarningLogPacket {
     CanWarningLogStruct data;
     uint8_t CanWarningLogPacket[sizeof(CanWarningLogStruct)];
 };

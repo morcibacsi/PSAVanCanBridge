@@ -11,7 +11,7 @@
 const uint16_t CAN_ID_DASH4 = 0x161;
 
 // Read left to right in documentation
-typedef struct CanDash4Struct {
+struct CanDash4Struct {
     uint8_t Field1;
     uint8_t Field2;
     uint8_t OilTemperature;
@@ -22,11 +22,10 @@ typedef struct CanDash4Struct {
     uint8_t Field8;
 };
 
-typedef union CanDash4Packet {
+union CanDash4Packet {
     CanDash4Struct data;
     uint8_t CanDash4Packet[sizeof(CanDash4Struct)];
 };
-
 
 class CanDash4PacketSender
 {

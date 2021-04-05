@@ -45,7 +45,7 @@ typedef struct {
 } CanAirConOnDisplayByte2Struct;
 
 // Read left to right in documentation
-typedef struct CanAirConOnDisplayStruct {
+struct CanAirConOnDisplayStruct {
     CanAirConOnDisplayByte1Struct Modes;
     CanAirConOnDisplayByte2Struct WindShieldIf0x80;
     uint8_t TemperatureLeft;
@@ -55,7 +55,7 @@ typedef struct CanAirConOnDisplayStruct {
     uint8_t Speed;
 };
 
-typedef union CanAirConOnDisplayPacket {
+union CanAirConOnDisplayPacket {
     CanAirConOnDisplayStruct data;
     uint8_t CanAirConOnDisplayPacket[sizeof(CanAirConOnDisplayStruct)];
 };

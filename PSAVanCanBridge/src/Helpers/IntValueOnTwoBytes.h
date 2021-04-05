@@ -10,10 +10,10 @@ IntValueOnTwoBytes.value = 65535;           //Assign a value to the Int var of t
 HighByte = IntValueOnTwoBytes.Bytes[1];     //Get the High Byte (255)
 LowByte  = IntValueOnTwoBytes.Bytes[0];     //Get the Low Byte (255)
 */
-typedef union IntValueOnTwoBytes
+union IntValueOnTwoBytes
 {
-    unsigned int value;
-    unsigned char bytes[2];
+    uint16_t value;
+    uint8_t bytes[2];
 };
 
 #endif

@@ -38,13 +38,13 @@ typedef union {
 } CanWheelCounterAndStatusUnion;
 
 // Read left to right in documentation
-typedef struct CanNaviPositionStruct {
+struct CanNaviPositionStruct {
     CanAbsStatusUnion AbsStatus;
     CanWheelCounterAndStatusUnion RearLeftAbsStatus;
     CanWheelCounterAndStatusUnion RearRightAbsStatus;
 };
 
-typedef union CanNaviPositionPacket {
+union CanNaviPositionPacket {
     CanNaviPositionStruct data;
     uint8_t CanNaviPositionPacket[sizeof(CanNaviPositionStruct)];
 };

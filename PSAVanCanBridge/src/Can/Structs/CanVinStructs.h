@@ -18,13 +18,13 @@ const uint16_t CAN_ID_VIN_PART3 = 0x2B6;
 
 #pragma region ASCII coded first 3 letters of VIN
 
-typedef struct CanVin1_3LettersStruct {
+struct CanVin1_3LettersStruct {
     uint8_t Letter1InAscii;
     uint8_t Letter2InAscii;
     uint8_t Letter3InAscii;
 };
 
-typedef union CanVin1Packet {
+union CanVin1Packet {
     CanVin1_3LettersStruct data;
     uint8_t CanVin1_3LettersMessagePacket[sizeof(CanVin1_3LettersStruct)];
 };
@@ -33,7 +33,7 @@ typedef union CanVin1Packet {
 
 #pragma region ASCII coded 4-9 letters of VIN
 
-typedef struct CanVin4_9LettersStruct {
+struct CanVin4_9LettersStruct {
     uint8_t Letter4InAscii;
     uint8_t Letter5InAscii;
     uint8_t Letter6InAscii;
@@ -42,7 +42,7 @@ typedef struct CanVin4_9LettersStruct {
     uint8_t Letter9InAscii;
 };
 
-typedef union CanVin4_9LettersPacket {
+union CanVin4_9LettersPacket {
     CanVin4_9LettersStruct data;
     uint8_t CanVin4_9LettersPacket[sizeof(CanVin4_9LettersStruct)];
 };
@@ -51,7 +51,7 @@ typedef union CanVin4_9LettersPacket {
 
 #pragma region ASCII coded 10-17 letters (last 8) of VIN
 
-typedef struct CanVin10_17LettersStruct {
+struct CanVin10_17LettersStruct {
     uint8_t Letter10InAscii;
     uint8_t Letter11InAscii;
     uint8_t Letter12InAscii;
@@ -62,7 +62,7 @@ typedef struct CanVin10_17LettersStruct {
     uint8_t Letter17InAscii;
 };
 
-typedef union CanVin10_17LettersPacket {
+union CanVin10_17LettersPacket {
     CanVin10_17LettersStruct data;
     uint8_t CanVin10_17LettersPacket[sizeof(CanVin10_17LettersStruct)];
 };

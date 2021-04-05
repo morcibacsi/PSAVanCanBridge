@@ -16,7 +16,7 @@ const uint8_t PR_DIAG_ANSWER_CONFIG         = 0xC0;
 
 #pragma region Distance
 // Read left to right in documentation
-typedef struct VanParkingAidDiagDistanceStruct {
+struct VanParkingAidDiagDistanceStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -43,7 +43,7 @@ typedef struct VanParkingAidDiagDistanceStruct {
     uint8_t Footer;
 };
 
-typedef union VanParkingAidDiagDistancePacket {
+union VanParkingAidDiagDistancePacket {
     VanParkingAidDiagDistanceStruct data;
     uint8_t VanParkingAidDiagDistancePacket[sizeof(VanParkingAidDiagDistanceStruct)];
 };
@@ -91,7 +91,7 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct VanParkingAidDiagConfigurationStruct {
+struct VanParkingAidDiagConfigurationStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -117,7 +117,7 @@ typedef struct VanParkingAidDiagConfigurationStruct {
     uint8_t Footer;
 };
 
-typedef union VanParkingAidDiagConfigurationPacket {
+union VanParkingAidDiagConfigurationPacket {
     VanParkingAidDiagConfigurationStruct data;
     uint8_t VanParkingAidDiagConfigurationPacket[sizeof(VanParkingAidDiagConfigurationStruct)];
 };
@@ -126,7 +126,7 @@ typedef union VanParkingAidDiagConfigurationPacket {
 #pragma region Fault codes
 
 // Read left to right in documentation
-typedef struct VanParkingAidDiagFaultCodesStruct {
+struct VanParkingAidDiagFaultCodesStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -157,7 +157,7 @@ typedef struct VanParkingAidDiagFaultCodesStruct {
     uint8_t Footer;
 };
 
-typedef union VanParkingAidDiagFaultCodesPacket {
+union VanParkingAidDiagFaultCodesPacket {
     VanParkingAidDiagFaultCodesStruct data;
     uint8_t VanParkingAidDiagFaultCodesPacket[sizeof(VanParkingAidDiagFaultCodesStruct)];
 };
@@ -177,7 +177,7 @@ typedef struct {
 } VanParkingAidInputStateByte3Struct;
 
 // Read left to right in documentation
-typedef struct VanParkingAidInputStateStruct {
+struct VanParkingAidInputStateStruct {
     uint8_t Header;
     uint8_t Byte1;
     uint8_t DiagFunctionId;
@@ -185,11 +185,11 @@ typedef struct VanParkingAidInputStateStruct {
     uint8_t Footer;
 };
 
-typedef union VanParkingAidInputStatePacket {
+union VanParkingAidInputStatePacket {
     VanParkingAidInputStateStruct data;
     uint8_t VanParkingAidInputStatePacket[sizeof(VanParkingAidInputStateStruct)];
 };
-#pragma endregion 
+#pragma endregion
 
 #pragma region Sender class
 

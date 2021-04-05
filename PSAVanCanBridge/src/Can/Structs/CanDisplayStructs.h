@@ -203,7 +203,7 @@ typedef union {
 } CanDisplayDoorStatus2;
 
 // Read left to right in documentation
-typedef struct CanDisplayStruct {
+struct CanDisplayStruct {
     uint8_t ShowPopup;
     uint8_t PopupMessageType;
     CanDisplayByte2Struct Field2;
@@ -214,7 +214,7 @@ typedef struct CanDisplayStruct {
     uint8_t KmRemainderUpTo255;
 };
 
-typedef union CanDisplayPacket {
+union CanDisplayPacket {
     CanDisplayStruct data;
     uint8_t CanDisplayPacket[sizeof(CanDisplayStruct)];
 };

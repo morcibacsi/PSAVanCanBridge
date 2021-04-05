@@ -24,13 +24,13 @@ typedef struct {
 
 
 // Read left to right in documentation
-typedef struct CanRadioRemoteStruct {
+struct CanRadioRemoteStruct {
     CanRadioRemoteButtonStruct RemoteButton;
     uint8_t ScrollPosition;
     uint8_t Field2;
 };
 
-typedef union CanRadioRemotePacket {
+union CanRadioRemotePacket {
     CanRadioRemoteStruct data;
     uint8_t CanRadioRemotePacket[sizeof(CanRadioRemoteStruct)];
 };

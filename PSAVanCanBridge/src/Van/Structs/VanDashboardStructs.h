@@ -39,7 +39,7 @@ typedef struct {
 
 
 //Read left to right in documentation
-typedef struct VanDashboardStructs {
+struct VanDashboardStructs {
     VanDashboardByte0Struct Field0;
     VanDashboardByte1Struct Field1;
     VanWaterTemperatureStruct WaterTemperature;
@@ -49,7 +49,7 @@ typedef struct VanDashboardStructs {
     VanExternalTemperatureStruct ExternalTemperature;
 };
 
-typedef union VanDashboardPacket {
+union VanDashboardPacket {
     VanDashboardStructs data;
     uint8_t VanDashboardPacket[sizeof(VanDashboardStructs)];
 };

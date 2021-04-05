@@ -44,7 +44,7 @@ typedef struct {
 } CanIgnitionByte5Struct;
 
 // Read left to right in documentation
-typedef struct CanIgnitionStruct {
+struct CanIgnitionStruct {
     uint8_t Field1;
     uint8_t Field2;
     CanIgnitionByte3Struct Field3;
@@ -55,7 +55,7 @@ typedef struct CanIgnitionStruct {
     uint8_t Field8;
 };
 
-typedef union CanIgnitionPacket {
+union CanIgnitionPacket {
     CanIgnitionStruct data;
     uint8_t CanIgnitionPacket[sizeof(CanIgnitionStruct)];
 };

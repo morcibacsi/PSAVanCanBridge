@@ -58,7 +58,7 @@ typedef struct {
 } CanParkingAidByte5Struct;
 
 // Read left to right in documentation
-typedef struct CanParkingAidStruct {
+struct CanParkingAidStruct {
     uint8_t Field1;
     CanParkingAidByte1Struct SoundOptions;
     CanParkingAidByte2Struct BeepPeriod;
@@ -69,7 +69,7 @@ typedef struct CanParkingAidStruct {
     uint8_t Field8;
 };
 
-typedef union CanParkingAidPacket {
+union CanParkingAidPacket {
     CanParkingAidStruct data;
     uint8_t CanParkingAidPacket[sizeof(CanParkingAidStruct)];
 };
