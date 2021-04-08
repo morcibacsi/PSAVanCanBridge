@@ -188,7 +188,10 @@ public:
         _canDash2MessageHandler->SetData(
             dataToBridge.LightStatuses,
             dataToBridge.DashIcons1Field,
-            ignition
+            ignition,
+            dataToBridge.GearboxMode,
+            dataToBridge.GearboxSelection,
+            dataToBridge.GearboxSelection
         );
         _canDash2MessageHandler->Process(currentTime);
 
@@ -199,7 +202,7 @@ public:
         _canDash3MessageHandler->SetData(dataToBridge.DashIcons1Field);
         _canDash3MessageHandler->Process(currentTime);
 
-        _canDash4MessageHandler->SetData(dataToBridge.FuelLevel);
+        _canDash4MessageHandler->SetData(dataToBridge.FuelLevel, dataToBridge.OilTemperature);
         _canDash4MessageHandler->Process(currentTime);
 
         #pragma endregion

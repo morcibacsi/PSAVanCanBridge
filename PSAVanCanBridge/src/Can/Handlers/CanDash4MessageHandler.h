@@ -14,12 +14,14 @@ class CanDash4MessageHandler : public CanMessageHandlerBase
 
     CanDash4PacketSender* Dash4Sender;
 
-    uint8_t _FuelLevel;
+    uint8_t _fuelLevel;
+    int8_t _oilTemperature;
 
     virtual void InternalProcess()
     {
         Dash4Sender->SendData(
-            _FuelLevel
+            _fuelLevel,
+            _oilTemperature
         );
     }
 
@@ -29,9 +31,10 @@ class CanDash4MessageHandler : public CanMessageHandlerBase
         Dash4Sender = new CanDash4PacketSender(object);
     }
 
-    void SetData(uint8_t fuelLevel)
+    void SetData(uint8_t fuelLevel, int8_t oilTemperature)
     {
-        _FuelLevel = fuelLevel;
+        _fuelLevel = fuelLevel;
+        _oilTemperature = oilTemperature;
     }
 };
 

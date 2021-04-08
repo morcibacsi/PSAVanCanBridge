@@ -7,6 +7,8 @@
 #include "../AbstractCanMessageSender.h"
 #include "../../Helpers/PacketGenerator.h"
 
+const uint16_t CAN_ID_DASH1_INTERVAL = 500;
+
 // CANID: 0F6
 const uint16_t CAN_ID_DASH1 = 0x0F6;
 
@@ -65,11 +67,10 @@ union CanDash1Packet {
 };
 
 int static CanGetCoolantTemperatureToDisplay(int temperatureToDisplay) {
-    return (temperatureToDisplay + 39);
+    return (temperatureToDisplay + 40);
 }
 
 int static CanGetExternalTemperatureToDisplay(int temperatureToDisplay) {
-    //actually it should be 39.5 not 40
     return (temperatureToDisplay + 40) * 2;
 }
 

@@ -34,8 +34,11 @@ struct VanDataToBridgeToCan
     DashIcons1 DashIcons1Field;
     uint8_t LeftStickButtonPressed = 0;
     uint8_t AirConDirection = 0;
-    uint8_t OilTemperature = 0;
+    int8_t OilTemperature = 0;
     uint16_t RightWheelPosition = 0;
     uint16_t LeftWheelPosition = 0;
+    uint8_t GearboxPosition = 0;
+    uint8_t GearboxMode = 0;
+    uint8_t GearboxSelection = 0;
 };
 #endif

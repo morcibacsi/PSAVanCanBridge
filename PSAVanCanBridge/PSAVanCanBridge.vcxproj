@@ -173,6 +173,7 @@
     <ClInclude Include="src\Can\Structs\CanTrip2Structs.h" />
     <ClInclude Include="src\Can\Structs\CanVinStructs.h" />
     <ClInclude Include="src\Can\Structs\CanWarningLogStructs.h" />
+    <ClInclude Include="src\ESPFlash\ESPFlash.h" />
     <ClInclude Include="src\Helpers\ByteAcceptanceHandler.h" />
     <ClInclude Include="src\Helpers\CanDisplayPopupItem.h" />
     <ClInclude Include="src\Helpers\DashIcons1.h" />
@@ -187,6 +188,7 @@
     <ClInclude Include="src\Helpers\SerialReader.h" />
     <ClInclude Include="src\Helpers\VanCanAirConditionerSpeedMap.h" />
     <ClInclude Include="src\Helpers\VanCanDisplayPopupMap.h" />
+    <ClInclude Include="src\Helpers\VanCanGearboxPositionMap.h" />
     <ClInclude Include="src\Helpers\VanDataToBridgeToCan.h" />
     <ClInclude Include="src\Helpers\VanIgnitionDataToBridgeToCan.h" />
     <ClInclude Include="src\Helpers\VanVinToBridgeToCan.h" />
@@ -250,6 +252,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PSAVanCanBridgeMain.cpp" />
+    <ClCompile Include="src\Helpers\VanCanGearboxPositionMap.cpp" />
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp" />
     <ClCompile Include="src\SerialPort\HardwareSerialAbs.cpp" />
   </ItemGroup>

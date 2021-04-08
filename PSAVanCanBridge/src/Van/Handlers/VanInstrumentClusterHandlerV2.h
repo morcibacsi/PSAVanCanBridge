@@ -43,6 +43,9 @@ public:
         dataToBridge->LightStatuses.status.RightIndicator = packet.data.LightsStatus.right_indicator;
         dataToBridge->FuelLevel = packet.data.FuelLevel;
         dataToBridge->OilTemperature = GetOilTemperatureFromVANByteV2(packet.data.OilTemperature);
+        dataToBridge->GearboxMode = packet.data.AutomaticGearbox.bva_bvmp_selection;
+        dataToBridge->GearboxSelection = packet.data.AutomaticGearbox.gearbox_selection_mode;
+        dataToBridge->GearboxPosition = packet.data.AutomaticGearbox.gear_position;
 
         ignitionDataToBridge->LowBeamOn = dataToBridge->LightStatuses.status.LowBeam;
 

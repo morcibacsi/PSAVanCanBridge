@@ -433,6 +433,12 @@
     <ClInclude Include="src\Van\VanWriterTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Helpers\VanCanGearboxPositionMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ESPFlash\ESPFlash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SerialPort\BluetoothSerialAbs.cpp">
@@ -442,6 +448,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PSAVanCanBridgeMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\VanCanGearboxPositionMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
