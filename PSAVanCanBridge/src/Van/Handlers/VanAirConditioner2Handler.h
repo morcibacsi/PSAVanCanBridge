@@ -29,7 +29,7 @@ public:
         VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_2) && messageLength == 7))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_2) && messageLength == VAN_ID_AIR_CONDITIONER_2_LENGTH))
         {
             return false;
         }
@@ -37,13 +37,13 @@ public:
         const VanAirConditioner2Packet packet = DeSerialize<VanAirConditioner2Packet>(vanMessageWithoutId);
         if (dataToBridge->IsHeatingPanelPoweredOn == 1)
         {
-            dataToBridge->IsAirConRunning = packet.data.Status.ac_on && packet.data.Status.ac_compressor_running;
-            dataToBridge->IsWindowHeatingOn = packet.data.Status.rear_window_heating_on;
+            dataToBridge->IsAirConRunning = packet.data.Status1.ac_on && packet.data.Status1.ac_compressor_running;
+            dataToBridge->IsWindowHeatingOn = packet.data.Status1.rear_window_heating_on;
         }
 
         if (HW_VERSION == 11 || !QUERY_AC_STATUS)
         {
-            dataToBridge->InternalTemperature = GetInternalTemperature(packet.data.InternalTemperature);
+            dataToBridge->InternalTemperature = GetEvaporatorTemperature(packet.data.EvaporatorTemperature);
         }
 
         return true;
