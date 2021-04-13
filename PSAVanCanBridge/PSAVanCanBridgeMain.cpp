@@ -47,10 +47,12 @@
     #include "src/Can/Handlers/CanDisplayPopupHandler3.h"
 #endif
 
-#ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-    #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
-#else
-    //#include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+        #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
+    #else
+        #include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+    #endif
 #endif
 
 #include "src/Van/AbstractVanMessageSender.h"
@@ -107,7 +109,15 @@ AbstractCanMessageSender* CANInterface;
 ICanDisplayPopupHandler* canPopupHandler;
 CanVinHandler* canVinHandler;
 CanTripInfoHandler* tripInfoHandler;
-//CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
+
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+        //#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
+    #else
+        CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
+    #endif
+#endif
+
 CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
 CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
 CanWarningLogHandler* canWarningLogHandler;
@@ -294,9 +304,16 @@ void setup()
     canPopupHandler = new CanDisplayPopupHandler3(CANInterface);
 #endif
 
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+        //#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
+    #else
+        canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
+    #endif
+#endif
+
     canVinHandler = new CanVinHandler(CANInterface);
     tripInfoHandler = new CanTripInfoHandler(CANInterface);
-    //canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
     canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
     canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
     canWarningLogHandler = new CanWarningLogHandler(CANInterface);
@@ -321,7 +338,7 @@ void setup()
 
     serialReader = new SerialReader(serialPort, CANInterface, tripInfoHandler, canRadioButtonSender, vinFlashStorage);
     canIgnitionTask = new CanIgnitionTask(radioIgnition, dashIgnition, canParkingAid, canRadioRemoteMessageHandler, canStatusOfFunctionsHandler, canPopupHandler, canWarningLogHandler, canVinHandler);
-    canDataSenderTask = new CanDataSenderTask(canSpeedAndRpmHandler, tripInfoHandler, canPopupHandler, canRadioRemoteMessageHandler, canDash2MessageHandler, canDash3MessageHandler, canDash4MessageHandler, canRadioButtonSender, canNaviPositionHandler);
+    canDataSenderTask = new CanDataSenderTask(canSpeedAndRpmHandler, tripInfoHandler, canPopupHandler, canRadioRemoteMessageHandler, canDash2MessageHandler, canDash3MessageHandler, canDash4MessageHandler, canRadioButtonSender, canNaviPositionHandler, canAirConOnDisplayHandler);
     canDataReaderTask = new CanDataReaderTask(CANInterface, canPopupHandler, canRadioRemoteMessageHandler, canMessageHandlerContainer, canDataSenderTask);
     vanDataParserTask = new VanDataParserTask(serialPort, canVinHandler, vanHandlerContainer);
     vanWriterTask = new VanWriterTask();

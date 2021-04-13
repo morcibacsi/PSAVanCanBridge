@@ -9,9 +9,6 @@
 // if true then the ignition signal is used from the VAN bus otherwise the ignition is considered as always on
 constexpr bool USE_IGNITION_SIGNAL_FROM_VAN_BUS = true;
 
-// if true the AC status is queried with a diagnostic message (only works with rev 1.4)
-constexpr bool QUERY_AC_STATUS = false;
-
 //if true the distance data from the parking aid is queried with a diagnostic message (only works with rev 1.4)
 constexpr bool QUERY_PARKING_AID_DISTANCE = false;
 
@@ -47,6 +44,11 @@ constexpr uint8_t DISPLAY_MODE = 1;
     // Original V2C sends this VIN:
     //uint8_t Vin[17] = { 'L', 'D', 'C', '9', '4', '3', 'X', '4', '7', 'D', '1', '5', '6', '6', '7', '7', '2' };
 #endif
+
+#define SEND_AC_CHANGES_TO_DISPLAY
+
+// if true the AC status is queried with a diagnostic message (only works with rev 1.4)
+constexpr bool QUERY_AC_STATUS = false;
 
 //#define USE_NEW_AIRCON_DISPLAY_SENDER
 

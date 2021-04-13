@@ -7,6 +7,14 @@
 #include "../../Config.h"
 #include "Handlers/CanNaviPositionHandler.h"
 
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+        #include "../Can/Handlers/CanAirConOnDisplayHandler.h"
+    #else
+        #include "../Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+    #endif
+#endif
+
 class CanDataSenderTask {
     unsigned long currentTime = 0;
     unsigned long prevRadioButtonTime = 0;
@@ -34,6 +42,7 @@ class CanDataSenderTask {
     CanDash4MessageHandler* _canDash4MessageHandler;
     CanRadioButtonPacketSender* _canRadioButtonSender;
     CanNaviPositionHandler* _canNaviPositionHandler;
+    CanAirConOnDisplayHandler* _canAirConOnDisplayHandler;
 
 public:
     bool SendNoRadioButtonMessage = true;
@@ -47,7 +56,8 @@ public:
         CanDash3MessageHandler* canDash3MessageHandler,
         CanDash4MessageHandler* canDash4MessageHandler,
         CanRadioButtonPacketSender* canRadioButtonSender,
-        CanNaviPositionHandler* canNaviPositionHandler
+        CanNaviPositionHandler* canNaviPositionHandler,
+        CanAirConOnDisplayHandler* canAirConOnDisplayHandler
     )
     {
         _canSpeedAndRpmHandler = canSpeedAndRpmHandler;
@@ -59,6 +69,7 @@ public:
         _canDash4MessageHandler = canDash4MessageHandler;
         _canRadioButtonSender = canRadioButtonSender;
         _canNaviPositionHandler = canNaviPositionHandler;
+        _canAirConOnDisplayHandler = canAirConOnDisplayHandler;
     }
 
     void SendData(VanDataToBridgeToCan dataToBridge) {
@@ -151,35 +162,37 @@ public:
 
         #pragma region AirCon
 
-        if (!_canPopupHandler->IsPopupVisible())
-        {
-            #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-            canAirConOnDisplayHandler->SetData(
-                dataToBridge.InternalTemperature,
-                dataToBridge.InternalTemperature,
-                0,
-                0, // auto mode
-                dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
-                dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                dataToBridge.AirConFanSpeed,
-                dataToBridge.IsAirRecyclingOn);
-            canAirConOnDisplayHandler->Process(currentTime);
-            #else
+        #ifdef SEND_AC_CHANGES_TO_DISPLAY
 
-            //canAirConOnDisplayHandler->SendCanAirConToDisplay(
-            //    currentTime,
-            //    dataToBridge.InternalTemperature,
-            //    dataToBridge.InternalTemperature,
-            //    dataToBridge.AirConDirection,
-            //    0, // auto mode
-            //    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
-            //    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-            //    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-            //    dataToBridge.AirConFanSpeed,
-            //    dataToBridge.IsAirRecyclingOn);
-            #endif
-        }
+            if (!_canPopupHandler->IsPopupVisible())
+            {
+                #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
+                canAirConOnDisplayHandler->SetData(
+                    dataToBridge.InternalTemperature,
+                    dataToBridge.InternalTemperature,
+                    0,
+                    0, // auto mode
+                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
+                    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                    dataToBridge.AirConFanSpeed,
+                    dataToBridge.IsAirRecyclingOn);
+                canAirConOnDisplayHandler->Process(currentTime);
+                #else
+                    _canAirConOnDisplayHandler->SendCanAirConToDisplay(
+                        currentTime,
+                        dataToBridge.InternalTemperature,
+                        dataToBridge.InternalTemperature,
+                        dataToBridge.AirConDirection,
+                        0, // auto mode
+                        dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
+                        dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                        dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                        dataToBridge.AirConFanSpeed,
+                        dataToBridge.IsAirRecyclingOn);
+                #endif
+            }
+        #endif
 
         #pragma endregion
 

@@ -23,10 +23,10 @@ class CanAirConOnDisplayHandler
     float prevTemperatureRight;
     uint8_t prevDirection;
     uint8_t prevAutoMode;
-    uint8_t prevAcOff; 
-    uint8_t prevOff; 
-    uint8_t prevWindshield; 
-    uint8_t prevFanSpeed; 
+    uint8_t prevAcOff;
+    uint8_t prevOff;
+    uint8_t prevWindshield;
+    uint8_t prevFanSpeed;
     uint8_t prevRecyclingOn;
 
     public:
@@ -42,32 +42,18 @@ class CanAirConOnDisplayHandler
         {
             previousTime = currentTime;
 
-            // add some tolerance on the fan speed to avoid 'flickering'
-            if (FanSpeed != fanSpeed)
-            {
-                FanSpeedChangedCounter++;
-
-                if (FanSpeedChangedCounter == 3)
-                {
-                    FanSpeed = fanSpeed;
-                    FanSpeedChangedCounter = 0;
-                }
-            }
-            else
-            {
-                FanSpeedChangedCounter = 0;
-            }
+            FanSpeed = fanSpeed;
 
             // spare some bandwidth on CAN bus
             const bool sendMessageOnCan =
-                prevTemperatureLeft != temperatureLeft || 
-                prevTemperatureRight != temperatureRight || 
-                prevDirection != direction || 
-                prevAutoMode != autoMode || 
-                prevAcOff != acOff || 
-                prevOff != off || 
-                prevWindshield != windshield || 
-                prevFanSpeed != FanSpeed || 
+                prevTemperatureLeft != temperatureLeft ||
+                prevTemperatureRight != temperatureRight ||
+                prevDirection != direction ||
+                prevAutoMode != autoMode ||
+                prevAcOff != acOff ||
+                prevOff != off ||
+                prevWindshield != windshield ||
+                prevFanSpeed != FanSpeed ||
                 prevRecyclingOn != recyclingOn;
 
             if (sendMessageOnCan || (currentTime - lastForceSentTime) > CAN_AIRCON_FORCE_TIMEOUT)
@@ -77,7 +63,7 @@ class CanAirConOnDisplayHandler
                 prevTemperatureLeft = temperatureLeft;
                 prevTemperatureRight = temperatureRight;
                 prevDirection = direction;
-                prevAutoMode = autoMode; 
+                prevAutoMode = autoMode;
                 prevAcOff = acOff;
                 prevOff = off;
                 prevWindshield = windshield;

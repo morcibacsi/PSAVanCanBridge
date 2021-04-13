@@ -130,6 +130,8 @@ uint8_t static CanAirConToDisplayGetTemperature(float temperature) {
     if (temperature == 18.5) return 0x0C;
     if (temperature == 19.5) return 0x0E;
     if (temperature == 19.5) return 0x10;
+
+    return 0x16;
 }
 
 #pragma region Sender class
