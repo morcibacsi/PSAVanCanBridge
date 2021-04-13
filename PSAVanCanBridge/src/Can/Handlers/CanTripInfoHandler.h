@@ -11,7 +11,7 @@
 class CanTripInfoHandler
 {
     const int CAN_TRIP_INTERVAL = 333;
-    const int CAN_TRIP_SEND_COUNT = 10;
+    const int CAN_TRIP_SEND_COUNT = 5;
 
     AbstractCanMessageSender *canMessageSender;
 
@@ -74,8 +74,8 @@ class CanTripInfoHandler
         }
         if (TripButtonPressed == 0 && IsSendingEnabled == 1)
         {
-            TripButtonPressed = 1;
             IsSendingEnabled = 0;
+            TripButtonPressed = 1;
             uint8_t messageSentCount = 0;
 
             // we have to send the "trip button pressed" state several times to change the trip computer on the display
