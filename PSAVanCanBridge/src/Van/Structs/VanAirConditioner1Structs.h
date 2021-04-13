@@ -4,19 +4,21 @@
 #ifndef _VanAirConditioner1Structs_h
     #define _VanAirConditioner1Structs_h
 
+const uint8_t VAN_ID_AIR_CONDITIONER_1_LENGTH = 5;
+
 // VANID: 464
 const uint16_t VAN_ID_AIR_CONDITIONER_1 = 0x464;
 
 // Read right to left in documentation
 typedef struct {
-    uint8_t recycling_button_pressed : 1; // bit 0
-    uint8_t unknown1                 : 1; // bit 1
-    uint8_t recycling_on             : 1; // bit 2
-    uint8_t unknown3                 : 1; // bit 3
-    uint8_t aircon_on_if_necessary   : 1; // bit 4 // this means that the car can turn on the A/C if necessary
-    uint8_t unknown_6                : 1; // bit 5
-    uint8_t auto_mode_on             : 1; // bit 6 // not sure, it is also set, when fan speed is above 3
-    uint8_t unknown_8                : 1; // bit 7
+    uint8_t recycling_button_pressed      : 1; // bit 0
+    uint8_t electric_windshield_active    : 1; // bit 1
+    uint8_t recycling_on                  : 1; // bit 2
+    uint8_t aircon_request_valid          : 1; // bit 3
+    uint8_t aircon_requested              : 1; // bit 4 // this means that the car can turn on the A/C if necessary
+    uint8_t load_shedding_level3_possible : 1; // bit 5
+    uint8_t load_shedding_level2_possible : 1; // bit 6
+    uint8_t load_shedding_level1_possible : 1; // bit 7
 } VanAirCon1Byte0Struct;
 
 

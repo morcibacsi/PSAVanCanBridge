@@ -46,7 +46,7 @@ public:
         VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1) && messageLength == 5))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_AIR_CONDITIONER_1) && messageLength == VAN_ID_AIR_CONDITIONER_1_LENGTH))
         {
             return false;
         }
@@ -55,7 +55,7 @@ public:
 
         const VanAirConditioner1Packet packet = DeSerialize<VanAirConditioner1Packet>(vanMessageWithoutId);
         if (
-               (vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00)) // off
+               (vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x00))  // off
             || (vanMessageWithoutId[0] == 0x00 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating
             || (vanMessageWithoutId[0] == 0x01 && (packet.data.FanSpeed == 0x0E))  // off + rear window heating toggle
             || (vanMessageWithoutId[0] == 0x04 && (packet.data.FanSpeed == 0x00))  // off + recycle
@@ -73,7 +73,7 @@ public:
         else
         {
             dataToBridge->IsHeatingPanelPoweredOn = 1;
-            dataToBridge->IsAirConEnabled = packet.data.Status.aircon_on_if_necessary;
+            dataToBridge->IsAirConEnabled = packet.data.Status.aircon_requested;
             dataToBridge->IsAirRecyclingOn = packet.data.Status.recycling_on;
 
             const bool isModifierChanged =
