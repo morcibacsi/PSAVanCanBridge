@@ -14,6 +14,7 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
     const uint8_t  CAN_POPUP_MESSAGE_SEND_COUNT = 2;
     const uint16_t CAN_POPUP_INTERVAL = 400;
     const uint16_t CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME = 6000;
+    const uint16_t MESSAGE_CHILLTIME = 24000;
 
     AbstractCanMessageSender *canMessageSender;
     CanDisplayPacketSender *displayMessageSender;
@@ -25,6 +26,8 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
 
     unsigned long previousRunTime = millis();
     unsigned long popupAddedToShow = millis();
+
+    unsigned long popupMessageTime[256] = { 0 };
 
     CanDisplayPopupItem currentPopupMessage;
     CanDisplayPopupItem currentDoorMessage;
@@ -51,6 +54,19 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
         const unsigned long currentTime = millis();
 
         const uint8_t incomingMessageType = incomingPopupMessage.MessageType;
+        const bool isIncomingDoorMessage = incomingMessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
+
+        if (!isIncomingDoorMessage)
+        {
+            if (currentTime - popupMessageTime[incomingMessageType] > MESSAGE_CHILLTIME)
+            {
+                popupMessageTime[incomingMessageType] = currentTime;
+            }
+            else
+            {
+                return;
+            }
+        }
 
         if ((riskOfIceShown && incomingMessageType == CAN_POPUP_MSG_RISK_OF_ICE) ||
             (seatbeltWarningShown && incomingMessageType == CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED)
@@ -58,8 +74,6 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
         {
             return;
         }
-
-        const bool isIncomingDoorMessage = incomingMessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
 
         if (isIncomingDoorMessage)
         {
@@ -109,9 +123,9 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
             }
             else
             {
-                bool shouldHideByTimeOut = 
-                    currentTime - popupAddedToShow > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME && 
-                    currentPopupMessage.Category != CAN_POPUP_MSG_SHOW_CATEGORY3 && 
+                bool shouldHideByTimeOut =
+                    currentTime - popupAddedToShow > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME &&
+                    currentPopupMessage.Category != CAN_POPUP_MSG_SHOW_CATEGORY3 &&
                     currentPopupMessage.MessageType != CAN_POPUP_MSG_NONE;
 
                 if (shouldHideByTimeOut)
@@ -208,6 +222,11 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
         currentPopupMessage.MessageType = CAN_POPUP_MSG_NONE;
         currentPopupMessage.Category = CAN_POPUP_MSG_SHOW_CATEGORY3;
         currentDoorMessage.DoorStatus1 = 0x00;
+
+        for (size_t i = 0; i < 256; i++)
+        {
+            popupMessageTime[i] = 0;
+        }
     }
 
     void ResetSeatBeltWarning()
@@ -232,9 +251,9 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
 
     bool DoorMessageCanBeDisplayed()
     {
-        return 
-            !isNonDoorMessageVisible || 
-            (currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 && 
+        return
+            !isNonDoorMessageVisible ||
+            (currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 &&
             currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE);
     }
 };
