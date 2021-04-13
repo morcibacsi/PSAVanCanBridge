@@ -46,8 +46,10 @@ public:
     size_t write(int n);
     inline operator bool() {return port;}
 
+    void SetConnected(bool connected);
 private:
     BluetoothSerial* port;
     String name;
+    bool isConnected;
 };
 #endif
