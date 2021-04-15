@@ -19,8 +19,6 @@ class CanDataSenderTask {
     unsigned long currentTime = 0;
     unsigned long prevRadioButtonTime = 0;
 
-
-    uint8_t ignition = 0;
     uint16_t trip0Icon1Data = 0;
     uint16_t trip0Icon2Data = 0;
     uint16_t trip0Icon3Data = 0;
@@ -74,12 +72,6 @@ public:
 
     void SendData(VanDataToBridgeToCan dataToBridge) {
         currentTime = millis();
-
-        if (!USE_IGNITION_SIGNAL_FROM_VAN_BUS)
-        {
-            _canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
-            _canSpeedAndRpmHandler->Process(currentTime);
-        }
 
         #pragma  region SpeedAndRpm
 
@@ -201,7 +193,7 @@ public:
         _canDash2MessageHandler->SetData(
             dataToBridge.LightStatuses,
             dataToBridge.DashIcons1Field,
-            ignition,
+            dataToBridge.Ignition,
             dataToBridge.GearboxMode,
             dataToBridge.GearboxSelection,
             dataToBridge.GearboxSelection
