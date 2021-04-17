@@ -29,7 +29,7 @@ public:
         VanIgnitionDataToBridgeToCan *ignitionDataToBridge,
         DoorStatus& doorStatus) override
     {
-        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_SPEED_RPM) && messageLength == 7))
+        if (!(IsVanIdent(identByte1, identByte2, VAN_ID_SPEED_RPM) && messageLength == VAN_ID_SPEED_RPM_LENGTH))
         {
             return false;
         }
@@ -38,6 +38,7 @@ public:
 
         dataToBridge->Rpm = GetRpmFromVanData(packet.data.Rpm.data);
         dataToBridge->Speed = GetSpeedFromVanData(packet.data.Speed.data);
+        dataToBridge->Distance = packet.data.Distance.data;
 
         return true;
     }

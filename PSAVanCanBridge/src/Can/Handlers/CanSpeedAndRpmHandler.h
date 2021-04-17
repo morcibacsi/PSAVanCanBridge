@@ -11,14 +11,15 @@ class CanSpeedAndRpmHandler : public CanMessageHandlerBase
 {
     static const int CAN_SPEED_RPM_INTERVAL = 40;
 
-    int _Speed = 0;
-    int _Rpm = 0;
+    uint8_t _speed = 0;
+    uint16_t _rpm = 0;
+    uint16_t _distance;
 
     CanSpeedAndRpmPacketSender* speedAndRpmSender;
 
     void InternalProcess() override
     {
-        speedAndRpmSender->Send(_Speed, _Rpm);
+        speedAndRpmSender->Send(_speed, _rpm, _distance);
     }
 
     public:
@@ -27,10 +28,11 @@ class CanSpeedAndRpmHandler : public CanMessageHandlerBase
         speedAndRpmSender = new CanSpeedAndRpmPacketSender(object);
     }
 
-    void SetData(int speed, int rpm)
+    void SetData(uint8_t speed, uint16_t rpm, uint16_t distance)
     {
-        _Speed = speed == 0xFFFF ? 0 : speed;
-        _Rpm = rpm == 0xFFFF ? 0 : rpm;
+        _speed = speed == 0xFF ? 0 : speed;
+        _rpm = rpm == 0xFFFF ? 0 : rpm;
+        _distance = distance;
     }
 };
 

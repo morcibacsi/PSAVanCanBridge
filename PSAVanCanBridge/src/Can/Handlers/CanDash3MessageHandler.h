@@ -11,7 +11,7 @@
 
 class CanDash3MessageHandler : public CanMessageHandlerBase
 {
-    static const uint8_t CAN_DASH3_MESSAGE_INTERVAL = 100;
+    static const uint8_t CAN_DASH3_MESSAGE_INTERVAL = 80;
 
     CanDash3PacketSender* Dash3Sender;
 

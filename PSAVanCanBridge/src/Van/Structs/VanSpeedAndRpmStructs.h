@@ -5,7 +5,8 @@
     #define _VanSpeedAndRpmStructs_h
 
 // VANID: 824
-const uint16_t VAN_ID_SPEED_RPM = 0x824;
+const uint16_t VAN_ID_SPEED_RPM        = 0x824;
+const uint8_t  VAN_ID_SPEED_RPM_LENGTH = 7;
 
 // Read right to left in documentation
 typedef struct {
@@ -25,7 +26,8 @@ typedef struct {
 struct VanSpeedAndRpmStruct {
     VanRpmStruct Rpm;
     VanSpeedStruct Speed;
-    VanSequenceStruct Sequence;
+    VanSequenceStruct Distance;
+    uint8_t Consumption;
 };
 
 union VanSpeedAndRpmPacket {
@@ -72,21 +74,19 @@ public:
         vanMessageSender = object;
     }
 
-    void Send(uint8_t channelId, uint8_t speed, uint8_t rpm, uint8_t sequenceCounter)
+    void Send(uint8_t channelId, uint8_t speed, uint16_t rpm, uint16_t distance)
     {
         VanSpeedAndRpmPacket packet;
         memset(&packet, 0, sizeof(packet));
 
         packet.data.Rpm.data = 100;
         packet.data.Speed.data = 10;
-        packet.data.Sequence.data = sequenceCounter;
+        packet.data.Distance.data = distance;
 
-        //printf("sending speed: %d (%#x)\n", x, x);
         unsigned char *serializedPacket = Serialize<VanSpeedAndRpmPacket>(packet);
         vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_SPEED_RPM, serializedPacket, sizeof(packet), 0);
         memset(&packet, 0, 0);
         delete[] serializedPacket;
-        //sequenceCounter++;
     }
 };
 #pragma endregion

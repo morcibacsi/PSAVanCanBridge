@@ -75,7 +75,7 @@ public:
 
         #pragma  region SpeedAndRpm
 
-        _canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm);
+        _canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm, dataToBridge.Distance);
         _canSpeedAndRpmHandler->Process(currentTime);
 
         #pragma endregion

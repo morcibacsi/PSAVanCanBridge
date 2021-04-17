@@ -49,13 +49,13 @@ public:
         canMessageSender = object;
     }
 
-    void Send(uint8_t speed, uint16_t rpm)
+    void Send(uint8_t speed, uint16_t rpm, uint16_t distance)
     {
         PacketGenerator<CanSpeedAndRpmPacket> generator;
 
         generator.packet.data.Rpm.Data = SwapLoByteWithHiByte(rpm * 8);
         generator.packet.data.Speed.Data = SwapLoByteWithHiByte(speed * 100);
-        generator.packet.data.Odometer.Data = 0x24B9;
+        generator.packet.data.Odometer.Data = distance;
         generator.packet.data.FuelConsumptionCounter = 0x89;
         generator.packet.data.Field4 = 0xD0;
 

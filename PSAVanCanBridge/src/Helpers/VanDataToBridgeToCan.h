@@ -40,5 +40,6 @@ struct VanDataToBridgeToCan
     uint8_t GearboxPosition = 0;
     uint8_t GearboxMode = 0;
     uint8_t GearboxSelection = 0;
+    uint16_t Distance = 0;
 };
 #endif
