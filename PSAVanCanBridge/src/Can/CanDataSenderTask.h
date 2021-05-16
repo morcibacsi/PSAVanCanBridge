@@ -30,6 +30,7 @@ class CanDataSenderTask {
     uint16_t trip2Icon1Data = 0;
     uint16_t trip2Icon2Data = 0;
     uint16_t trip2Icon3Data = 0;
+    uint8_t ignition = 0;
 
     CanSpeedAndRpmHandler* _canSpeedAndRpmHandler;
     CanTripInfoHandler* _tripInfoHandler;
@@ -40,7 +41,9 @@ class CanDataSenderTask {
     CanDash4MessageHandler* _canDash4MessageHandler;
     CanRadioButtonPacketSender* _canRadioButtonSender;
     CanNaviPositionHandler* _canNaviPositionHandler;
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
     CanAirConOnDisplayHandler* _canAirConOnDisplayHandler;
+#endif
 
 public:
     bool SendNoRadioButtonMessage = true;
@@ -54,8 +57,10 @@ public:
         CanDash3MessageHandler* canDash3MessageHandler,
         CanDash4MessageHandler* canDash4MessageHandler,
         CanRadioButtonPacketSender* canRadioButtonSender,
-        CanNaviPositionHandler* canNaviPositionHandler,
-        CanAirConOnDisplayHandler* canAirConOnDisplayHandler
+        CanNaviPositionHandler* canNaviPositionHandler
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+        ,CanAirConOnDisplayHandler* canAirConOnDisplayHandler
+#endif
     )
     {
         _canSpeedAndRpmHandler = canSpeedAndRpmHandler;
@@ -67,7 +72,9 @@ public:
         _canDash4MessageHandler = canDash4MessageHandler;
         _canRadioButtonSender = canRadioButtonSender;
         _canNaviPositionHandler = canNaviPositionHandler;
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
         _canAirConOnDisplayHandler = canAirConOnDisplayHandler;
+#endif
     }
 
     void SendData(VanDataToBridgeToCan dataToBridge) {
@@ -193,7 +200,7 @@ public:
         _canDash2MessageHandler->SetData(
             dataToBridge.LightStatuses,
             dataToBridge.DashIcons1Field,
-            dataToBridge.Ignition,
+            ignition,
             dataToBridge.GearboxMode,
             dataToBridge.GearboxSelection,
             dataToBridge.GearboxSelection

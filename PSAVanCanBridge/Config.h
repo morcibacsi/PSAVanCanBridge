@@ -45,7 +45,7 @@ constexpr uint8_t DISPLAY_MODE = 1;
     //uint8_t Vin[17] = { 'L', 'D', 'C', '9', '4', '3', 'X', '4', '7', 'D', '1', '5', '6', '6', '7', '7', '2' };
 #endif
 
-#define SEND_AC_CHANGES_TO_DISPLAY
+//#define SEND_AC_CHANGES_TO_DISPLAY
 
 // if true the AC status is queried with a diagnostic message (only works with rev 1.4)
 constexpr bool QUERY_AC_STATUS = false;

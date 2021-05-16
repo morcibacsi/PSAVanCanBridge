@@ -338,7 +338,13 @@ void setup()
 
     serialReader = new SerialReader(serialPort, CANInterface, tripInfoHandler, canRadioButtonSender, vinFlashStorage);
     canIgnitionTask = new CanIgnitionTask(radioIgnition, dashIgnition, canParkingAid, canRadioRemoteMessageHandler, canStatusOfFunctionsHandler, canPopupHandler, canWarningLogHandler, canVinHandler);
-    canDataSenderTask = new CanDataSenderTask(canSpeedAndRpmHandler, tripInfoHandler, canPopupHandler, canRadioRemoteMessageHandler, canDash2MessageHandler, canDash3MessageHandler, canDash4MessageHandler, canRadioButtonSender, canNaviPositionHandler, canAirConOnDisplayHandler);
+    canDataSenderTask = new CanDataSenderTask(
+        canSpeedAndRpmHandler, tripInfoHandler, canPopupHandler, canRadioRemoteMessageHandler, canDash2MessageHandler, canDash3MessageHandler,
+        canDash4MessageHandler, canRadioButtonSender, canNaviPositionHandler
+#ifdef SEND_AC_CHANGES_TO_DISPLAY
+        , canAirConOnDisplayHandler
+#endif
+        );
     canDataReaderTask = new CanDataReaderTask(CANInterface, canPopupHandler, canRadioRemoteMessageHandler, canMessageHandlerContainer, canDataSenderTask);
     vanDataParserTask = new VanDataParserTask(serialPort, canVinHandler, vanHandlerContainer);
     vanWriterTask = new VanWriterTask();
