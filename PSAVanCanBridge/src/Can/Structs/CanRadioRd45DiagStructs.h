@@ -41,6 +41,10 @@ const uint8_t CAN_RD45_AUX_MODE_RESERVED_FOR_HANDSFREE = 3;
 const uint8_t CAN_RD45_SCREEN_TYPE_A = 0;
 const uint8_t CAN_RD45_SCREEN_TYPE_C = 1;
 
+const uint8_t CAN_RD45_AMPLIFIER_NONE = 0;
+const uint8_t CAN_RD45_AMPLIFIER_STANDARD = 1;
+const uint8_t CAN_RD45_AMPLIFIER_DIGITAL = 2;
+
 #pragma endregion
 
 #pragma region Options1
