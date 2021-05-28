@@ -6,9 +6,9 @@
 
 // Struct to hold the door statuses in one place
 typedef struct {
-    uint8_t Unknown0    : 1; // bit 0 
-    uint8_t Unknown1    : 1; // bit 1
-    uint8_t Unknown2    : 1; // bit 2
+    uint8_t FuelFlap    : 1; // bit 0
+    uint8_t Sunroof     : 1; // bit 1
+    uint8_t Hood        : 1; // bit 2
     uint8_t BootLid     : 1; // bit 3
     uint8_t RearLeft    : 1; // bit 4
     uint8_t RearRight   : 1; // bit 5

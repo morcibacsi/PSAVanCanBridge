@@ -77,6 +77,9 @@ public:
         doorStatus.status.RearLeft = packet.data.Doors.RearLeft;
         doorStatus.status.RearRight = packet.data.Doors.RearRight;
         doorStatus.status.BootLid = packet.data.Doors.BootLid;
+        doorStatus.status.Hood = packet.data.Doors.Hood;
+        doorStatus.status.Sunroof = packet.data.Doors.Sunroof;
+        doorStatus.status.FuelFlap = packet.data.Doors.FuelFlap;
 
         CanDisplayPopupItem item;
         item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
