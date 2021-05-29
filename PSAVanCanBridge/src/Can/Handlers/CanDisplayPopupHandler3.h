@@ -124,9 +124,8 @@ class CanDisplayPopupHandler3 : public ICanDisplayPopupHandler
             else
             {
                 bool shouldHideByTimeOut =
-                    currentTime - popupAddedToShow > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME &&
-                    currentPopupMessage.Category != CAN_POPUP_MSG_SHOW_CATEGORY3 &&
-                    currentPopupMessage.MessageType != CAN_POPUP_MSG_NONE;
+                    currentTime - popupAddedToShow > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME
+                    && (!(currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 && currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE));
 
                 if (shouldHideByTimeOut)
                 {
