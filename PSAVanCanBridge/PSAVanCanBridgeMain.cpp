@@ -13,7 +13,7 @@
     #include "src/SerialPort/HardwareSerialAbs.h"
 #endif
 
-#include "src/Can/CanMessageSenderEsp32Arduino.h"
+#include "src/Can/CanMessageSenderEsp32Idf.h"
 #include "src/Van/VanMessageReaderEsp32Rmt.h"
 #include "src/Helpers/VinFlashStorageEsp32.h"
 #include "src/Helpers/GetDeviceInfoEsp32.h"
@@ -291,7 +291,7 @@ void setup()
     }
 
     //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
-    CANInterface = new CanMessageSenderEsp32Arduino(CAN_RX_PIN, CAN_TX_PIN, true);
+    CANInterface = new CanMessageSenderEsp32Idf(CAN_RX_PIN, CAN_TX_PIN, false, serialPort);
     CANInterface->Init();
 
 #if POPUP_HANDLER == 1
