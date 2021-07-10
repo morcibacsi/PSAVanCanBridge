@@ -62,7 +62,7 @@ uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8
 
     can_message_t message;
     message.identifier = canId;
-    message.flags = CAN_MSG_FLAG_SS;
+    message.flags = CAN_MSG_FLAG_NONE;
     message.data_length_code = sizeOfByteArray;
     for (int i = 0; i < sizeOfByteArray; i++) {
         message.data[i] = byteArray[i];
