@@ -1,4 +1,4 @@
-﻿// VanRadioRemoteStructs.h
+// VanRadioRemoteStructs.h
 #pragma once
 
 #ifndef _VanRadioRemoteStructs_h

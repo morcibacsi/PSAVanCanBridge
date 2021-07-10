@@ -1,4 +1,4 @@
-﻿// VanVinStructs.h
+// VanVinStructs.h
 #pragma once
 
 #ifndef _VanVinStructs_h

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _CanMessageSenderEsp32Idf_h
     #define _CanMessageSenderEsp32Idf_h

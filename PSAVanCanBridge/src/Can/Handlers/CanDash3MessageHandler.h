@@ -1,4 +1,4 @@
-﻿// CanDash3MessageHandler.h
+// CanDash3MessageHandler.h
 #pragma once
 
 #ifndef _CanDash3MessageHandler_h

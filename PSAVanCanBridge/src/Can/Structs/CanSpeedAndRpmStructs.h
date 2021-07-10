@@ -1,4 +1,4 @@
-﻿// CanSpeedAndRpmStructs.h
+// CanSpeedAndRpmStructs.h
 #pragma once
 
 #ifndef _CanSpeedAndRpmStructs_h

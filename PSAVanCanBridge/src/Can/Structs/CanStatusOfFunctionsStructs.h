@@ -1,4 +1,4 @@
-﻿// CanStatusOfFunctionsStructs.h
+// CanStatusOfFunctionsStructs.h
 #pragma once
 
 #ifndef _CanStatusOfFunctionsStructs_h

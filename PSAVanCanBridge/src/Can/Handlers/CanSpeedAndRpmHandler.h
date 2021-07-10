@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _CanSpeedAndRpmHandler_h
     #define _CanSpeedAndRpmHandler_h

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Written by Ryan Smith <computergeek125@gmail.com>
  * Licensed under the MIT license.  See LICENSE for details
  */

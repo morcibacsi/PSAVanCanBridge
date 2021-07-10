@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef _AbstractCanMessageSender_h
     #define _AbstractCanMessageSender_h

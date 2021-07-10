@@ -1,4 +1,4 @@
-﻿#include "CanMessageSenderEsp32Idf.h"
+#include "CanMessageSenderEsp32Idf.h"
 #include "driver/gpio.h"
 #include "driver/can.h"
 

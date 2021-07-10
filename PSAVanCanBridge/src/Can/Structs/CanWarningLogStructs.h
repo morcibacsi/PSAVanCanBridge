@@ -1,4 +1,4 @@
-﻿// CanWarningLogStructs.h
+// CanWarningLogStructs.h
 #pragma once
 
 #ifndef _CanWarningLogStructs_h

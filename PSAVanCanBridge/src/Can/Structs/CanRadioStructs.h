@@ -1,4 +1,4 @@
-﻿// CanRadioStructs.h
+// CanRadioStructs.h
 #pragma once
 
 #ifndef _CanRadioStructs_h

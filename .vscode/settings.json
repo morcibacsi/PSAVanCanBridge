@@ -6,5 +6,6 @@
     "files.trimTrailingWhitespace": true,
     "files.associations": {
         "system_error": "cpp"
-    }
+    },
+    "files.encoding": "utf8"
 }

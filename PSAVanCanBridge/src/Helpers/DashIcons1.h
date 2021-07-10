@@ -1,4 +1,4 @@
-﻿// DashIcons1.h
+// DashIcons1.h
 #pragma once
 
 #ifndef _DashIcons1_h

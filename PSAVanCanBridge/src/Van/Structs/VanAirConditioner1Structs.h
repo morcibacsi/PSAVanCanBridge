@@ -1,4 +1,4 @@
-﻿// VanAirConditioner1Structs.h
+// VanAirConditioner1Structs.h
 #pragma once
 
 #ifndef _VanAirConditioner1Structs_h

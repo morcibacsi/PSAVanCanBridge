@@ -1,4 +1,4 @@
-﻿// LightStatus.h
+// LightStatus.h
 #pragma once
 
 #ifndef _LightStatus_h

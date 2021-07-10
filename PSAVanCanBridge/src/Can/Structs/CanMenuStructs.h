@@ -1,4 +1,4 @@
-﻿// CanMenuStructs.h
+// CanMenuStructs.h
 #pragma once
 
 #ifndef _CanMenuStructs_h

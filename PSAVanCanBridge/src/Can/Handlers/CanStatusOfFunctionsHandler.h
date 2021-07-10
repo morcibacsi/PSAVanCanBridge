@@ -1,4 +1,4 @@
-﻿// CanStatusOfFunctionsHandler.h
+// CanStatusOfFunctionsHandler.h
 #pragma once
 
 #ifndef _CanStatusOfFunctionsHandler_h

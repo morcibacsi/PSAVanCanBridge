@@ -1,4 +1,4 @@
-﻿// DoorStatus.h
+// DoorStatus.h
 #pragma once
 
 #ifndef _DoorStatus_h
