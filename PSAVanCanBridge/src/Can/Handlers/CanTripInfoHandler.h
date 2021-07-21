@@ -11,7 +11,7 @@
 class CanTripInfoHandler
 {
     const int CAN_TRIP_INTERVAL = 333;
-    const int CAN_TRIP_SEND_COUNT = 5;
+    const int CAN_TRIP_SEND_COUNT = 10;
 
     AbstractCanMessageSender *canMessageSender;
 
@@ -87,7 +87,14 @@ class CanTripInfoHandler
                 messageSentCount++;
                 vTaskDelay(5 / portTICK_PERIOD_MS);
             }
-            SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, 0);
+            messageSentCount = 0;
+            while (messageSentCount < CAN_TRIP_SEND_COUNT)
+            {
+                SendCanTripInfo0(FuelLeftToPump, FuelConsumption, Speed, 0);
+
+                messageSentCount++;
+                vTaskDelay(5 / portTICK_PERIOD_MS);
+            }
             TripButtonPressed = 0;
             IsSendingEnabled = 1;
         }
