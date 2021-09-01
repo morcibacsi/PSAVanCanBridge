@@ -148,7 +148,7 @@ class CanTripInfoHandler
                 }
                 case 3:
                 {
-                    SendCanTripInfo2(Rpm, FuelConsumption, Speed);
+                    SendCanTripInfo2(Trip2Distance, Trip2Consumption, Trip2Speed);
                     ValueToUpdate = 0;
                     break;
                 }
