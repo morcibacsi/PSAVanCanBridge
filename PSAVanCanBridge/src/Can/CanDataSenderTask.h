@@ -166,17 +166,17 @@ public:
             if (!_canPopupHandler->IsPopupVisible())
             {
                 #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-                canAirConOnDisplayHandler->SetData(
-                    dataToBridge.InternalTemperature,
-                    dataToBridge.InternalTemperature,
-                    0,
-                    0, // auto mode
-                    dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
-                    dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                    dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                    dataToBridge.AirConFanSpeed,
-                    dataToBridge.IsAirRecyclingOn);
-                canAirConOnDisplayHandler->Process(currentTime);
+                    _canAirConOnDisplayHandler->SetData(
+                        dataToBridge.InternalTemperature,
+                        dataToBridge.InternalTemperature,
+                        0,
+                        0, // auto mode
+                        dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
+                        dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
+                        dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
+                        dataToBridge.AirConFanSpeed,
+                        dataToBridge.IsAirRecyclingOn);
+                    _canAirConOnDisplayHandler->Process(currentTime);
                 #else
                     _canAirConOnDisplayHandler->SendCanAirConToDisplay(
                         currentTime,

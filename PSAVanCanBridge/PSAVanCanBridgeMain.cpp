@@ -111,11 +111,7 @@ CanVinHandler* canVinHandler;
 CanTripInfoHandler* tripInfoHandler;
 
 #ifdef SEND_AC_CHANGES_TO_DISPLAY
-    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-        //#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
-    #else
-        CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
-    #endif
+    CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
 #endif
 
 CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
@@ -305,11 +301,7 @@ void setup()
 #endif
 
 #ifdef SEND_AC_CHANGES_TO_DISPLAY
-    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-        //#include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
-    #else
-        canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
-    #endif
+    canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
 #endif
 
     canVinHandler = new CanVinHandler(CANInterface);
