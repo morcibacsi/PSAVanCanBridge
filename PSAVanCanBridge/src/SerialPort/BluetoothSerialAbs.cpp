@@ -7,6 +7,8 @@
 
 static BluetoothSerAbs* thisBluetoothSerial;
 
+static esp_spp_cb_t custom_spp_callback = NULL;
+
 void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
     if(event == ESP_SPP_SRV_OPEN_EVT){
         thisBluetoothSerial->SetConnected(true);
@@ -29,7 +31,9 @@ void BluetoothSerAbs::begin(unsigned long baud, uint8_t config) {
 void BluetoothSerAbs::begin(unsigned long baud) {
     thisBluetoothSerial = this;
     port->begin(name);
-    port->register_callback(callback);
+
+    custom_spp_callback = callback;
+    port->register_callback(&custom_spp_callback);
 }
 
 void BluetoothSerAbs::end() {
