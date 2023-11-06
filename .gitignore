@@ -28,6 +28,12 @@ bld/
 # Visual Micro sketch sub folder
 __vm/
 
+# Platformio binary folder
+.pio/
+
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
