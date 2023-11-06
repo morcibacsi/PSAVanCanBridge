@@ -275,8 +275,8 @@ void setup()
     vinFlashStorage = new VinFlashStorageEsp32();
     deviceInfo = new GetDeviceInfoEsp32();
 
-    vanReader = new VanMessageReaderEsp32Rmt();
-    vanReader->Init(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
+    vanReader = new VanMessageReaderEsp32Rmt(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
+    vanReader->Init();
 
     InitSerialPort();
 
