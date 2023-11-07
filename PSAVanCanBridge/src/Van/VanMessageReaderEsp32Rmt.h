@@ -17,24 +17,24 @@ class VanMessageReaderEsp32Rmt : public IVanMessageReader {
 
     ESP32_RMT_VAN_RX *_van_rx;
 public:
-    VanMessageReaderEsp32Rmt()
+    VanMessageReaderEsp32Rmt(uint8_t rxPin, uint8_t ledPin, IVAN_LINE_LEVEL vanLineLevel, IVAN_NETWORK_TYPE vanNetworkType)
     {
-        _van_rx = new ESP32_RMT_VAN_RX();
+        _van_rx = new ESP32_RMT_VAN_RX(VAN_DATA_RX_RMT_CHANNEL, rxPin, ledPin, static_cast<VAN_LINE_LEVEL>(vanLineLevel), static_cast<VAN_NETWORK_TYPE>(vanNetworkType));
     }
 
     void Receive(uint8_t* messageLength, uint8_t message[]) override
     {
-        _van_rx->Receive(messageLength, message);
+        _van_rx->ReceiveData(messageLength, message);
     }
 
-    void Init(uint8_t rxPin, uint8_t ledPin, IVAN_LINE_LEVEL vanLineLevel, IVAN_NETWORK_TYPE vanNetworkType) override
+    void Init() override
     {
-        _van_rx->Init(VAN_DATA_RX_RMT_CHANNEL, rxPin, ledPin, static_cast<VAN_LINE_LEVEL>(vanLineLevel), static_cast<VAN_NETWORK_TYPE>(vanNetworkType));
+        _van_rx->Start();
     }
 
     void Stop() override
     {
-        _van_rx->Stop(VAN_DATA_RX_RMT_CHANNEL);
+        _van_rx->Stop();
     }
 
     bool IsCrcOk(uint8_t vanMessage[], uint8_t vanMessageLength) override

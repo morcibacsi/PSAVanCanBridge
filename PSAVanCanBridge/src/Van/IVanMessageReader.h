@@ -22,7 +22,7 @@ typedef enum {
 class IVanMessageReader {
 public:
     virtual void Receive(uint8_t* messageLength, uint8_t message[]) = 0;
-    virtual void Init(uint8_t rxPin, uint8_t ledPin, IVAN_LINE_LEVEL vanLineLevel, IVAN_NETWORK_TYPE vanNetworkType) = 0;
+    virtual void Init() = 0;
     virtual void Stop() = 0;
     virtual bool IsCrcOk(uint8_t vanMessage[], uint8_t vanMessageLength) = 0;
 };
