@@ -8,18 +8,18 @@ The goal of this project is to have the new peripherals (mainly the head unit an
 
 ### Why ?
 
-Because it is fun. But other than that I wanted to replace the head unit of my car with another one which supports playing MP3 and also supports the original remote stalk behind the steering wheel. I also wanted to have the new shiny display working in my car from newer models. If you are interested, you can read the whole story behind the development at the [History section in the wiki][history].
+Because it is fun. But other than that I wanted to replace the head unit of my car with another one which supports playing MP3 and also supports the original remote stalk behind the steering wheel. I also wanted to have the new shiny display working in my car from newer models. If you are interested, you can read the whole story behind the development at the [History section in the wiki](wiki/history.md).
 
 ### Components
 
 The components needed for the project to work in your car is the following:
 - Head unit (RD4/RD43/RD45)
 - Multifunction display
-- ISO-Quadlock-Display-JST XH6 conversion cable (see more info in the wiki)
+- ISO-Quadlock-Display-JST XH6 conversion cable ([see more info in the wiki](wiki/pinouts-and-patch-lead.md))
 - ISO-fakra aerial antenna converter
 - PSA VAN-CAN protocol bridge hardware
 
-I built a “shield” for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
+I built a "shield" for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
 
 ![components](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/components.png)
 
@@ -29,7 +29,7 @@ I used the software in my car for months, without any sign of errors. However I 
 
 ### Functionality
 
-I implemented the functions which came with the original V2C boards (see what are those in the history section in the wiki), and even more! I created a video which demonstrates most of the functionality:
+I implemented the functions which came with the original V2C boards (see what are those in the [history section in the wiki](wiki/history.md)), and even more! I created a video which demonstrates most of the functionality:
 
 [![WATCH IT ON YOUTUBE](https://img.youtube.com/vi/Qk_8EhsqwUA/0.jpg)](https://www.youtube.com/watch?v=Qk_8EhsqwUA "Watch it on YouTube")
 
@@ -55,7 +55,7 @@ But here is the list of the bridged functions:
 
 ### Removing the old display from the car
 
-If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system may stop working. In the 307 the VAN data wires for the A/C are routed through the display. So obviously if you remove the display the circuit will be broken, which is pretty easy to fix. You just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins). 
+If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system may stop working. In the 307 the VAN data wires for the A/C are routed through the display. So obviously if you remove the display the circuit will be broken, which is pretty easy to fix. You just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins).
 
 ![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/mfd_connector_shortcut_photo.jpg)
 
@@ -65,7 +65,7 @@ The reason behind the missing functionality is due to the fact that the display 
 
 In cars made by PSA the the head unit contains the VIN number. The BSI sends it's VIN on the CAN bus. If the head unit detects a mismatch between the VIN coded inside it and the VIN received on the CAN bus then signals it with a beeping every few seconds. To prevent this you need to configure the VIN coded into your head unit in the config.h file. If you don't know the VIN inside your head unit then you can do it via the following semi-automatic method. You only need to do this once as the device stores the correct VIN number for the radio.
 
-1. Turn on the radio (source should be tuner)  
+1. Turn on the radio (source should be tuner)
 2. Switch to AM band and set it to 545 kHz (if you have an RD45) or 543 kHz (if you have an RD4 or RD43)
 ![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/display.jpg)
 3. Press the Menu button on the radio (you should see this menu). It doesn't matter which item is selected.
@@ -119,7 +119,7 @@ In order to avoid cluttering the main sketch with the message conversions every 
 Follow these steps to build the project:
  - Install the ESP32 boards into the Arduino IDE (follow the [instructions here][install_esp32])
  - Install the libraries from the Used libraries section
-	 - They should be installed under your documents folder. Which should be something like this: 
+	 - They should be installed under your documents folder. Which should be something like this:
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries
 	 - At the end you should have a folder structure similar to this:
 		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_rmt_van_rx\
@@ -147,5 +147,4 @@ You can also open the project from PlatformIO. It will download the necessary li
 [lib_esp32_van_rx]: https://github.com/morcibacsi/esp32_rmt_van_rx
 [lib_queue]: https://github.com/SMFSW/Queue
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
-[history]: https://github.com/morcibacsi/PSAVanCanBridge/wiki/History
 [install_esp32]: https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions
