@@ -4,6 +4,8 @@
 #ifndef _VanParkingAidDiagStructs_h
     #define _VanParkingAidDiagStructs_h
 
+#include <stdint.h>
+
 // VANID: AE8
 const uint16_t VAN_ID_PARKING_AID_DIAG_ANSWER = 0xAE8;
 // VANID: A68
@@ -188,71 +190,6 @@ struct VanParkingAidInputStateStruct {
 union VanParkingAidInputStatePacket {
     VanParkingAidInputStateStruct data;
     uint8_t VanParkingAidInputStatePacket[sizeof(VanParkingAidInputStateStruct)];
-};
-#pragma endregion
-
-#pragma region Sender class
-
-#include "../AbstractVanMessageSender.h"
-
-class VanParkingAidDiagPacketSender
-{
-    AbstractVanMessageSender* vanMessageSender;
-
-public:
-    VanParkingAidDiagPacketSender(AbstractVanMessageSender* object)
-    {
-        vanMessageSender = object;
-    }
-
-    void GetManufacturerInfo(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0x80 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void GetDistance(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xA0 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void GetConfiguration(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC0 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void GetInputStates(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC5 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void ActivateBuzzer(uint8_t channelId)
-    {
-        uint8_t packet[3] = { 0x30, 0x80, 0x01 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 3, 1);
-    }
-
-    void GetFaultCodes(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0x83 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void FaultClearing(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x14, 0xFF };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_PARKING_AID_DIAG_QUERY, packet, 2, 1);
-    }
-
-    void QueryParkingRadarData(uint8_t channelId)
-    {
-        //the longest message should fit into the buffer (fault reading 28 + 2 CRC)
-        vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_PARKING_AID_DIAG_ANSWER, 28 + 2, 1);
-    }
-
 };
 #pragma endregion
 

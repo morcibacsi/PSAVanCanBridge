@@ -1,12 +1,14 @@
-#include "CanMessageSenderEsp32Idf.h"
+﻿#include "CanMessageSenderEsp32Idf.h"
 #include "driver/gpio.h"
-#include "driver/twai.h"
+#include "driver/can.h"
 
 void CanMessageSenderEsp32Idf::PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, uint8_t *byteArray)
 {
-    //
-    /*
-    if (canId != 0x1e3)
+    return;
+    //    /*
+    //if (!(canId == 0x760 || canId == 0x660 || canId == 0x297 || canId == 0x228))
+    if (!(canId == 0x0E1 || canId == 0x0F6))
+    //if (!(canId == 0x168 || canId == 0x128 || canId == 0x0F6 || canId == 0x036))
     {
         return;
     }
@@ -36,34 +38,33 @@ CanMessageSenderEsp32Idf::CanMessageSenderEsp32Idf(uint8_t rxPin, uint8_t txPin,
     _enableThrottling = enableThrottling;
     _prevCanId = 0;
 
-    twai_general_config_t g_config = {.mode = TWAI_MODE_NORMAL,
+    can_general_config_t g_config = {.mode = CAN_MODE_NORMAL,
                                      .tx_io = (gpio_num_t)txPin, .rx_io = (gpio_num_t)rxPin,
-                                     .clkout_io = TWAI_IO_UNUSED, .bus_off_io = TWAI_IO_UNUSED,
+                                     .clkout_io = CAN_IO_UNUSED, .bus_off_io = CAN_IO_UNUSED,
                                      .tx_queue_len = 10, .rx_queue_len = 10,
-                                     .alerts_enabled = TWAI_ALERT_NONE,  .clkout_divider = 0,
+                                     .alerts_enabled = CAN_ALERT_NONE,  .clkout_divider = 0,
                                      .intr_flags = ESP_INTR_FLAG_LEVEL1};
 
-    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
-    twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+    can_timing_config_t t_config = CAN_TIMING_CONFIG_125KBITS();
+    can_filter_config_t f_config = CAN_FILTER_CONFIG_ACCEPT_ALL();
 
-    esp_err_t result = twai_driver_install(&g_config, &t_config, &f_config);
-
+    esp_err_t result = can_driver_install(&g_config, &t_config, &f_config);
 
     canSemaphore = xSemaphoreCreateMutex();
 }
 
 void CanMessageSenderEsp32Idf::Init()
 {
-    esp_err_t result = twai_start();
+    esp_err_t result = can_start();
 }
 
 uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, uint8_t *byteArray)
 {
-    //PrintToSerial(canId, ext, sizeOfByteArray, byteArray);
+    PrintToSerial(canId, ext, sizeOfByteArray, byteArray);
 
-    twai_message_t message;
+    can_message_t message;
     message.identifier = canId;
-    message.flags = TWAI_MSG_FLAG_NONE;
+    message.flags = CAN_MSG_FLAG_NONE;
     message.data_length_code = sizeOfByteArray;
     for (int i = 0; i < sizeOfByteArray; i++) {
         message.data[i] = byteArray[i];
@@ -85,17 +86,17 @@ uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8
         }
     }
 
-    uint8_t result = -1;
+    uint8_t result = 0;
 
     if (xSemaphoreTake(canSemaphore, portMAX_DELAY) == pdTRUE)
     {
-        if (twai_transmit(&message, pdMS_TO_TICKS(10)) == ESP_OK) {
+        if (can_transmit(&message, pdMS_TO_TICKS(10)) == ESP_OK) {
             //_serialPort->println("Message queued for transmission");
-            result = 0;
+            result = 1;
         } else {
             //_serialPort->println("Failed to queue message for transmission");
             //return -1;
-            result = -1;
+            result = 0;
         }
         xSemaphoreGive(canSemaphore);
     }
@@ -104,9 +105,9 @@ uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8
 
 void CanMessageSenderEsp32Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf)
 {
-    twai_message_t message;
-    if (twai_receive(&message, pdMS_TO_TICKS(10)) == ESP_OK) {
-        if (message.flags == TWAI_MSG_FLAG_NONE || message.flags == TWAI_MSG_FLAG_SS)
+    can_message_t message;
+    if (can_receive(&message, pdMS_TO_TICKS(10)) == ESP_OK) {
+        if (message.flags == CAN_MSG_FLAG_NONE || message.flags == CAN_MSG_FLAG_SS)
         {
             *canId = message.identifier;
             *len = message.data_length_code;
@@ -114,7 +115,7 @@ void CanMessageSenderEsp32Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint8_
             {
                 buf[i] = message.data[i];
             }
-            //PrintToSerial(*canId, 0, *len, buf);
+            PrintToSerial(*canId, 0, *len, buf);
         }
     } else {
         //printf("Failed to receive message\n");

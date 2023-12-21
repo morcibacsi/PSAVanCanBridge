@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Written by Ryan Smith <computergeek125@gmail.com>
  * Licensed under the MIT license.  See LICENSE for details
  */
@@ -18,7 +18,6 @@ void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
         thisBluetoothSerial->SetConnected(false);
     }
 }
-
 void BluetoothSerAbs::SetConnected(bool connected){
     isConnected = connected;
 }

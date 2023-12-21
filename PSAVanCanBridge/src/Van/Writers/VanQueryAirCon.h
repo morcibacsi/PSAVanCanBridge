@@ -4,8 +4,8 @@
 #ifndef _VanQueryAirCon_h
     #define _VanQueryAirCon_h
 
-#include "../AbstractVanMessageSender.h"
-#include "../Structs/VanAirConditionerDiagStructs.h"
+#include "../IVanMessageSender.h"
+#include "../Senders/VanACDiagPacketSender.h"
 #include "VanMessageWriterBase.h"
 
 class VanQueryAirCon : public VanMessageWriterBase
@@ -22,38 +22,16 @@ class VanQueryAirCon : public VanMessageWriterBase
 
     VanACDiagPacketSender* acDiagSender;
 
-    virtual void InternalProcess() override
-    {
-        if (_ignition)
-        {
-            acDiagSender->GetManufacturerInfo(AC_DIAG_START_CHANNEL);
-            if (_diagStatus == 0)
-            {
-                acDiagSender->GetSensorStatus(AC_DIAG_QUERY_SENSOR_STATUS_CHANNEL);
-                acDiagSender->QueryAirConData(AC_DIAG_DATA_CHANNEL);
-                _diagStatus = 1;
-            }
-            else
-            {
-                acDiagSender->GetActuatorStatus(AC_DIAG_QUERY_ACTUATOR_STATUS_CHANNEL);
-                acDiagSender->QueryAirConData(AC_DIAG_DATA_CHANNEL);
-                _diagStatus = 0;
-            }
-        }
-    }
+    void InternalProcess() override;
 
     public:
-        VanQueryAirCon(AbstractVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, AIRCON_QUERY_INTERVAL)
+
+    VanQueryAirCon(IVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, AIRCON_QUERY_INTERVAL)
     {
-            acDiagSender = new VanACDiagPacketSender(vanMessageSender);
-            acDiagSender->GetManufacturerInfo(AC_DIAG_START_CHANNEL);
+        acDiagSender = new VanACDiagPacketSender(vanMessageSender);
     }
 
-    void SetData(uint8_t ignition)
-    {
-        _ignition = ignition;
-    }
-
+    void SetData(uint8_t ignition);
 };
 
 #endif

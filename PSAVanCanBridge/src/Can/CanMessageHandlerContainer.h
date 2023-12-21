@@ -1,48 +1,26 @@
-// CanMessageHandlerContainer.h
 #pragma once
 
 #ifndef _CanMessageHandlerContainer_h
     #define _CanMessageHandlerContainer_h
 
-#include "Handlers/AbstractCanMessageHandler.h"
-#include "Handlers/CanPinConfigHandler.h"
-#include "Handlers/CanRadioRd4DiagHandler.h"
-#include "../SerialPort/AbstractSerial.h"
 
+#include "ICanMessageSender.h"
+#include "Handlers/ICanMessageHandler.h"
+#include "../../Config.h"
+#include "../Helpers/DataBroker.h"
+#include <inttypes.h>
+#include <list>
 
-class CanMessageHandlerContainer {
-    const static uint8_t CAN_MESSAGE_HANDLER_COUNT = 2;
-    AbstractCanMessageHandler* canMessageHandlers[CAN_MESSAGE_HANDLER_COUNT];
+class CanMessageHandlerContainer
+{
+    std::list<ICanMessageHandler*> _handlers;
 
     public:
-    CanMessageHandlerContainer(
-        AbstractCanMessageSender* canInterface,
-        AbsSer* serialPort,
-        IVinFlashStorage* vinFlashStorage
-    ) {
-        canMessageHandlers[0] = new CanRadioRd4DiagHandler(canInterface, serialPort, vinFlashStorage);
-        canMessageHandlers[1] = new CanPinConfigHandler(canInterface, static_cast<CanRadioRd4DiagHandler*>(canMessageHandlers[0]));
-    }
+    CanMessageHandlerContainer(ICanMessageSender *canInterface, Config *config, DataBroker *dataBroker);
 
-    bool ProcessMessage(
-        const uint16_t canId,
-        const uint8_t canMsgLength,
-        const uint8_t canMsg[]
-        )
-    {
-        bool canMessageHandled = false;
-
-        for (uint8_t i = 0; i < CAN_MESSAGE_HANDLER_COUNT; i++)
-        {
-            canMessageHandled = canMessageHandlers[i]->ProcessMessage(canId, canMsgLength, canMsg);
-            if (canMessageHandled)
-            {
-                break;
-            }
-        }
-
-        return canMessageHandled;
-    }
+    ICanMessageHandler* GetHandler(uint16_t canId);
+    void SendDueMessages(unsigned long currentTime);
+    void SendMessageForced(uint16_t canId, unsigned long currentTime);
+    void SetData(uint16_t canId);
 };
-
 #endif

@@ -4,7 +4,7 @@
 #ifndef _VanMessageWriterBase_h
     #define _VanMessageWriterBase_h
 
-#include "../AbstractVanMessageSender.h"
+#include "../IVanMessageSender.h"
 
 class VanMessageWriterBase
 {
@@ -16,25 +16,12 @@ class VanMessageWriterBase
     uint16_t _processInterval = 40;
     unsigned long _currentTime = 0;
 
-    AbstractVanMessageSender* _vanMessageSender;
+    IVanMessageSender *_vanMessageSender;
 
-    VanMessageWriterBase(AbstractVanMessageSender* object, uint16_t interval)
-    {
-        _processInterval = interval;
-        _vanMessageSender = object;
-    }
+    VanMessageWriterBase(IVanMessageSender *object, uint16_t interval);
 
     public:
-    void Process(unsigned long currentTime)
-    {
-        if (currentTime - _previousTime > _processInterval)
-        {
-            _previousTime = currentTime;
-            _currentTime = currentTime;
-
-            InternalProcess();
-        }
-    }
+    void Process(unsigned long currentTime, bool forced);
 };
 
 #endif

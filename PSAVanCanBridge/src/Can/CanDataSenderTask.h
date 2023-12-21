@@ -3,238 +3,89 @@
 #ifndef _CanDataSenderTask_h
     #define _CanDataSenderTask_h
 
-#include "../Helpers/VanDataToBridgeToCan.h"
 #include "../../Config.h"
-#include "Handlers/CanNaviPositionHandler.h"
 
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-        #include "../Can/Handlers/CanAirConOnDisplayHandler.h"
-    #else
-        #include "../Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
-    #endif
-#endif
+#include "ICanMessageSender.h"
+#include "../SerialPort/AbstractSerial.h"
+
+#include "CanMessageHandlerContainer.h"
+
+#include "Handlers/ICanDisplayPopupHandler.h"
+#include "Handlers/CanDisplayPopupHandler3.h"
+
+#include "../Helpers/VanCanGearboxPositionMap.h"
+#include "../Helpers/VanCanDisplayPopupMap.h"
+#include "../Helpers/VanCanAirConditionerSpeedMap.h"
+#include "../Helpers/DataBroker.h"
+#include "../Helpers/VanSoundOptionState.h"
+#include "../Helpers/VanRadioState.h"
+#include "../Helpers/IntUnions.h"
+#include "../Helpers/GearCalculator.h"
+#include "../Helpers/CarState.h"
+#include "../Helpers/DisplayRemote.h"
+
+#include"../Van/VanWriterTask.h"
 
 class CanDataSenderTask {
-    unsigned long currentTime = 0;
-    unsigned long prevRadioButtonTime = 0;
+    ICanMessageSender *_canMessageSender;
+    AbsSer *_serial;
+    UInt24 _mileage;
 
-    uint16_t trip0Icon1Data = 0;
-    uint16_t trip0Icon2Data = 0;
-    uint16_t trip0Icon3Data = 0;
+    uint8_t vanData[34];
+    uint8_t vanMessageLengthWithoutId;
+    uint8_t prevRadioSettings[9];
 
-    uint16_t trip1Icon1Data = 0;
-    uint16_t trip1Icon2Data = 0;
-    uint16_t trip1Icon3Data = 0;
+    Config *_config;
+    DataBroker *_dataBroker;
+    VanSoundOptionState *_vanSoundOptionState;
+    VanRadioState *_vanRadioState;
+    GearCalculator *_gearCalculator;
+    CarState *_carState;
+    DisplayRemote *_displayRemote;
 
-    uint16_t trip2Icon1Data = 0;
-    uint16_t trip2Icon2Data = 0;
-    uint16_t trip2Icon3Data = 0;
-    uint8_t ignition = 0;
+    CanMessageHandlerContainer* _canMessageHandlerContainer;
 
-    CanSpeedAndRpmHandler* _canSpeedAndRpmHandler;
-    CanTripInfoHandler* _tripInfoHandler;
+    VanCanDisplayPopupMap *_popupMapping;
+    VanCanGearboxPositionMap *_vanCanGearboxPositionMap;
+    VanCanAirConditionerSpeedMap *_vanCanAirConditionerSpeedMap;
+
     ICanDisplayPopupHandler* _canPopupHandler;
-    CanRadioRemoteMessageHandler* _canRadioRemoteMessageHandler;
-    CanDash2MessageHandler* _canDash2MessageHandler;
-    CanDash3MessageHandler* _canDash3MessageHandler;
-    CanDash4MessageHandler* _canDash4MessageHandler;
-    CanRadioButtonPacketSender* _canRadioButtonSender;
-    CanNaviPositionHandler* _canNaviPositionHandler;
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-    CanAirConOnDisplayHandler* _canAirConOnDisplayHandler;
-#endif
 
-public:
-    bool SendNoRadioButtonMessage = true;
+    VanWriterTask *_vanWriterTask;
 
-    CanDataSenderTask(
-        CanSpeedAndRpmHandler* canSpeedAndRpmHandler,
-        CanTripInfoHandler* tripInfoHandler,
-        ICanDisplayPopupHandler* canPopupHandler,
-        CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler,
-        CanDash2MessageHandler* canDash2MessageHandler,
-        CanDash3MessageHandler* canDash3MessageHandler,
-        CanDash4MessageHandler* canDash4MessageHandler,
-        CanRadioButtonPacketSender* canRadioButtonSender,
-        CanNaviPositionHandler* canNaviPositionHandler
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-        ,CanAirConOnDisplayHandler* canAirConOnDisplayHandler
-#endif
-    )
-    {
-        _canSpeedAndRpmHandler = canSpeedAndRpmHandler;
-        _tripInfoHandler = tripInfoHandler;
-        _canPopupHandler = canPopupHandler;
-        _canRadioRemoteMessageHandler = canRadioRemoteMessageHandler;
-        _canDash2MessageHandler = canDash2MessageHandler;
-        _canDash3MessageHandler = canDash3MessageHandler;
-        _canDash4MessageHandler = canDash4MessageHandler;
-        _canRadioButtonSender = canRadioButtonSender;
-        _canNaviPositionHandler = canNaviPositionHandler;
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-        _canAirConOnDisplayHandler = canAirConOnDisplayHandler;
-#endif
-    }
+    unsigned long _currentTime;
+    unsigned long _prevIgnitionHandledTime;
 
-    void SendData(VanDataToBridgeToCan dataToBridge) {
-        currentTime = millis();
-
-        #pragma  region SpeedAndRpm
-
-        _canSpeedAndRpmHandler->SetData(dataToBridge.Speed, dataToBridge.Rpm, dataToBridge.Distance);
-        _canSpeedAndRpmHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region TripInfo
-
-        if (DISPLAY_MODE == 1)
-        {
-            trip0Icon1Data = dataToBridge.FuelLeftToPump; //the distance remaining to be travelled
-            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
-            trip0Icon3Data = dataToBridge.Trip1Distance; //the range
-
-            trip1Icon1Data = dataToBridge.Trip1Distance;
-            trip1Icon2Data = dataToBridge.Trip1Consumption;
-            trip1Icon3Data = dataToBridge.Trip1Speed;
-
-            trip2Icon1Data = dataToBridge.Trip2Distance;
-            trip2Icon2Data = dataToBridge.Trip2Consumption;
-            trip2Icon3Data = dataToBridge.Trip2Speed;
-        }
-        if (DISPLAY_MODE == 2)
-        {
-            trip0Icon1Data = round(FUEL_TANK_CAPACITY_IN_LITERS * dataToBridge.FuelLevel / 100);
-            trip0Icon2Data = dataToBridge.FuelConsumption; //the current consumption
-            trip0Icon3Data = dataToBridge.Speed;
-
-            trip1Icon1Data = dataToBridge.Trip1Distance;
-            trip1Icon2Data = dataToBridge.Trip1Consumption;
-            trip1Icon3Data = dataToBridge.Trip1Speed;
-
-            trip2Icon1Data = dataToBridge.Rpm;
-            trip2Icon2Data = dataToBridge.FuelConsumption;
-            trip2Icon3Data = dataToBridge.Speed;
-
-            if (dataToBridge.LeftStickButtonPressed)
-            {
-                trip0Icon1Data = dataToBridge.FuelLevel;
-                trip0Icon3Data = dataToBridge.OilTemperature;
-            }
-        }
-        _tripInfoHandler->SetTripData(
-            trip2Icon1Data,
-            trip0Icon3Data,
-            trip1Icon1Data,
-            trip1Icon3Data,
-            trip1Icon2Data,
-            trip2Icon1Data,
-            trip2Icon3Data,
-            trip2Icon2Data,
-            trip0Icon2Data,
-            trip0Icon1Data
-        );
-        _tripInfoHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region PopupMessage
-
-        if (dataToBridge.Rpm > 500) {
-            _canPopupHandler->SetEngineRunning(true);
-        }
-        else
-        {
-            _canPopupHandler->SetEngineRunning(false);
-        }
-
-        _canPopupHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region Radio remote
-
-        _canRadioRemoteMessageHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region AirCon
-
-        #ifdef SEND_AC_CHANGES_TO_DISPLAY
-
-            if (!_canPopupHandler->IsPopupVisible())
-            {
-                #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-                    _canAirConOnDisplayHandler->SetData(
-                        dataToBridge.InternalTemperature,
-                        dataToBridge.InternalTemperature,
-                        0,
-                        0, // auto mode
-                        dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConRunning == 0, //displays: a/c off
-                        dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                        dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                        dataToBridge.AirConFanSpeed,
-                        dataToBridge.IsAirRecyclingOn);
-                    _canAirConOnDisplayHandler->Process(currentTime);
-                #else
-                    _canAirConOnDisplayHandler->SendCanAirConToDisplay(
-                        currentTime,
-                        dataToBridge.InternalTemperature,
-                        dataToBridge.InternalTemperature,
-                        dataToBridge.AirConDirection,
-                        0, // auto mode
-                        dataToBridge.IsHeatingPanelPoweredOn == 1 && dataToBridge.IsAirConEnabled == 0, //displays: a/c off
-                        dataToBridge.IsHeatingPanelPoweredOn == 0, // displays: off
-                        dataToBridge.IsWindowHeatingOn == 1, // displays: windshield icon
-                        dataToBridge.AirConFanSpeed,
-                        dataToBridge.IsAirRecyclingOn);
-                #endif
-            }
-        #endif
-
-        #pragma endregion
-
-        #pragma region Lights
-
-        _canDash2MessageHandler->SetData(
-            dataToBridge.LightStatuses,
-            dataToBridge.DashIcons1Field,
-            ignition,
-            dataToBridge.GearboxMode,
-            dataToBridge.GearboxSelection,
-            dataToBridge.GearboxSelection
-        );
-        _canDash2MessageHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region Dash icons
-
-        _canDash3MessageHandler->SetData(dataToBridge.DashIcons1Field);
-        _canDash3MessageHandler->Process(currentTime);
-
-        _canDash4MessageHandler->SetData(dataToBridge.FuelLevel, dataToBridge.OilTemperature);
-        _canDash4MessageHandler->Process(currentTime);
-
-        #pragma endregion
-
-        #pragma region Navigation
-
-        _canNaviPositionHandler->SetData(dataToBridge.RightWheelPosition, dataToBridge.LeftWheelPosition);
-        _canNaviPositionHandler->Process(currentTime);
-
-        #pragma endregion
-
-        if (SendNoRadioButtonMessage)
-        {
-            if (currentTime - prevRadioButtonTime > 950)
-            {
-                prevRadioButtonTime = currentTime;
-                _canRadioButtonSender->SendButtonCode(0);
-            }
-        }
-    }
- };
-
+    public:
+    CanDataSenderTask(ICanMessageSender *canMessageSender,
+                      Config *config,
+                      DataBroker *dataBroker,
+                      AbsSer *serial,
+                      CanMessageHandlerContainer *canMessageHandlerContainer,
+                      VanWriterTask *vanWriterTask
+                      );
+    void SendCanMessage(unsigned long currentTime);
+    void ProcessVanMessage(unsigned long currentTime, uint8_t vanMessage[], uint8_t msgLength);
+    void HandleIgnition(uint8_t ignition, uint8_t engineRunning);
+    void HandleOdometer();
+    void HandleRearWheelData();
+    void HandleRadioRemote();
+    void HandleSpeedRpm();
+    void HandleAlerts();
+    void HandleTripData();
+    void HandleAC1_464();
+    void HandleAC2_4DC();
+    void HandleParkingRadar();
+    void HandleRadioSettings();
+    void HandleRadio();
+    void HandleRadioCommand();
+    void HandleEvent();
+    void HandleVin();
+    void SetBrightness(uint8_t brightness, uint8_t blackPanel);
+    void ResetTripOnCMB();
+    void ShutOffIgnition();
+    void IgnitionPacketArrived(unsigned long currentTime);
+    void SendManualGear();
+    void Process(unsigned long currentTime);
+};
 #endif

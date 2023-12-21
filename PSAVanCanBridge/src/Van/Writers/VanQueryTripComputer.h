@@ -5,8 +5,8 @@
     #define _VanQueryTripComputer_h
 
 #include "VanMessageWriterBase.h"
-#include "../AbstractVanMessageSender.h"
-#include "../Structs/VanCarStatusWithTripComputerStructs.h"
+#include "../IVanMessageSender.h"
+#include "../Senders/VanCarStatusPacketSender.h"
 
 class VanQueryTripComputer : public VanMessageWriterBase
 {
@@ -17,30 +17,19 @@ class VanQueryTripComputer : public VanMessageWriterBase
 
     VanCarStatusPacketSender* carStatusSender;
 
-    virtual void InternalProcess() override
-    {
-        if (_ignition)
-        {
-            carStatusSender->GetCarStatus(TRIP_COMPUTER_CHANNEL);
-        }
-    }
+    virtual void InternalProcess() override;
 
     public:
-    VanQueryTripComputer(AbstractVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, TRIP_COMPUTER_QUERY_INTERVAL)
+
+    VanQueryTripComputer(IVanMessageSender *vanMessageSender) : VanMessageWriterBase(vanMessageSender, TRIP_COMPUTER_QUERY_INTERVAL)
     {
         carStatusSender = new VanCarStatusPacketSender(vanMessageSender);
         carStatusSender->GetCarStatus(TRIP_COMPUTER_CHANNEL);
     }
 
-    void SetData(uint8_t ignition)
-    {
-        _ignition = ignition;
-    }
+    void SetData(uint8_t ignition);
 
-    void Stop()
-    {
-        carStatusSender->Disable(TRIP_COMPUTER_CHANNEL);
-    }
+    void Stop();
 };
 
 #endif

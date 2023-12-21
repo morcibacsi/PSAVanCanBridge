@@ -4,10 +4,12 @@
 #ifndef _VanCanAirConditionerSpeedMap_h
     #define _VanCanAirConditionerSpeedMap_h
 
+#include <stdint.h>
+
 class VanCanAirConditionerSpeedMap
 {
-    /* The reported fan speed has some very weird logic. It reports different bytes for the same value based on whether the AC is on, the rear window heating is enabled and 
-        the air recycling is on. I could not figure out any formula or masking to get the real value, so I chose the brute force version: 
+    /* The reported fan speed has some very weird logic. It reports different bytes for the same value based on whether the AC is on, the rear window heating is enabled and
+        the air recycling is on. I could not figure out any formula or masking to get the real value, so I chose the brute force version:
         I created mapping arrays and choose the correct one based on the criterias.
     */
 
@@ -24,54 +26,10 @@ class VanCanAirConditionerSpeedMap
     const uint8_t *arrayToUse;
 
     private:
-        uint8_t previousSpeed;
+        uint8_t previousSpeed = 0xF;
     public:
-        VanCanAirConditionerSpeedMap()
-        {
-        }
-
-        uint8_t GetFanSpeedFromVANByte(uint8_t vanByte, uint8_t isAcOn, uint8_t isRearWindowHeatingOn, uint8_t isRecycleOn)
-        {
-            uint8_t result = previousSpeed;
-
-            if (isAcOn == 1 && isRearWindowHeatingOn == 0 && (isRecycleOn == 0 || isRecycleOn == 1))
-            {
-                arrayToUse = AcMap;
-            }
-            if (isAcOn == 1 && isRearWindowHeatingOn == 1 && isRecycleOn == 0)
-            {
-                arrayToUse = AcRearWindowMap;
-            }
-            if (isAcOn == 1 && isRearWindowHeatingOn == 1 && isRecycleOn == 1)
-            {
-                arrayToUse = AcRearWindowRecycleMap;
-            }
-
-            if (isAcOn == 0 && isRearWindowHeatingOn == 0 && (isRecycleOn == 0 || isRecycleOn == 1))
-            {
-                arrayToUse = ecoMap;
-            }
-            if (isAcOn == 0 && isRearWindowHeatingOn == 1 && isRecycleOn == 0)
-            {
-                arrayToUse = ecoRearWindowMap;
-            }
-            if (isAcOn == 0 && isRearWindowHeatingOn == 1 && isRecycleOn == 1)
-            {
-                arrayToUse = ecoRearWindowRecycleMap;
-            }
-
-            for (uint8_t i = 0; i < 8; i++)
-            {
-                if (*(arrayToUse + i) == vanByte)
-                {
-                    result = i + 1;
-                    previousSpeed = result;
-                    break;
-                }
-            }
-
-            return result;
-        }
+        VanCanAirConditionerSpeedMap();
+        uint8_t GetFanSpeedFromVANByte(uint8_t vanByte, uint8_t isAcOn, uint8_t isRearWindowHeatingOn, uint8_t isRecycleOn);
 };
 
 #endif

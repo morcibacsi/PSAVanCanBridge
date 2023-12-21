@@ -3,11 +3,7 @@
 #ifndef _IVanMessageReader_h
     #define _IVanMessageReader_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-    #include "Arduino.h"
-#else
-    #include "WProgram.h"
-#endif
+#include <stdint.h>
 
 typedef enum {
     LINE_LEVEL_LOW = 0,

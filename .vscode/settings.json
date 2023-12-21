@@ -1,11 +1,14 @@
 {
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true,
     "editor.detectIndentation": false,
     "editor.renderWhitespace": "all",
     "files.trimTrailingWhitespace": true,
     "files.associations": {
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "new": "cpp",
+        "functional": "cpp",
+        "*.tcc": "cpp",
+        "streambuf": "cpp",
+        "array": "cpp"
     },
     "files.encoding": "utf8"
 }

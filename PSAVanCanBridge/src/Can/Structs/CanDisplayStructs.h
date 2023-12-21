@@ -4,8 +4,7 @@
 #ifndef _CanDisplayStructs_h
     #define _CanDisplayStructs_h
 
-#include "../AbstractCanMessageSender.h"
-#include "../../Helpers/PacketGenerator.h"
+#include "../ICanMessageSender.h"
 
 #pragma region Popup message consts
 //0x80
@@ -113,6 +112,8 @@ const uint8_t CAN_POPUP_MSG_AUTOMATIC_DOOR_LOCKING_ACTIVATED                    
 const uint8_t CAN_POPUP_MSG_AUTOMATIC_DOOR_LOCKING_DEACTIVATED                       = 0x34;
 const uint8_t CAN_POPUP_MSG_CHILD_SAFETY_ACTIVATED                                   = 0x37;
 const uint8_t CAN_POPUP_MSG_CHILD_SAFETY_DEACTIVATED                                 = 0x38;
+const uint8_t CAN_POPUP_MSG_ESP_ON_ON_CMB                                            = 0x39;
+const uint8_t CAN_POPUP_MSG_ESP_OFF_ON_CMB                                           = 0x3A;
 const uint8_t CAN_POPUP_MSG_PARKING_NO                                               = 0x3D;
 const uint8_t CAN_POPUP_MSG_STOP_START_SYSTEM_FAULT                                  = 0x98;
 const uint8_t CAN_POPUP_MSG_PLACE_GEARBOX_IN_N_POSITION                              = 0x9A;
@@ -159,56 +160,52 @@ const uint8_t CAN_POPUP_MSG_CLEAR = 0xFF;
 const uint8_t CAN_POPUP_SEAT_BELTS_OF_DRIVER = 0x08;
 
 // Read right to left in documentation
-typedef struct {
-    uint8_t             : 1; // bit 0
-    uint8_t             : 1; // bit 1
-    uint8_t             : 1; // bit 2
-    uint8_t             : 1; // bit 3
-    uint8_t             : 1; // bit 4
-    uint8_t             : 1; // bit 5
-    uint8_t             : 1; // bit 6
-    uint8_t show_popup  : 1; // bit 7
-} CanDisplayByte2Struct;
-
-typedef struct {
-    uint8_t                     : 1; // bit 0
-    uint8_t                     : 1; // bit 1
-    uint8_t is_bonnet_open      : 1; // bit 2
-    uint8_t is_boot_open        : 1; // bit 3
-    uint8_t is_rear_left_open   : 1; // bit 4
-    uint8_t is_rear_right_open  : 1; // bit 5
-    uint8_t is_front_left_open  : 1; // bit 6
-    uint8_t is_front_right_open : 1; // bit 7
-} CanDisplayDoorStatus1Struct;
-
-typedef union {
-    CanDisplayDoorStatus1Struct status;
+union CanDisplayByte2Struct {
+    struct {
+        uint8_t priority          : 4; // bit 0-3 //0-14
+        uint8_t check_in_progress : 1; // bit 4
+        uint8_t show_popup_on_vth : 1; // bit 5
+        uint8_t show_popup_on_cmb : 1; // bit 6
+        uint8_t show_popup_on_emf : 1; // bit 7
+    } data;
     uint8_t asByte;
-} CanDisplayDoorStatus1;
+};
 
-typedef struct {
-    uint8_t                     : 1; // bit 0
-    uint8_t                     : 1; // bit 1
-    uint8_t                     : 1; // bit 2
-    uint8_t                     : 1; // bit 3
-    uint8_t                     : 1; // bit 4
-    uint8_t                     : 1; // bit 5
-    uint8_t is_fuel_flap_open   : 1; // bit 6
-    uint8_t is_rear_screen_open : 1; // bit 7
-} CanDisplayDoorStatus2Struct;
-
-typedef union {
-    CanDisplayDoorStatus2Struct status;
+union CanDisplayDoorStatus1Struct {
+    struct {
+        uint8_t                     : 1; // bit 0
+        uint8_t                     : 1; // bit 1
+        uint8_t is_bonnet_open      : 1; // bit 2
+        uint8_t is_boot_open        : 1; // bit 3
+        uint8_t is_rear_left_open   : 1; // bit 4
+        uint8_t is_rear_right_open  : 1; // bit 5
+        uint8_t is_front_left_open  : 1; // bit 6
+        uint8_t is_front_right_open : 1; // bit 7
+    } data;
     uint8_t asByte;
-} CanDisplayDoorStatus2;
+};
+
+union CanDisplayDoorStatus2Struct {
+    struct {
+        uint8_t                     : 1; // bit 0
+        uint8_t                     : 1; // bit 1
+        uint8_t                     : 1; // bit 2
+        uint8_t                     : 1; // bit 3
+        uint8_t                     : 1; // bit 4
+        uint8_t                     : 1; // bit 5
+        uint8_t is_fuel_flap_open   : 1; // bit 6
+        uint8_t is_rear_screen_open : 1; // bit 7
+    } data;
+    uint8_t asByte;
+};
 
 // Read left to right in documentation
 struct CanDisplayStruct {
     uint8_t ShowPopup;
     uint8_t PopupMessageType;
     CanDisplayByte2Struct Field2;
-    CanDisplayDoorStatus1 DoorStatus1;
-    CanDisplayDoorStatus2 DoorStatus2;
+    CanDisplayDoorStatus1Struct DoorStatus1;
+    CanDisplayDoorStatus2Struct DoorStatus2;
     uint8_t Field5;
     uint8_t KmDividedBy256;
     uint8_t KmRemainderUpTo255;
@@ -219,67 +216,12 @@ union CanDisplayPacket {
     uint8_t CanDisplayPacket[sizeof(CanDisplayStruct)];
 };
 
-int static CanGetHighKmToDisplay(int kmToDisplay) {
+uint8_t static CanGetHighKmToDisplay(int kmToDisplay) {
     return kmToDisplay / 256;
 }
 
-int static CanGetLowKmToDisplay(int kmToDisplay){
+uint8_t static CanGetLowKmToDisplay(int kmToDisplay){
     return kmToDisplay - (CanGetHighKmToDisplay(kmToDisplay) * 256);
 }
-
-#pragma region Sender class
-class CanDisplayPacketSender
-{
-    AbstractCanMessageSender * canMessageSender;
-
-public:
-    CanDisplayPacketSender(AbstractCanMessageSender * object)
-    {
-        canMessageSender = object;
-    }
-
-    void ShowPopup(uint8_t category, uint8_t messageType, int kmToDisplay, uint8_t doorStatus1, uint8_t doorStatus2)
-    {
-        int bytes7 = CanGetHighKmToDisplay(kmToDisplay);
-        int bytes8 = CanGetLowKmToDisplay(kmToDisplay);
-
-        PacketGenerator<CanDisplayPacket> generator;
-        generator.packet.data.ShowPopup = category;
-        generator.packet.data.PopupMessageType = messageType;
-        generator.packet.data.Field2.show_popup = 1;
-
-        generator.packet.data.DoorStatus1.asByte = doorStatus1;
-        generator.packet.data.DoorStatus2.asByte = doorStatus2;
-
-        generator.packet.data.KmDividedBy256 = bytes7;
-        generator.packet.data.KmRemainderUpTo255 = bytes8;
-        unsigned char *serializedPacket = generator.GetSerializedPacket();
-        if (messageType == CAN_POPUP_MSG_AIRBAGS_OR_PRETENSIONER_SEAT_BELTS_FAULTY)
-        {
-            serializedPacket[3] = 0x80;
-        }
-
-        canMessageSender->SendMessage(CAN_ID_DISPLAY_POPUP, 0, sizeof(CanDisplayPacket), serializedPacket);
-    }
-
-    void HidePopup(uint8_t messageType)
-    {
-        PacketGenerator<CanDisplayPacket> generator;
-        generator.packet.data.ShowPopup = CAN_POPUP_MSG_HIDE;
-        generator.packet.data.PopupMessageType = messageType;
-        generator.packet.data.Field2.show_popup = 0;
-        generator.packet.data.KmDividedBy256 = 0;
-        generator.packet.data.KmRemainderUpTo255 = 0;
-        unsigned char *serializedPacket = generator.GetSerializedPacket();
-        serializedPacket[3] = 0xff;
-        serializedPacket[4] = 0xff;
-        serializedPacket[5] = 0xff;
-        serializedPacket[6] = 0xff;
-        serializedPacket[7] = 0xff;
-        canMessageSender->SendMessage(CAN_ID_DISPLAY_POPUP, 0, sizeof(CanDisplayPacket), serializedPacket);
-    }
-
-};
-#pragma endregion
 
 #endif

@@ -1,256 +1,442 @@
-#pragma region Includes
-
 #include <Arduino.h>
-#include <esp_task_wdt.h>
-
+#include <SPI.h>
 #include "Config.h"
-#include "src/SerialPort/AbstractSerial.h"
+#include "src/Can/CanMessageSenderEsp32Idf.h"
+#include "src/Can/CanMessageSenderOnSerial.h"
+#include "src/Can/CanDataSenderTask.h"
+#include "src/Can/ICanMessageSender.h"
+
+#include "src/Can/Handlers/MessageHandler_21F.h"
+#include "src/Can/Handlers/MessageHandler_128.h"
+#include "src/Can/Handlers/MessageHandler_161.h"
+#include "src/Can/Handlers/MessageHandler_3A7.h"
+#include "src/Can/Handlers/MessageHandler_1A8.h"
+
+#include "src/Can/Handlers/TpMessageHandler_760.h"
+
+#include "src/Can/CanMessageHandlerContainer.h"
+
+#include "src/Van/IVanMessageReader.h"
+#include "src/Van/VanMessageReaderEsp32Rmt.h"
+
+#include "src/Helpers/IGetDeviceInfo.h"
+#include "src/Helpers/GetDeviceInfoEsp32.h"
+#include "src/Helpers/SerialReader.h"
+#include "src/Helpers/DataBroker.h"
+#include "src/Helpers/VanCrcCalculator.h"
+#include "src/Helpers/IntUnions.h"
+#include "src/Helpers/CrcStore.h"
+#include "src/Helpers/CanPinConfigHandler.h"
+#include "src/Helpers/VinFlashStorageEsp32.h"
+#include "src/Helpers/ConfigStorageEsp32.h"
+#include "src/Helpers/DebugPrint.h"
+
+#include "src/Van/Structs/VAN_4FC.h"
+#include "src/Can/Structs/CAN_128.h"
+#include "src/Can/Structs/CAN_217.h"
+#include "src/Can/Structs/CAN_167.h"
+
+#include "src/Van/VanWriterTask.h"
+#include "Esp32RmtChineseParkingAidReader.h"
 
 #ifdef USE_BLUETOOTH_SERIAL
     #include <BluetoothSerial.h>
     #include "src/SerialPort/BluetoothSerialAbs.h"
+    BluetoothSerial SerialBT;
 #else
     #include "src/SerialPort/HardwareSerialAbs.h"
 #endif
 
-#include "src/Can/CanMessageSenderEsp32Idf.h"
-#include "src/Van/VanMessageReaderEsp32Rmt.h"
-#include "src/Helpers/VinFlashStorageEsp32.h"
-#include "src/Helpers/GetDeviceInfoEsp32.h"
-#include "src/Can/Structs/CanDisplayStructs.h"
-#include "src/Can/Structs/CanDash1Structs.h"
-#include "src/Can/Structs/CanIgnitionStructs.h"
-#include "src/Can/Structs/CanMenuStructs.h"
-#include "src/Can/Handlers/CanRadioRemoteMessageHandler.h"
-#include "src/Can/Handlers/CanVinHandler.h"
-#include "src/Can/Handlers/CanTripInfoHandler.h"
-#include "src/Can/Handlers/CanStatusOfFunctionsHandler.h"
-#include "src/Can/Handlers/CanWarningLogHandler.h"
-#include "src/Can/Handlers/CanSpeedAndRpmHandler.h"
-#include "src/Can/Handlers/CanDash2MessageHandler.h"
-#include "src/Can/Handlers/CanDash3MessageHandler.h"
-#include "src/Can/Handlers/CanDash4MessageHandler.h"
-#include "src/Can/Handlers/CanParkingAidHandler.h"
-#include "src/Can/CanIgnitionTask.h"
-#include "src/Can/CanDataSenderTask.h"
-#include "src/Can/CanDataReaderTask.h"
-#include "src/Van/VanDataParserTask.h"
-#include "src/Van/VanWriterTask.h"
-
-#if POPUP_HANDLER == 1
-    #include "src/Can/Handlers/CanDisplayPopupHandler.h"
-#endif
-#if POPUP_HANDLER == 2
-    #include "src/Can/Handlers/CanDisplayPopupHandler2.h"
-#endif
-#if POPUP_HANDLER == 3
-    #include "src/Can/Handlers/CanDisplayPopupHandler3.h"
-#endif
-
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-    #ifdef USE_NEW_AIRCON_DISPLAY_SENDER
-        #include "src/Can/Handlers/CanAirConOnDisplayHandler.h"
-    #else
-        #include "src/Can/Handlers/CanAirConOnDisplayHandlerOrig.h"
+#ifdef WIFI_ENABLED
+    #ifdef WEBSOCKET_SERIAL
+        #include "src/SerialPort/WebSocketSerialAbs.h"
     #endif
+    #include "./src/Helpers/WebPageService.h"
+    WebPageService* webPageService;
+    TaskHandle_t RunWebPageTask;
 #endif
 
-#include "src/Van/AbstractVanMessageSender.h"
-#include "src/Van/IVanMessageReader.h"
-
-#if HW_VERSION == 14
-    #include "src/Van/VanMessageSender.h"
-#endif
-
-#include "src/Helpers/VanDataToBridgeToCan.h"
-#include "src/Helpers/VanIgnitionDataToBridgeToCan.h"
-#include "src/Helpers/VanVinToBridgeToCan.h"
-#include "src/Helpers/IVinFlashStorage.h"
-#include "src/Helpers/IGetDeviceInfo.h"
-#include "src/Helpers/SerialReader.h"
-
-#include "src/Can/CanMessageHandlerContainer.h"
-#include "src/Can/Handlers/CanNaviPositionHandler.h"
-#include "src/Van/VanHandlerContainer.h"
-#include "src/Can/Handlers/ICanDisplayPopupHandler.h"
-#pragma endregion
-
-const uint8_t VAN_DATA_RX_RMT_CHANNEL = 0;
-
-#if HW_VERSION == 11
-    const uint8_t VAN_DATA_RX_PIN = 21;
-    const IVAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = LINE_LEVEL_HIGH;
-
-    const uint8_t CAN_RX_PIN = 33;
-    const uint8_t CAN_TX_PIN = 32;
-#elif HW_VERSION == 14
-    const uint8_t VAN_DATA_RX_PIN = 21;
-    const IVAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = LINE_LEVEL_HIGH;
-
-    const uint8_t CAN_RX_PIN = 18;
-    const uint8_t CAN_TX_PIN = 15;
-
-    TaskHandle_t VANWriteTask;
-#endif
-
+const uint8_t VAN_DATA_RX_PIN = 21;
+const IVAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = LINE_LEVEL_HIGH;
 const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
 
-VanDataToBridgeToCan dataToBridge;
-VanIgnitionDataToBridgeToCan ignitionDataToBridge;
-VanVinToBridgeToCan vinDataToBridge;
-
-TaskHandle_t CANSendIgnitionTask;
-TaskHandle_t CANSendDataTask;
-
-TaskHandle_t VANReadTask;
-TaskHandle_t CANReadTask;
-
-AbstractCanMessageSender* CANInterface;
-ICanDisplayPopupHandler* canPopupHandler;
-CanVinHandler* canVinHandler;
-CanTripInfoHandler* tripInfoHandler;
-
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-    CanAirConOnDisplayHandler* canAirConOnDisplayHandler;
-#endif
-
-CanRadioRemoteMessageHandler* canRadioRemoteMessageHandler;
-CanStatusOfFunctionsHandler* canStatusOfFunctionsHandler;
-CanWarningLogHandler* canWarningLogHandler;
-CanSpeedAndRpmHandler* canSpeedAndRpmHandler;
-CanDash2MessageHandler* canDash2MessageHandler;
-CanDash3MessageHandler* canDash3MessageHandler;
-CanDash4MessageHandler* canDash4MessageHandler;
-CanIgnitionPacketSender* radioIgnition;
-CanDashIgnitionPacketSender* dashIgnition;
-CanParkingAidHandler* canParkingAid;
-CanRadioButtonPacketSender* canRadioButtonSender;
-CanNaviPositionHandler* canNaviPositionHandler;
-
-CanMessageHandlerContainer* canMessageHandlerContainer;
-VanHandlerContainer* vanHandlerContainer;
-
-IVanMessageReader* vanReader;
-IVinFlashStorage* vinFlashStorage;
-IGetDeviceInfo* deviceInfo;
-CanIgnitionTask* canIgnitionTask;
-CanDataSenderTask* canDataSenderTask;
-CanDataReaderTask* canDataReaderTask;
-VanDataParserTask* vanDataParserTask;
-VanWriterTask* vanWriterTask;
-
-SerialReader* serialReader;
+const uint8_t CAN_RX_PIN = 18;
+const uint8_t CAN_TX_PIN = 15;
 
 AbsSer *serialPort;
+IGetDeviceInfo *deviceInfo;
+ICanMessageSender *canInterface;
+CanDataSenderTask *canDataSenderTask;
+VanWriterTask* vanWriterTask;
+DataBroker *dataBroker;
+Config *config;
+VanCrcCalculator *crcCalculator;
+CrcStore *crcStore;
 
-unsigned long currentTime = 0;
+TaskHandle_t CANSendDataTask;
+TaskHandle_t VANReadDataTask;
+TaskHandle_t VANWriteTask;
+TaskHandle_t CANReadTask;
+TaskHandle_t ParkingAidReadTask;
 
-#ifdef USE_BLUETOOTH_SERIAL
-    BluetoothSerial SerialBT;
-#endif
+CanMessageHandlerContainer *canMessageHandlerContainer;
+TpMessageHandler_760 *radioDiag;
+CanPinConfigHandler *pinConfigHandler;
+IVinFlashStorage *vinFlashStorage;
+ConfigStorageEsp32 *configStorage;
 
-void PrintArrayToSerial(const uint8_t vanMessage[], uint8_t vanMessageLength)
+struct VANMessage
+{
+    uint8_t Length;
+    uint8_t Data[34];
+} ReceivedVANMessage;
+
+void PrintVANArrayToSerialForPython(const uint16_t vanId, const uint8_t vanMessage[], uint8_t vanMessageLength)
 {
     char tmp[3];
-    for (uint8_t i = 0; i < vanMessageLength; i++)
+
+    serialPort->print(vanId, HEX);
+    serialPort->print(",1,");
+    serialPort->print(vanMessageLength-5, DEC);
+    serialPort->print(",");
+
+    // strip the CRC
+    if (vanMessageLength - 5 > 0)
     {
-        snprintf(tmp, 3, "%02X", vanMessage[i]);
-        if (i != vanMessageLength - 1)
+        for (size_t i = 3; i < vanMessageLength-2; i++)
         {
-            serialPort->print(tmp);
-            serialPort->print(" ");
+            snprintf(tmp, 3, "%02X", vanMessage[i]);
+            if (i != vanMessageLength - 3)
+            {
+                serialPort->print(tmp);
+                serialPort->print("");
+            }
         }
-        else
+        serialPort->println(tmp);
+    }
+    else
+    {
+        serialPort->println();
+    }
+}
+
+void PrintVANArrayToSerial(const uint8_t vanMessage[], uint8_t vanMessageLength)
+{
+    uint16_t vanId = (vanMessage[1] << 8 | vanMessage[2]) >> 4;
+
+    //if (!(vanId == 0xAE8 && vanMessageLength > 27))
+    /*
+    if (!(vanId == 0x8A4))
+    {
+        return;
+    }
+    */
+
+    bool sendToPython = false;
+    if (sendToPython)
+    {
+        PrintVANArrayToSerialForPython(vanId, vanMessage, vanMessageLength);
+    }
+    else
+    {
+        char tmp[3];
+        for (uint8_t i = 0; i < vanMessageLength; i++)
         {
-            serialPort->println(tmp);
+            snprintf(tmp, 3, "%02X", vanMessage[i]);
+            if (i != vanMessageLength - 1)
+            {
+                serialPort->print(tmp);
+                serialPort->print(" ");
+            }
+            else
+            {
+                serialPort->println(tmp);
+            }
         }
+    }
+}
+
+void PrintCANArrayToSerial(const uint16_t canId, const uint8_t canMessage[], uint8_t canLength)
+{
+    char tmp[3];
+
+    if (canId > 0)
+    {
+        //if (!(canId == 0x760 || canId == 0x660))
+        //if (!(canId == 0x0E1))
+        {
+            return;
+        }
+        serialPort->print(canId, HEX);
+        serialPort->print(",1,");
+        serialPort->print(canLength, DEC);
+        serialPort->print(",");
+
+        for (size_t i = 0; i < canLength; i++)
+        {
+            snprintf(tmp, 3, "%02X", canMessage[i]);
+            if (i != canLength - 1)
+            {
+                serialPort->print(tmp);
+                serialPort->print("");
+            }
+        }
+        serialPort->println(tmp);
+    }
+}
+
+bool IsMessageToProcess(uint16_t vanId)
+{
+    switch (vanId)
+    {
+        case 0x8A4:
+        case 0x4FC:
+        case 0x744:
+        case 0x9C4:
+        case 0x824:
+        case 0x524:
+        case 0x564:
+        case 0x464:
+        case 0x4DC:
+        case 0xAE8:
+        case 0x4D4:
+        case 0x554:
+        case 0x8C4:
+        case 0x8D4:
+        case 0xE24:
+            return true;
+        default:
+            return false;
     }
 }
 
 void CANReadTaskFunction(void * parameter)
 {
+    uint16_t canId;
+    uint8_t canLength;
+    uint8_t canMessage[8];
+    unsigned long currentTime;
+
     for (;;)
     {
-        canDataReaderTask->ReadData();
+        canId = 0;
+        canInterface->ReadMessage(&canId, &canLength, canMessage);
+        currentTime = millis();
+
+        if (canId > 0)
+        {
+            pinConfigHandler->ProcessMessage(canId, canLength, canMessage);
+
+            radioDiag->Receive(currentTime, canId, canLength, canMessage);
+
+            PrintCANArrayToSerial(canId, canMessage, canLength);
+            if (canId == 0x217)
+            {
+                CAN_217Struct canPacket;
+                memcpy(&canPacket, canMessage, sizeof(canPacket));
+
+                if (canPacket.Field2.data.reset_trip)
+                {
+                    canDataSenderTask->ResetTripOnCMB();
+                    configStorage->Save();
+                }
+
+                if (config->USE_BRIGHTNESS_FROM_CAN_ODOMETER)
+                {
+                    canDataSenderTask->SetBrightness(canPacket.Brightness.data.brightness, canPacket.Brightness.data.black_panel);
+                }
+            }
+
+            if (canId == 0x167)
+            {
+                CAN2004_167Struct canPacket;
+                memcpy(&canPacket, canMessage, sizeof(canPacket));
+
+                dataBroker->PageDisplayedOnTypeC = canPacket.EMFRequest.data.trip_data_on_odometer;
+            }
+
+            if (canId == 0x257)
+            {
+                debug_print("Odo km:");
+                debug_print(canMessage[0], HEX);
+                debug_print(canMessage[1], HEX);
+                debug_print(canMessage[2], HEX);
+                debug_println(canMessage[3], HEX);
+            }
+        }
+
+        radioDiag->Process(currentTime);
+        canDataSenderTask->Process(currentTime);
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
-        esp_task_wdt_reset();
+    }
+}
+
+void IRAM_ATTR VANReadDataTaskFunction(void * parameter)
+{
+    unsigned long currentTime = 0;
+    UInt16 crc;
+
+    VANMessage vanMessageItem;
+
+    SerialReader *serialReader = new SerialReader(serialPort, config, dataBroker);
+    IVanMessageReader *vanMessageReader;
+
+    if (!config->REPLAY_MODE)
+    {
+        vanMessageReader = new VanMessageReaderEsp32Rmt(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
+        vanMessageReader->Init();
+    }
+
+    for (;;)
+    {
+        currentTime = millis();
+
+        serialReader->Receive(&vanMessageItem.Length, vanMessageItem.Data);
+        if (!config->REPLAY_MODE)
+        {
+            vanMessageReader->Receive(&vanMessageItem.Length, vanMessageItem.Data);
+        }
+
+        if (vanMessageItem.Length > 0)
+        {
+            if (!config->REPLAY_MODE && dataBroker->IsVanLogEnabled)
+            {
+                PrintVANArrayToSerial(vanMessageItem.Data, vanMessageItem.Length);
+            }
+            if (crcCalculator->IsCrcOk(vanMessageItem.Data, vanMessageItem.Length))
+            {
+                uint16_t vanId = (vanMessageItem.Data[1] << 8 | vanMessageItem.Data[2]) >> 4;
+
+                crc.data.leftByte = vanMessageItem.Data[vanMessageItem.Length-2];
+                crc.data.rightByte = vanMessageItem.Data[vanMessageItem.Length-1];
+
+                if(IsMessageToProcess(vanId) &&
+                   !crcStore->IsCrcSameAsPrevious(vanId, crc.asUint16))
+                {
+                    canDataSenderTask->ProcessVanMessage(currentTime, vanMessageItem.Data, vanMessageItem.Length);
+                    dataBroker->ProcessedPackets++;
+                }
+
+                if (vanId == 0x8A4)
+                {
+                    canDataSenderTask->IgnitionPacketArrived(currentTime);
+                }
+            }
+        }
+        if (config->REPLAY_MODE)
+        {
+            vTaskDelay(15 / portTICK_PERIOD_MS);
+        }
     }
 }
 
 void CANSendDataTaskFunction(void * parameter)
 {
-    for (;;)
-    {
-        canDataSenderTask->SendData(dataToBridge);
+    unsigned long currentTime = 0;
 
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        esp_task_wdt_reset();
-    }
-}
-
-void CANSendIgnitionTaskFunction(void * parameter)
-{
     for (;;)
     {
         currentTime = millis();
 
-        canIgnitionTask->SendIgnition(ignitionDataToBridge, vinDataToBridge, currentTime);
-
-        vTaskDelay(40 / portTICK_PERIOD_MS);
-        esp_task_wdt_reset();
-    }
-}
-
-void VANReadTaskFunction(void * parameter)
-{
-    uint8_t vanMessage[32];
-    uint8_t msgLength;
-
-    for (;;)
-    {
-        serialReader->Receive(&msgLength, vanMessage);
-
-        if (msgLength == 0)
+        if (true)
         {
-            vanReader->Receive(&msgLength, vanMessage);
+            canMessageHandlerContainer->SendDueMessages(currentTime);
+            canDataSenderTask->SendCanMessage(currentTime);
         }
-
-        if (msgLength > 0 && vanReader->IsCrcOk(vanMessage, msgLength))
-        {
-            if (true)
-            {
-                PrintArrayToSerial(vanMessage, msgLength);
-            }
-
-            vanDataParserTask->ProcessData(vanMessage, msgLength, &dataToBridge, &ignitionDataToBridge, &vinDataToBridge);
-        }
-
-        if (!USE_IGNITION_SIGNAL_FROM_VAN_BUS)
-        {
-            dataToBridge.Ignition = 1;
-            ignitionDataToBridge.Ignition = 1;
-            ignitionDataToBridge.EconomyModeActive = 0;
-        }
-
         vTaskDelay(10 / portTICK_PERIOD_MS);
-        esp_task_wdt_reset();
     }
 }
 
-#if HW_VERSION == 14
 void VANWriteTaskFunction(void* parameter)
 {
+    unsigned long currentTime = 0;
     for (;;)
     {
         currentTime = millis();
-        vanWriterTask->Process(ignitionDataToBridge, currentTime);
+        vanWriterTask->Process(currentTime);
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
-        esp_task_wdt_reset();
+    }
+}
+
+#ifdef WIFI_ENABLED
+void RunWebPageTaskFunction(void* parameter)
+{
+    for (;;)
+    {
+        webPageService->Loop();
+
+        vTaskDelay(15 / portTICK_PERIOD_MS);
     }
 }
 #endif
+
+void ParkingAidReadTaskFunction(void* parameter)
+{
+    uint8_t parkRadarMessageLength;
+    uint8_t parkRadarMessage[4];
+
+    Esp32RmtReader *parkingAidReader;
+    parkingAidReader = new Esp32RmtChineseParkingAidReader(2, 26, -1);
+    parkingAidReader->Start();
+
+    for (;;)
+    {
+        // sensor order: A D C B
+
+        if (config->PARKING_AID_TYPE == 2)
+        {
+            parkingAidReader->ReceiveData(&parkRadarMessageLength, parkRadarMessage);
+            if (parkRadarMessageLength == 4)
+            {
+                if (parkRadarMessage[0] < 25)
+                {
+                    dataBroker->ParkingExteriorRearLeft = parkRadarMessage[0] * 10;
+                }
+                else
+                {
+                    dataBroker->ParkingExteriorRearLeft = 0xFF;
+                }
+
+                if (parkRadarMessage[3] < 25)
+                {
+                    dataBroker->ParkingInteriorRearLeft = parkRadarMessage[3] * 10;
+                }
+                else
+                {
+                    dataBroker->ParkingInteriorRearLeft = 0xFF;
+                }
+
+                if (parkRadarMessage[2] < 25)
+                {
+                    dataBroker->ParkingInteriorRearRight = parkRadarMessage[2] * 10;
+                }
+                else
+                {
+                    dataBroker->ParkingInteriorRearRight = 0xFF;
+                }
+
+                if (parkRadarMessage[1] < 25)
+                {
+                    dataBroker->ParkingExteriorRearRight = parkRadarMessage[1] * 10;
+                }
+                else
+                {
+                    dataBroker->ParkingExteriorRearRight = 0xFF;
+                }
+                //printf("parking aid: %d %d %d %d\n", dataBroker->ParkingExteriorRearLeft, dataBroker->ParkingInteriorRearLeft, dataBroker->ParkingInteriorRearRight, dataBroker->ParkingExteriorRearRight);
+                //printf("parking aid: %d %d %d %d\n", parkRadarMessage[0], parkRadarMessage[3], parkRadarMessage[2], parkRadarMessage[1]);
+                dataBroker->HasParkingRadarData = 1;
+                //dataBroker->IsReverseEngaged = 1;
+                canMessageHandlerContainer->SetData(0x0E1);
+            }
+        }
+
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+
 
 void InitSerialPort()
 {
@@ -272,128 +458,115 @@ void InitSerialPort()
 
 void setup()
 {
-    vinFlashStorage = new VinFlashStorageEsp32();
     deviceInfo = new GetDeviceInfoEsp32();
-
-    vanReader = new VanMessageReaderEsp32Rmt(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
-    vanReader->Init();
+    dataBroker = new DataBroker();
+    config = new Config();
+    crcCalculator = new VanCrcCalculator();
+    crcStore = new CrcStore();
 
     InitSerialPort();
+    canInterface = new CanMessageSenderEsp32Idf(CAN_RX_PIN, CAN_TX_PIN, false, serialPort);
+    //canInterface = new CanMessageSenderOnSerial(serialPort);
+    canInterface->Init();
 
-    const bool success = vinFlashStorage->Load();
-    if (success)
-    {
-        serialPort->println("Using VIN from flash");
-    }
+    configStorage = new ConfigStorageEsp32(config);
+    configStorage->Load();
 
-    //CANInterface = new CanMessageSender(CAN_RX_PIN, CAN_TX_PIN);
-    CANInterface = new CanMessageSenderEsp32Idf(CAN_RX_PIN, CAN_TX_PIN, false, serialPort);
-    CANInterface->Init();
+    vinFlashStorage = new VinFlashStorageEsp32(config);
+    vinFlashStorage->Load();
 
-#if POPUP_HANDLER == 1
-    canPopupHandler = new CanDisplayPopupHandler(CANInterface);
-#endif
-#if POPUP_HANDLER == 2
-    canPopupHandler = new CanDisplayPopupHandler2(CANInterface);
-#endif
-#if POPUP_HANDLER == 3
-    canPopupHandler = new CanDisplayPopupHandler3(CANInterface);
-#endif
+    canMessageHandlerContainer = new CanMessageHandlerContainer(canInterface, config, dataBroker);
+    radioDiag = new TpMessageHandler_760(canInterface, vinFlashStorage, config, canMessageHandlerContainer);
+    pinConfigHandler = new CanPinConfigHandler(config, radioDiag, dataBroker);
 
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-    canAirConOnDisplayHandler = new CanAirConOnDisplayHandler(CANInterface);
-#endif
+    vanWriterTask = new VanWriterTask(config, dataBroker);
 
-    canVinHandler = new CanVinHandler(CANInterface);
-    tripInfoHandler = new CanTripInfoHandler(CANInterface);
-    canRadioRemoteMessageHandler = new CanRadioRemoteMessageHandler(CANInterface);
-    canStatusOfFunctionsHandler = new CanStatusOfFunctionsHandler(CANInterface);
-    canWarningLogHandler = new CanWarningLogHandler(CANInterface);
-    canSpeedAndRpmHandler = new CanSpeedAndRpmHandler(CANInterface);
-    canDash2MessageHandler = new CanDash2MessageHandler(CANInterface);
-    canDash3MessageHandler = new CanDash3MessageHandler(CANInterface);
-    canDash4MessageHandler = new CanDash4MessageHandler(CANInterface);
-    radioIgnition = new CanIgnitionPacketSender(CANInterface);
-    dashIgnition = new CanDashIgnitionPacketSender(CANInterface);
-    canParkingAid = new CanParkingAidHandler(CANInterface);
-    canRadioButtonSender = new CanRadioButtonPacketSender(CANInterface);
-    canNaviPositionHandler = new CanNaviPositionHandler(CANInterface);
-
-    canMessageHandlerContainer = new CanMessageHandlerContainer(CANInterface, serialPort, vinFlashStorage);
-
-    vanHandlerContainer = new VanHandlerContainer(
-        canPopupHandler,
-        tripInfoHandler,
-        canStatusOfFunctionsHandler,
-        canWarningLogHandler,
-        canRadioRemoteMessageHandler);
-
-    serialReader = new SerialReader(serialPort, CANInterface, tripInfoHandler, canRadioButtonSender, vinFlashStorage);
-    canIgnitionTask = new CanIgnitionTask(radioIgnition, dashIgnition, canParkingAid, canRadioRemoteMessageHandler, canStatusOfFunctionsHandler, canPopupHandler, canWarningLogHandler, canVinHandler);
     canDataSenderTask = new CanDataSenderTask(
-        canSpeedAndRpmHandler, tripInfoHandler, canPopupHandler, canRadioRemoteMessageHandler, canDash2MessageHandler, canDash3MessageHandler,
-        canDash4MessageHandler, canRadioButtonSender, canNaviPositionHandler
-#ifdef SEND_AC_CHANGES_TO_DISPLAY
-        , canAirConOnDisplayHandler
-#endif
-        );
-    canDataReaderTask = new CanDataReaderTask(CANInterface, canPopupHandler, canRadioRemoteMessageHandler, canMessageHandlerContainer, canDataSenderTask);
-    vanDataParserTask = new VanDataParserTask(serialPort, canVinHandler, vanHandlerContainer);
-    vanWriterTask = new VanWriterTask();
+        canInterface,
+        config,
+        dataBroker,
+        serialPort,
+        canMessageHandlerContainer,
+        vanWriterTask
+    );
 
-    xTaskCreatePinnedToCore(
-        CANSendIgnitionTaskFunction,    // Function to implement the task
-        "CANSendIgnitionTask",          // Name of the task
-        15000,                          // Stack size in words
-        NULL,                           // Task input parameter
-        2,                              // Priority of the task
-        &CANSendIgnitionTask,           // Task handle.
-        0);                             // Core where the task should run
+    #ifdef WIFI_ENABLED
+        webPageService = new WebPageService(canMessageHandlerContainer, config, configStorage, vinFlashStorage, radioDiag);
+
+        #ifdef WEBSOCKET_SERIAL
+        serialPort = new WebSocketSerAbs(webPageService->GetHTTPServer(), "/log");
+        #endif
+
+        webPageService->Start();
+    #endif
+
+//core 0
+#define CAN_SEND_TASK_PRIORITY 3
+#define CAN_READ_TASK_PRIORITY 2
+#define PARKING_AID_TASK_PRIORITY 1
+#define WEB_PAGE_TASK_PRIORITY 0
+//core 1
+#define VAN_READ_TASK_PRIORITY 1
+#define VAN_WRITE_TASK_PRIORITY 0
+
 
     xTaskCreatePinnedToCore(
         CANSendDataTaskFunction,        // Function to implement the task
         "CANSendDataTask",              // Name of the task
         15000,                          // Stack size in words
         NULL,                           // Task input parameter
-        0,                              // Priority of the task
+        CAN_SEND_TASK_PRIORITY,         // Priority of the task (higher the number, higher the priority)
         &CANSendDataTask,               // Task handle.
         0);                             // Core where the task should run
-
+///*
     xTaskCreatePinnedToCore(
-        VANReadTaskFunction,            // Function to implement the task
-        "VANReadTask",                  // Name of the task
+        VANReadDataTaskFunction,        // Function to implement the task
+        "VANReadDataTask",              // Name of the task
         20000,                          // Stack size in words
         NULL,                           // Task input parameter
-        1,                              // Priority of the task
-        &VANReadTask,                   // Task handle.
+        VAN_READ_TASK_PRIORITY,         // Priority of the task (higher the number, higher the priority)
+        &VANReadDataTask,               // Task handle.
         1);                             // Core where the task should run
-
+//*/
+    xTaskCreatePinnedToCore(
+        VANWriteTaskFunction,           // Function to implement the task
+        "VANWriteTask",                 // Name of the task
+        20000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        VAN_WRITE_TASK_PRIORITY,        // Priority of the task (higher the number, higher the priority)
+        &VANWriteTask,                  // Task handle.
+        1);                             // Core where the task should run
     xTaskCreatePinnedToCore(
         CANReadTaskFunction,            // Function to implement the task
         "CANReadTask",                  // Name of the task
         10000,                          // Stack size in words
         NULL,                           // Task input parameter
-        0,                              // Priority of the task
+        CAN_READ_TASK_PRIORITY,         // Priority of the task (higher the number, higher the priority)
         &CANReadTask,                   // Task handle.
-        1);                             // Core where the task should run
-
-#if HW_VERSION == 14
+        0);                             // Core where the task should run
     xTaskCreatePinnedToCore(
-        VANWriteTaskFunction,                        // Function to implement the task
-        "VANWriteTask",                  // Name of the task
-        20000,                          // Stack size in words
+        ParkingAidReadTaskFunction,     // Function to implement the task
+        "ParkingAidReadTask",           // Name of the task
+        10000,                          // Stack size in words
         NULL,                           // Task input parameter
-        1,                              // Priority of the task
-        &VANWriteTask,                   // Task handle.
-        1);                             // Core where the task should run
-#endif
+        PARKING_AID_TASK_PRIORITY,      // Priority of the task (higher the number, higher the priority)
+        &ParkingAidReadTask,            // Task handle.
+        0);                             // Core where the task should run
 
-    esp_task_wdt_init(TASK_WATCHDOG_TIMEOUT, true);
-    esp_task_wdt_add(VANReadTask);
+#ifdef WIFI_ENABLED
+    xTaskCreatePinnedToCore(
+        RunWebPageTaskFunction,         // Function to implement the task
+        "RunWebPageTask",               // Name of the task
+        10000,                          // Stack size in words
+        NULL,                           // Task input parameter
+        WEB_PAGE_TASK_PRIORITY,         // Priority of the task (higher the number, higher the priority)
+        &RunWebPageTask,                // Task handle.
+        0);                             // Core where the task should run
+#endif
 }
 
 void loop()
 {
     vTaskDelay(50 / portTICK_PERIOD_MS);
-    esp_task_wdt_reset();
+    //esp_task_wdt_reset();
 }

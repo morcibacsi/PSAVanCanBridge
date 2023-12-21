@@ -73,7 +73,7 @@ union VanAirConditionerDiagActuatorStatusPacket {
     uint8_t VanAirConditionerDiagActuatorStatusPacket[sizeof(VanAirConditionerDiagActuatorStatusStruct)];
 };
 #pragma endregion
-
+/*
 float static GetACDiagTemperatureFromVanValue(uint8_t byte1, uint8_t byte2)
 {
     TwoBytes temperature;
@@ -91,62 +91,5 @@ float static GetACDiagVoltageFromVanValue(uint16_t vanValue)
 {
     return vanValue / 10.0;
 }
-
-#pragma region Sender class
-#include "../AbstractVanMessageSender.h"
-
-class VanACDiagPacketSender
-{
-    AbstractVanMessageSender* vanMessageSender;
-
-public:
-    VanACDiagPacketSender(AbstractVanMessageSender* object)
-    {
-        vanMessageSender = object;
-    }
-
-    void GetManufacturerInfo(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0x80 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void GetSettings(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xA0 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void GetSensorStatus(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC0 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void GetActuatorStatus(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC1 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void GetButtonStatus(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC2 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void GetFaultCodes(uint8_t channelId)
-    {
-        uint8_t packet[2] = { 0x21, 0xC4 };
-        vanMessageSender->set_channel_for_transmit_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG_COMMAND, packet, 2, 1);
-    }
-
-    void QueryAirConData(uint8_t channelId)
-    {
-        vanMessageSender->set_channel_for_reply_request_message(channelId, VAN_ID_AIR_CONDITIONER_DIAG, 26 + 2, 1);
-    }
-
-};
-#pragma endregion
-
+*/
 #endif

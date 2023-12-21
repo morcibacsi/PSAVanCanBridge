@@ -1,12 +1,14 @@
-#pragma once
+﻿#pragma once
 
 #ifndef _CanMessageSenderEsp32Idf_h
     #define _CanMessageSenderEsp32Idf_h
 
-#include "AbstractCanMessageSender.h"
+#include "ICanMessageSender.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "../SerialPort/AbstractSerial.h"
 
-class CanMessageSenderEsp32Idf : public AbstractCanMessageSender
+class CanMessageSenderEsp32Idf : public ICanMessageSender
 {
 private:
     const int rx_queue_size = 10;

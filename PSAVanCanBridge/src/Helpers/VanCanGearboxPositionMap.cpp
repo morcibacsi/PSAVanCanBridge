@@ -1,6 +1,6 @@
 #include "VanCanGearboxPositionMap.h"
-#include "../Can/Structs/CanDash2Structs.h"
-#include "../Van/Structs/VanInstrumentClusterV2Structs.h"
+#include "../Can/Structs/CAN_128.h"
+#include "../Van/Structs/VAN_4FC.h"
 
 void VanCanGearboxPositionMap::SetGearboxMapping()
 {
@@ -17,12 +17,12 @@ void VanCanGearboxPositionMap::SetGearboxMapping()
 
 void VanCanGearboxPositionMap::SetGearboxModeMapping()
 {
-    memset(_gearBoxModeMap, CAN_DASH_GEAR_MODE_AUTO, 4);
+    memset(_gearBoxModeMap, CAN_DASH_GEAR_MODE_AUTO, 8);
     _gearBoxModeMap[VAN_GEAR_MODE_V2_NORMAL]              = CAN_DASH_GEAR_MODE_AUTO;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_AUTO_ECO]            = CAN_DASH_GEAR_MODE_AUTO;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SPORT]               = CAN_DASH_GEAR_MODE_AUTO_SPORT;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SEQUENTIAL_ECO]      = CAN_DASH_GEAR_MODE_SEQUENTIAL;
-    _gearBoxModeMap[VAN_GEAR_MODE_V2_SNOW_AUTO]           = CAN_DASH_GEAR_MODE_AUTO_SNOW;
+    _gearBoxModeMap[VAN_GEAR_MODE_V2_SNOW_AUTO]           = CAN_DASH_GEAR_MODE_SEQUENTIAL;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SNOW_AUTO_ECO]       = CAN_DASH_GEAR_MODE_AUTO_SNOW;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SNOW_SEQUENTIAL]     = CAN_DASH_GEAR_MODE_AUTO_SNOW;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SNOW_SEQUENTIAL_ECO] = CAN_DASH_GEAR_MODE_AUTO_SNOW;
@@ -30,12 +30,14 @@ void VanCanGearboxPositionMap::SetGearboxModeMapping()
 
 void VanCanGearboxPositionMap::SetGearboxSelectionMapping()
 {
+    memset(_gearBoxSelectionMap, CAN_DASH_GEAR_MODE_AUTO, 2);
     _gearBoxSelectionMap[VAN_GEAR_V2_SELECTION_BVA] = CAN_DASH_GEAR_SELECTION_BVA;
     _gearBoxSelectionMap[VAN_GEAR_V2_SELECTION_BVM] = CAN_DASH_GEAR_SELECTION_BVM;
 }
 
 VanCanGearboxPositionMap::VanCanGearboxPositionMap()
 {
+    SetGearboxSelectionMapping();
     SetGearboxMapping();
     SetGearboxModeMapping();
 }

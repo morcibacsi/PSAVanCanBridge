@@ -9,11 +9,7 @@
 class GetDeviceInfoEsp32 : public IGetDeviceInfo
 {
     public:
-        uint16_t GetId() override
-        {
-            uint64_t macAddress = ESP.getEfuseMac();
-            return (uint16_t)(macAddress >> 32);
-        }
+        uint16_t GetId() override;
 };
 
 #endif

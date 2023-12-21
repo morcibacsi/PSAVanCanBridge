@@ -1,38 +1,26 @@
 #pragma once
 
 #ifndef _VanWriterTask_h
-#define _VanWriterTask_h
+    #define _VanWriterTask_h
 
-#include "VanMessageSender.h"
+#include "VanMessageSenderTSS46x.h"
 #include "VanWriterContainer.h"
 
 class VanWriterTask {
     VanWriterContainer* vanWriterContainer;
     SPIClass* spi;
-    AbstractVanMessageSender* VANInterface;
+    IVanMessageSender* VANInterface;
 
 public:
-    VanWriterTask()
-    {
-        const int SCK_PIN = 25;
-        const int MISO_PIN = 5;
-        const int MOSI_PIN = 33;
-        const int VAN_PIN = 32;
-
-        spi = new SPIClass();
-        spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, VAN_PIN);
-
-        VANInterface = new VanMessageSender(VAN_PIN, spi, VAN_COMFORT);
-        VANInterface->begin();
-
-        vanWriterContainer = new VanWriterContainer(VANInterface);
-
-    }
-
-    void Process(VanIgnitionDataToBridgeToCan dataToBridge, unsigned long currentTime)
-    {
-        vanWriterContainer->Process(dataToBridge, currentTime);
-    }
+    VanWriterTask(Config *config, DataBroker *dataBroker);
+    void SetRadioState(unsigned long currentTime, uint8_t powerOn, uint8_t active, uint8_t keyboardActive, uint8_t autoVolume, uint8_t loudness, uint8_t mute);
+    void SendRadioSetSource(unsigned long currentTime, uint8_t source);
+    void GetCarStatus(unsigned long currentTime);
+    void GetRadioSettings(unsigned long currentTime);
+    void GetRadioStationData(unsigned long currentTime);
+    void SetKeyboardState(unsigned long currentTime, uint8_t enabled);
+    void SetAudioSettings(unsigned long currentTime, uint8_t exitOptions, uint8_t  balance, uint8_t  fader, uint8_t  bass, uint8_t treble);
+    void Process(unsigned long currentTime);
 };
 
 #endif
