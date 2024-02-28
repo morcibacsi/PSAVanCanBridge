@@ -1,7 +1,7 @@
 #include "MessageHandler_1A1.h"
 #include "../Structs/CanDisplayStructs.h"
 #include "../../Helpers/DebugPrint.h"
-#include "../../Config.h"
+#include "../../../Config.h"
 
 void MessageHandler_1A1::SetData(uint8_t category, uint8_t messageType, uint8_t show, uint8_t doorStatus1, uint8_t doorStatus2, uint8_t km1, uint8_t km2)
 {
