@@ -1,7 +1,6 @@
 #include "GearCalculator.h"
 #include "DebugPrint.h"
 #include "../Can/Structs/CAN_128.h"
-#include "../helpers/DebugPrint.h"
 #include <math.h>
 
 GearCalculator::GearCalculator(Config* config, DataBroker* dataBroker)
