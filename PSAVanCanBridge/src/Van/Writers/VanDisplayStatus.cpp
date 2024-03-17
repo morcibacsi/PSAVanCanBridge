@@ -95,7 +95,7 @@ void VanDisplayStatus::SetData(uint8_t ignition, uint8_t tripButton, uint8_t whi
             _tripButtonState = 0;
             _tripButtonPressedTime = 0;//to avoid resetting trip when the button is pressed repeatedly
         }
-        if (tripButton == 1 && _tripButtonState == 1 && _tripButtonPressedTime != 0 && currentTime - _tripButtonPressedTime > 3000)
+        if (_resetState == 0 && tripButton == 1 && _tripButtonState == 1 && _tripButtonPressedTime != 0 && currentTime - _tripButtonPressedTime > 3000)
         {
             _resetState = 1;
         }
