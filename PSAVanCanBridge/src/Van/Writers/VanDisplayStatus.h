@@ -9,6 +9,15 @@
 #include "../IVanMessageSender.h"
 #include "../Senders/VanDisplayStatusPacketSender.h"
 
+const uint8_t RESET_STATE_IDLE = 0;
+const uint8_t RESET_STATE_SEND_STATUS_BEFORE_RESET = 1;
+const uint8_t RESET_STATE_SEND_RESET = 2;
+const uint8_t RESET_STATE_SEND_STATUS_AFTER_RESET = 3;
+
+const uint8_t VAN_COMFORT_STATE_IDLE = 0;
+const uint8_t VAN_COMFORT_SEND_ALIVE = 1;
+const uint8_t VAN_COMFORT_SEND_STANDBY = 2;
+
 class VanDisplayStatus : public VanMessageWriterBase
 {
     const static uint16_t SEND_STATUS_INTERVAL = 500;
@@ -22,8 +31,8 @@ class VanDisplayStatus : public VanMessageWriterBase
     unsigned long _tripButtonPressedTime = 0;
     uint8_t _ignition = 0;
     uint8_t _prevIgnition = 0;
-    uint8_t _resetState = 0;
-    uint8_t _vanComfortState = 0;
+    uint8_t _resetState = RESET_STATE_IDLE;
+    uint8_t _vanComfortState = VAN_COMFORT_STATE_IDLE;
 
     VanDisplayStatusPacketSender* displayStatusSender;
 
