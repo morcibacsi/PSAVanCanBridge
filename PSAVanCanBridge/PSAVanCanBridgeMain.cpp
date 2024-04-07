@@ -39,12 +39,20 @@
 #include "src/Van/VanWriterTask.h"
 #include "Esp32RmtChineseParkingAidReader.h"
 
+#ifdef BOARD_TYPE_ESP32
+    #include "BoardConfig_ESP32.h"
+#endif
+#ifdef BOARD_TYPE_tamc_termod_s3
+    #include "BoardConfig_ESP32_tamc_termod_s3.h"
+#endif
+
 #ifdef USE_BLUETOOTH_SERIAL
     #include <BluetoothSerial.h>
     #include "src/SerialPort/BluetoothSerialAbs.h"
     BluetoothSerial SerialBT;
 #else
     #include "src/SerialPort/HardwareSerialAbs.h"
+    #include "src/SerialPort/USBSerialAbs.h"
 #endif
 
 #ifdef WIFI_ENABLED
@@ -56,12 +64,7 @@
     TaskHandle_t RunWebPageTask;
 #endif
 
-const uint8_t VAN_DATA_RX_PIN = 21;
 const IVAN_LINE_LEVEL VAN_DATA_RX_LINE_LEVEL = LINE_LEVEL_HIGH;
-const uint8_t VAN_DATA_RX_LED_INDICATOR_PIN = 2;
-
-const uint8_t CAN_RX_PIN = 18;
-const uint8_t CAN_TX_PIN = 15;
 
 AbsSer *serialPort;
 IGetDeviceInfo *deviceInfo;
@@ -284,7 +287,7 @@ void IRAM_ATTR VANReadDataTaskFunction(void * parameter)
 
     if (!config->REPLAY_MODE)
     {
-        vanMessageReader = new VanMessageReaderEsp32Rmt(VAN_DATA_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
+        vanMessageReader = new VanMessageReaderEsp32Rmt(BOARD_VAN_DATA_RX_PIN, BOARD_LED_PIN, VAN_DATA_RX_LINE_LEVEL, NETWORK_TYPE_COMFORT);
         vanMessageReader->Init();
     }
 
@@ -449,7 +452,11 @@ void InitSerialPort()
 #ifdef USE_BLUETOOTH_SERIAL
     serialPort = new BluetoothSerAbs(SerialBT, bluetoothDeviceName);
 #else
-    serialPort = new HwSerAbs(Serial);
+    #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S3
+        serialPort = new UsbSerAbs(Serial);
+    #else
+        serialPort = new HwSerAbs(Serial);
+    #endif
 #endif
 
     serialPort->begin(500000);
@@ -465,7 +472,7 @@ void setup()
     crcStore = new CrcStore();
 
     InitSerialPort();
-    canInterface = new CanMessageSenderEsp32Idf(CAN_RX_PIN, CAN_TX_PIN, false, serialPort);
+    canInterface = new CanMessageSenderEsp32Idf(BOARD_CAN_RX_PIN, BOARD_CAN_TX_PIN, false, serialPort);
     //canInterface = new CanMessageSenderOnSerial(serialPort);
     canInterface->Init();
 

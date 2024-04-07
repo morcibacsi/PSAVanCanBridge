@@ -1,16 +1,18 @@
 #include "VanWriterTask.h"
 
+#ifdef BOARD_TYPE_ESP32
+    #include "BoardConfig_ESP32.h"
+#endif
+#ifdef BOARD_TYPE_tamc_termod_s3
+    #include "BoardConfig_ESP32_tamc_termod_s3.h"
+#endif
+
 VanWriterTask::VanWriterTask(Config *config, DataBroker *dataBroker)
 {
-    const int SCK_PIN = 25;
-    const int MISO_PIN = 5;
-    const int MOSI_PIN = 33;
-    const int VAN_PIN = 32;
+    spi = new SPIClass(BOARD_SPI_INSTANCE);
+    spi->begin(BOARD_SCK_PIN, BOARD_MISO_PIN, BOARD_MOSI_PIN, BOARD_CS_PIN);
 
-    spi = new SPIClass();
-    spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, VAN_PIN);
-
-    VANInterface = new VanMessageSenderTSS46x(VAN_PIN, spi, VAN_COMFORT);
+    VANInterface = new VanMessageSenderTSS46x(BOARD_CS_PIN, spi, VAN_COMFORT);
     VANInterface->begin();
 
     vanWriterContainer = new VanWriterContainer(VANInterface, config, dataBroker);

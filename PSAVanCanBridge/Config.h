@@ -13,6 +13,13 @@
 
 struct Config
 {
+    #ifdef PIO_INI_BOARD_tamc_termod_s3
+        #define BOARD_TYPE_tamc_termod_s3
+    #endif
+    #ifdef PIO_INI_BOARD_ESP32
+        #define BOARD_TYPE_ESP32
+    #endif
+
     String  VERSION = "2.0.0";
     //#define PRINT_DEBUG
 
