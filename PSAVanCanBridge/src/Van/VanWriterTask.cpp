@@ -1,7 +1,12 @@
 #include "VanWriterTask.h"
+#include "VanMessageSenderTSS46x.h"
 
 #ifdef BOARD_TYPE_ESP32
     #include "BoardConfig_ESP32.h"
+#endif
+#ifdef BOARD_TYPE_ESP32_v15
+    #include "VanMessageSenderUlp.h"
+    #include "BoardConfig_ESP32_v15.h"
 #endif
 #ifdef BOARD_TYPE_tamc_termod_s3
     #include "BoardConfig_ESP32_tamc_termod_s3.h"
@@ -9,11 +14,16 @@
 
 VanWriterTask::VanWriterTask(Config *config, DataBroker *dataBroker)
 {
-    spi = new SPIClass(BOARD_SPI_INSTANCE);
-    spi->begin(BOARD_SCK_PIN, BOARD_MISO_PIN, BOARD_MOSI_PIN, BOARD_CS_PIN);
+    #if BOARD_ULP_VAN_TX_ENABLED
+        VANInterface = new VanMessageSenderUlp(BOARD_VAN_DATA_RX_PIN, BOARD_VAN_DATA_TX_PIN);
+        VANInterface->begin();
+    #elif
+        spi = new SPIClass(BOARD_SPI_INSTANCE);
+        spi->begin(BOARD_SCK_PIN, BOARD_MISO_PIN, BOARD_MOSI_PIN, BOARD_CS_PIN);
 
-    VANInterface = new VanMessageSenderTSS46x(BOARD_CS_PIN, spi, VAN_COMFORT);
-    VANInterface->begin();
+        VANInterface = new VanMessageSenderTSS46x(BOARD_CS_PIN, spi, VAN_COMFORT);
+        VANInterface->begin();
+    #endif
 
     vanWriterContainer = new VanWriterContainer(VANInterface, config, dataBroker);
 }

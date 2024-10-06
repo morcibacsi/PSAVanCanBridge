@@ -86,6 +86,10 @@ void VanWriterContainer::Process(unsigned long currentTime)
     }
     else
     {
+        // uncomment to test V2C without BSI
+        //uint8_t packet[7] = { 0x0F, 0x07, 0x81, 0x1D, 0xA4 ,0x93, 7 * 2 + 0x50 };
+        //vanInterface->set_channel_for_transmit_message(0, 0x8a4, packet, sizeof(packet), 0);
+
         parkingAidQuery->SetData(_dataBroker->Ignition, _dataBroker->IsReverseEngaged);
 
         bool runParkingAidQuery = _config->PARKING_AID_TYPE == 1 && _dataBroker->IsReverseEngaged;

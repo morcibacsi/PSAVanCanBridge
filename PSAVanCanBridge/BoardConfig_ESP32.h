@@ -15,4 +15,6 @@
 #define BOARD_VAN_DATA_RX_PIN 21
 #define BOARD_LED_PIN 2
 
+#define BOARD_ULP_VAN_TX_ENABLED false
+
 #endif

@@ -3,8 +3,8 @@
 #ifndef _VanWriterTask_h
     #define _VanWriterTask_h
 
-#include "VanMessageSenderTSS46x.h"
 #include "VanWriterContainer.h"
+#include <SPI.h>
 
 class VanWriterTask {
     VanWriterContainer* vanWriterContainer;

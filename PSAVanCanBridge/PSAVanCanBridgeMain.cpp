@@ -42,6 +42,9 @@
 #ifdef BOARD_TYPE_ESP32
     #include "BoardConfig_ESP32.h"
 #endif
+#ifdef BOARD_TYPE_ESP32_v15
+    #include "BoardConfig_ESP32_v15.h"
+#endif
 #ifdef BOARD_TYPE_tamc_termod_s3
     #include "BoardConfig_ESP32_tamc_termod_s3.h"
 #endif

@@ -19,15 +19,14 @@ struct Config
     #ifdef PIO_INI_BOARD_ESP32
         #define BOARD_TYPE_ESP32
     #endif
+    #ifdef PIO_INI_BOARD_ESP32_v15
+        #define BOARD_TYPE_ESP32_v15
+    #endif
 
     String  VERSION = "2.0.0";
     //#define PRINT_DEBUG
 
     #define VIN_LENGTH 17
-
-    // 11: HW revision v1.1
-    // 14: HW revision v1.4
-    #define HW_VERSION 14
 
     #ifdef WIFI_ENABLED
         //#define WEBSOCKET_SERIAL
