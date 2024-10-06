@@ -6,10 +6,10 @@ VanDisplayStatusPacketSender::VanDisplayStatusPacketSender(IVanMessageSender * o
     vanMessageSender = object;
 }
 
-void VanDisplayStatusPacketSender::SendStatus(uint8_t channelId, uint8_t resetTotals, uint8_t resetCumulative)
+void VanDisplayStatusPacketSender::SendStatus(uint8_t channelId, uint8_t resetTotals, uint8_t resetCumulative, uint8_t keepVanComfortAlive)
 {
     VanEmfBsiRequestByte1 field1;
-    field1.data.request_for_keep_van_comfort_alive = 1;
+    field1.data.request_for_keep_van_comfort_alive = keepVanComfortAlive;
     field1.data.request_to_reset_course_totals = resetTotals;
     field1.data.request_to_reset_cumulative = resetCumulative;
 

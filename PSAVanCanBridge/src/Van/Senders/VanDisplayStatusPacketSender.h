@@ -13,7 +13,7 @@ class VanDisplayStatusPacketSender
 public:
     VanDisplayStatusPacketSender(IVanMessageSender * object);
 
-    void SendStatus(uint8_t channelId, uint8_t resetTotals, uint8_t resetCumulative);
+    void SendStatus(uint8_t channelId, uint8_t resetTotals, uint8_t resetCumulative, uint8_t keepVanComfortAlive);
 
     void Disable(uint8_t channelId);
 };
