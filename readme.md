@@ -21,7 +21,7 @@ The components needed for the project to work in your car is the following:
 
 I built a "shield" for the ESP32 dev board where I integrated the CAN bus transceivers and the TSS463C VAN controller onto one board. The KiCad project files can be found in [this repository][psavancanbridgehw].
 
-![components](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/components.png)
+![components](./images/components.png)
 
 ### Liability
 
@@ -57,7 +57,7 @@ But here is the list of the bridged functions:
 
 If you remove the original display from the car the trip computer related data, the door statuses, and the digital air conditioning system may stop working. In the 307 the VAN data wires for the A/C are routed through the display. So obviously if you remove the display the circuit will be broken, which is pretty easy to fix. You just need to create two shortcuts on the original connector (4-5 DATA pins and 17-18 DATAB pins).
 
-![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/mfd_connector_shortcut_photo.jpg)
+![display](./images/mfd_connector_shortcut_photo.jpg)
 
 The reason behind the missing functionality is due to the fact that the display queries the BSI for the trip computer data, and the door statuses. If you would like to remove the original display from your car you need to build a hardware revision which contains a TSS463C.
 
@@ -67,13 +67,13 @@ In cars made by PSA the the head unit contains the VIN number. The BSI sends it'
 
 1. Turn on the radio (source should be tuner)
 2. Switch to AM band and set it to 545 kHz (if you have an RD45) or 543 kHz (if you have an RD4 or RD43)
-![display](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/display.jpg)
+![display](./images/display.jpg)
 3. Press the Menu button on the radio (you should see this menu). It doesn't matter which item is selected.
-![menu](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/menu.jpg)
+![menu](./images/menu.jpg)
 4. Press the following combination with the arrows on your radio:
 Left-Right-Left-Right (almost like the Konami code :smiley:)
 If you mistype the combination, then exit the menu, and return to it again.
-![rd43](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/rd43.jpg)
+![rd43](./images/rd43.jpg)
 5. Now the beeping should stop
 
 ### Compatibility
@@ -97,7 +97,15 @@ The software was tested on a Peugeot 307 SW made in 2004 however most probably i
 ### Installation
 The easiest place to install the hardware in a car is the connectors of the original head unit. Below you can see the schematics of a patch lead which converts the ISO connector to Quadlock type and exposes the VAN and CAN data pins to a JST XH 6 connector where you can connect the PSA VAN-CAN bridge hardware.
 
-![iso_quadlock_mfd_bridge](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/iso_quadlock_mfd_bridge.png)
+⚠️ On board rev. 1.5 (and also for newer) the DATA and the DATAB lines are swapped, so if you are upgrading your board, you need to swap these 2 lines.
+
+#### Board rev. <= 1.4
+
+![iso_quadlock_mfd_bridge_v14](./images/iso_quadlock_mfd_bridge_v14.png)
+
+#### Board rev. >= 1.5
+
+![iso_quadlock_mfd_bridge_v14](./images/iso_quadlock_mfd_bridge_v15.png)
 
 ### Project structure
 

@@ -12,13 +12,21 @@ The images can be found in the repository.
 
 ## All together
 
-![iso_quadlock_mfd_bridge](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/iso_quadlock_mfd_bridge.png)
+⚠️ On board rev. 1.5 (and also for newer) the DATA and the DATAB lines are swapped, so if you are upgrading your board, you need to swap these 2 lines.
+
+### Board rev. <= 1.4
+
+![iso_quadlock_mfd_bridge_v14](../images/iso_quadlock_mfd_bridge_v14.png)
+
+### Board rev. >= 1.5
+
+![iso_quadlock_mfd_bridge_v14](../images/iso_quadlock_mfd_bridge_v15.png)
 
 ## ISO connector pinout
 
 <table>
   <tr>
-    <td rowspan="9"><img align="left" width="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/iso_connector.png"></td>
+    <td rowspan="9"><img align="left" width="200" src="../images/wiki/iso_connector.png"></td>
     <td></td>
     <td></td>
     <td></td>
@@ -77,7 +85,7 @@ The images can be found in the repository.
 
 <table>
   <tr>
-    <td rowspan="13"><img align="left" height="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/can_display_connector.png"></td>
+    <td rowspan="13"><img align="left" height="200" src="../images/wiki/can_display_connector.png"></td>
     <td></td>
   </tr>
   <tr>
@@ -134,7 +142,7 @@ The images can be found in the repository.
 
 <table>
   <tr>
-    <td rowspan="13"><img align="left" height="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/can_display_connector_6_pin.png"></td>
+    <td rowspan="13"><img align="left" height="200" src="../images/wiki/can_display_connector_6_pin.png"></td>
     <td></td>
   </tr>
   <tr>
@@ -167,7 +175,7 @@ The images can be found in the repository.
 
 <table>
   <tr>
-    <td rowspan="13"><img align="left" height="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/can_display_connector_6_pin.png"></td>
+    <td rowspan="13"><img align="left" height="200" src="../images/wiki/can_display_connector_6_pin.png"></td>
     <td></td>
   </tr>
   <tr>
@@ -200,7 +208,7 @@ The images can be found in the repository.
 
 <table>
     <tr>
-        <td rowspan="9"><img align="left" width="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/quadlock_connector.jpg"></td>
+        <td rowspan="9"><img align="left" width="200" src="../images/wiki/quadlock_connector.jpg"></td>
         <td></td>
         <td></td>
         <td></td>
@@ -258,18 +266,55 @@ The images can be found in the repository.
 
 ## JST XH6 connector pinout
 
+⚠️ On board rev. 1.5 (and also for newer) the DATA and the DATAB lines are swapped, so if you are upgrading your board, you need to swap these 2 pins.
+
 <table>
     <tr>
-        <td rowspan="9"><img align="left" width="200" src="https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/wiki/jst_xh6.png"></td>
-        <td></td>
+        <td colspan="3">Board rev. <= 1.4</td>
+    </tr>
+    <tr>
+        <td rowspan="9"><img align="left" width="200" src="../images/wiki/jst_xh6.png"></td>
     </tr>
     <tr>
         <td>1</td>
-        <td>VAN DATAB</td>
+        <td>VAN DATAB, 9005, VAN High</td>
     </tr>
     <tr>
         <td>2</td>
-        <td>VAN DATA</td>
+        <td>VAN DATA, 9004, VAN Low</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>CAN Low</td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>CAN High</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>GND</td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>+12V</td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td colspan="3">Board rev. >= 1.5</td>
+    </tr>
+    <tr>
+        <td rowspan="9"><img align="left" width="200" src="../images/wiki/jst_xh6.png"></td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>VAN DATA, 9004, VAN Low</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>VAN DATAB, 9005, VAN High</td>
     </tr>
     <tr>
         <td>3</td>
@@ -291,4 +336,4 @@ The images can be found in the repository.
 
 ## The lead
 
-![components](https://github.com/morcibacsi/PSAVanCanBridge/raw/master/images/components.png)
+![components](../images/components.png)
