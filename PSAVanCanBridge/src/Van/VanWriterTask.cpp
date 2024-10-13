@@ -40,6 +40,12 @@ void VanWriterTask::SendRadioSetSource(unsigned long currentTime, uint8_t source
     vanWriterContainer->Process(currentTime);
 }
 
+void VanWriterTask::QueryParkingRadarData(unsigned long currentTime)
+{
+    vanWriterContainer->QueryParkingRadarData();
+    vanWriterContainer->Process(currentTime);
+}
+
 void VanWriterTask::GetCarStatus(unsigned long currentTime)
 {
     vanWriterContainer->GetCarStatus();

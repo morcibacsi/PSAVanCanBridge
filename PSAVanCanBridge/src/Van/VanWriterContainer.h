@@ -27,7 +27,8 @@ typedef enum {
     SetSource,
     RadioSettings,
     CmdSetKeyboardState,
-    CmdSetAudioSettings
+    CmdSetAudioSettings,
+    ParkingRadarDataQuery
 } VanCommandType;
 
 struct VanCommand {
@@ -74,6 +75,7 @@ class VanWriterContainer {
     void GetRadioSettings(unsigned long currentTime);
     void SetRadioState(uint8_t powerOn, uint8_t active, uint8_t keyboardActive, uint8_t autoVolume, uint8_t loudness, uint8_t mute);
     void SendRadioSetSource(uint8_t source);
+    void QueryParkingRadarData();
     void GetCarStatus();
     void GetRadioSettings();
     void GetRadioStationData();

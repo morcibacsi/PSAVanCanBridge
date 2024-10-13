@@ -80,6 +80,10 @@ void VanWriterContainer::Process(unsigned long currentTime)
                 // 4D4
                 GetRadioSettings(currentTime);
             break;
+            case ParkingRadarDataQuery:
+                // AE8
+                parkingAidQuery->QueryParkingRadarData();
+            break;
             default:
             break;
         }
@@ -154,6 +158,13 @@ void VanWriterContainer::SendRadioSetSource(uint8_t source)
     VanCommand command;
     command.Type = SetSource;
     command.Source = source;
+    xQueueSendToFront(_queue, &command, 0);
+}
+
+void VanWriterContainer::QueryParkingRadarData()
+{
+    VanCommand command;
+    command.Type = ParkingRadarDataQuery;
     xQueueSendToFront(_queue, &command, 0);
 }
 

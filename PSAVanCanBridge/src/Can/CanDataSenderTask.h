@@ -75,6 +75,7 @@ class CanDataSenderTask {
     void HandleTripData();
     void HandleAC1_464();
     void HandleAC2_4DC();
+    void HandleParkingRadarGetDistance();
     void HandleParkingRadar();
     void HandleRadioSettings();
     void HandleRadio();

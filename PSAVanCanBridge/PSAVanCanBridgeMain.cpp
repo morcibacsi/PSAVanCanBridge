@@ -131,12 +131,13 @@ void PrintVANArrayToSerial(const uint8_t vanMessage[], uint8_t vanMessageLength)
     uint16_t vanId = (vanMessage[1] << 8 | vanMessage[2]) >> 4;
 
     //if (!(vanId == 0xAE8 && vanMessageLength > 27))
+    //
     /*
-    if (!(vanId == 0x8A4))
+    if (!(vanId == 0xA68) && !(vanId == 0xAE8))
     {
         return;
     }
-    */
+    //*/
 
     bool sendToPython = false;
     if (sendToPython)
@@ -204,6 +205,7 @@ bool IsMessageToProcess(uint16_t vanId)
         case 0x564:
         case 0x464:
         case 0x4DC:
+        case 0xA68:
         case 0xAE8:
         case 0x4D4:
         case 0x554:

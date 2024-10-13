@@ -127,6 +127,9 @@ void IRAM_ATTR CanDataSenderTask::ProcessVanMessage(unsigned long currentTime, u
                 HandleAC2_4DC();
             }
             break;
+        case 0xA68:
+            HandleParkingRadarGetDistance();
+            break;
         case 0xAE8:
             HandleParkingRadar();
             break;
@@ -901,6 +904,19 @@ void IRAM_ATTR CanDataSenderTask::HandleAC2_4DC()
     _dataBroker->IsACCompressorOn = vanPacket.Status1.ac_compressor_auth_on;
 
     _canMessageHandlerContainer->SetData(0x1E3);
+}
+
+void IRAM_ATTR CanDataSenderTask::HandleParkingRadarGetDistance()
+{
+    if (vanMessageLengthWithoutId != 2)
+    {
+        return;
+    }
+
+    if (vanData[0] == 0x21 && vanData[1] == 0xA0)
+    {
+        _vanWriterTask->QueryParkingRadarData(_currentTime);
+    }
 }
 
 void IRAM_ATTR CanDataSenderTask::HandleParkingRadar()

@@ -29,10 +29,12 @@ class VanQueryParkingAid : public VanMessageWriterBase
 
     VanQueryParkingAid(IVanMessageSender* vanMessageSender) : VanMessageWriterBase(vanMessageSender, PARKING_AID_QUERY_INTERVAL)
     {
-            parkingAidDiagSender = new VanParkingAidDiagPacketSender(vanMessageSender);
+        parkingAidDiagSender = new VanParkingAidDiagPacketSender(vanMessageSender);
     }
 
     void SetData(uint8_t ignition, uint8_t isReverseEngaged);
+    void QueryParkingRadarData();
+    void GetDistance();
 };
 
 #endif
