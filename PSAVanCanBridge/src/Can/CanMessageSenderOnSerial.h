@@ -20,7 +20,8 @@ public:
 
     uint8_t SendMessage(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, uint8_t *byteArray) override;
 
-    void ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf) override;
+    bool ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf) override;
+    virtual void Reset() override;
 };
 
 #endif

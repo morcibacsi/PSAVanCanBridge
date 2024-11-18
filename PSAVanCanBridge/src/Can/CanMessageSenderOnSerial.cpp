@@ -42,6 +42,11 @@ uint8_t CanMessageSenderOnSerial::SendMessage(uint16_t canId, uint8_t ext, uint8
     return 0;
 }
 
-void CanMessageSenderOnSerial::ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf)
+bool CanMessageSenderOnSerial::ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf)
+{
+    return true;
+}
+
+void CanMessageSenderOnSerial::Reset()
 {
 }

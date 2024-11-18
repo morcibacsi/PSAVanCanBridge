@@ -477,7 +477,7 @@ void setup()
     crcStore = new CrcStore();
 
     InitSerialPort();
-    canInterface = new CanMessageSenderEsp32Idf(BOARD_CAN_RX_PIN, BOARD_CAN_TX_PIN, false, serialPort);
+    canInterface = new CanMessageSenderEsp32Idf(BOARD_CAN_RX_PIN, BOARD_CAN_TX_PIN, serialPort, CanMessageSenderEsp32Idf::CAN_CONTROLLER_0);
     //canInterface = new CanMessageSenderOnSerial(serialPort);
     canInterface->Init();
 

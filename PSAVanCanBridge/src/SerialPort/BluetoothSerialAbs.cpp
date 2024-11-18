@@ -32,7 +32,7 @@ void BluetoothSerAbs::begin(unsigned long baud) {
     port->begin(name);
 
     custom_spp_callback = callback;
-    port->register_callback(&custom_spp_callback);
+    port->register_callback(custom_spp_callback);
 }
 
 void BluetoothSerAbs::end() {
