@@ -17,7 +17,7 @@ VanWriterTask::VanWriterTask(Config *config, DataBroker *dataBroker)
     #if BOARD_ULP_VAN_TX_ENABLED
         VANInterface = new VanMessageSenderUlp(BOARD_VAN_DATA_RX_PIN, BOARD_VAN_DATA_TX_PIN);
         VANInterface->begin();
-    #elif
+    #else
         spi = new SPIClass(BOARD_SPI_INSTANCE);
         spi->begin(BOARD_SCK_PIN, BOARD_MISO_PIN, BOARD_MOSI_PIN, BOARD_CS_PIN);
 
