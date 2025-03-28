@@ -82,6 +82,8 @@ class CanDataSenderTask {
     void HandleRadioCommand();
     void HandleEvent();
     void HandleVin();
+    void HandleAirConGetData();
+    void HandleAirConDiagResponse();
     void SetBrightness(uint8_t brightness, uint8_t blackPanel);
     void ResetTripOnCMB();
     void ShutOffIgnition();

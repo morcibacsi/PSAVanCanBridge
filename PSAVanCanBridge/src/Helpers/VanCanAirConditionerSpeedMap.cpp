@@ -1,5 +1,6 @@
 #include "VanCanAirConditionerSpeedMap.h"
 #include "DebugPrint.h"
+#include "../Can/Structs/CAN_1E3.h"
 
 VanCanAirConditionerSpeedMap::VanCanAirConditionerSpeedMap()
 {
@@ -68,5 +69,31 @@ uint8_t VanCanAirConditionerSpeedMap::GetFanSpeedFromVANByte(uint8_t vanByte, ui
     }
     debug_print("result: ");
     debug_println(result, HEX);
+    return result;
+}
+
+uint8_t VanCanAirConditionerSpeedMap::GetACDirection(uint8_t vanByte)
+{
+    uint8_t result = CAN_AIRCON_DISPLAY_DIRECTION_AUTO;
+    if (vanByte > 0x00)
+    {
+        result = CAN_AIRCON_DISPLAY_DIRECTION_UP;
+    }
+    if (vanByte > 0x1D)
+    {
+        result = CAN_AIRCON_DISPLAY_DIRECTION_UPDOWN;
+    }
+    if (vanByte > 0x2E)
+    {
+        result = CAN_AIRCON_DISPLAY_DIRECTION_DOWN;
+    }
+    if (vanByte > 0x3E)
+    {
+        result = CAN_AIRCON_DISPLAY_DIRECTION_FRONTDOWN;
+    }
+    if (vanByte > 0x60)
+    {
+        result = CAN_AIRCON_DISPLAY_DIRECTION_FRONT;
+    }
     return result;
 }

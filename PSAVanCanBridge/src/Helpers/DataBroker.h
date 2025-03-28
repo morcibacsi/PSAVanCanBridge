@@ -119,6 +119,7 @@ class DataBroker
         uint8_t IsACCompressorOn;
         uint8_t FanSpeed;
         uint8_t IsWindowHeatingOn;
+        uint8_t AirConDirection = 0;
 
         uint8_t ParkingExteriorRearLeft  = 0xFF;
         uint8_t ParkingExteriorRearRight = 0xFF;

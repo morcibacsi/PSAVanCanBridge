@@ -16,6 +16,7 @@ public:
     void SetRadioState(unsigned long currentTime, uint8_t powerOn, uint8_t active, uint8_t keyboardActive, uint8_t autoVolume, uint8_t loudness, uint8_t mute);
     void SendRadioSetSource(unsigned long currentTime, uint8_t source);
     void QueryParkingRadarData(unsigned long currentTime);
+    void QueryAirConActuatorData(unsigned long currentTime);
     void GetCarStatus(unsigned long currentTime);
     void GetRadioSettings(unsigned long currentTime);
     void GetRadioStationData(unsigned long currentTime);

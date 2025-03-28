@@ -10,7 +10,7 @@
 
 class VanQueryAirCon : public VanMessageWriterBase
 {
-    const static uint16_t AIRCON_QUERY_INTERVAL = 120;
+    const static uint16_t AIRCON_QUERY_INTERVAL = 320;
 
     const static uint8_t AC_DIAG_START_CHANNEL = 1;
     const static uint8_t AC_DIAG_QUERY_SENSOR_STATUS_CHANNEL = 2;
@@ -19,6 +19,8 @@ class VanQueryAirCon : public VanMessageWriterBase
 
     uint8_t _ignition = 0;
     uint8_t _diagStatus = 0;
+    uint8_t _initDiag = 1;
+    uint8_t _prevIgnition = 0;
 
     VanACDiagPacketSender* acDiagSender;
 
@@ -32,6 +34,8 @@ class VanQueryAirCon : public VanMessageWriterBase
     }
 
     void SetData(uint8_t ignition);
+
+    void QueryAirConData();
 };
 
 #endif

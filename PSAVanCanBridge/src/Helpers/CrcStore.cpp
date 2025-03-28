@@ -31,6 +31,9 @@ CrcStore::CrcStore() {
 
     item.VanId = 0x4D4;
     CrcItems.push_back(item);
+
+    item.VanId = 0xADC;
+    CrcItems.push_back(item);
 }
 
 bool CrcStore::IsCrcSameAsPrevious(uint16_t vanId, uint16_t crc)

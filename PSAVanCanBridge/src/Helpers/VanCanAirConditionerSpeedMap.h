@@ -30,6 +30,7 @@ class VanCanAirConditionerSpeedMap
     public:
         VanCanAirConditionerSpeedMap();
         uint8_t GetFanSpeedFromVANByte(uint8_t vanByte, uint8_t isAcOn, uint8_t isRearWindowHeatingOn, uint8_t isRecycleOn);
+        uint8_t GetACDirection(uint8_t vanByte);
 };
 
 #endif

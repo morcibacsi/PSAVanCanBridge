@@ -84,6 +84,10 @@ void VanWriterContainer::Process(unsigned long currentTime)
                 // AE8
                 parkingAidQuery->QueryParkingRadarData();
             break;
+            case AirConActuatorStatusQuery:
+                // ADC
+                acQuery->QueryAirConData();
+            break;
             default:
             break;
         }
@@ -165,6 +169,13 @@ void VanWriterContainer::QueryParkingRadarData()
 {
     VanCommand command;
     command.Type = ParkingRadarDataQuery;
+    xQueueSendToFront(_queue, &command, 0);
+}
+
+void VanWriterContainer::QueryAirConActuatorData()
+{
+    VanCommand command;
+    command.Type = AirConActuatorStatusQuery;
     xQueueSendToFront(_queue, &command, 0);
 }
 

@@ -15,6 +15,7 @@
 #include "../Van/Structs/VAN_8C4.h"
 #include "../Van/Structs/VAN_8D4.h"
 #include "../Van/Structs/VanDisplayPopupMessage.h"
+#include "../Van/Structs/VanAirConditionerDiagStructs.h"
 
 #include "../Can/Structs/CAN_128.h"
 #include "../Can/Structs/CAN_10B.h"
@@ -153,6 +154,11 @@ void IRAM_ATTR CanDataSenderTask::ProcessVanMessage(unsigned long currentTime, u
             break;
         case 0xE24:
             HandleVin();
+        case 0xA5C:
+            HandleAirConGetData();
+            break;
+        case 0xADC:
+            HandleAirConDiagResponse();
             break;
         default:
             break;
@@ -1081,6 +1087,25 @@ void IRAM_ATTR CanDataSenderTask::HandleEvent()
 
 void IRAM_ATTR CanDataSenderTask::HandleVin()
 {
+}
+
+void IRAM_ATTR CanDataSenderTask::HandleAirConGetData()
+{
+    if (vanMessageLengthWithoutId == 2 && vanData[0] == 0x21 && vanData[1] == VAN_ID_AIR_CONDITIONER_DIAG_ACTUATOR_STATUS)
+    {
+        _vanWriterTask->QueryAirConActuatorData(_currentTime);
+    }
+}
+
+void IRAM_ATTR CanDataSenderTask::HandleAirConDiagResponse()
+{
+    if (vanMessageLengthWithoutId == 12 && vanData[2] == VAN_ID_AIR_CONDITIONER_DIAG_ACTUATOR_STATUS)
+    {
+        VanAirConditionerDiagActuatorStatusPacket packet;
+        memcpy(&packet, vanData, sizeof(packet));
+
+        _dataBroker->AirConDirection = _vanCanAirConditionerSpeedMap->GetACDirection(packet.data.DistributionStatus);
+    }
 }
 
 void CanDataSenderTask::SetBrightness(uint8_t brightness, uint8_t blackPanel)

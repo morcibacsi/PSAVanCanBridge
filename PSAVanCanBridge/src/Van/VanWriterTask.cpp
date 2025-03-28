@@ -46,6 +46,12 @@ void VanWriterTask::QueryParkingRadarData(unsigned long currentTime)
     vanWriterContainer->Process(currentTime);
 }
 
+void VanWriterTask::QueryAirConActuatorData(unsigned long currentTime)
+{
+    vanWriterContainer->QueryAirConActuatorData();
+    vanWriterContainer->Process(currentTime);
+}
+
 void VanWriterTask::GetCarStatus(unsigned long currentTime)
 {
     vanWriterContainer->GetCarStatus();

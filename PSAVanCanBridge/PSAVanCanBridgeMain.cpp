@@ -205,8 +205,13 @@ bool IsMessageToProcess(uint16_t vanId)
         case 0x564:
         case 0x464:
         case 0x4DC:
+
         case 0xA68:
         case 0xAE8:
+
+        case 0xA5C:
+        case 0xADC:
+
         case 0x4D4:
         case 0x554:
         case 0x8C4:

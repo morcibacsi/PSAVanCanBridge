@@ -21,6 +21,12 @@ void MessageHandler_1E3::SetData()
         _data[1] = byte2.asByte;
     }
 
+    if (_config->QUERY_AC_STATUS)
+    {
+        _data[4] = _dataBroker->AirConDirection;
+        _data[5] = _dataBroker->AirConDirection;
+    }
+
     if (_config->SEND_AC_FAN_CHANGES_TO_DISPLAY)
     {
         _data[6] = _dataBroker->FanSpeed;
