@@ -79,6 +79,8 @@ bool ConfigStorageEsp32::LoadFromDoc(DynamicJsonDocument doc)
 bool ConfigStorageEsp32::Load()
 {
     // Use the tool here: https://arduinojson.org/v6/assistant/
+    bool result = false;
+
     debug_println(F("try to load config"));
     SPIFFS.begin(true);
     if (SPIFFS.exists(_fileName))
@@ -92,6 +94,7 @@ bool ConfigStorageEsp32::Load()
             LoadFromDoc(doc);
 
             configFile.close();
+            result = true;
         }
         else
         {
@@ -126,7 +129,7 @@ bool ConfigStorageEsp32::Load()
     }
     SPIFFS.end();
 
-    return true;
+    return result;
 }
 
 StaticJsonDocument<JSON_MEMORY_SIZE> ConfigStorageEsp32::GetConfig()

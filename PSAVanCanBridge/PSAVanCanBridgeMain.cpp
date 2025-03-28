@@ -298,6 +298,12 @@ void IRAM_ATTR VANReadDataTaskFunction(void * parameter)
 
     for (;;)
     {
+        if (webPageService->IsRunning())
+        {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+            continue;
+        }
+
         currentTime = millis();
 
         serialReader->Receive(&vanMessageItem.Length, vanMessageItem.Data);
@@ -330,6 +336,12 @@ void IRAM_ATTR VANReadDataTaskFunction(void * parameter)
                 {
                     canDataSenderTask->IgnitionPacketArrived(currentTime);
                 }
+
+                if (dataBroker->FrontLeftDoorOpen == 1 && dataBroker->LeftTurnIndicator == 1 && dataBroker->RightTurnIndicator == 1 && dataBroker->HighBeam == 1)
+                {
+                    webPageService->Start();
+                }
+
             }
         }
         if (config->REPLAY_MODE)
@@ -373,7 +385,10 @@ void RunWebPageTaskFunction(void* parameter)
 {
     for (;;)
     {
-        webPageService->Loop();
+        if (webPageService->IsRunning())
+        {
+            webPageService->Loop();
+        }
 
         vTaskDelay(15 / portTICK_PERIOD_MS);
     }
@@ -482,7 +497,7 @@ void setup()
     canInterface->Init();
 
     configStorage = new ConfigStorageEsp32(config);
-    configStorage->Load();
+    bool configLoaded = configStorage->Load();
 
     vinFlashStorage = new VinFlashStorageEsp32(config);
     vinFlashStorage->Load();
@@ -509,7 +524,10 @@ void setup()
         serialPort = new WebSocketSerAbs(webPageService->GetHTTPServer(), "/log");
         #endif
 
-        webPageService->Start();
+        if (configLoaded == false)
+        {
+            webPageService->Start();
+        }
     #endif
 
 //core 0

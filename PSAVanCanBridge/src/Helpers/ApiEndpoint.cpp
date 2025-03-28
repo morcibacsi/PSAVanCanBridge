@@ -219,6 +219,29 @@ void handleOtaUpdate(AsyncWebServerRequest *request, const String& filename, siz
     }
 }
 
+void onRequestBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
+{
+    if (request->url() == "/api/config") {
+        handleConfigPostEvent(request, data, len);
+    }
+
+    if (request->url() == "/api/uniqueId") {
+        handleUniqueIdPostEvent(request, data, len);
+    }
+
+    if (request->url() == "/api/displaycontrol") {
+        handleDisplayControlButtonPostEvent(request, data, len);
+    }
+}
+
+void handlePost(AsyncWebServerRequest* request)
+{
+    // This function is not used, but it is required to be defined for the web server to work properly.
+    // It is called when a POST request is made to the server.
+    // The actual handling of the POST request is done in the onRequestBody function.
+    // request->send(200, "text/plain", "OK");
+}
+
 ApiEndpoint::ApiEndpoint(
     AsyncWebServer* webServer,
     CanMessageHandlerContainer* canMessageHandler,
@@ -238,6 +261,8 @@ ApiEndpoint::ApiEndpoint(
         handleConfigGetEvent(request);
     });
 
+    webServer->on("/api/config",HTTP_POST, handlePost, nullptr, onRequestBody);
+
     webServer->on("/api/config", HTTP_DELETE, [](AsyncWebServerRequest* request) {
         handleConfigDeleteEvent(request);
     });
@@ -254,16 +279,13 @@ ApiEndpoint::ApiEndpoint(
         }
     );
 
+    webServer->on("/api/reboot", HTTP_GET, [](AsyncWebServerRequest* request) {
+        sendResponse(request, true, 0, 0);
+        ESP.restart();
+    });
+
     webServer->onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-        if (request->url() == "/api/config") {
-            handleConfigPostEvent(request, data, len);
-        }
-        if (request->url() == "/api/uniqueId") {
-            handleUniqueIdPostEvent(request, data, len);
-        }
-        if (request->url() == "/api/displaycontrol") {
-            handleDisplayControlButtonPostEvent(request, data, len);
-        }
+        onRequestBody(request, data, len, index, total);
     });
 }
 #endif

@@ -48,6 +48,7 @@ class WebPageService
     void Start();
     AsyncWebServer* GetHTTPServer();
     void Loop();
+    bool IsRunning();
 };
 #endif
 #endif

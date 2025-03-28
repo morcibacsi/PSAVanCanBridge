@@ -13,8 +13,12 @@ static bool _wifiStarted = false;
 IPAddress apIP(192, 168, 100, 1);
 const char *hosturl = "http://192.168.100.1";
 
-void WiFiEvent(WiFiEvent_t event)
+void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
 {
+    /*
+    Serial.print("WiFiEvent: ");
+    Serial.println(event);
+    */
     if (event == ARDUINO_EVENT_WIFI_STA_START || event == ARDUINO_EVENT_WIFI_AP_START)
     {
         _wifiStarted = true;
@@ -23,6 +27,20 @@ void WiFiEvent(WiFiEvent_t event)
     {
         Serial.print("Obtained IP address: ");
         Serial.println(WiFi.localIP());
+    }
+    if (event == ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED)
+    {
+        Serial.print("AP IP address: ");
+        Serial.println(WiFi.softAPIP());
+    }
+    if (event == ARDUINO_EVENT_WIFI_AP_STACONNECTED)
+    {
+        Serial.println("Client (AP mode) connected to Wi-Fi");
+    }
+    if (event == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED)
+    {
+        Serial.println("Client (AP mode) disconnected from Wi-Fi, restarting ESP32");
+        esp_restart();
     }
 //
 /*
@@ -139,7 +157,7 @@ void WebPageService::StartWifiAP()
     delay(100);
 
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    dnsServer.start(53, "*", apIP);
+    //dnsServer.start(53, "*", apIP);
 }
 
 void WebPageService::StartWifiClient()
@@ -176,10 +194,16 @@ void WebPageService::Loop()
 
     if (_serverStarted)
     {
-        if (_config->WIFI_AP_MODE){
-            dnsServer.processNextRequest();
+        if (_config->WIFI_AP_MODE)
+        {
+            //dnsServer.processNextRequest();
         }
     }
+}
+
+bool WebPageService::IsRunning()
+{
+    return _wifiStarted || _serverStarted;
 }
 
 AsyncWebServer* WebPageService::GetHTTPServer()
