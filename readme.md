@@ -27,6 +27,10 @@ I built a "shield" for the ESP32 dev board where I integrated the CAN bus transc
 
 I used the software in my car for months, without any sign of errors. However I cannot take any responsibility if something goes wrong if you build it and install it in your car. So use the software and hardware at your own risk.
 
+### Warning
+
+⚠️ There is an open issue with certain cars where the board causes the BSI to crash. Please read the issue here for the details and a workaround: [#34](https://github.com/morcibacsi/PSAVanCanBridge/issues/34)
+
 ### Functionality
 
 I implemented the functions which came with the original V2C boards (see what are those in the [history section in the wiki](wiki/history.md)), and even more! I created a video which demonstrates most of the functionality:
@@ -107,39 +111,26 @@ The easiest place to install the hardware in a car is the connectors of the orig
 
 ![iso_quadlock_mfd_bridge_v14](./images/iso_quadlock_mfd_bridge_v15.png)
 
-### Project structure
+### Setup
 
-I tried to keep things as simple as possible but I wanted to create code where everything has its own place. So there are a lot of files. I am not that happy with the idea of having separate .h an .cpp files so I have implementations inside the header files. I know that this may not be a best practice but this approach helped me to avoid having 50 or more additional files.
+The device creates a WiFi access point when there is no configuration saved on the device or the following conditions are met: the front left door is open and the high beam is on and the emergency lights are blinking (the combination is to avoid accidentally turning on the access point). When the access point is on, the VAN bus reading is disabled to free up CPU cycles.
 
-The main sketch file is the PSAVanCanBridgeMain.cpp file. In the Config.h file you can find some variables which you might want to change based on which hardware you built.
+After connecting to the access point the setup page is available by opening the following address in a web browser: http://192.168.100.1/
 
-Every VAN bus message has its own descriptor file. They can be found inside the **src/van/structs** folder. This file contains the message identifier, and the description of the bytes which build the actual array floating around the bus.
-
-The messages on the CAN bus also has these kind of descriptor files. They can be found inside the **src/can/structs** folder. These files help to build the messages in a way that the code remains more readable.
-
-To convert these files to the actual byte array which will be received or sent on the wire there is a helper template class which can be found inside the **src/helpers/serializer.h** file.
-
-In order to avoid cluttering the main sketch with the message conversions every VAN and CAN bus related message processor has a handler file. They can be found inside the **Handlers** folder under the corresponding protocols directory. The VAN bus related handler files derive from an abstract class which can be found inside the AbstractVanMessageHandler.h. The CAN bus related handlers derive from the CanMessageHandlerBase class.
+After setting up the board, a reboot is needed (there is a button on the setup page), but disconnecting from the access point also causes the device to reboot.
 
 ### Building the project
 
-#### From Arduino
-Follow these steps to build the project:
- - Install the ESP32 boards into the Arduino IDE (follow the [instructions here][install_esp32])
- - Install the libraries from the Used libraries section
-	 - They should be installed under your documents folder. Which should be something like this:
-		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries
-	 - At the end you should have a folder structure similar to this:
-		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\esp32_arduino_rmt_van_rx\
-		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\tss463_van\
-		 - C:\Users\YOUR_NAME\Documents\Arduino\libraries\Queue\
- - Extract the contents of the zip file
- - Open the empty **PSAVanCanBridge\PSAVanCanBridge.ino** file from the Arduino IDE *(do not rename any file or whatsoever)*
- - Select ESP32 Dev module from Tools\Board menu
- - Now you should be able to compile it by clicking on the menu Sketch\Verify/Compile
-
 #### From PlatformIO
-You can also open the project from PlatformIO. It will download the necessary libraries so you don't have to worry about them.
+The project is built using PlatformIO so you need to use that. You can set your board type in the platformio.ini file. The one called **esp32doit-devkit-v1** is board version 1.4 and **esp32_v15** is board version 1.5. Selecting one of these will load the corresponding BoardConfig_*.h file. These contain the board specific pin settings. The default is the 1.5 version with ULP VAN bus writing (so no TSS463C is needed).
+
+```ini
+#default_envs = esp32doit-devkit-v1
+default_envs = esp32_v15
+```
+
+#### From Arduino
+It might be possible to build the project using the Arduino IDE, but I don't recommend nor support it. The project requires a specific version of the ESP32 board package and also of the libraries. It is almost guaranteed that you have different versions than needed, and it is really difficult to troubleshoot the issues arising in Arduino so please use PlatformIO.
 
 ### Used libraries
 
