@@ -1,0 +1,22 @@
+name: Push component to https://components-staging.espressif.com
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  upload_components:
+    runs-on: ubuntu-latest
+    environment: Staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Upload component to the component registry
+        uses: espressif/upload-components-ci-action@v1
+        with:
+          registry_url: https://components-staging.espressif.com/
+          version: ${{ github.ref_name }}
+          namespace: ${{ github.repository_owner }}
+          name: esp-idf-ds3231
+          api_token: ${{ secrets.ESP_RESGISTRY_TOKEN }}
+          skip_pre_release: yes

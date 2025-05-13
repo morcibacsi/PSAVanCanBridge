@@ -1,0 +1,6 @@
+/* add a space to fix Breathe+Sphinx rtd_theme with 
+breathe_show_define_initializer  */ 
+
+.sig-name::after { 
+   content: "\00a0";
+} 

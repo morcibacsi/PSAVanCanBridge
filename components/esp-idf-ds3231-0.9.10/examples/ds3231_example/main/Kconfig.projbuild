@@ -1,0 +1,16 @@
+menu "DS3231 Setup"
+
+    orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
+
+    config DS3231_SCL
+        int "I2C Clock (SCL) GPIO"
+        default 5
+        help
+            The GPIO to use for the I2C clock 
+
+    config DS3231_SDA
+        int "I2C Data (SDA) GPIO"
+        default 4
+        help
+            The GPIO to use for the I2C clock 
+endmenu

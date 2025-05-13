@@ -1,0 +1,22 @@
+## IDF Component Manager Manifest File
+dependencies:
+  ## Required IDF version
+  idf:
+    version: ">=5.0"
+
+version: "0.9.1"
+maintainers:
+  - Jason M Schwefel <jason.schwefel78@gmail.com>
+description: "DO NOT USE YET - An esp-idf component for the Analog Devices (Maxim Integrated) DS3231 RTC chip/module."
+license: "MIT"
+url: "https://github.com/jschwefel/esp-idf-ds3231"
+repository: "https://github.com/jschwefel/esp-idf-ds3231"
+documentation: "https://esp-idf-ds3231.readthedocs.io/en/latest/"
+issues: "https://github.com/jschwefel/esp-idf-ds3231"
+
+tags:
+  - time
+  - RTC
+  - DS3231
+  - I2C
+

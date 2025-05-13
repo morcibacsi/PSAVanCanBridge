@@ -1,0 +1,55 @@
+#pragma once
+
+#ifndef _MessageHandler_261_2004_h
+    #define _MessageHandler_261_2004_h
+
+#include <inttypes.h>
+#include <memory>
+#include <cstring>
+
+#include "../../../IMessageHandler.hpp"
+
+class MessageHandler_261 : public IMessageHandler
+{
+    private:
+        BusMessage message
+        {
+            .id = 0x261,
+            .data = {0},
+            .dataLength = 7,
+            .protocol = ProtocolType::AEE2004,
+            .periodicityMs = 1000-250,
+            .offsetMs = 730,
+            .isActive = true
+        };
+
+    public:
+        BusMessage Generate(std::shared_ptr<CarState> state) override
+        {
+            message.data[0] = state->Trip2Speed; // AverageSpeed
+            message.data[1] = state->Trip2Distance.data.leftByte; // Distance
+            message.data[2] = state->Trip2Distance.data.rightByte;
+            message.data[3] = state->Trip2Consumption.data.leftByte; // Consumption
+            message.data[4] = state->Trip2Consumption.data.rightByte;
+            message.data[5] = 0x00;
+            message.data[6] = 0x00;
+
+            return message;
+        }
+
+        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        {
+            if (message.dataLength < 7)
+            {
+                return;
+            }
+            carState->Trip2Speed                         = message.data[0]; // AverageSpeed
+            carState->Trip2Distance.data.leftByte        = message.data[1]; // Distance
+            carState->Trip2Distance.data.rightByte       = message.data[2];
+            carState->Trip2Consumption.data.leftByte     = message.data[3]; // Consumption
+            carState->Trip2Consumption.data.rightByte    = message.data[4];
+            carState->Trip2LastResetSince.data.leftByte  = message.data[5];
+            carState->Trip2LastResetSince.data.rightByte = message.data[6];
+        }
+};
+#endif

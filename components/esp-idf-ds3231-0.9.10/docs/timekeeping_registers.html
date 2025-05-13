@@ -1,0 +1,22 @@
+<table class="tableizer-table">
+<thead><tr class="tableizer-firstrow"><th>ADDRESS</th><th>BIT 7 MSB</th><th>BIT 6</th><th>BIT 5</th><th>BIT 4</th><th>BIT 3</th><th>BIT 2</th><th>BIT 1</th><th>BIT 0 LSB</th><th>FUNCTION</th><th>RANGE</th></tr></thead><tbody>
+ <tr><th><b>00h</b></th><td>0</td><td colspan="3">10 Seconds</td><td colspan="4">Seconds</td><td>Seconds</td><td>00-59</td></tr>
+ <tr><th><b>01h</b></th><td>0</td><td colspan="3">10 Minutes</td><td colspan="4">Minutes</td><td>Minutes</td><td>00-59</td></tr>
+ <tr><th><b>02h</b></th><td>0</td><td>12/&oline;24&oline;</td><td>&oline;AM&oline;/PM<br><hr><br>20 Hour</td><td>10 Hour</td><td colspan="4">Hour</td><td>Hours</td><td>1-12 + &oline;AM/&oline;PM/<br><hr><br>00-23</td></tr>
+ <tr><th><b>03h</b></th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td colspan="3">Day</td><td>Day</td><td>1-7</td></tr>
+ <tr><th><b>04h</b></th><td>0</td><td>0</td><td colspan="2">10 Date</td><td colspan="4">Date</td><td>Date</td><td>01-31</td></tr>
+ <tr><th><b>05h</b></th><td>Century</td><td>0</td><td>0</td><td>10 Month</b></td><td colspan="4">Month</b></td><td>Month/ Century</td><td>01-12 + Century</td></tr>
+ <tr><th><b>06h</b></th><td colspan="4">10 Year</td><td colspan="4">Year</td><td>Year</td><td>00-99</td></tr>
+ <tr><th><b>07h</b></th><td>A1M1</td><td colspan="3">10 Seconds</td><td colspan="4">Seconds</td><td>Alarm 1 Seconds</td><td>00-59</td></tr>
+ <tr><th><b>08h</b></th><td>A1M2</td><td colspan="3">10 Minutes</td><td colspan="4">Minutes</td><td>Alarm 1 Minutes</td><td>00-59</td></tr>
+ <tr><th><b>09h</b></th><td>A1M3</td><td>12/&oline;24&oline;</td><td>AM/PM<br><hr><br>20 Hour</td><td>10 Hour</td><td colspan="4">Hour</td><td>Alarm 1 Hours</td><td>1-12 + &oline;AM/&oline;PM/<br><hr><br>00-23</td></tr>
+ <tr><th><b>0Ah</b></th><td>A1M4</td><td>DY/&oline;DT&oline;</td><td colspan="2">10 Date</td> <td colspan="4">Day<br><hr><br>Date</td><td>Alarm 1 Day<br><hr><br>Alarm 1 Date</td><td>1-7<br><hr><br>1-31</td></tr>
+ <tr><th><b>0Bh</b></th><td>A2M2</td><td colspan="3">10 Minutes</td><td colspan="4">Minutes</td><td>Alarm 2 Minutes</td><td>00-59</td></tr>
+ <tr><th><b>0Ch</b></th><td>A2M3</td><td>12/&oline;24&oline;</td><td>AM/PM<br><hr><br>20 Hour</td><td>10 Hour</td><td colspan="4">Hour</td><td>Alarm 2 Hours</td><td>1-12 + &oline;AM/&oline;PM/<br><hr><br>00-23</td></tr>
+ <tr><th><b>0Ah</b></th><td>A2M4</td><td>DY/&oline;DT&oline;</td><td colspan="2">10 Date</td> <td colspan="4">Day<br><hr><br>Date</td><td>Alarm 2 Day<br><hr><br>Alarm 2 Date</td><td>1-7<br><hr><br>1-31</td></tr>
+ <tr><th><b>0Eh</b></th><td>&oline;EOSC&oline;</td><td>BBSQW</td><td>CONV</td><td>RS2</td><td>RS1</td><td>INTCN</td><td>A2IE</td><td>A1IE</td><td>Control</td><td>-</td></tr>
+ <tr><th><b>0Fh</b></th><td>OSF</td><td>0</td><td>0</td><td>0</td><td>EN32kHz</td><td>BSY</td><td>A2F</td><td>A1F</td><td>Control/Status</td><td>-</td></tr>
+ <tr><th><b>10h</b></th><td>SIGN</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>Aging Offset</td><td>-</td></tr>
+ <tr><th><b>11h</b></th><td>SIGN</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>DATA</td><td>MSB of Temp</td><td>-</td></tr>
+ <tr><th><b>12h</b></th><td>DATA</td><td>DATA</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>LSB of Temp</td><td>-</em></td></tr>
+</tbody></table>

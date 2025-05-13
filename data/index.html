@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSA VAN-CAN Bridge setup</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="datetime-local"],
+        .form-group select {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            max-width: 100%;
+        }
+
+        .switch-wrapper {
+            flex-shrink: 0;
+        }
+
+        .slider-group label {
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        input[type="checkbox"] {
+            width: 40px;
+            height: 20px;
+            appearance: none;
+            background-color: #ccc;
+            border-radius: 20px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            top: 1px;
+            left: 1px;
+            transition: 0.2s;
+        }
+
+        input[type="checkbox"]:checked::before {
+            transform: translateX(20px);
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #007BFF;
+        }
+
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .input-row input {
+            flex: 1;
+            min-width: 50px;
+            padding: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .select-wrapper {
+            margin: 16px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .select-wrapper select {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h3 {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        @media (max-width: 480px) {
+
+
+            button {
+                font-size: 1rem;
+                padding: 10px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        dictionary = {
+            "SOURCE_PROTOCOL": {
+                "en": {
+                    "label": "S1. Source protocol",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S1. Protocole source",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S1. Protocolo de origem",
+                    "tip": ""
+                }
+            },
+            "DESTINATION_PROTOCOL": {
+                "en": {
+                    "label": "S2. Destination protocol",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S2. Protocole de destination",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S2. Protocolo de destino",
+                    "tip": ""
+                }
+            },
+            "USE_IGNITION_SIGNAL_FROM_SOURCE_BUS": {
+                "en": {
+                    "label": "C1. Use ignition signal from source bus",
+                    "tip": "It should be enabled in cars (disabled state meant only for testing)"
+                },
+                "fr": {
+                    "label": "C1. Utilser le signal d'allumage depuis le réseau source",
+                    "tip": "Doit être activé dans les voitures (l'état désactivé ne sert qu'aux tests afin que le module laisse allumé l'autoradio)."
+                },
+                "pt-BR": {
+                    "label": "C1. Use o sinal de ignição vindo do barramento de origem",
+                    "tip": "Deve ser ativado em carros (desativado apenas para teste)"
+
+                }
+            },
+            "EMULATE_DISPLAY_ON_SOURCE": {
+                "en": {
+                    "label": "C2. Emulate display on source bus",
+                    "tip": "Enable if you want to emulate the display on the source bus (like AEE2004)"
+                },
+                "fr": {
+                    "label": "C2. Emuler l'afficheur sur le réseau source",
+                    "tip": "Activer si vous souhaitez émuler l'afficheur sur le réseau source (comme AEE2004)"
+                },
+                "pt-BR": {
+                    "label": "C2. Emular o visor no barramento de origem",
+                    "tip": "Ativar se você quiser emular o visor no barramento de origem (como AEE2004)"
+                }
+            },
+            "EMULATE_DISPLAY_ON_DESTINATION": {
+                "en": {
+                    "label": "C3. Emulate display on destination bus",
+                    "tip": "Enable if you want to emulate the display on the destination bus (like AEE2010)"
+                },
+                "fr": {
+                    "label": "C3. Emuler l'afficheur sur le réseau de destination",
+                    "tip": "Activer si vous souhaitez émuler l'afficheur sur le réseau de destination (comme AEE2010)"
+                },
+                "pt-BR": {
+                    "label": "C3. Emular o visor no barramento de destino",
+                    "tip": "Ativar se você quiser emular o visor no barramento de destino (como AEE2010)"
+                }
+            },
+            "GENERATE_POPUP_FOR_DOOR_STATUS": {
+                "en": {
+                    "label": "C4. Generate an info message from door status change",
+                    "tip": "In some cars (like 5008) there is no message displayed when a door is open, enabling this setting will add this message"
+                },
+                "fr": {
+                    "label": "C4. Generate an info message from door status change",
+                    "tip": "In some cars (like 5008) there is no message displayed when a door is open, enabling this setting will add this message"
+                },
+                "pt-BR": {
+                    "label": "C4. Gerar uma mensagem de informação de mudança de estado da porta ",
+                    "tip": "Em alguns carros (como o 5008) não há mensagem exibida quando uma porta é aberta, ativar esta configuração adicionará esta mensagem"
+                }
+            },
+            "ENABLE_PARKING_AID_SOUND_FROM_SPEAKER": {
+                "en": {
+                    "label": "C5. Enable Parking Aid Sound from Speaker",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "C5. Activer le son du radar de recul sur les hauts-parleurs",
+                    "tip": "Activé pour envoyer les BIP du radar de recul dans les hauts parleurs de la voiture"
+                }
+            },
+            "ENABLE_REVERSE_CAMERA_ON_RTX": {
+                "en": {
+                    "label": "C6. Enable reverse camera on RT6",
+                    "tip": "When enabled the reverse camera is activated if you have an RT6 headunit"
+                },
+                "fr": {
+                    "label": "C6. Enable reverse camera on RT6",
+                    "tip": "Lorsqu'il est activé, le RT6 affichera la caméra de recul lors du passage de la marche arrière "
+                }
+            },
+            "SEND_AC_CHANGES_TO_DISPLAY": {
+                "en": {
+                    "label": "C7. Send AC changes to display",
+                    "tip": "Enable when you would like to see A/C status and rear window heating status on your type C display"
+                },
+                "fr": {
+                    "label": "C7. Envoyer les informations de la CLIM auto à l'afficheur",
+                    "tip": "Activé pour afficher le statut de la clim auto sur l'afficheur Type C"
+                }
+            },
+            "SEND_AC_FAN_CHANGES_TO_DISPLAY": {
+                "en": {
+                    "label": "C8. Send AC fan changes to display",
+                    "tip": "Enable when you would like to see the A/C fan speed on your type C display"
+                },
+                "fr": {
+                    "label": "C8. Envoyer les informations du ventilateur à l'afficheur",
+                    "tip": "Activé pour afficher le statut de la ventilation de clim sur l'afficheur Type C compatible"
+                }
+            },
+            "QUERY_AC_STATUS": {
+                "en": {
+                    "label": "C9. Query AC status",
+                    "tip": "When enabled, the flap directions are queried from the AC ECU via diagnostic message"
+                },
+                "fr": {
+                    "label": "C9. Etat de la clim auto",
+                    "tip": "Activé pour voir l'état de la clim auto"
+                }
+            },
+            "PARKING_AID_TYPE": {
+                "en": {
+                    "label": "S3. Parking aid type",
+                    "tip": "Set type of parking aid"
+                },
+                "fr": {
+                    "label": "S3. Parking aid type",
+                    "tip": "Set type of parking aid"
+                }
+            },
+            "RADIO_TYPE": {
+                "en": {
+                    "label": "S4. Radio type",
+                    "tip": "Set what type of radio will be installed"
+                },
+                "fr": {
+                    "label": "S4. Type d'autoradio installé",
+                    "tip": "Selectionner le type d'autoradio installé"
+                }
+            },
+            "REPLACE_REMOTE_MODE_BTN_WITH_SRC": {
+                "en": {
+                    "label": "C10. Replace MODE with SRC on the remote stalk",
+                    "tip": "Enable if you would like to replace the MODE button with SRC on the remote stalk"
+                },
+                "fr": {
+                    "label": "C10. Replace MODE with SRC on the remote stalk",
+                    "tip": "Enable if you would like to replace the MODE button with SRC on the remote stalk"
+                },
+                "pt-BR": {
+                    "label": "C10. Replace MODE with SRC on the remote stalk",
+                    "tip": "Enable if you would like to replace the MODE button with SRC on the remote stalk"
+                }
+            },
+            "MODIFY_217_WITH_CURRENT_SPEED": {
+                "en": {
+                    "label": "C11. Modify the odometer frame with the speed of the car",
+                    "tip": "When your car doesn't have support for MATT the speed of the car could be missing from frame 0x217"
+                },
+                "fr": {
+                    "label": "C11. Modify the odometer frame with the speed of the car",
+                    "tip": "When your car doesn't have support for MATT the speed of the car could be missing from frame 0x217"
+                },
+                "pt-BR": {
+                    "label": "C11. Modificar o frame 217 incluindo a velocidade do carro",
+                    "tip": "Quando seu carro não tem suporte para MATT, a velocidade do carro pode estar faltando no quadro 0x217"
+                }
+            },
+            "HAS_RTC": {
+                "en": {
+                    "label": "C12. RTC info available",
+                    "tip": "Enable if your board has a real time clock module (board needs to be restarted after changing this setting)"
+                },
+                "fr": {
+                    "label": "C12. RTC info available",
+                    "tip": "Enable if your board has a real time clock module (board needs to be restarted after changing this setting)"
+                },
+                "pt-BR": {
+                    "label": "C12. Informações RTC disponíveis (modulo RTC instalado)",
+                    "tip": "Ative se sua placa tiver um módulo de relógio em tempo real (a placa precisa ser reiniciada após alterar esta configuração)"
+                }
+            },
+            "FUEL_TANK_CAPACITY_IN_LITERS": {
+                "en": {
+                    "label": "E2. Fuel tank capacity in liters (0-127 l)",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "E2. Capacité du réservoir de carburant en litre (0-127 l)",
+                    "tip": "Capacité du réservoir en litre"
+                },
+                "pt-BR": {
+                    "label": "E2. Capacidade do tanque de combustível em litros (0-127 l)",
+                    "tip": ""
+                }
+            },
+            "DISTANCE_UNIT": {
+                "en": {
+                    "label": "S5. Distance unit",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S5. Unite de distance",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S5. Unidade de distância",
+                    "tip": ""
+                }
+            },
+            "CONSUMPTION_UNIT": {
+                "en": {
+                    "label": "S6. Consumption unit",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S6. Unite de consommation",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S6. Unidade de consumo",
+                    "tip": ""
+                }
+            },
+            "LANGUAGE": {
+                "en": {
+                    "label": "S7. Language in the vehicle",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S7. Langue en cours dans le vehicule",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S7. Idioma do veículo",
+                    "tip": "Normalmente: 308=60l 3008=53l RCZ=55l"
+                }
+            },
+            "VOLUME_UNIT": {
+                "en": {
+                    "label": "S8. Volume unit",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S8. Unite de volume",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S8. Unidade de volume",
+                    "tip": ""
+                }
+            },
+            "TEMPERATURE_UNIT": {
+                "en": {
+                    "label": "S9. Temperature unit",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S9. Unite de temperature choisie par le client",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S9. Unidade de temperatura",
+                    "tip": ""
+                }
+            },
+            "AMBIENCE_LEVEL": {
+                "en": {
+                    "label": "S10. Ambience level",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S10. Niveau d'ambiance",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S10. Nível de ambiente",
+                    "tip": ""
+                }
+            },
+            "SOUND_HARMONY": {
+                "en": {
+                    "label": "S11. Sound harmony",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "S11. Harmonie sonore du vehicule",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "S11. Harmonia sonora",
+                    "tip": ""
+                }
+            },
+            "VIN": {
+                "en": {
+                    "label": "E1. VIN for headunit",
+                    "tip": "We send this VIN number for the head-unit (to avoid anti-theft beeps)"
+                },
+                "fr": {
+                    "label": "E1. Numéro de série de l'autoradio",
+                    "tip": "Saisir le VIN de l'autoradio installé (sert pour l'antivol)"
+                },
+                "pt-BR": {
+                    "label": "E1. VIN para a MATT e NAC",
+                    "tip": "Enviamos este número VIN para a unidade principal (para evitar bipes anti-roubo)"
+                }
+            },
+            "DATETIME": {
+                "en": {
+                    "label": "E3. Date & time",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "E3. Date & time",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "E3. Data e hora",
+                    "tip": ""
+                }
+            },
+            "DELETE_BTN": {
+                "en": {
+                    "label": "Delete config",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "Supprimer la configuration",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "Excluir configuração",
+                    "tip": ""
+                }
+            },
+            "RELOAD_BTN": {
+                "en": {
+                    "label": "Reload",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "Rafraichir",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "Recarregar",
+                    "tip": ""
+                }
+            },
+            "SAVE_BTN": {
+                "en": {
+                    "label": "Save",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "Enregistrer",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "Salvar",
+                    "tip": ""
+                }
+            },
+            "REBOOT_BTN": {
+                "en": {
+                    "label": "Reboot",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "Reboot",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "Reboot",
+                    "tip": ""
+                }
+            },
+            "UPLOAD_BTN": {
+                "en": {
+                    "label": "Upload",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "Télécharger",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "Enviar",
+                    "tip": ""
+                }
+            },
+            "UPDATE_BTN": {
+                "en": {
+                    "label": "Update",
+                },
+                "fr": {
+                    "label": "Update",
+
+                },
+                "pt-BR": {
+                    "label": "Atualizar",
+                }
+            },
+            "SETTINGS_BTN": {
+                "en": {
+                    "label": "Settings",
+                },
+                "fr": {
+                    "label": "Paramètres",
+                },
+                "pt-BR": {
+                    "label": "Configurações",
+                }
+            },
+            "Settings": {
+                "en": {
+                    "label": "Gateway settings",
+                },
+                "fr": {
+                    "label": "Gateway settings",
+                },
+                "pt-BR": {
+                    "label": "Configurações",
+                }
+            },
+            "OTA update": {
+                "en": {
+                    "label": "OTA update",
+                    "tip": ""
+                },
+                "fr": {
+                    "label": "OTA update",
+                    "tip": ""
+                },
+                "pt-BR": {
+                    "label": "OTA update",
+                    "tip": ""
+                }
+            },
+            "LANG_FR": {
+                "en": {
+                    "label": "Français",
+                },
+                "fr": {},
+                "pt-BR": {
+                    "label": "Français",
+                }
+            },
+            "LANG_EN": {
+                "en": {
+                    "label": "English",
+                },
+                "fr": {},
+                "pt-BR": {
+                    "label": "English",
+                }
+            },
+            "LANG_pt-BR": {
+                "en": {
+                    "label": "Brazilian Portuguese",
+                },
+                "fr": {},
+                "pt-BR": {
+                    "label": "Portugues Brasil",
+                }
+            }
+        };
+
+        function getVinAsString(vinAsBytes) {
+            let result = "";
+
+            for (const byte of vinAsBytes) {
+                // if we found non-ASCII characters then we return
+                if (byte < 48 || byte > 122) {
+                    return "";
+                }
+                result += String.fromCharCode(byte);
+            }
+
+            return result;
+        }
+
+        function getVinAsBytes(vinAsString) {
+            const result = [];
+            for (const char of vinAsString) {
+                result.push(char.charCodeAt(0));
+            }
+            return result;
+        }
+
+        async function setTime() {
+            const input = document.querySelector('#DATETIME');
+            const value = input.value; // e.g., "2025-04-29T14:30"
+
+            if (!value) {
+                console.log("No date selected.");
+                return;
+            }
+
+            const [datePart, timePart] = value.split('T'); // Split into date and time
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hour, minute] = timePart.split(':').map(Number);
+
+            const data = {
+                year,
+                month,
+                day,
+                hour,
+                minute
+            };
+
+            console.log('Year:', year);
+            console.log('Month:', month);
+            console.log('Day:', day);
+            console.log('Hour:', hour);
+            console.log('Minute:', minute);
+
+            let response = await fetch('api/time', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            console.log('Response:', response.status, response.statusText);
+        }
+
+        async function reboot() {
+            let response = await fetch('api/reboot', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Response:', response.status, response.statusText);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const apiEndpoint = 'api/';
+            let jsonData = {};
+
+            //call keepalive every 5 seconds
+            setInterval(() => {
+                fetch(apiEndpoint + "keepalive", { method: 'GET' })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Failed to keep alive: ${response.statusText}`);
+                    })
+                    .catch(error => console.error('Error keeping alive:', error));
+            }, 1000);
+
+            const formContainer = document.getElementById('form-elements');
+
+            const rebootButton = document.getElementById('reboot');
+            if (rebootButton) {
+                rebootButton.addEventListener('click', reboot);
+            }
+
+            async function fetchConfig() {
+                try {
+                    const response = await fetch(apiEndpoint + "config");
+                    if (!response.ok) throw new Error(`Failed to fetch config: ${response.statusText}`);
+                    jsonData = await response.json();
+                    populateForm(jsonData);
+                } catch (error) {
+                    console.error('Error fetching config:', error);
+                    alert('Failed to load configuration. Please try again later.');
+                }
+            }
+
+            async function saveConfig(updatedData) {
+                try {
+                    const response = await fetch(apiEndpoint + "config", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedData),
+                    });
+                    if (!response.ok) throw new Error(`Failed to save config: ${response.statusText}`);
+                    alert('Configuration saved successfully!');
+                } catch (error) {
+                    console.error('Error saving config:', error);
+                    alert('Failed to save configuration. Please try again later.');
+                }
+            }
+
+            function createFormField(key, value, path) {
+                const fullPath = path ? `${path}.${key}` : key;
+
+                if (fullPath == "MILEAGE_AT_CMB_TRIP_RESET" || fullPath == "DATETIME") {
+                    return;
+                }
+
+                console.log('Creating form field for:', fullPath, value);
+
+                if (typeof value === 'boolean') {
+                    addSliderGroup(key, fullPath, value);
+                } else if (typeof value === 'number') {
+                    if (fullPath == 'SOURCE_PROTOCOL') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 1, label: 'AEE2001' },
+                            { value: 2, label: 'AEE2004' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'DESTINATION_PROTOCOL') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 2, label: 'AEE2004' },
+                            { value: 3, label: 'AEE2010' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'PARKING_AID_TYPE') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'none / PSA CAN' },
+                            { value: 1, label: 'PSA VAN' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'RADIO_TYPE') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'Aftermarket' },
+                            { value: 1, label: 'RD4/RD43' },
+                            { value: 2, label: 'RD45' },
+                            { value: 3, label: 'RD45 (AEE2010)' },
+                            { value: 4, label: 'RTx' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.CONSUMPTION_UNIT') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'l/100 km' },
+                            { value: 1, label: 'km/l' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.DISTANCE_UNIT') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'km' },
+                            { value: 1, label: 'miles' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.LANGUAGE') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'French' },
+                            { value: 1, label: 'English' },
+                            { value: 2, label: 'German' },
+                            { value: 3, label: 'Spanish' },
+                            { value: 4, label: 'Italian' },
+                            { value: 5, label: 'Portuguese' },
+                            { value: 6, label: 'Dutch' },
+                            { value: 7, label: 'Greek' },
+                            { value: 8, label: 'Brazilian Portuguese' },
+                            { value: 9, label: 'Polish' },
+                            { value: 10, label: 'Traditional Chinese' },
+                            { value: 11, label: 'Simplified Chinese' },
+                            { value: 12, label: 'Turkish' },
+                            { value: 13, label: 'Japanese' },
+                            { value: 14, label: 'Russian' },
+                            { value: 15, label: 'Czech' },
+                            { value: 16, label: 'Croatian' },
+                            { value: 17, label: 'Hungarian' },
+                            { value: 18, label: 'Arabic' },
+                            { value: 19, label: 'Bulgarian' },
+                            { value: 20, label: 'Korean' },
+                            { value: 21, label: 'Danish' },
+                            { value: 22, label: 'Estonian' },
+                            { value: 23, label: 'Farsi' },
+                            { value: 24, label: 'Finnish' },
+                            { value: 25, label: 'Hebrew' },
+                            { value: 26, label: 'Norwegian' },
+                            { value: 27, label: 'Romanian' },
+                            { value: 28, label: 'Serbian' },
+                            { value: 29, label: 'Swedish' },
+                            { value: 30, label: 'Ukrainian' },
+                            { value: 31, label: 'Vietnamese' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.VOLUME_UNIT') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'liter' },
+                            { value: 1, label: 'gallon' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.TEMPERATURE_UNIT') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: '°C' },
+                            { value: 1, label: '°F' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.AMBIENCE_LEVEL') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'Level 0' },
+                            { value: 1, label: 'Level 1' },
+                            { value: 2, label: 'Level 2' },
+                            { value: 3, label: 'Level 3' },
+                            { value: 4, label: 'Level 4' },
+                            { value: 5, label: 'Level 5' },
+                            { value: 6, label: 'Level 6' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.SOUND_HARMONY') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: 'Harmony 1' },
+                            { value: 1, label: 'Harmony 2' },
+                            { value: 2, label: 'Harmony 3' },
+                            { value: 3, label: 'Harmony 4' },
+                        ]);
+                        return;
+                    }
+
+                    addFormGroup(key, fullPath, value);
+                } else if (typeof value === 'string') {
+                    addFormGroup(key, fullPath, value);
+                } else if (Array.isArray(value)) {
+                    if (fullPath == 'VIN') {
+                        let vinAsString = getVinAsString(value);
+                        addFormGroup(key, fullPath, vinAsString);
+                    }
+                    //addFormGroupRow(key, fullPath, value);
+                } else if (typeof value === 'object') {
+                    addSectionTitle(key);
+                    for (const subKey in value) {
+                        createFormField(subKey, value[subKey], fullPath);
+                    }
+                }
+            }
+
+            function populateForm(json, path = '') {
+                for (const key in json) {
+                    createFormField(key, json[key], path);
+                }
+                addDateTimeGroup('DATETIME', 'DATETIME', json['DATETIME']);
+            }
+
+            function gatherFormData(json, path = '') {
+                for (const key in json)
+                {
+                    const fullPath = path ? `${path}.${key}` : key;
+                    const element = document.getElementById(fullPath);
+
+                    if (element) {
+                        if (typeof json[key] === 'boolean') {
+                            json[key] = element.checked;
+                        } else if (typeof json[key] === 'number') {
+                            json[key] = parseFloat(element.value);
+                        } else if (typeof json[key] === 'string') {
+                            json[key] = element.value;
+                        } else if (Array.isArray(json[key])) {
+                            if (fullPath == 'VIN') {
+                                json[key] = getVinAsBytes(element.value);
+                            } else {
+                                const inputs = document.querySelectorAll(`[id^=${fullPath}]`);
+                                json[key] = Array.from(inputs).map(input => parseFloat(input.value));
+                            }
+                        } else if (typeof json[key] === 'object') {
+                            gatherFormData(json[key], fullPath);
+                        }
+                    }
+                }
+            }
+
+            function get_translated_label(labelText) {
+                console.log('get_translated_label', labelText);
+                const translatedLabel = dictionary[labelText].en.label;
+                return translatedLabel;
+            }
+
+            function addSelectGroup(labelText, path, options) {
+                const translatedLabel = get_translated_label(labelText);
+                const template = document.getElementById('select-template').innerHTML;
+                const selectHTML = template
+                    .replace(/replace-id/g, path)
+                    .replace(/Label Text/g, translatedLabel);
+                formContainer.insertAdjacentHTML('beforeend', selectHTML);
+                const selectElement = document.getElementById(path);
+
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    if (option.value == jsonData[path]) {
+                        optionElement.selected = true;
+                    }
+                    selectElement.appendChild(optionElement);
+                });
+            }
+
+            function addSliderGroup(labelText, path, value) {
+                const translatedLabel = get_translated_label(labelText);
+                const template = document.getElementById('slider-template').innerHTML;
+                const sliderHTML = template
+                    .replace(/replace-id/g, path)
+                    .replace(/Label Text/g, translatedLabel);
+                formContainer.insertAdjacentHTML('beforeend', sliderHTML);
+                document.getElementById(path).checked = value;
+            }
+
+            function addFormGroup(labelText, path, value) {
+                const translatedLabel = get_translated_label(labelText);
+                const template = document.getElementById('form-group-input-template').innerHTML;
+                const formGroupHTML = template
+                    .replace(/replace-id/g, path)
+                    .replace(/Label Text/g, translatedLabel)
+                    .replace(/Enter placeholder text/g, value);
+                formContainer.insertAdjacentHTML('beforeend', formGroupHTML);
+                document.getElementById(path).value = value;
+            }
+
+            function addFormGroupRow(labelText, path, values) {
+                const translatedLabel = get_translated_label(labelText);
+                const template = document.getElementById('form-group-row-template').innerHTML;
+                const groupId = `container-for-${path}-items`;
+                let rowHTML = template
+                    .replace(/group-label/g, path)
+                    .replace(/Label Text/g, translatedLabel)
+                    .replace(/group-id/g, groupId);
+
+                formContainer.insertAdjacentHTML('beforeend', rowHTML);
+
+                let inputContainer = document.getElementById(groupId);
+
+                values.forEach((value, index) => {
+                    inputContainer.insertAdjacentHTML('beforeend', `<input type="number" id="${path}[${index}]" placeholder="0">`);
+                    document.getElementById(`${path}[${index}]`).value = value;
+                });
+            }
+
+            function addDateTimeGroup(labelText, path, value) {
+                const translatedLabel = get_translated_label(labelText);
+                const template = document.getElementById('form-group-date-template').innerHTML;
+                const dateTimeHTML = template
+                    .replace(/replace-id/g, path)
+                    .replace(/Label Text/g, translatedLabel)
+                    .replace(/Enter placeholder text/g, value);
+                formContainer.insertAdjacentHTML('beforeend', dateTimeHTML);
+                document.getElementById(path).value = value;
+
+                const input = document.getElementById(path);
+                if (input) {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0'); // months are 0-based
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hour = String(now.getHours()).padStart(2, '0');
+                    const minute = String(now.getMinutes()).padStart(2, '0');
+
+                    // Format: "YYYY-MM-DDTHH:MM"
+                    const formatted = `${year}-${month}-${day}T${hour}:${minute}`;
+                    input.value = formatted;
+                }
+            }
+
+            function addSectionTitle(title) {
+                const titleHTML = `<h3>${title}</h3>`;
+                formContainer.insertAdjacentHTML('beforeend', titleHTML);
+            }
+
+            var form = document.querySelector('.container form');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                gatherFormData(jsonData);
+                saveConfig(jsonData);
+            });
+
+            fetchConfig();
+        });
+    </script>
+</head>
+
+<body>
+    <div id="form-group-date-template" style="display: none;">
+        <div class="form-group">
+            <label for="replace-id">Label Text</label>
+            <input type="datetime-local" id="replace-id">
+            <button type="button" id="replace-id" onClick="setTime()">Set time</button>
+        </div>
+    </div>
+
+    <div id="form-group-input-template" style="display: none;">
+        <div class="form-group">
+            <label for="replace-id">Label Text</label>
+            <input type="text" id="replace-id" placeholder="Enter placeholder text">
+        </div>
+    </div>
+
+    <div id="slider-template" style="display: none;">
+        <div class="slider-group">
+            <div class="switch-wrapper">
+                <input type="checkbox" id="replace-id" />
+            </div>
+            <label for="replace-id">Label Text</label>
+        </div>
+    </div>
+
+    <div id="form-group-row-template" style="display: none;">
+        <div class="form-group">
+            <label for="group-label">Label Text</label>
+            <div class="input-row" id="group-id"></div>
+        </div>
+    </div>
+
+    <div id="select-template" class="select-wrapper" style="display: none;">
+        <div class="form-group">
+            <label for="replace-id">Label Text</label>
+            <select id="replace-id">
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <form>
+            <div id="form-elements" class="elements">
+
+            </div>
+            <button type="submit" id="saveConfig">Save</button>
+            <button type="button" id="reboot">Reboot</button>
+        </form>
+    </div>
+</body>
+</html>

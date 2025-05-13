@@ -1,0 +1,3 @@
+littlefs is from:
+	https://github.com/joltwallet/esp_littlefs/
+inside esp_littlefs-master\src\littlefs there is a submodule which can be found through the above link, but at the time of writing this file it was at https://github.com/littlefs-project/littlefs/tree/0494ce7169f06a734a7bd7585f49a9fa91fa7318

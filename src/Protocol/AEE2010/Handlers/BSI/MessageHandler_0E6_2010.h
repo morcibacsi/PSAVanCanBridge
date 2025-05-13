@@ -1,0 +1,65 @@
+#pragma once
+
+#ifndef _MessageHandler_0E6_2010_h
+    #define _MessageHandler_0E6_2010_h
+
+#include <inttypes.h>
+#include <memory>
+#include "../../../IMessageHandler.hpp"
+#include "../../Structs/CAN_0E6_2010.h"
+
+class MessageHandler_0E6_2010 : public IMessageHandler
+{
+    private:
+        BusMessage message
+        {
+            .id = 0x0E6,
+            .data = {0},
+            .dataLength = 8,
+            .protocol = ProtocolType::AEE2010,
+            .periodicityMs = 100,
+            .offsetMs = 60,
+            .isActive = true
+        };
+
+        uint8_t cntr = 0;
+
+        uint8_t chk_esp(uint8_t* buf)
+        {
+            uint8_t sum = cntr;
+            for (uint8_t i = 0; i < 7; i++){
+                sum += buf[i] >> 4;
+                sum += buf[i] & 0x0F;
+            }
+
+            sum = (cntr << 4) | ((0x7FFC - sum) & 0x0F);
+            cntr = cntr < 0x0F ? cntr + 1 : 0;
+
+            return sum;
+        }
+
+    public:
+        BusMessage Generate(std::shared_ptr<CarState> state) override
+        {
+            CAN_0E6_Byte1Struct byte1{};
+            byte1.data.abr_fault = state->ABRFault;
+            byte1.data.brake_fluid_level_alert = state->BrakeFluidLevelAlert;
+            byte1.data.brake_pads_worn = state->BrakePadsWorn;
+            byte1.data.ref_in_progress = 0;
+            byte1.data.auto_warning_lights_by_brake_cpu = 0;
+            byte1.data.abs_in_progress = state->ABSInProgess;
+            byte1.data.ref_fault = 0;
+
+            message.data[0] = byte1.asByte;
+            message.data[1] = state->RearLeftWheelCounter.data.leftByte;
+            message.data[2] = state->RearLeftWheelCounter.data.rightByte;
+            message.data[3] = state->RearRightWheelCounter.data.leftByte;
+            message.data[4] = state->RearRightWheelCounter.data.rightByte;
+            message.data[5] = 0x83;
+            message.data[6] = 0x8C;
+            message.data[7] = chk_esp(message.data);
+
+            return message;
+        }
+};
+#endif
