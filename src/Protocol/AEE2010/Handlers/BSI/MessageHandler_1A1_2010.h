@@ -25,7 +25,7 @@ class MessageHandler_1A1_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->DisplayMessage.data.Field1;
             message.data[1] = state->DisplayMessage.data.Field2;

@@ -21,7 +21,7 @@ class CanDisplayPopupHandler3
     //const uint16_t MESSAGE_CHILLTIME = 24000;
     const uint16_t MESSAGE_CHILLTIME = 10;
 
-    std::shared_ptr<CarState> _carState;
+    CarState* _carState;
 
     bool riskOfIceShown = false;
     bool seatbeltWarningShown = false;
@@ -49,9 +49,9 @@ class CanDisplayPopupHandler3
     }
 
     public:
-    CanDisplayPopupHandler3(std::shared_ptr<CarState> carState)
+    CanDisplayPopupHandler3(CarState* carState)
     {
-        _carState = std::move(carState);
+        _carState = carState;
 
         currentPopupMessage.MessageType = CAN_POPUP_MSG_NONE;
         currentPopupMessage.Category = CAN_POPUP_MSG_SHOW_CATEGORY3;

@@ -24,7 +24,7 @@ class MessageHandler_297 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can2004_297Byte1 status{};
             status.data.is_active = state->Ignition;

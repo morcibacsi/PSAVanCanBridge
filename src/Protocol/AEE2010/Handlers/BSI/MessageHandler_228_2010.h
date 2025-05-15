@@ -25,7 +25,7 @@ class MessageHandler_228_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_228_2010_Byte3Struct byte2{};
             byte2.data.activate_function           = state->CruiseControlActivateFunction;

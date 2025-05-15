@@ -23,7 +23,7 @@ class MessageHandler_260_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_260_2010_Byte1Struct byte1{};
             byte1.data.consumption_unit = state->CONSUMPTION_UNIT;

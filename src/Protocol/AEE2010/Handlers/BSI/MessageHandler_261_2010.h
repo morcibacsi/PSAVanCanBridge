@@ -23,7 +23,7 @@ class MessageHandler_261_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->Trip2Speed;//AverageSpeed
             message.data[1] = state->Trip2Distance.data.leftByte;
@@ -36,7 +36,7 @@ class MessageHandler_261_2010 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
 
         }

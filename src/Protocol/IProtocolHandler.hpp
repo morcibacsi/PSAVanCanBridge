@@ -25,7 +25,7 @@ public:
 
     virtual ~IProtocolHandler() = default;
 
-    virtual void RegisterMessageHandlers(std::function<void(ImmediateSignal)> immediateSignalCallback) = 0;
+    virtual void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) = 0;
     virtual bool ReceiveMessage(BusMessage& message) = 0;
 
     // Parses an incoming message and updates the CarState.

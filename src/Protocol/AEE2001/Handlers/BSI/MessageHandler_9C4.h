@@ -13,15 +13,15 @@
 
 class MessageHandler_9C4 : public IMessageHandler
 {
-    std::function<void(ImmediateSignal)> _immediateSignalCallback;
+    ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_9C4(std::function<void(ImmediateSignal)> immediateSignalCallback)
+        MessageHandler_9C4(ImmediateSignalCallback immediateSignalCallback)
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x9C4;
@@ -32,7 +32,7 @@ class MessageHandler_9C4 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanRadioRemoteStruct);
 

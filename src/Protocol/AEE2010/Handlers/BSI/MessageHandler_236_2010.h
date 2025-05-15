@@ -23,7 +23,7 @@ class MessageHandler_236_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_236_2010_Byte1Struct byte1{};
             byte1.data.vehicle_config = CAN_2010_VEHICLE_CONFIG_CLIENT;

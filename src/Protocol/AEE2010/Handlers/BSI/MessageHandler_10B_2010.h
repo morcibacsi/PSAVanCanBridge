@@ -24,7 +24,7 @@ class MessageHandler_10B_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->SteeringAngle.data.leftByte;
             message.data[1] = state->SteeringAngle.data.rightByte;

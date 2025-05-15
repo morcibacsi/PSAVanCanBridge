@@ -1,7 +1,7 @@
 #include "TimeProvider.h"
 #include <string.h>
 
-TimeProvider::TimeProvider(uint8_t sdaPin, uint8_t sclPin, std::shared_ptr<CarState> carState)
+TimeProvider::TimeProvider(uint8_t sdaPin, uint8_t sclPin, CarState* carState)
 {
     _sdaPin = sdaPin;
     _sclPin = sclPin;

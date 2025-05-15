@@ -25,7 +25,7 @@ class MessageHandler_0B6 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->Rpm.data.leftByte;
             message.data[1] = state->Rpm.data.rightByte;
@@ -39,7 +39,7 @@ class MessageHandler_0B6 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //Can0B6Struct tmp;
             //constexpr std::size_t ExpectedPacketSize = sizeof(Can0B6Struct);

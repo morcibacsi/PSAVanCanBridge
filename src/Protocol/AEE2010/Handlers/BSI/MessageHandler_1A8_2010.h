@@ -21,7 +21,7 @@ class MessageHandler_1A8_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             uint8_t field1 = 0x00;
             if (state->CruiseControlActivateFunction)

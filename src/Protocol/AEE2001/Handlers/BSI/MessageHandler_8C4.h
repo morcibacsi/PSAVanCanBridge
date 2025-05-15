@@ -13,17 +13,17 @@
 
 class MessageHandler_8C4 : public IMessageHandler
 {
-    std::function<void(FeedbackSignal)> _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
 
     public:
         MessageHandler_8C4(
-            std::function<void(FeedbackSignal)> feedbackSignalCallback
+            FeedbackSignalCallback feedbackSignalCallback
         )
         {
             _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x8C4;
@@ -34,7 +34,7 @@ class MessageHandler_8C4 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             VanEventByte1Struct eventSource;
             eventSource.asByte = message.data[0];

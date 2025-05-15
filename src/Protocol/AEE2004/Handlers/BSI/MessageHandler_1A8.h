@@ -24,17 +24,17 @@ class MessageHandler_1A8 : public IMessageHandler
             .isActive = true
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_1A8(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_1A8_2004_Byte1Struct field1{};
             field1.data.unit_of_speed               = state->CruiseControlSpeedUnit;
@@ -54,7 +54,7 @@ class MessageHandler_1A8 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CAN_1A8_2004Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

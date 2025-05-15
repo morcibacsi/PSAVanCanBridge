@@ -25,17 +25,17 @@ class MessageHandler_221 : public IMessageHandler
             .isActive = true
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_221(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_221_2004_Byte1Struct field1{};
             field1.data.left_stick_button_pushed  = state->LeftStickButtonPushed;
@@ -58,7 +58,7 @@ class MessageHandler_221 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CAN_221_2004_Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

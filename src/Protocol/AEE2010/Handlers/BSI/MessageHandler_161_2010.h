@@ -22,7 +22,7 @@ class MessageHandler_161_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_161_2010_Byte5Struct byte5{};
             byte5.data.fuel_tank_capacity_in_liters = state->FUEL_TANK_CAPACITY_IN_LITERS;

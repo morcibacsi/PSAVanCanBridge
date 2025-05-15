@@ -22,7 +22,7 @@ class MessageHandler_120 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_120_2004_Byte4Struct field4{};
             field4.data.GearboxFaultRepairNeeded = state->CarIndicatorLights.data.gearbox_fault;

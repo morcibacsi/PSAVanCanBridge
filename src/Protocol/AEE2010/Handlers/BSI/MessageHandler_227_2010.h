@@ -22,7 +22,7 @@ class MessageHandler_227_2010 : public IMessageHandler
 
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->CarLedStatusByte1.asByte;
             message.data[1] = state->CarLedStatusByte2.asByte;

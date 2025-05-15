@@ -24,7 +24,7 @@ class MessageHandler_2B6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->VIN_FOR_HEADUNIT[9];
             message.data[1] = state->VIN_FOR_HEADUNIT[10];

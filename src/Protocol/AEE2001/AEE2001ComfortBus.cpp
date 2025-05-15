@@ -19,51 +19,51 @@
 
 #include "Handlers/EMF/MessageHandler_5E4.h"
 
+AEE2001ComfortBus* AEE2001ComfortBus::_instance = nullptr;
+
 AEE2001ComfortBus::AEE2001ComfortBus(
-    std::shared_ptr<CarState> carState,
-    std::shared_ptr<ITransportLayer> transport,
-    std::shared_ptr<MessageScheduler> scheduler
+    CarState* carState,
+    ITransportLayer* transport,
+    MessageScheduler* scheduler
     )
 {
-    _transportLayer = std::move(transport);
-    _schedulerForSourceNetwork = std::move(scheduler);
-    _carState = std::move(carState);
-    _messageHandlers = std::unordered_map<uint32_t, std::shared_ptr<IMessageHandler>>();
-    _messageHandlersForSource = std::unordered_map<uint32_t, std::shared_ptr<IMessageHandler>>();
+    _instance = this;
+    _transportLayer = transport;
+    _schedulerForSourceNetwork = scheduler;
+    _carState = carState;
 
-    _canPopupHandler = std::make_shared<CanDisplayPopupHandler3>(_carState);
+    _canPopupHandler = new CanDisplayPopupHandler3(_carState);
 }
 
-void AEE2001ComfortBus::RegisterMessageHandlers(std::function<void(ImmediateSignal)> immediateSignalCallback)
+void AEE2001ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
+    _feedbackSignalCallback = &FeedbackSignalTrampoline;;
     _immediateSignalCallback = immediateSignalCallback;
 
     if (_carState->EMULATE_DISPLAY_ON_SOURCE)
     {
-        _messageHandlersForSource.insert({0x5E4, std::make_unique<MessageHandler_5E4>()});
+        _messageHandlersForSource[0x5E4] = new MessageHandler_5E4();
     }
 
     if (_carState->PARKING_AID_TYPE == 0x01)
     {
-        auto _aasHandler = std::make_shared<MessageHandler_A68>([this](FeedbackSignal signal) { this->HandleFeedbackSignal(signal); });
+        auto _aasHandler = new MessageHandler_A68(_feedbackSignalCallback);
+        _messageHandlersForSource[0xA68] = _aasHandler;
+        _messageHandlers[0xA68] = _aasHandler;
 
-        _messageHandlersForSource.insert({0xA68, _aasHandler});
-
-        _messageHandlers.insert({0xA68, _aasHandler});
-        _messageHandlers.insert({0xAE8, std::make_shared<MessageHandler_AE8>()});
+        _messageHandlers[0xAE8] = new MessageHandler_AE8();
     }
 
-    _messageHandlers.insert({0x4DC, std::make_shared<MessageHandler_4DC>()});
-    _messageHandlers.insert({0x4FC, std::make_shared<MessageHandler_4FC>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x8A4, std::make_shared<MessageHandler_8A4>(_canPopupHandler, _immediateSignalCallback, [this](FeedbackSignal signal) { this->HandleFeedbackSignal(signal); })});
-    _messageHandlers.insert({0x8C4, std::make_shared<MessageHandler_8C4>([this](FeedbackSignal signal) { this->HandleFeedbackSignal(signal); })});
-    _messageHandlers.insert({0x9C4, std::make_shared<MessageHandler_9C4>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x524, std::make_shared<MessageHandler_524>(_canPopupHandler)});
-    _messageHandlers.insert({0x564, std::make_shared<MessageHandler_564>(_canPopupHandler, _immediateSignalCallback)});
-    _messageHandlers.insert({0x744, std::make_shared<MessageHandler_744>()});
-    _messageHandlers.insert({0x824, std::make_shared<MessageHandler_824>(_immediateSignalCallback)});
-
-    _messageHandlers.insert({0x464, std::make_shared<MessageHandler_464>()});
+    _messageHandlers[0x4DC] = new MessageHandler_4DC();
+    _messageHandlers[0x4FC] = new MessageHandler_4FC(_immediateSignalCallback);
+    _messageHandlers[0x8A4] = new MessageHandler_8A4(_canPopupHandler, _immediateSignalCallback, _feedbackSignalCallback);
+    _messageHandlers[0x8C4] = new MessageHandler_8C4(_feedbackSignalCallback);
+    _messageHandlers[0x9C4] = new MessageHandler_9C4(_immediateSignalCallback);
+    _messageHandlers[0x524] = new MessageHandler_524(_canPopupHandler);
+    _messageHandlers[0x564] = new MessageHandler_564(_canPopupHandler, _immediateSignalCallback);
+    _messageHandlers[0x744] = new MessageHandler_744();
+    _messageHandlers[0x824] = new MessageHandler_824(_immediateSignalCallback);
+    _messageHandlers[0x464] = new MessageHandler_464();
 }
 
 bool AEE2001ComfortBus::ReceiveMessage(BusMessage& message)
@@ -75,21 +75,19 @@ bool AEE2001ComfortBus::ReceiveMessage(BusMessage& message)
 void AEE2001ComfortBus::ParseMessage(const BusMessage& message)
 {
     //printf("AEE2001ComfortBus::ParseMessage: %X\n", (unsigned int)message.id);
-    //search for the message id in the map and if exists call the parse function
-    auto it = _messageHandlers.find(message.id);
 
-    if (it == _messageHandlers.end())
+    if (message.id > MAX_CAN_ID)
     {
         return;
     }
-    //printf("AEE2001ComfortBus::ParseMessage: %X\n", (unsigned int)message.id);
-    if (it->second == nullptr)
+
+    auto handler = _messageHandlers[message.id];
+
+    if (handler == nullptr)
     {
-        //printf("AEE2001ComfortBus::ParseMessage: it->second == nullptr\n");
         return;
     }
-
-    it->second->Parse(_carState, message);
+    handler->Parse(_carState, message);
 }
 
 void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
@@ -109,10 +107,13 @@ void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
 
 void AEE2001ComfortBus::GenerateMessagesForSource()
 {
-    for (auto& [id, generator] : _messageHandlersForSource)
+    for (IMessageHandler* handler : _messageHandlersForSource)
     {
-        BusMessage message = generator->Generate(_carState);
-        _schedulerForSourceNetwork->AddOrUpdateMessage(message, _carState->CurrenTime);
+        if (handler != nullptr)
+        {
+            BusMessage message = handler->Generate(_carState);
+            _schedulerForSourceNetwork->AddOrUpdateMessage(message, _carState->CurrenTime);
+        }
     }
 }
 
@@ -186,7 +187,9 @@ void AEE2001ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
 bool IRAM_ATTR AEE2001ComfortBus::CanParseMessage(const BusMessage& message)
 {
     //printf("AEE2001ComfortBus::CanParseMessage: %X\n", (unsigned int)message.id);
-    bool result = _messageHandlers.find(message.id) != _messageHandlers.end();
+    auto handler = _messageHandlers[message.id];
+
+    bool result = handler != nullptr;
 
     //printf("AEE2001ComfortBus::CanParseMessage: %X result: %d\n", (unsigned int)message.id, result);
     return result;

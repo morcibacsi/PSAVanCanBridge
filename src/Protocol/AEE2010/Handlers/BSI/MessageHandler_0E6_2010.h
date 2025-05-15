@@ -39,7 +39,7 @@ class MessageHandler_0E6_2010 : public IMessageHandler
         }
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_0E6_Byte1Struct byte1{};
             byte1.data.abr_fault = state->ABRFault;

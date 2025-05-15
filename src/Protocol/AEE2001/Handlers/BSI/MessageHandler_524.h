@@ -17,8 +17,8 @@
 
 class MessageHandler_524 : public IMessageHandler
 {
-    std::shared_ptr<CanDisplayPopupHandler3> _canPopupHandler;
-    std::shared_ptr<VanCanDisplayPopupMap> _popupMapping;
+    CanDisplayPopupHandler3* _canPopupHandler;
+    VanCanDisplayPopupMap* _popupMapping;
 
     uint8_t ChangeAutoSetting(uint8_t messageByte, uint8_t newSetting, uint8_t messageType, uint8_t& settingVar)
     {
@@ -44,7 +44,7 @@ class MessageHandler_524 : public IMessageHandler
         return 0xFF;
     }
 
-    void ParsePopupMessage(std::shared_ptr<CarState> carState, VanDisplayV2Struct vanPacket)
+    void ParsePopupMessage(CarState* carState, VanDisplayV2Struct vanPacket)
     {
         //TODO implement this
         ///*
@@ -248,13 +248,13 @@ class MessageHandler_524 : public IMessageHandler
     }
 
     public:
-        MessageHandler_524(std::shared_ptr<CanDisplayPopupHandler3> canPopupHandler)
+        MessageHandler_524(CanDisplayPopupHandler3* canPopupHandler)
         {
-            _canPopupHandler = std::move(canPopupHandler);
-            _popupMapping = std::make_shared<VanCanDisplayPopupMap>();
+            _canPopupHandler = canPopupHandler;
+            _popupMapping = new VanCanDisplayPopupMap();
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x524;
@@ -265,7 +265,7 @@ class MessageHandler_524 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanDisplayV2Struct);
 

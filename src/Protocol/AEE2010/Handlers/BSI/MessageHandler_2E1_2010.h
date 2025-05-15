@@ -22,7 +22,7 @@ class MessageHandler_2E1_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_2E1_2010_Byte1Struct field1{};
             field1.data.automatic_door_locking_status = state->DeadlockActive ? AUTO_DOOR_LOCKING_STATUS_ACTIVATED : AUTO_DOOR_LOCKING_STATUS_NOT_ACTIVATED;

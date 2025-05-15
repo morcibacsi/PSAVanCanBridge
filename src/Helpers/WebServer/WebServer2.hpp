@@ -16,9 +16,9 @@ const int WIFI_AFTER_CONNECT_TIMEOUT = 7;
 class WebServer {
 public:
 WebServer(
-    std::shared_ptr<CarState> carState,
-    std::shared_ptr<ConfigFile> configFile,
-    std::shared_ptr<TimeProvider> timeProvider
+    CarState* carState,
+    ConfigFile* configFile,
+    TimeProvider* timeProvider
 
 ) : server(NULL) {
     _carState = carState;
@@ -391,9 +391,9 @@ WebServer(
     }
 
 private:
-std::shared_ptr<CarState> _carState;
-std::shared_ptr<ConfigFile> _configFile;
-std::shared_ptr<TimeProvider> _timeProvider;
+CarState* _carState;
+ConfigFile* _configFile;
+TimeProvider* _timeProvider;
 uint64_t _lastRequestTime = 0;
 uint64_t _inactivityTimeout = WIFI_INITIAL_TIMEOUT; // 40 seconds
 bool _isRunning = false;

@@ -10,6 +10,6 @@ public:
     virtual ~IMessageHandler() = default;
 
     // Generates a specific message based on the car state
-    virtual BusMessage Generate(std::shared_ptr<CarState> state) = 0;
-    virtual void Parse(std::shared_ptr<CarState> state, const BusMessage& message) { };
+    virtual BusMessage Generate(CarState* state) = 0;
+    virtual void Parse(CarState* state, const BusMessage& message) { };
 };

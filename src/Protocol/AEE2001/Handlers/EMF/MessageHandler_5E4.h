@@ -22,7 +22,7 @@ class MessageHandler_5E4 : public IMessageHandler
     uint8_t _prevIgnition = 0;
     uint8_t _vanComfortState = VAN_COMFORT_STATE_IDLE;
 
-    uint8_t GetVanComfortState(std::shared_ptr<CarState> state)
+    uint8_t GetVanComfortState(CarState* state)
     {
         uint8_t result = 0;
 
@@ -65,7 +65,7 @@ class MessageHandler_5E4 : public IMessageHandler
         {
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             uint8_t resetTotals = 0;
             uint8_t resetCumulative = 0;
@@ -129,7 +129,7 @@ class MessageHandler_5E4 : public IMessageHandler
             return msg;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
 
         }

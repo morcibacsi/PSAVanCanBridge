@@ -14,24 +14,25 @@
 class AEE2004ComfortBus : public IProtocolHandler
 {
     private:
-    std::shared_ptr<CarState> _carState;  // Car state.
-    std::shared_ptr<ITransportLayer> _transportLayer;  // Transport layer (CAN, LIN, etc.)
-    std::shared_ptr<MessageScheduler> _scheduler;  // Message scheduler injected via constructor.
-    std::unordered_map<uint32_t, std::unique_ptr<IMessageHandler>> _messageHandlers;
-    //std::unordered_map<uint32_t, MessageMetadata> scheduledMessages;
+    static const int MAX_CAN_ID = 0x3B6 + 1;
 
-    std::function<void(ImmediateSignal)> _immediateSignalCallback;
+    CarState* _carState;  // Car state.
+    ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
+    MessageScheduler* _scheduler;  // Message scheduler injected via constructor.
+    IMessageHandler* _messageHandlers[MAX_CAN_ID]{};
+
+    ImmediateSignalCallback _immediateSignalCallback;
 
     void SendImmediateMessage(uint32_t id);
 
     public:
     AEE2004ComfortBus(
-        std::shared_ptr<CarState> carState,
-        std::shared_ptr<ITransportLayer> transport,
-        std::shared_ptr<MessageScheduler> scheduler
+        CarState* carState,
+        ITransportLayer* transport,
+        MessageScheduler* scheduler
     );
 
-    void RegisterMessageHandlers(std::function<void(ImmediateSignal)> immediateSignalCallback) override;
+    void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;
 
     bool ReceiveMessage(BusMessage& message) override;
 

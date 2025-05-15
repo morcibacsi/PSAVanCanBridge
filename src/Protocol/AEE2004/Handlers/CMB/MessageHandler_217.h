@@ -24,17 +24,17 @@ class MessageHandler_217 : public IMessageHandler
             .isActive = false
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_217(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             //TODO need to add a config flag to enable/disable this message
             CAN_217_Byte1Struct byte1{};
@@ -87,7 +87,7 @@ class MessageHandler_217 : public IMessageHandler
             //*/
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CAN_217Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

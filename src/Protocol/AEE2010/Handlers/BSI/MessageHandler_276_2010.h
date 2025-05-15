@@ -23,7 +23,7 @@ class MessageHandler_276_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_276_2010_Byte1Struct byte1{};
             byte1.data.year = state->Year - 2000;

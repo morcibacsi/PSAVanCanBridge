@@ -24,7 +24,7 @@ class MessageHandler_122_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = 0x00;
             message.data[1] = 0x00;

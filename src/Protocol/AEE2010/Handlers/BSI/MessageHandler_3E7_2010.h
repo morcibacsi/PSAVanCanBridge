@@ -22,7 +22,7 @@ class MessageHandler_3E7_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_3E7_2010Byte1Struct field1{};
             field1.data.maintenance_type_km   = state->IsMaintenanceDue;

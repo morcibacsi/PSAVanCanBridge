@@ -24,7 +24,7 @@ class MessageHandler_1E3 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             uint8_t fanSpeed = 0x0F;
             CanAirConOnDisplayByte1Struct byte1{};
@@ -59,7 +59,7 @@ class MessageHandler_1E3 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
 
         }

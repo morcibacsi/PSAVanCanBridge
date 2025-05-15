@@ -15,11 +15,11 @@ uint8_t _sdaPin;
 uint8_t _sclPin;
 bool _started = false;
 
-std::shared_ptr<CarState> _carState;
+CarState* _carState;
 rtc_handle_t* _rtc;
 
 public:
-    TimeProvider(uint8_t sdaPin, uint8_t sclPin, std::shared_ptr<CarState> carState);
+    TimeProvider(uint8_t sdaPin, uint8_t sclPin, CarState* carState);
 
     void Start();
     bool Process(unsigned long currentTime);

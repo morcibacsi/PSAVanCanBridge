@@ -14,23 +14,33 @@
 
 class AEE2001ComfortBus : public IProtocolHandler {
 private:
-    std::shared_ptr<CarState> _carState;  // Car state.
-    std::shared_ptr<ITransportLayer> _transportLayer;  // Transport layer (CAN, LIN, etc.)
-    std::shared_ptr<MessageScheduler> _schedulerForSourceNetwork;  // Message scheduler injected via constructor.
-    std::shared_ptr<CanDisplayPopupHandler3> _canPopupHandler;
-    std::unordered_map<uint32_t, std::shared_ptr<IMessageHandler>> _messageHandlers;
-    std::unordered_map<uint32_t, std::shared_ptr<IMessageHandler>> _messageHandlersForSource;
+    static const int MAX_CAN_ID = 0xAE8 + 1;
 
-    std::function<void(ImmediateSignal)> _immediateSignalCallback;
+    CarState* _carState;  // Car state.
+    ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
+    MessageScheduler* _schedulerForSourceNetwork;  // Message scheduler injected via constructor.
+    CanDisplayPopupHandler3* _canPopupHandler;
+
+    IMessageHandler* _messageHandlers[MAX_CAN_ID]{};
+    IMessageHandler* _messageHandlersForSource[MAX_CAN_ID]{};
+
+    ImmediateSignalCallback _immediateSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
+
+    static AEE2001ComfortBus* _instance;
+    static void FeedbackSignalTrampoline(FeedbackSignal signal)
+    {
+        if (_instance) _instance->HandleFeedbackSignal(signal);
+    }
 
     void GenerateMessagesForSource();
     public:
     AEE2001ComfortBus(
-        std::shared_ptr<CarState> carState,
-        std::shared_ptr<ITransportLayer> transport,
-        std::shared_ptr<MessageScheduler> scheduler
+        CarState* carState,
+        ITransportLayer* transport,
+        MessageScheduler* scheduler
     );
-    void RegisterMessageHandlers(std::function<void(ImmediateSignal)> immediateSignalCallback) override;
+    void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;
 
     bool ReceiveMessage(BusMessage& message) override;
 

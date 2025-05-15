@@ -9,3 +9,5 @@ enum class FeedbackSignal {
     ServiceReminderReset,
     EmergencyBrakeActivated
 };
+
+using FeedbackSignalCallback = void (*)(FeedbackSignal signal);

@@ -13,23 +13,23 @@
 
 class MessageHandler_8A4 : public IMessageHandler
 {
-    std::shared_ptr<CanDisplayPopupHandler3> _canPopupHandler;
-    std::function<void(ImmediateSignal)> _immediateSignalCallback;
-    std::function<void(FeedbackSignal)> _feedbackSignalCallback;
+    CanDisplayPopupHandler3* _canPopupHandler;
+    ImmediateSignalCallback _immediateSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
 
     public:
         MessageHandler_8A4(
-            std::shared_ptr<CanDisplayPopupHandler3> canPopupHandler,
-            std::function<void(ImmediateSignal)> immediateSignalCallback,
-            std::function<void(FeedbackSignal)> feedbackSignalCallback
+            CanDisplayPopupHandler3* canPopupHandler,
+            ImmediateSignalCallback immediateSignalCallback,
+            FeedbackSignalCallback feedbackSignalCallback
         )
         {
-            _canPopupHandler = std::move(canPopupHandler);
-            _immediateSignalCallback = std::move(immediateSignalCallback);
-            _feedbackSignalCallback = std::move(feedbackSignalCallback);
+            _canPopupHandler = canPopupHandler;
+            _immediateSignalCallback = immediateSignalCallback;
+            _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x8A4;
@@ -40,7 +40,7 @@ class MessageHandler_8A4 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanDashboardStructs);
 

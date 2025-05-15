@@ -24,7 +24,7 @@ class MessageHandler_0F6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             //TODO copied from AEE2010
             CanDash1Byte1Struct field1{};
@@ -70,7 +70,7 @@ class MessageHandler_0F6 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //Can0F6Dash1Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

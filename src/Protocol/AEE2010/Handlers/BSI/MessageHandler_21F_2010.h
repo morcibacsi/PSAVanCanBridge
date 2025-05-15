@@ -22,7 +22,7 @@ class MessageHandler_21F_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_21F_2010_Byte1Struct field1{};
             field1.data.list                   = state->RadioRemote.data.list;

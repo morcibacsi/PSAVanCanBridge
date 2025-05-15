@@ -20,7 +20,7 @@ class MessageHandler_464 : public IMessageHandler
             _vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x464;
@@ -31,7 +31,7 @@ class MessageHandler_464 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanAirConditioner1Struct);
 

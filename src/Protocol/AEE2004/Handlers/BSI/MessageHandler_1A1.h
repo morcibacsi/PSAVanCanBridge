@@ -23,16 +23,16 @@ class MessageHandler_1A1 : public IMessageHandler
             .isActive = true
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
     public:
         MessageHandler_1A1(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->DisplayMessage.data.Field1;
             message.data[1] = state->DisplayMessage.data.Field2;
@@ -46,7 +46,7 @@ class MessageHandler_1A1 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             if (message.dataLength < 8)
             {

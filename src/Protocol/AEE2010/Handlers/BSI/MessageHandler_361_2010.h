@@ -22,7 +22,7 @@ class MessageHandler_361_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can361_2010Byte1Struct field1{};
             field1.data.drl_present              = state->DrlPresent;

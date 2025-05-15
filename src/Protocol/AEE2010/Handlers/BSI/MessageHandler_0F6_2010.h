@@ -22,7 +22,7 @@ class MessageHandler_0F6_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CanDash1Byte1Struct field1{};
             field1.data.config_mode = state->TrailerPresent == 1 ? 0 : 2;

@@ -13,7 +13,7 @@
 class MessageHandler_AE8 : public IMessageHandler
 {
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0xAE8;
@@ -26,7 +26,7 @@ class MessageHandler_AE8 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             if (message.dataLength != 24 || carState->PARKING_AID_TYPE != 1)
             {

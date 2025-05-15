@@ -24,7 +24,7 @@ class MessageHandler_127 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can2004_127Byte1 field1{};
             field1.data.enable_vth = state->Ignition == 1;
@@ -35,7 +35,7 @@ class MessageHandler_127 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //Can127_2004_Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

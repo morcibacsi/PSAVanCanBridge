@@ -13,19 +13,19 @@
 
 class MessageHandler_A68 : public IMessageHandler
 {
-    std::function<void(FeedbackSignal)> _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
     uint8_t _prevReverseEngaged = 0;
     uint8_t _state = 0;
 
     public:
         MessageHandler_A68(
-            std::function<void(FeedbackSignal)> feedbackSignalCallback
+            FeedbackSignalCallback feedbackSignalCallback
         )
         {
             _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             if (_prevReverseEngaged == 0 && state->IsReverseEngaged == 1)
             {
@@ -60,7 +60,7 @@ class MessageHandler_A68 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             if (message.dataLength != 2)
             {

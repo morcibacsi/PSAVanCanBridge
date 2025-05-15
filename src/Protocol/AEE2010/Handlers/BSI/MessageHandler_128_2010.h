@@ -22,7 +22,7 @@ class MessageHandler_128_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can2010CombineLightsByte1 field0{};
             field0.data.right_turn_indicator    = state->CarSignalLights.data.right_turn_indicator;

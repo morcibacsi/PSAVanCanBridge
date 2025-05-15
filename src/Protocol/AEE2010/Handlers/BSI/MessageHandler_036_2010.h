@@ -27,7 +27,7 @@ class MessageHandler_036_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_036_2010_Byte1Struct byte1{};
             byte1.data.driving_direction = state->IsReverseEngaged ? DRIVING_DIRECTION_REVERSE : DRIVING_DIRECTION_FORWARD;

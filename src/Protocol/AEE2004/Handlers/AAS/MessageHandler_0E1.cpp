@@ -5,7 +5,8 @@
 #include "../../Structs/CAN_0E1.h"
 #include "MessageHandler_0E1.hpp"
 
-BusMessage MessageHandler_0E1::Generate(std::shared_ptr<CarState> state)
+BusMessage MessageHandler_0E1::Generate(CarState* state)
+
 {
     uint8_t isCorner = 0;
     uint8_t minDistance = GetMinDistance(
@@ -69,12 +70,12 @@ BusMessage MessageHandler_0E1::Generate(std::shared_ptr<CarState> state)
     //*/
 }
 
-void MessageHandler_0E1::Parse(std::shared_ptr<CarState> carState, const BusMessage& message)
+void MessageHandler_0E1::Parse(CarState* carState, const BusMessage& message)
 {
 
 }
 
-uint8_t MessageHandler_0E1::GetBarCountFromDistance(std::shared_ptr<CarState> state, uint8_t distanceData, bool isCorner)
+uint8_t MessageHandler_0E1::GetBarCountFromDistance(CarState* state, uint8_t distanceData, bool isCorner)
 {
     uint8_t result = AAS_DISTANCE_ZONE8_FAR;
 
@@ -120,7 +121,7 @@ uint8_t MessageHandler_0E1::GetBarCountFromDistance(std::shared_ptr<CarState> st
     return result;
 }
 
-uint8_t MessageHandler_0E1::GetBeepDelayFromDistance(std::shared_ptr<CarState> state, uint8_t minDistance, bool isCorner)
+uint8_t MessageHandler_0E1::GetBeepDelayFromDistance(CarState* state, uint8_t minDistance, bool isCorner)
 {
     //0-62
     uint8_t result = 62;
@@ -183,7 +184,7 @@ uint8_t MessageHandler_0E1::GetBeepDelayFromDistance(std::shared_ptr<CarState> s
     return result;
 }
 
-uint8_t MessageHandler_0E1::GetBeepDurationFromDistance(std::shared_ptr<CarState> state, uint8_t minDistance, bool isCorner)
+uint8_t MessageHandler_0E1::GetBeepDurationFromDistance(CarState* state, uint8_t minDistance, bool isCorner)
 {
     //in a 5008 it is always 0
     return 0;

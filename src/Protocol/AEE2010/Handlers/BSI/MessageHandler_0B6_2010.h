@@ -22,7 +22,7 @@ class MessageHandler_0B6_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[0] = state->Rpm.data.leftByte;
             message.data[1] = state->Rpm.data.rightByte;

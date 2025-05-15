@@ -12,20 +12,20 @@
 
 class MessageHandler_564 : public IMessageHandler
 {
-    std::shared_ptr<CanDisplayPopupHandler3> _canPopupHandler;
-    std::function<void(ImmediateSignal)> _immediateSignalCallback;
+    CanDisplayPopupHandler3* _canPopupHandler;
+    ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_564(
-            std::shared_ptr<CanDisplayPopupHandler3> canPopupHandler,
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            CanDisplayPopupHandler3* canPopupHandler,
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
-            _canPopupHandler = std::move(canPopupHandler);
+            _canPopupHandler = canPopupHandler;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             BusMessage message;
             message.id = 0x564;
@@ -36,7 +36,7 @@ class MessageHandler_564 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanCarStatusWithTripComputerStruct);
             //printf("MessageHandler_564::Parse\n");

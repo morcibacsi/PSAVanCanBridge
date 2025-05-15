@@ -17,10 +17,10 @@ class ConfigFile {
 
     private:
 
-        std::shared_ptr<CarState> _carState;
+        CarState* _carState;
 
     public:
-        ConfigFile(std::shared_ptr<CarState> carState);
+        ConfigFile(CarState* carState);
         ~ConfigFile() = default;
         void Write();
         bool Read();

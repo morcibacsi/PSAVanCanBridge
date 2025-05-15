@@ -25,7 +25,7 @@ class MessageHandler_0E6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             message.data[1] = state->RearLeftWheelCounter.data.leftByte;
             message.data[2] = state->RearLeftWheelCounter.data.rightByte;
@@ -35,7 +35,7 @@ class MessageHandler_0E6 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //Can0E6Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

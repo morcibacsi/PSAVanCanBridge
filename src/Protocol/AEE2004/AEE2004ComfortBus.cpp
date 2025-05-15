@@ -36,56 +36,54 @@
 #include <esp_attr.h>
 
 AEE2004ComfortBus::AEE2004ComfortBus(
-        std::shared_ptr<CarState> carState,
-        std::shared_ptr<ITransportLayer> transport,
-        std::shared_ptr<MessageScheduler> scheduler
+        CarState* carState,
+        ITransportLayer* transport,
+        MessageScheduler* scheduler
         )
 {
-    _carState = std::move(carState);
-    _transportLayer = std::move(transport);
-    _scheduler = std::move(scheduler);
-    _messageHandlers = std::unordered_map<uint32_t, std::unique_ptr<IMessageHandler>>();
+    _carState = carState;
+    _transportLayer = transport;
+    _scheduler = scheduler;
 }
 
-void AEE2004ComfortBus::RegisterMessageHandlers(std::function<void(ImmediateSignal)> immediateSignalCallback)
+void AEE2004ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
     _immediateSignalCallback = immediateSignalCallback;
 
-    _messageHandlers.insert({0x0E1, std::make_unique<MessageHandler_0E1>()});
+    _messageHandlers[0x0E1] = new MessageHandler_0E1();
 
-    _messageHandlers.insert({0x0B6, std::make_unique<MessageHandler_0B6>()});
-    _messageHandlers.insert({0x0E6, std::make_unique<MessageHandler_0E6>()});
-    _messageHandlers.insert({0x0E8, std::make_unique<MessageHandler_0E8>()});
-    _messageHandlers.insert({0x0F6, std::make_unique<MessageHandler_0F6>()});
-    _messageHandlers.insert({0x1A1, std::make_unique<MessageHandler_1A1>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x1A8, std::make_unique<MessageHandler_1A8>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x2A1, std::make_unique<MessageHandler_2A1>()});
-    _messageHandlers.insert({0x2B6, std::make_unique<MessageHandler_2B6>()});
-    _messageHandlers.insert({0x2E1, std::make_unique<MessageHandler_2E1>()});
-    _messageHandlers.insert({0x3A7, std::make_unique<MessageHandler_3A7>()});
-    _messageHandlers.insert({0x3B6, std::make_unique<MessageHandler_3B6>()});
-    _messageHandlers.insert({0x10B, std::make_unique<MessageHandler_10B>()});
-    _messageHandlers.insert({0x21F, std::make_unique<MessageHandler_21F>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x036, std::make_unique<MessageHandler_036>()});
-    _messageHandlers.insert({0x120, std::make_unique<MessageHandler_120>()});
-    _messageHandlers.insert({0x127, std::make_unique<MessageHandler_127>()});
-    _messageHandlers.insert({0x128, std::make_unique<MessageHandler_128>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x161, std::make_unique<MessageHandler_161>()});
-    _messageHandlers.insert({0x168, std::make_unique<MessageHandler_168>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x220, std::make_unique<MessageHandler_220>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x221, std::make_unique<MessageHandler_221>(_immediateSignalCallback)});
-    _messageHandlers.insert({0x227, std::make_unique<MessageHandler_227>()});
-    _messageHandlers.insert({0x261, std::make_unique<MessageHandler_261>()});
-    _messageHandlers.insert({0x336, std::make_unique<MessageHandler_336>()});
-    _messageHandlers.insert({0x361, std::make_unique<MessageHandler_361>()});
+    _messageHandlers[0x0B6] = new MessageHandler_0B6();
+    _messageHandlers[0x0E6] = new MessageHandler_0E6();
+    _messageHandlers[0x0E8] = new MessageHandler_0E8();
+    _messageHandlers[0x0F6] = new MessageHandler_0F6();
+    _messageHandlers[0x1A1] = new MessageHandler_1A1(_immediateSignalCallback);
+    _messageHandlers[0x1A8] = new MessageHandler_1A8(_immediateSignalCallback);
+    _messageHandlers[0x2A1] = new MessageHandler_2A1();
+    _messageHandlers[0x2B6] = new MessageHandler_2B6();
+    _messageHandlers[0x2E1] = new MessageHandler_2E1();
+    _messageHandlers[0x3A7] = new MessageHandler_3A7();
+    _messageHandlers[0x3B6] = new MessageHandler_3B6();
+    _messageHandlers[0x10B] = new MessageHandler_10B();
+    _messageHandlers[0x21F] = new MessageHandler_21F(_immediateSignalCallback);
+    _messageHandlers[0x036] = new MessageHandler_036();
+    _messageHandlers[0x120] = new MessageHandler_120();
+    _messageHandlers[0x127] = new MessageHandler_127();
+    _messageHandlers[0x128] = new MessageHandler_128(_immediateSignalCallback);
+    _messageHandlers[0x161] = new MessageHandler_161();
+    _messageHandlers[0x168] = new MessageHandler_168(_immediateSignalCallback);
+    _messageHandlers[0x220] = new MessageHandler_220(_immediateSignalCallback);
+    _messageHandlers[0x221] = new MessageHandler_221(_immediateSignalCallback);
+    _messageHandlers[0x227] = new MessageHandler_227();
+    _messageHandlers[0x261] = new MessageHandler_261();
+    _messageHandlers[0x336] = new MessageHandler_336();
+    _messageHandlers[0x361] = new MessageHandler_361();
 
-    _messageHandlers.insert({0x1E3, std::make_unique<MessageHandler_1E3>()});
+    _messageHandlers[0x1E3] = new MessageHandler_1E3();
 
-    _messageHandlers.insert({0x217, std::make_unique<MessageHandler_217>(_immediateSignalCallback)});
+    _messageHandlers[0x217] = new MessageHandler_217(_immediateSignalCallback);
 
-    //_messageHandlers.insert({0x167, std::make_unique<MessageHandler_167>()});
-
-    //_messageHandlers.insert({0x297, std::make_unique<MessageHandler_297>()});
+    //_messageHandlers[0x167] = new MessageHandler_167();
+    //_messageHandlers[0x297] = new MessageHandler_297();
 }
 
 bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
@@ -118,14 +116,20 @@ bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
 void IRAM_ATTR AEE2004ComfortBus::ParseMessage(const BusMessage& message)
 {
     //search for the message id in the map and if exists call the parse function
-    auto it = _messageHandlers.find(message.id);
+    //printf("AEE2004 ParseMessage: %X\n", (unsigned int)message.id);
 
-    if (it == _messageHandlers.end())
+    if (message.id > MAX_CAN_ID)
     {
         return;
     }
 
-    it->second->Parse(_carState, message);
+    auto handler = _messageHandlers[message.id];
+
+    if (handler == nullptr)
+    {
+        return;
+    }
+    handler->Parse(_carState, message);
 }
 
 void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
@@ -140,11 +144,15 @@ void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
 
     if (direction == MessageDirection::Destination)
     {
-        for (auto& [id, generator] : _messageHandlers)
+        for (IMessageHandler* handler : _messageHandlers)
         {
-            BusMessage message = generator->Generate(_carState);
-            _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
+            if (handler != nullptr)
+            {
+                BusMessage message = handler->Generate(_carState);
+                _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
+            }
         }
+
         return;
     }
 
@@ -266,15 +274,13 @@ void AEE2004ComfortBus::SendImmediateMessage(uint32_t id)
 {
     //printf("AEEE2004 SendImmediateMessage: %X\n", (unsigned int)id);
 
-    std::unordered_map<uint32_t, std::unique_ptr<IMessageHandler>>::iterator handler;
-    handler = _messageHandlers.find(id);
+    IMessageHandler* handler = _messageHandlers[id];
 
-    if (handler == _messageHandlers.end())
+    if (handler == nullptr)
     {
         return;
     }
-    auto generator = handler->second.get();
-    BusMessage message = generator->Generate(_carState);
+    BusMessage message = handler->Generate(_carState);
     _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
 
     _scheduler->SendImmedateMessage(id, _carState->CurrenTime, *_transportLayer);
@@ -282,5 +288,8 @@ void AEE2004ComfortBus::SendImmediateMessage(uint32_t id)
 
 bool IRAM_ATTR AEE2004ComfortBus::CanParseMessage(const BusMessage& message)
 {
-    return _messageHandlers.find(message.id) != _messageHandlers.end();
+    auto handler = _messageHandlers[message.id];
+    bool result = handler != nullptr;
+
+    return result;
 }

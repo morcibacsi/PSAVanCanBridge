@@ -23,17 +23,17 @@ class MessageHandler_128 : public IMessageHandler
             .isActive = true
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_128(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can2004CombineLightsByte1 field0{};
             field0.data.fuel_level_low             = state->CarSignalLights.data.fuel_level_low;
@@ -91,7 +91,7 @@ class MessageHandler_128 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CMB2004_128Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

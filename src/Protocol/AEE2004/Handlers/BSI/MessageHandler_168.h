@@ -23,17 +23,17 @@ class MessageHandler_168 : public IMessageHandler
             .isActive = true
         };
 
-        std::function<void(ImmediateSignal)> _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback;
 
     public:
         MessageHandler_168(
-            std::function<void(ImmediateSignal)> immediateSignalCallback
+            ImmediateSignalCallback immediateSignalCallback
         )
         {
             _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CanDash3Byte1Struct field1{};
             field1.data.auto_gearbox_alert       = state->CarIndicatorLights.data.gearbox_fault;
@@ -86,7 +86,7 @@ class MessageHandler_168 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CanDash3Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

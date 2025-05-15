@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "esp_littlefs.h"
 
-ConfigFile::ConfigFile(std::shared_ptr<CarState> carState)
+ConfigFile::ConfigFile(CarState* carState)
 {
     _carState = carState;
 }

@@ -13,3 +13,5 @@ enum class ImmediateSignal {
     CmbIndicatorLightsChanged,
     CmbStatusChanged,
 };
+
+using ImmediateSignalCallback = void (*)(ImmediateSignal signal);

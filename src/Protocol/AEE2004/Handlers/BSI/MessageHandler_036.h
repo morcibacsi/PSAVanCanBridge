@@ -34,7 +34,7 @@ class MessageHandler_036 : public IMessageHandler
             //_feedbackSignalCallback = std::move(feedbackSignalCallback);
         }
 
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CanIgnitionByte3Struct ecoField{};
             ecoField.data.economy_mode_active = state->EconomyMode;
@@ -86,7 +86,7 @@ class MessageHandler_036 : public IMessageHandler
             return message;
         }
 
-        void Parse(std::shared_ptr<CarState> carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message) override
         {
             //CanIgnitionStruct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

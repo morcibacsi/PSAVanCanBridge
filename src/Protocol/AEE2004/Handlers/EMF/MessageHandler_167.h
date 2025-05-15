@@ -23,7 +23,7 @@ class MessageHandler_167 : public IMessageHandler
             .isActive = false
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             Can2004_167Byte1 byte1{};
             byte1.data.trip_data_on_odometer = ODOMETER_TRIP_INFO_NOT_MANAGED_BY_EMF;

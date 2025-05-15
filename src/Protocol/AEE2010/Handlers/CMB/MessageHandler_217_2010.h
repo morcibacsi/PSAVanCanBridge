@@ -22,7 +22,7 @@ class MessageHandler_217_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(std::shared_ptr<CarState> state) override
+        BusMessage Generate(CarState* state) override
         {
             CAN_217_2010_Byte1Struct byte1{};
             byte1.data.brightness        = state->OdometerStates.data.brightness;

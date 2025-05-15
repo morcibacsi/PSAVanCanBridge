@@ -7,6 +7,7 @@
 #include "freertos/task.h"
 #include "esp_timer.h"
 #include <queue>
+#include <functional>
 
 #include "Protocol/IProtocolHandler.hpp"
 #include "Protocol/ITransportLayer.hpp"
@@ -33,13 +34,13 @@
 
 ITransportLayer* sourceTransportLayer;
 ITransportLayer* destinationTransportLayer;
-std::shared_ptr<IProtocolHandler> sourceProtocolHandler;
-std::shared_ptr<IProtocolHandler> destinationProtocolHandler;
-std::shared_ptr<CarState> carState;
-std::shared_ptr<CrcStore> crcStore;
+IProtocolHandler* sourceProtocolHandler;
+IProtocolHandler* destinationProtocolHandler;
+CarState* carState;
+CrcStore* crcStore;
 
-std::shared_ptr<FileSystem> fileSystem;
-std::shared_ptr<ConfigFile> configFile;
+FileSystem* fileSystem;
+ConfigFile* configFile;
 
 TaskHandle_t ReadSourceTask;
 TaskHandle_t ParseSourceTask;
@@ -51,7 +52,7 @@ QueueHandle_t sourceMessageQueueHighPrio;
 QueueHandle_t messageToForwardQueue;
 
 RgbLed* led;
-std::shared_ptr<TimeProvider> timeProvider;
+TimeProvider* timeProvider;
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
 
@@ -61,7 +62,7 @@ bool automaticallyStoreNewIds = false;
 //ESP_IDF_VERSION_MAJOR
 
 #include "Helpers/WebServer/WebServer2.hpp"
-std::shared_ptr<WebServer> webServer;
+WebServer* webServer;
 
 #define VAN_RX_PIN GPIO_NUM_3
 #define VAN_TX_PIN GPIO_NUM_2
@@ -91,6 +92,14 @@ void bleEvent(string msg, size_t select)
     }
 }
 */
+
+void SendImmediateSignalToDestination(ImmediateSignal signal) {
+    if (destinationProtocolHandler != nullptr) {
+        destinationProtocolHandler->ProcessImmediateSignal(signal);
+    }
+}
+
+void EmptyImmediateSignalCaller(ImmediateSignal signal) { }
 
 void PrintMessage(const BusMessage& message)
 {
@@ -287,14 +296,14 @@ extern "C" void app_main(void)
     sourceMessageQueueHighPrio = xQueueCreate(32, sizeof(BusMessage));
     messageToForwardQueue = xQueueCreate(32, sizeof(BusMessage));
 
-    carState = std::make_shared<CarState>();
+    carState = new CarState();
 
     led = new RgbLed(8);
 
-    fileSystem = std::make_shared<FileSystem>();
+    fileSystem = new FileSystem();
     fileSystem->Init();
 
-    configFile = std::make_shared<ConfigFile>(carState);
+    configFile = new ConfigFile(carState);
 
     if (configFile->Read() == false)
     {
@@ -304,11 +313,11 @@ extern "C" void app_main(void)
     printf("Source protocol: %d\n", carState->SOURCE_PROTOCOL);
     printf("Destination protocol: %d\n", carState->DESTINATION_PROTOCOL);
 
-    timeProvider = std::make_shared<TimeProvider>(SDA_PIN, SCL_PIN, carState);
+    timeProvider = new TimeProvider(SDA_PIN, SCL_PIN, carState);
     timeProvider->Start();
 
     printf("Create webserver\n");
-    webServer = std::make_shared<WebServer>(carState, configFile, timeProvider);
+    webServer = new WebServer(carState, configFile, timeProvider);
     webServer->StartWebServer();
     printf("Webserver created\n");
 
@@ -339,10 +348,10 @@ extern "C" void app_main(void)
 
         sourceTransportLayer = new VANTransportLayer(VAN_RX_PIN, VAN_TX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
         //sourceTransportLayer = new VANTransportLayerOnSerial();
-        sourceProtocolHandler = std::make_shared<AEE2001ComfortBus>(
-            std::shared_ptr<CarState>(carState),
-            std::shared_ptr<ITransportLayer>(sourceTransportLayer),
-            std::make_shared<MessageScheduler>());
+        sourceProtocolHandler = new AEE2001ComfortBus(
+            carState,
+            sourceTransportLayer,
+            new MessageScheduler());
     }
 
     if (carState->SOURCE_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2004))
@@ -403,10 +412,10 @@ extern "C" void app_main(void)
 //*/
         sourceTransportLayer = new CANTransportLayer(CAN2_RX_PIN, CAN2_TX_PIN, 1);
         //sourceTransportLayer = new CANTransportLayerOnSerial();
-        sourceProtocolHandler = std::make_shared<AEE2004ComfortBus>(
-            std::shared_ptr<CarState>(carState),
-            std::shared_ptr<ITransportLayer>(sourceTransportLayer),
-            std::make_shared<MessageScheduler>());
+        sourceProtocolHandler = new AEE2004ComfortBus(
+            carState,
+            sourceTransportLayer,
+            new MessageScheduler());
     }
 
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2004))
@@ -414,10 +423,10 @@ extern "C" void app_main(void)
         printf("Destination AEE2004\n");
         destinationTransportLayer = new CANTransportLayer(CAN1_RX_PIN, CAN1_TX_PIN, 0);
 
-        destinationProtocolHandler = std::make_shared<AEE2004ComfortBus>(
-            std::shared_ptr<CarState>(carState),
-            std::shared_ptr<ITransportLayer>(destinationTransportLayer),
-            std::make_shared<MessageScheduler>());
+        destinationProtocolHandler = new AEE2004ComfortBus(
+            carState,
+            destinationTransportLayer,
+            new MessageScheduler());
     }
 
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2010))
@@ -425,10 +434,10 @@ extern "C" void app_main(void)
         printf("Destination AEE2010\n");
         destinationTransportLayer = new CANTransportLayer(CAN1_RX_PIN, CAN1_TX_PIN, 0);
 
-        destinationProtocolHandler = std::make_shared<AEE2010ComfortBus>(
-            std::shared_ptr<CarState>(carState),
-            std::shared_ptr<ITransportLayer>(destinationTransportLayer),
-            std::make_shared<MessageScheduler>());
+        destinationProtocolHandler = new AEE2010ComfortBus(
+            carState,
+            destinationTransportLayer,
+            new MessageScheduler());
     }
 
     if (sourceProtocolHandler == nullptr || destinationProtocolHandler == nullptr)
@@ -437,42 +446,20 @@ extern "C" void app_main(void)
         return;
     }
 
-    crcStore = std::make_shared<CrcStore>(crcStoreItems, automaticallyStoreNewIds);
+    crcStore = new CrcStore(crcStoreItems, automaticallyStoreNewIds);
 
     printf("Register message handler on destination\n");
     //call RegisterMessageHandlers on the destination protocol handler with a dummy function
-    destinationProtocolHandler->RegisterMessageHandlers([](ImmediateSignal signal) {});
+    destinationProtocolHandler->RegisterMessageHandlers(EmptyImmediateSignalCaller);
 
     printf("Register message handler on source\n");
-    std::weak_ptr<IProtocolHandler> weakDestinationProtocolHandler = destinationProtocolHandler;
-    sourceProtocolHandler->RegisterMessageHandlers([weakDestinationProtocolHandler](ImmediateSignal signal) {
-        if (auto destination = weakDestinationProtocolHandler.lock()) {
-            destination->ProcessImmediateSignal(signal);
-        }
-    });
+    sourceProtocolHandler->RegisterMessageHandlers(SendImmediateSignalToDestination);
+
     printf("Starting tasks\n");
-
-    // register the destination messagehandlers passing down the immediate signal callback of the source
-    //destinationProtocolHandler->RegisterMessageHandlers(std::bind(&IProtocolHandler::ProcessImmediateSignal, sourceProtocolHandler.get(), std::placeholders::_1));
-    /*
-    destinationProtocolHandler->RegisterMessageHandlers(
-        [&sourceProtocolHandler](ImmediateSignal signal) {
-            sourceProtocolHandler->ProcessImmediateSignal(signal); // Replace with actual method
-        }
-
-    );
-    */
 
     //ble.initBle("BLE_NAME");
     //ble.startAdv();
     //ble.setReaderHandler(&bleEvent);
-/*
-    destinationTransportLayer = new CANTransportLayer(CAN1_RX_PIN, CAN1_TX_PIN);
-    destinationProtocolHandler = new AEE2010ComfortBus(
-        std::shared_ptr<CarState>(carState),
-        std::shared_ptr<ITransportLayer>(destinationTransportLayer),
-        std::make_shared<MessageScheduler>());
-*/
 
     cpu_config_t ReadSourceTaskConfig        = { .cpu_core = 0, .priority = 5 };
     cpu_config_t ParseSourceTaskConfig       = { .cpu_core = 0, .priority = 3 };
