@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_361_2004.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_361 : public IMessageHandler
+class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
 {
     private:
         BusMessage message
@@ -25,7 +25,9 @@ class MessageHandler_361 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x361;
+
+        BusMessage Generate(CarState* state)
         {
             Can361_2004Byte2Struct field2{};
             field2.data.permanent_rear_flap_lock = state->PermanentRearFlapLock;
@@ -64,7 +66,7 @@ class MessageHandler_361 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can361_2004Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

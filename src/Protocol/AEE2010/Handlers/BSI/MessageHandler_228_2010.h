@@ -11,7 +11,7 @@
 /*
     Cruise control related data
 */
-class MessageHandler_228_2010 : public IMessageHandler
+class MessageHandler_228_2010 : public IMessageHandler<MessageHandler_228_2010>
 {
     private:
         BusMessage message
@@ -25,13 +25,15 @@ class MessageHandler_228_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x228;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_228_2010_Byte3Struct byte2{};
             byte2.data.activate_function           = state->CruiseControlActivateFunction;
             byte2.data.selected_function           = state->CruiseControlSelectedFunction;
             byte2.data.status_of_selected_function = state->CruiseControlStatusOfSelectedFunction;
-            byte2.data.setting_status = SETTING_STATUS_NO_ADJUSTMENT;
+            byte2.data.setting_status = SETTING_STATUS_NO_ADJUSTMENT_2010;
             byte2.data.target_present = 1;
             //byte2.data. = 1;
 
@@ -45,6 +47,11 @@ class MessageHandler_228_2010 : public IMessageHandler
             message.data[7] = 0x98;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

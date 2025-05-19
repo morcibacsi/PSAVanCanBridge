@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_120_2010.h"
 
-class MessageHandler_120_2010 : public IMessageHandler
+class MessageHandler_120_2010 : public IMessageHandler<MessageHandler_120_2010>
 {
     private:
         BusMessage message
@@ -22,15 +22,17 @@ class MessageHandler_120_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x120;
+
+        BusMessage Generate(CarState* state)
         {
-            CAN_120_2004_Byte4Struct field4{};
+            CAN_120_2010_Byte4Struct field4{};
             field4.data.GearboxFaultRepairNeeded = state->CarIndicatorLights.data.gearbox_fault;
 
-            CAN_120_2004_Byte5Struct field5{};
+            CAN_120_2010_Byte5Struct field5{};
             field5.data.EngineFaultRepairNeeded = state->CarIndicatorLights.data.mil || state->CarIndicatorLights.data.antipollution_fault;
 
-            CAN_120_2004_Byte7Struct field7{};
+            CAN_120_2010_Byte7Struct field7{};
             field7.data.SuspensionFaulty = state->CarIndicatorLights.data.serious_suspension_fault;
 
             message.data[0] = 0xFF;
@@ -43,6 +45,11 @@ class MessageHandler_120_2010 : public IMessageHandler
             message.data[7] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

@@ -9,7 +9,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_217.h"
 
-class MessageHandler_217 : public IMessageHandler
+class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
 {
     private:
         BusMessage message
@@ -27,14 +27,15 @@ class MessageHandler_217 : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_217(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x217;
+
+        MessageHandler_217()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             //TODO need to add a config flag to enable/disable this message
             CAN_217_Byte1Struct byte1{};
@@ -87,7 +88,7 @@ class MessageHandler_217 : public IMessageHandler
             //*/
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CAN_217Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

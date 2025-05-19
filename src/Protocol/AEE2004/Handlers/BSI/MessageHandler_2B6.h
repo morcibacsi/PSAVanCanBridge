@@ -10,7 +10,7 @@
 /*
     VIN number
 */
-class MessageHandler_2B6 : public IMessageHandler
+class MessageHandler_2B6 : public IMessageHandler<MessageHandler_2B6>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_2B6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x2B6;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->VIN_FOR_HEADUNIT[9];
             message.data[1] = state->VIN_FOR_HEADUNIT[10];
@@ -36,6 +38,10 @@ class MessageHandler_2B6 : public IMessageHandler
             message.data[7] = state->VIN_FOR_HEADUNIT[16];
 
             return message;
+        }
+
+        void Parse(CarState* state, const BusMessage& msg)
+        {
         }
 };
 #endif

@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_128_2010.h"
 
-class MessageHandler_128_2010 : public IMessageHandler
+class MessageHandler_128_2010 : public IMessageHandler<MessageHandler_128_2010>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_128_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x128;
+
+        BusMessage Generate(CarState* state)
         {
             Can2010CombineLightsByte1 field0{};
             field0.data.right_turn_indicator    = state->CarSignalLights.data.right_turn_indicator;
@@ -160,6 +162,11 @@ class MessageHandler_128_2010 : public IMessageHandler
             message.data[7] = field7.asByte;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

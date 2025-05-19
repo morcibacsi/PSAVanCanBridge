@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CanDisplayStructs.h"
 
-class MessageHandler_1A1_2010 : public IMessageHandler
+class MessageHandler_1A1_2010 : public IMessageHandler<MessageHandler_1A1_2010>
 {
     private:
         uint8_t _prevDoorStatus;
@@ -25,7 +25,9 @@ class MessageHandler_1A1_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x1A1;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->DisplayMessage.data.Field1;
             message.data[1] = state->DisplayMessage.data.Field2;
@@ -86,6 +88,11 @@ class MessageHandler_1A1_2010 : public IMessageHandler
             }
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

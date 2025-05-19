@@ -13,7 +13,7 @@
 /*
     Ignition data for EMF, radio, telematics, etc. Brightness for CMB
 */
-class MessageHandler_036_2010 : public IMessageHandler
+class MessageHandler_036_2010 : public IMessageHandler<MessageHandler_036_2010>
 {
     private:
         BusMessage message
@@ -27,7 +27,9 @@ class MessageHandler_036_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x036;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_036_2010_Byte1Struct byte1{};
             byte1.data.driving_direction = state->IsReverseEngaged ? DRIVING_DIRECTION_REVERSE : DRIVING_DIRECTION_FORWARD;
@@ -58,6 +60,11 @@ class MessageHandler_036_2010 : public IMessageHandler
             message.data[7] = 0xA0;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

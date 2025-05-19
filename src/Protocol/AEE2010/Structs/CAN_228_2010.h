@@ -11,8 +11,8 @@ const uint16_t CAN_228_2010_INTERVAL = 1000;
 // CANID: 228
 const uint16_t CAN_ID_228_2010 = 0x228;
 
-constexpr uint8_t SETTING_STATUS_NO_ADJUSTMENT = 0;
-constexpr uint8_t SETTING_STATUS_ADJUSTMENT = 1;
+constexpr uint8_t SETTING_STATUS_NO_ADJUSTMENT_2010 = 0;
+constexpr uint8_t SETTING_STATUS_ADJUSTMENT_2010 = 1;
 
 // Read right to left in documentation
 union CAN_228_2010_Byte3Struct{

@@ -11,16 +11,18 @@
 #include "../../Structs/VAN_464.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_464 : public IMessageHandler
+class MessageHandler_464 : public IMessageHandler<MessageHandler_464>
 {
     VanCanAirConditionerSpeedMap* _vanCanAirConditionerSpeedMap;
     public:
+        static constexpr uint32_t MessageId = 0x464;
+
         MessageHandler_464()
         {
             _vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
         }
 
-        BusMessage Generate(CarState* state) override
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x464;
@@ -31,7 +33,7 @@ class MessageHandler_464 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanAirConditioner1Struct);
 

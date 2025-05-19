@@ -9,19 +9,20 @@
 
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_824 : public IMessageHandler
+class MessageHandler_824 : public IMessageHandler<MessageHandler_824>
 {
     ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-    MessageHandler_824(
-        ImmediateSignalCallback immediateSignalCallback
-    )
+        static constexpr uint32_t MessageId = 0x824;
+
+    MessageHandler_824()
     {
-        _immediateSignalCallback = immediateSignalCallback;
     }
 
-    BusMessage Generate(CarState* state) override
+    void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+    BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x824;
@@ -32,7 +33,7 @@ class MessageHandler_824 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = 7;
 

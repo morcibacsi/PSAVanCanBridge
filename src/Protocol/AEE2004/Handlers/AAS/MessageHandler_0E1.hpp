@@ -8,7 +8,7 @@
 #include <cstring>
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0E1 : public IMessageHandler
+class MessageHandler_0E1 : public IMessageHandler<MessageHandler_0E1>
 {
     private:
         BusMessage message
@@ -28,7 +28,9 @@ class MessageHandler_0E1 : public IMessageHandler
         uint8_t GetBeepDirection(uint8_t rearLeftExt, uint8_t rearRightExt, uint8_t rearLeftInt, uint8_t rearRightInt);
         uint8_t GetMinDistance(uint8_t rearLeftExt, uint8_t rearRightExt, uint8_t rearLeftInt, uint8_t rearRightInt, uint8_t *isCorner);
     public:
-        BusMessage Generate(CarState* state) override;
-        void Parse(CarState* carState, const BusMessage& message) override;
+        static constexpr uint32_t MessageId = 0x0E1;
+
+        BusMessage Generate(CarState* state);
+        void Parse(CarState* carState, const BusMessage& message);
 };
 #endif

@@ -10,10 +10,12 @@
 #include "../../Structs/VAN_4DC.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_4DC : public IMessageHandler
+class MessageHandler_4DC : public IMessageHandler<MessageHandler_4DC>
 {
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x4DC;
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x4DC;
@@ -24,7 +26,7 @@ class MessageHandler_4DC : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanAirConditioner2Struct);
 

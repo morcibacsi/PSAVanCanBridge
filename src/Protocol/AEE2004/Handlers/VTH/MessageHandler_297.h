@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_297.h"
 
-class MessageHandler_297 : public IMessageHandler
+class MessageHandler_297 : public IMessageHandler<MessageHandler_297>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_297 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x297;
+
+        BusMessage Generate(CarState* state)
         {
             Can2004_297Byte1 status{};
             status.data.is_active = state->Ignition;
@@ -33,6 +35,10 @@ class MessageHandler_297 : public IMessageHandler
             message.data[1] = state->Speed.asUint16 * 0.01;
 
             return message;
+        }
+
+        void Parse(CarState* state, const BusMessage& msg)
+        {
         }
 };
 #endif

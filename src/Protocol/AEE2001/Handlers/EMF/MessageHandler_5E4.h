@@ -15,7 +15,7 @@ const uint8_t VAN_COMFORT_STATE_IDLE = 0;
 const uint8_t VAN_COMFORT_SEND_ALIVE = 1;
 const uint8_t VAN_COMFORT_SEND_STANDBY = 2;
 
-class MessageHandler_5E4 : public IMessageHandler
+class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
 {
     uint64_t _tripButtonPressedSince = 0;
     uint8_t _prevTripButtonState = 0;
@@ -60,12 +60,14 @@ class MessageHandler_5E4 : public IMessageHandler
     }
 
     public:
-    MessageHandler_5E4(
+        static constexpr uint32_t MessageId = 0x5E4;
+
+        MessageHandler_5E4(
         )
         {
         }
 
-        BusMessage Generate(CarState* state) override
+        BusMessage Generate(CarState* state)
         {
             uint8_t resetTotals = 0;
             uint8_t resetCumulative = 0;
@@ -129,7 +131,7 @@ class MessageHandler_5E4 : public IMessageHandler
             return msg;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
 
         }

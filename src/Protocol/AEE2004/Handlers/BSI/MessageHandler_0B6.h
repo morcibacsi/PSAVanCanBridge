@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_0B6_2004.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0B6 : public IMessageHandler
+class MessageHandler_0B6 : public IMessageHandler<MessageHandler_0B6>
 {
     private:
         BusMessage message
@@ -25,7 +25,9 @@ class MessageHandler_0B6 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0B6;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->Rpm.data.leftByte;
             message.data[1] = state->Rpm.data.rightByte;
@@ -39,7 +41,7 @@ class MessageHandler_0B6 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can0B6Struct tmp;
             //constexpr std::size_t ExpectedPacketSize = sizeof(Can0B6Struct);

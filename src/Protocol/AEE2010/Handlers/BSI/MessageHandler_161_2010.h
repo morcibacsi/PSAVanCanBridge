@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_161_2010.h"
 
-class MessageHandler_161_2010 : public IMessageHandler
+class MessageHandler_161_2010 : public IMessageHandler<MessageHandler_161_2010>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_161_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x161;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_161_2010_Byte5Struct byte5{};
             byte5.data.fuel_tank_capacity_in_liters = state->FUEL_TANK_CAPACITY_IN_LITERS;
@@ -36,6 +38,11 @@ class MessageHandler_161_2010 : public IMessageHandler
             message.data[6] = state->EngineOilLevel;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

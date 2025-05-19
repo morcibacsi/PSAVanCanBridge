@@ -9,7 +9,7 @@
 const uint16_t CAN_217_2010_INTERVAL = 100;
 
 // CANID: 217
-const uint16_t CAN_ID_217 = 0x217;
+const uint16_t CAN_ID_217_2010 = 0x217;
 
 // Read right to left in documentation
 union CAN_217_2010_Byte1Struct {

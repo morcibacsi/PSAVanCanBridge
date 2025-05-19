@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_260_2010.h"
 
-class MessageHandler_260_2010 : public IMessageHandler
+class MessageHandler_260_2010 : public IMessageHandler<MessageHandler_260_2010>
 {
     private:
         BusMessage message
@@ -23,7 +23,9 @@ class MessageHandler_260_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x260;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_260_2010_Byte1Struct byte1{};
             byte1.data.consumption_unit = state->CONSUMPTION_UNIT;
@@ -56,6 +58,11 @@ class MessageHandler_260_2010 : public IMessageHandler
             message.data[7] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

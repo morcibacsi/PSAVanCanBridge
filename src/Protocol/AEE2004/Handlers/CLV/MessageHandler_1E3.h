@@ -9,7 +9,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_1E3.h"
 
-class MessageHandler_1E3 : public IMessageHandler
+class MessageHandler_1E3 : public IMessageHandler<MessageHandler_1E3>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_1E3 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x1E3;
+
+        BusMessage Generate(CarState* state)
         {
             uint8_t fanSpeed = 0x0F;
             CanAirConOnDisplayByte1Struct byte1{};
@@ -59,7 +61,7 @@ class MessageHandler_1E3 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
 
         }

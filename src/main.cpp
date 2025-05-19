@@ -6,7 +6,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
-#include <queue>
 #include <functional>
 
 #include "Protocol/IProtocolHandler.hpp"
@@ -43,13 +42,8 @@ FileSystem* fileSystem;
 ConfigFile* configFile;
 
 TaskHandle_t ReadSourceTask;
-TaskHandle_t ParseSourceTask;
 TaskHandle_t SendToSourceTask;
 TaskHandle_t SendToDestinationTask;
-TaskHandle_t MessageForwarderTask;
-QueueHandle_t sourceMessageQueueLowPrio;
-QueueHandle_t sourceMessageQueueHighPrio;
-QueueHandle_t messageToForwardQueue;
 
 RgbLed* led;
 TimeProvider* timeProvider;
@@ -135,107 +129,35 @@ void ReadSourceFunction(void * parameter)
         if (sourceTransportLayer->ReceiveMessage(message))
         {
             //printf("Received message from source\n");
-            ///*
             if (message.id == 0)
             {
                 continue;
             }
-            //*/
+
 ///*
-            bool destinationCanAcceptMessage = destinationProtocolHandler->CanAcceptMessage(message);
-            if (destinationCanAcceptMessage)
-            //if (true)
-            {
-                // Forward the message directly to the destination
-                xQueueSendToBack(messageToForwardQueue, &message, 0);
-                //destinationProtocolHandler->HandleForwardedMessage(message);
-                continue;
-            }
-//            */
-            processMessage = !crcStore->IsCrcSameAsPrevious(message.id, message.command, message.crc, carState->CurrenTime);
-            if (processMessage)
-            {
-                //printf("Received message from source\n");
-                //led->blink_led();
-                //PrintMessage(message);
-                if (message.priority)
-                {
-                    //printf("Add message to front of the queue, id: %04X \n", (unsigned int)(message.id));
-                    xQueueSendToBack(sourceMessageQueueHighPrio, &message, 0);
-                }
-                else
-                {
-                    //printf("Add message to back of the queue, id: %04X \n", (unsigned int)(message.id));
-                    xQueueSendToBack(sourceMessageQueueLowPrio, &message, 0);
-                }
-            }
-            //printf("Ignition: %d IgnitionMode: %d\r\n", carState->Ignition, carState->IgnitionMode);
-            taskYIELD();
-        }
-
-        //vTaskDelay(pdMS_TO_TICKS(10));
-    } while (1);
-}
-
-void IRAM_ATTR ParseSourceFunction(void * parameter)
-{
-    bool processMessage = true;
-    uint64_t currentMillis = 0;
-    BusMessage message{};
-
-    do
-    {
-        //printf("ParseSourceFunction\n");
-        webServer->Process();
-///*
-        if (xQueueReceive(sourceMessageQueueHighPrio, &message, pdMS_TO_TICKS(10)) == pdPASS ||
-            xQueueReceive(sourceMessageQueueLowPrio, &message, pdMS_TO_TICKS(10)) == pdPASS)
-        {
-            //printf("Received message from queue, id: %03X \n", (unsigned int)(message.id));
-            sourceProtocolHandler->ParseMessage(message);
-        }
-//*/
-//
-/*
-        if ((currentMillis - lastSend) > 100)
-        {
-            led->blink_led();
-
-            lastSend = currentMillis;
-            sourceTransportLayer->SendMessage({0x8A4, {0x0F, 0x07, 0x81, 0x1D, 0xA4 ,0x93, -7 * 2 + 0x50}, {}, false, AEE2001, MessageType::Normal, 0, 0});
-        }
-//*/
-//
-/*
-        carState->CurrenTime = currentMillis;
-
-        if (sourceProtocolHandler->ReceiveMessage(message))
-        {
             bool destinationCanAcceptMessage = destinationProtocolHandler->CanAcceptMessage(message);
             if (destinationCanAcceptMessage)
             //if (true)
             {
                 // Forward the message directly to the destination
                 destinationProtocolHandler->HandleForwardedMessage(message);
+                continue;
             }
-            else
+//            */
+            //processMessage = !crcStore->IsCrcSameAsPrevious(message.id, message.command, message.crc, carState->CurrenTime);
+            processMessage = sourceProtocolHandler->CanParseMessage(message);
+            if (processMessage)
             {
-                if (sourceProtocolHandler->CanParseMessage(message) == false)
-                {
-                    continue;
-                }
-
-                processMessage = !crcStore->IsCrcSameAsPrevious(message.id, message.command, message.crc);
-                if (processMessage)
-                {
-                    PrintMessage(message);
-                    sourceProtocolHandler->ParseMessage(message);
-                }
+                //printf("Received message from source\n");
+                //led->blink_led();
+                //PrintMessage(message);
+                sourceProtocolHandler->ParseMessage(message);
             }
+            //printf("Ignition: %d IgnitionMode: %d\r\n", carState->Ignition, carState->IgnitionMode);
+            taskYIELD();
         }
-//*/
-        //ble->Process();
-        vTaskDelay(pdMS_TO_TICKS(10));
+
+        //vTaskDelay(pdMS_TO_TICKS(10));
     } while (1);
 }
 
@@ -246,6 +168,7 @@ void SendToDestinationFunction(void * parameter)
         //printf("SendToDestinationFunction\n");
         carState->CurrenTime =  millis();
         timeProvider->Process(carState->CurrenTime);
+        webServer->Process();
         //printf("Time: %04d.%02d.%02d %02d:%02d:%02d\n",carState->Year, carState->Month, carState->MDay, carState->Hour, carState->Minute, carState->Second);
         destinationProtocolHandler->GenerateMessages(IProtocolHandler::MessageDirection::Destination);
         destinationProtocolHandler->UpdateMessages(carState->CurrenTime);
@@ -264,24 +187,6 @@ void SendToSourceFunction(void * parameter)
     } while (1);
 }
 
-void MessageForwarderFunction(void * parameter)
-{
-    BusMessage message{};
-
-    do
-    {
-        //printf("MessageForwarderFunction\n");
-        if (xQueueReceive(messageToForwardQueue, &message, pdMS_TO_TICKS(10)) == pdPASS)
-        //if (xQueueReceive(messageToForwardQueue, &message, portMAX_DELAY) == pdPASS)
-        {
-            //printf("Received message from queue, id: %03X \n", (unsigned int)(message.id));
-            destinationProtocolHandler->HandleForwardedMessage(message);
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
-
-    } while (1);
-}
-
 extern "C" void app_main(void)
 {
 
@@ -291,10 +196,6 @@ extern "C" void app_main(void)
     *  has time to monitor any output.
     */
     vTaskDelay(pdMS_TO_TICKS(2000));
-
-    sourceMessageQueueLowPrio = xQueueCreate(32, sizeof(BusMessage));
-    sourceMessageQueueHighPrio = xQueueCreate(32, sizeof(BusMessage));
-    messageToForwardQueue = xQueueCreate(32, sizeof(BusMessage));
 
     carState = new CarState();
 
@@ -465,7 +366,6 @@ extern "C" void app_main(void)
     cpu_config_t ParseSourceTaskConfig       = { .cpu_core = 0, .priority = 3 };
     cpu_config_t SendToSourceTaskConfig      = { .cpu_core = 0, .priority = 2 };
     cpu_config_t SendToDestinationTaskConfig = { .cpu_core = 0, .priority = 4 };
-    cpu_config_t MessageForwarderTaskConfig  = { .cpu_core = 0, .priority = 1 };
 
     xTaskCreatePinnedToCore(
         ReadSourceFunction,             // Function to implement the task
@@ -475,15 +375,6 @@ extern "C" void app_main(void)
         ReadSourceTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &ReadSourceTask,                // Task handle.
         ReadSourceTaskConfig.cpu_core); // Core where the task should run
-
-    xTaskCreatePinnedToCore(
-        ParseSourceFunction,             // Function to implement the task
-        "ParseSource",                   // Name of the task
-        20000,                           // Stack size in words
-        NULL,                            // Task input parameter
-        ParseSourceTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
-        &ParseSourceTask,                // Task handle.
-        ParseSourceTaskConfig.cpu_core); // Core where the task should run
 
     xTaskCreatePinnedToCore(
         SendToSourceFunction,             // Function to implement the task
@@ -502,13 +393,4 @@ extern "C" void app_main(void)
         SendToDestinationTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &SendToDestinationTask,                // Task handle.
         SendToDestinationTaskConfig.cpu_core); // Core where the task should run
-
-      xTaskCreatePinnedToCore(
-        MessageForwarderFunction,             // Function to implement the task
-        "MessageForwarder",                   // Name of the task
-        20000,                                // Stack size in words
-        NULL,                                 // Task input parameter
-        MessageForwarderTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
-        &MessageForwarderTask,                // Task handle.
-        MessageForwarderTaskConfig.cpu_core); // Core where the task should run
 }

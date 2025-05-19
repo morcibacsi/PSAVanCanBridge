@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_0E6_2010.h"
 
-class MessageHandler_0E6_2010 : public IMessageHandler
+class MessageHandler_0E6_2010 : public IMessageHandler<MessageHandler_0E6_2010>
 {
     private:
         BusMessage message
@@ -39,9 +39,11 @@ class MessageHandler_0E6_2010 : public IMessageHandler
         }
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0E6;
+
+        BusMessage Generate(CarState* state)
         {
-            CAN_0E6_Byte1Struct byte1{};
+            CAN_0E6_2010_Byte1Struct byte1{};
             byte1.data.abr_fault = state->ABRFault;
             byte1.data.brake_fluid_level_alert = state->BrakeFluidLevelAlert;
             byte1.data.brake_pads_worn = state->BrakePadsWorn;
@@ -60,6 +62,11 @@ class MessageHandler_0E6_2010 : public IMessageHandler
             message.data[7] = chk_esp(message.data);
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

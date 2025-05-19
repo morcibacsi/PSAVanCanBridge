@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_167.h"
 
-class MessageHandler_167 : public IMessageHandler
+class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
 {
     private:
         BusMessage message
@@ -23,7 +23,9 @@ class MessageHandler_167 : public IMessageHandler
             .isActive = false
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x167;
+
+        BusMessage Generate(CarState* state)
         {
             Can2004_167Byte1 byte1{};
             byte1.data.trip_data_on_odometer = ODOMETER_TRIP_INFO_NOT_MANAGED_BY_EMF;
@@ -46,6 +48,10 @@ class MessageHandler_167 : public IMessageHandler
             //*/
 
             return message;
+        }
+
+        void Parse(CarState* state, const BusMessage& msg)
+        {
         }
 };
 #endif

@@ -9,7 +9,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_168.h"
 
-class MessageHandler_168 : public IMessageHandler
+class MessageHandler_168 : public IMessageHandler<MessageHandler_168>
 {
     private:
         BusMessage message
@@ -26,14 +26,15 @@ class MessageHandler_168 : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_168(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x168;
+
+        MessageHandler_168()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             CanDash3Byte1Struct field1{};
             field1.data.auto_gearbox_alert       = state->CarIndicatorLights.data.gearbox_fault;
@@ -86,7 +87,7 @@ class MessageHandler_168 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CanDash3Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

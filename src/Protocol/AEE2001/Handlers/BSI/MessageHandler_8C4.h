@@ -11,19 +11,20 @@
 #include "../../Structs/VAN_8C4.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_8C4 : public IMessageHandler
+class MessageHandler_8C4 : public IMessageHandler<MessageHandler_8C4>
 {
     FeedbackSignalCallback _feedbackSignalCallback;
 
     public:
-        MessageHandler_8C4(
-            FeedbackSignalCallback feedbackSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x8C4;
+
+        MessageHandler_8C4()
         {
-            _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x8C4;
@@ -34,7 +35,7 @@ class MessageHandler_8C4 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             VanEventByte1Struct eventSource;
             eventSource.asByte = message.data[0];

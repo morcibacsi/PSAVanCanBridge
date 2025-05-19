@@ -8,7 +8,7 @@
 #include "../../Structs/CAN_0F6_2010.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0F6_2010 : public IMessageHandler
+class MessageHandler_0F6_2010 : public IMessageHandler<MessageHandler_0F6_2010>
 {
     private:
         BusMessage message
@@ -22,9 +22,11 @@ class MessageHandler_0F6_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0F6;
+
+        BusMessage Generate(CarState* state)
         {
-            CanDash1Byte1Struct field1{};
+            CanDash1_2010_Byte1Struct field1{};
             field1.data.config_mode = state->TrailerPresent == 1 ? 0 : 2;
 
             field1.data.ignition = 1;
@@ -36,7 +38,7 @@ class MessageHandler_0F6_2010 : public IMessageHandler
             field1.data.engine_status = state->EngineRunning == 1 ? 2 : 0;
             field1.data.generator_status = state->EngineRunning;
 
-            CanDash1Byte8Struct field8{};
+            CanDash1_2010_Byte8Struct field8{};
             field8.data.reverse_gear_light = state->IsReverseEngaged;
             field8.data.wiper_status = state->WiperStatus;
             field8.data.turn_left_light = state->CarSignalLights.data.left_turn_indicator;
@@ -52,6 +54,11 @@ class MessageHandler_0F6_2010 : public IMessageHandler
             message.data[7] = field8.asByte;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

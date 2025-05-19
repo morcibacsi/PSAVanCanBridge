@@ -1,36 +1,5 @@
 #include "AEE2004ComfortBus.hpp"
 
-#include "Handlers/AAS/MessageHandler_0E1.hpp"
-#include "Handlers/BSI/MessageHandler_0B6.h"
-#include "Handlers/BSI/MessageHandler_0E6.h"
-#include "Handlers/BSI/MessageHandler_0E8.h"
-#include "Handlers/BSI/MessageHandler_0F6.h"
-#include "Handlers/BSI/MessageHandler_1A1.h"
-#include "Handlers/BSI/MessageHandler_1A8.h"
-#include "Handlers/BSI/MessageHandler_2A1.h"
-#include "Handlers/BSI/MessageHandler_2B6.h"
-#include "Handlers/BSI/MessageHandler_2E1.h"
-#include "Handlers/BSI/MessageHandler_3A7.h"
-#include "Handlers/BSI/MessageHandler_3B6.h"
-#include "Handlers/BSI/MessageHandler_10B.h"
-#include "Handlers/BSI/MessageHandler_21F.h"
-#include "Handlers/BSI/MessageHandler_036.h"
-#include "Handlers/BSI/MessageHandler_120.h"
-#include "Handlers/BSI/MessageHandler_127.h"
-#include "Handlers/BSI/MessageHandler_128.h"
-#include "Handlers/BSI/MessageHandler_161.h"
-#include "Handlers/BSI/MessageHandler_168.h"
-#include "Handlers/CMB/MessageHandler_217.h"
-#include "Handlers/BSI/MessageHandler_220.h"
-#include "Handlers/BSI/MessageHandler_221.h"
-#include "Handlers/BSI/MessageHandler_227.h"
-#include "Handlers/BSI/MessageHandler_261.h"
-#include "Handlers/BSI/MessageHandler_336.h"
-#include "Handlers/BSI/MessageHandler_361.h"
-#include "Handlers/CLV/MessageHandler_1E3.h"
-#include "Handlers/EMF/MessageHandler_167.h"
-#include "Handlers/VTH/MessageHandler_297.h"
-
 #include <cstring>
 #include <algorithm>
 #include <esp_attr.h>
@@ -50,40 +19,14 @@ void AEE2004ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
 {
     _immediateSignalCallback = immediateSignalCallback;
 
-    _messageHandlers[0x0E1] = new MessageHandler_0E1();
-
-    _messageHandlers[0x0B6] = new MessageHandler_0B6();
-    _messageHandlers[0x0E6] = new MessageHandler_0E6();
-    _messageHandlers[0x0E8] = new MessageHandler_0E8();
-    _messageHandlers[0x0F6] = new MessageHandler_0F6();
-    _messageHandlers[0x1A1] = new MessageHandler_1A1(_immediateSignalCallback);
-    _messageHandlers[0x1A8] = new MessageHandler_1A8(_immediateSignalCallback);
-    _messageHandlers[0x2A1] = new MessageHandler_2A1();
-    _messageHandlers[0x2B6] = new MessageHandler_2B6();
-    _messageHandlers[0x2E1] = new MessageHandler_2E1();
-    _messageHandlers[0x3A7] = new MessageHandler_3A7();
-    _messageHandlers[0x3B6] = new MessageHandler_3B6();
-    _messageHandlers[0x10B] = new MessageHandler_10B();
-    _messageHandlers[0x21F] = new MessageHandler_21F(_immediateSignalCallback);
-    _messageHandlers[0x036] = new MessageHandler_036();
-    _messageHandlers[0x120] = new MessageHandler_120();
-    _messageHandlers[0x127] = new MessageHandler_127();
-    _messageHandlers[0x128] = new MessageHandler_128(_immediateSignalCallback);
-    _messageHandlers[0x161] = new MessageHandler_161();
-    _messageHandlers[0x168] = new MessageHandler_168(_immediateSignalCallback);
-    _messageHandlers[0x220] = new MessageHandler_220(_immediateSignalCallback);
-    _messageHandlers[0x221] = new MessageHandler_221(_immediateSignalCallback);
-    _messageHandlers[0x227] = new MessageHandler_227();
-    _messageHandlers[0x261] = new MessageHandler_261();
-    _messageHandlers[0x336] = new MessageHandler_336();
-    _messageHandlers[0x361] = new MessageHandler_361();
-
-    _messageHandlers[0x1E3] = new MessageHandler_1E3();
-
-    _messageHandlers[0x217] = new MessageHandler_217(_immediateSignalCallback);
-
-    //_messageHandlers[0x167] = new MessageHandler_167();
-    //_messageHandlers[0x297] = new MessageHandler_297();
+    std::get<MessageHandler_1A1>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_1A8>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_21F>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_128>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_168>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_220>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_221>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_217>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 }
 
 bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
@@ -91,25 +34,7 @@ bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
     message.protocol = ProtocolType::AEE2004;
 
     bool result = _transportLayer->ReceiveMessage(message);
-/*
-    if (result)
-    {
-        switch (message.id)
-        {
-            case 0x036:
-            case 0x0F6:
-            case 0x128:
-            case 0x21F:
-            case 0x221:
-                message.priority = 1;
-                break;
 
-            default:
-                message.priority = 0;
-                break;
-        }
-    }
-*/
     return result;
 }
 
@@ -118,18 +43,13 @@ void IRAM_ATTR AEE2004ComfortBus::ParseMessage(const BusMessage& message)
     //search for the message id in the map and if exists call the parse function
     //printf("AEE2004 ParseMessage: %X\n", (unsigned int)message.id);
 
-    if (message.id > MAX_CAN_ID)
+    std::apply([&](auto&... handler)
     {
-        return;
-    }
-
-    auto handler = _messageHandlers[message.id];
-
-    if (handler == nullptr)
-    {
-        return;
-    }
-    handler->Parse(_carState, message);
+        (..., (std::remove_reference_t<decltype(handler)>::MessageId == message.id
+            ? (handler.Parse(_carState, message), void())
+            : void()
+        ));
+    }, handlers);
 }
 
 void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
@@ -144,15 +64,14 @@ void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
 
     if (direction == MessageDirection::Destination)
     {
-        for (IMessageHandler* handler : _messageHandlers)
+        std::apply([&](auto&... handler)
         {
-            if (handler != nullptr)
+            (..., [&]
             {
-                BusMessage message = handler->Generate(_carState);
-                _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
-            }
-        }
-
+                BusMessage msg = handler.Generate(_carState);
+                _scheduler->AddOrUpdateMessage(msg, _carState->CurrenTime);
+            }());
+        }, handlers);
         return;
     }
 
@@ -274,22 +193,25 @@ void AEE2004ComfortBus::SendImmediateMessage(uint32_t id)
 {
     //printf("AEEE2004 SendImmediateMessage: %X\n", (unsigned int)id);
 
-    IMessageHandler* handler = _messageHandlers[id];
-
-    if (handler == nullptr)
-    {
-        return;
-    }
-    BusMessage message = handler->Generate(_carState);
-    _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
-
-    _scheduler->SendImmedateMessage(id, _carState->CurrenTime, *_transportLayer);
+    std::apply([&](auto&... handler) {
+        (..., (std::remove_reference_t<decltype(handler)>::MessageId == id
+            ? (
+                _scheduler->AddOrUpdateMessage(handler.Generate(_carState), _carState->CurrenTime),
+                _scheduler->SendImmedateMessage(id, _carState->CurrenTime, *_transportLayer),
+                void()
+            )
+            : void()));
+    }, handlers);
 }
 
 bool IRAM_ATTR AEE2004ComfortBus::CanParseMessage(const BusMessage& message)
 {
-    auto handler = _messageHandlers[message.id];
-    bool result = handler != nullptr;
-
-    return result;
+    for (uint32_t id : SupportedMessageIds)
+    {
+        if (id == message.id)
+        {
+            return true;
+        }
+    }
+    return false;
 }

@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_21F.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_21F : public IMessageHandler
+class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
 {
     private:
         BusMessage message
@@ -27,14 +27,15 @@ class MessageHandler_21F : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_21F(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x21F;
+
+        MessageHandler_21F()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             CAN_21F_Byte1Struct field1{};
             field1.data.list                   = state->RadioRemote.data.list;
@@ -59,7 +60,7 @@ class MessageHandler_21F : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(CAN_21F_2004_Struct);
 

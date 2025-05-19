@@ -10,7 +10,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_036.h"
 
-class MessageHandler_036 : public IMessageHandler
+class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
 {
     private:
         BusMessage message
@@ -24,17 +24,18 @@ class MessageHandler_036 : public IMessageHandler
             .isActive = true
         };
 
-        //std::function<void(FeedbackSignal)> _feedbackSignalCallback;
+        FeedbackSignalCallback _feedbackSignalCallback;
 
     public:
-        MessageHandler_036(
-            //std::function<void(FeedbackSignal)> feedbackSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x036;
+
+        MessageHandler_036()
         {
-            //_feedbackSignalCallback = std::move(feedbackSignalCallback);
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             CanIgnitionByte3Struct ecoField{};
             ecoField.data.economy_mode_active = state->EconomyMode;
@@ -86,7 +87,7 @@ class MessageHandler_036 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CanIgnitionStruct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
@@ -99,12 +100,10 @@ class MessageHandler_036 : public IMessageHandler
             carState->BlackPanelStatus    = tmp->Brightness.data.black_panel_status;
             carState->IgnitionMode        = tmp->Ignition.data.ignition_mode;
 
-            /*
             if (_feedbackSignalCallback)
             {
                 _feedbackSignalCallback(FeedbackSignal::IgnitionChanged);
             }
-            //*/
         }
 };
 #endif

@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_0E8.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0E8 : public IMessageHandler
+class MessageHandler_0E8 : public IMessageHandler<MessageHandler_0E8>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_0E8 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0E8;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_0E8_Byte1Struct field1{};
             field1.data.key_alert = 0;//TODO check on VAN
@@ -86,7 +88,7 @@ class MessageHandler_0E8 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can0E6Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

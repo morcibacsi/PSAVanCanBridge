@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_227_2004.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_227 : public IMessageHandler
+class MessageHandler_227 : public IMessageHandler<MessageHandler_227>
 {
     private:
         BusMessage message
@@ -25,7 +25,9 @@ class MessageHandler_227 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x227;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_227_2004_Byte1Struct field1{};
 
@@ -58,7 +60,7 @@ class MessageHandler_227 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CAN_227_2004_Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

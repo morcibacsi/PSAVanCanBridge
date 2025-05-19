@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_10B.h"
 
-class MessageHandler_10B : public IMessageHandler
+class MessageHandler_10B : public IMessageHandler<MessageHandler_10B>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_10B : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x10B;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->SteeringAngle.data.leftByte;
             message.data[1] = state->SteeringAngle.data.rightByte;
@@ -33,6 +35,10 @@ class MessageHandler_10B : public IMessageHandler
             message.data[6] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* state, const BusMessage& msg)
+        {
         }
 };
 #endif

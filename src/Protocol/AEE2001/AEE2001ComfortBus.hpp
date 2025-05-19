@@ -10,19 +10,33 @@
 #include "../FeedbackSignal.hpp"
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
+#include "../../Helpers/SupportedMessageHelperTemplate.hpp"
 #include "Handlers/BSI/CanDisplayPopupHandler3.h"
 
-class AEE2001ComfortBus : public IProtocolHandler {
-private:
-    static const int MAX_CAN_ID = 0xAE8 + 1;
+#include "Handlers/BSI/MessageHandler_4FC.h"
+#include "Handlers/BSI/MessageHandler_4DC.h"
+#include "Handlers/BSI/MessageHandler_8A4.h"
+#include "Handlers/BSI/MessageHandler_8C4.h"
+#include "Handlers/BSI/MessageHandler_9C4.h"
+#include "Handlers/BSI/MessageHandler_524.h"
+#include "Handlers/BSI/MessageHandler_564.h"
+#include "Handlers/BSI/MessageHandler_744.h"
+#include "Handlers/BSI/MessageHandler_824.h"
+#include "Handlers/BSI/MessageHandler_A68.h"
+#include "Handlers/BSI/MessageHandler_AE8.h"
+
+#include "Handlers/CLIM/MessageHandler_464.h"
+
+#include "Handlers/EMF/MessageHandler_5E4.h"
+
+class AEE2001ComfortBus : public IProtocolHandler
+{
+    private:
 
     CarState* _carState;  // Car state.
     ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
     MessageScheduler* _schedulerForSourceNetwork;  // Message scheduler injected via constructor.
     CanDisplayPopupHandler3* _canPopupHandler;
-
-    IMessageHandler* _messageHandlers[MAX_CAN_ID]{};
-    IMessageHandler* _messageHandlersForSource[MAX_CAN_ID]{};
 
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;
@@ -34,7 +48,26 @@ private:
     }
 
     void GenerateMessagesForSource();
+
     public:
+    std::tuple<
+        MessageHandler_4FC,
+        MessageHandler_4DC,
+        MessageHandler_8A4,
+        MessageHandler_8C4,
+        MessageHandler_9C4,
+        MessageHandler_524,
+        MessageHandler_5E4,
+        MessageHandler_564,
+        MessageHandler_744,
+        MessageHandler_824,
+        MessageHandler_A68,
+        MessageHandler_AE8,
+        MessageHandler_464
+    > handlers;
+
+    constexpr static auto SupportedMessageIds = ExtractMessageIds<decltype(handlers)>();
+
     AEE2001ComfortBus(
         CarState* carState,
         ITransportLayer* transport,

@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_1A8_2004.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_1A8 : public IMessageHandler
+class MessageHandler_1A8 : public IMessageHandler<MessageHandler_1A8>
 {
     private:
         BusMessage message
@@ -27,14 +27,15 @@ class MessageHandler_1A8 : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_1A8(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x1A8;
+
+        MessageHandler_1A8()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             CAN_1A8_2004_Byte1Struct field1{};
             field1.data.unit_of_speed               = state->CruiseControlSpeedUnit;
@@ -54,7 +55,7 @@ class MessageHandler_1A8 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CAN_1A8_2004Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

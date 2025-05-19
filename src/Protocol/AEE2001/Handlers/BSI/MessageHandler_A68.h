@@ -11,21 +11,22 @@
 #include "../../Structs/VAN_8C4.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_A68 : public IMessageHandler
+class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
 {
     FeedbackSignalCallback _feedbackSignalCallback;
     uint8_t _prevReverseEngaged = 0;
     uint8_t _state = 0;
 
     public:
-        MessageHandler_A68(
-            FeedbackSignalCallback feedbackSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0xA68;
+
+        MessageHandler_A68()
         {
-            _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             if (_prevReverseEngaged == 0 && state->IsReverseEngaged == 1)
             {
@@ -60,7 +61,7 @@ class MessageHandler_A68 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             if (message.dataLength != 2)
             {

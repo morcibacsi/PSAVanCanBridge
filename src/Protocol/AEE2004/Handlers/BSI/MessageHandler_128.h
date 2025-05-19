@@ -9,7 +9,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_128.h"
 
-class MessageHandler_128 : public IMessageHandler
+class MessageHandler_128 : public IMessageHandler<MessageHandler_128>
 {
     private:
         BusMessage message
@@ -26,14 +26,15 @@ class MessageHandler_128 : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_128(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x128;
+
+        MessageHandler_128()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             Can2004CombineLightsByte1 field0{};
             field0.data.fuel_level_low             = state->CarSignalLights.data.fuel_level_low;
@@ -91,7 +92,7 @@ class MessageHandler_128 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CMB2004_128Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

@@ -11,21 +11,22 @@
 #include "../../../IMessageHandler.hpp"
 #include "VanCanGearboxPositionMap.h"
 
-class MessageHandler_4FC : public IMessageHandler
+class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
 {
     VanCanGearboxPositionMap* _vanCanGearboxPositionMap;
     ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_4FC(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x4FC;
+
+        MessageHandler_4FC()
         {
             _vanCanGearboxPositionMap = new VanCanGearboxPositionMap();
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x4FC;
@@ -36,7 +37,7 @@ class MessageHandler_4FC : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanInstrumentClusterV2Structs);
 

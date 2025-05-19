@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_168_2010.h"
 
-class MessageHandler_168_2010 : public IMessageHandler
+class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_168_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x168;
+
+        BusMessage Generate(CarState* state)
         {
             CanDash3Byte1_2010_Struct field1{};
             field1.data.coolant_temp_max = state->CarIndicatorLights.data.coolant_temp_max;
@@ -109,6 +111,11 @@ class MessageHandler_168_2010 : public IMessageHandler
             message.data[6] = field7.asByte;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

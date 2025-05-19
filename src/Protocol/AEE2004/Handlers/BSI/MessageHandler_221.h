@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_221_2004.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_221 : public IMessageHandler
+class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
 {
     private:
         BusMessage message
@@ -28,14 +28,15 @@ class MessageHandler_221 : public IMessageHandler
         ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_221(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x221;
+
+        MessageHandler_221()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             CAN_221_2004_Byte1Struct field1{};
             field1.data.left_stick_button_pushed  = state->LeftStickButtonPushed;
@@ -58,7 +59,7 @@ class MessageHandler_221 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //CAN_221_2004_Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

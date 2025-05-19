@@ -7,7 +7,7 @@
 #include <memory>
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_1A8_2010 : public IMessageHandler
+class MessageHandler_1A8_2010 : public IMessageHandler<MessageHandler_1A8_2010>
 {
     private:
         BusMessage message
@@ -21,7 +21,9 @@ class MessageHandler_1A8_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x1A8;
+
+        BusMessage Generate(CarState* state)
         {
             uint8_t field1 = 0x00;
             if (state->CruiseControlActivateFunction)
@@ -42,6 +44,11 @@ class MessageHandler_1A8_2010 : public IMessageHandler
             message.data[7] = state->TripOnCMB.data.rightByte;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

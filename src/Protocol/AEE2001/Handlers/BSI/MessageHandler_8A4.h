@@ -11,25 +11,24 @@
 #include "../../../IMessageHandler.hpp"
 #include "CanDisplayPopupHandler3.h"
 
-class MessageHandler_8A4 : public IMessageHandler
+class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
 {
     CanDisplayPopupHandler3* _canPopupHandler;
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;
 
     public:
-        MessageHandler_8A4(
-            CanDisplayPopupHandler3* canPopupHandler,
-            ImmediateSignalCallback immediateSignalCallback,
-            FeedbackSignalCallback feedbackSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x8A4;
+
+        MessageHandler_8A4()
         {
-            _canPopupHandler = canPopupHandler;
-            _immediateSignalCallback = immediateSignalCallback;
-            _feedbackSignalCallback = feedbackSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
+        void SetCanDisplayPopupHandler(CanDisplayPopupHandler3* canPopupHandler) { _canPopupHandler = canPopupHandler; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x8A4;
@@ -40,7 +39,7 @@ class MessageHandler_8A4 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanDashboardStructs);
 

@@ -9,7 +9,7 @@
 
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_1A1 : public IMessageHandler
+class MessageHandler_1A1 : public IMessageHandler<MessageHandler_1A1>
 {
     private:
         BusMessage message
@@ -25,14 +25,15 @@ class MessageHandler_1A1 : public IMessageHandler
 
         ImmediateSignalCallback _immediateSignalCallback;
     public:
-        MessageHandler_1A1(
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x1A1;
+
+        MessageHandler_1A1()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->DisplayMessage.data.Field1;
             message.data[1] = state->DisplayMessage.data.Field2;
@@ -46,7 +47,7 @@ class MessageHandler_1A1 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             if (message.dataLength < 8)
             {

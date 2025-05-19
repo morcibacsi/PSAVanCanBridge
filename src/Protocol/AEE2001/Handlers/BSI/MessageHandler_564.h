@@ -10,22 +10,22 @@
 #include "../../Structs/VAN_564.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_564 : public IMessageHandler
+class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
 {
     CanDisplayPopupHandler3* _canPopupHandler;
     ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_564(
-            CanDisplayPopupHandler3* canPopupHandler,
-            ImmediateSignalCallback immediateSignalCallback
-        )
+        static constexpr uint32_t MessageId = 0x564;
+
+        MessageHandler_564()
         {
-            _immediateSignalCallback = immediateSignalCallback;
-            _canPopupHandler = canPopupHandler;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+        void SetCanDisplayPopupHandler(CanDisplayPopupHandler3* canPopupHandler) { _canPopupHandler = canPopupHandler; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x564;
@@ -36,7 +36,7 @@ class MessageHandler_564 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanCarStatusWithTripComputerStruct);
             //printf("MessageHandler_564::Parse\n");

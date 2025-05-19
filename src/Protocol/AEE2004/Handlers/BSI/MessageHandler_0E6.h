@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_0E6.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0E6 : public IMessageHandler
+class MessageHandler_0E6 : public IMessageHandler<MessageHandler_0E6>
 {
     private:
         BusMessage message
@@ -25,7 +25,9 @@ class MessageHandler_0E6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0E6;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[1] = state->RearLeftWheelCounter.data.leftByte;
             message.data[2] = state->RearLeftWheelCounter.data.rightByte;
@@ -35,7 +37,7 @@ class MessageHandler_0E6 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can0E6Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

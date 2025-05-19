@@ -11,17 +11,20 @@
 #include "../../../AEE2004/Structs/CAN_10B.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_9C4 : public IMessageHandler
+class MessageHandler_9C4 : public IMessageHandler<MessageHandler_9C4>
 {
     ImmediateSignalCallback _immediateSignalCallback;
 
     public:
-        MessageHandler_9C4(ImmediateSignalCallback immediateSignalCallback)
+        static constexpr uint32_t MessageId = 0x9C4;
+
+        MessageHandler_9C4()
         {
-            _immediateSignalCallback = immediateSignalCallback;
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x9C4;
@@ -32,7 +35,7 @@ class MessageHandler_9C4 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanRadioRemoteStruct);
 

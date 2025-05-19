@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_2E1_2010.h"
 
-class MessageHandler_2E1_2010 : public IMessageHandler
+class MessageHandler_2E1_2010 : public IMessageHandler<MessageHandler_2E1_2010>
 {
     private:
         BusMessage message
@@ -22,19 +22,21 @@ class MessageHandler_2E1_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x2E1;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_2E1_2010_Byte1Struct field1{};
-            field1.data.automatic_door_locking_status = state->DeadlockActive ? AUTO_DOOR_LOCKING_STATUS_ACTIVATED : AUTO_DOOR_LOCKING_STATUS_NOT_ACTIVATED;
-            field1.data.auto_headlight_status = state->AutoHeadlampActive ? AUTO_HEADLIGHT_STATUS_ACTIVATED : AUTO_HEADLIGHT_STATUS_NOT_ACTIVATED;
-            field1.data.passenger_airbag_status = state->PassengerAirbag ? PASSENGER_AIRBAG_STATUS_NOT_ACTIVATED : PASSENGER_AIRBAG_STATUS_ACTIVATED;
+            field1.data.automatic_door_locking_status = state->DeadlockActive ? AUTO_DOOR_LOCKING_STATUS_ACTIVATED_2010 : AUTO_DOOR_LOCKING_STATUS_NOT_ACTIVATED_2010;
+            field1.data.auto_headlight_status = state->AutoHeadlampActive ? AUTO_HEADLIGHT_STATUS_ACTIVATED_2010 : AUTO_HEADLIGHT_STATUS_NOT_ACTIVATED_2010;
+            field1.data.passenger_airbag_status = state->PassengerAirbag ? PASSENGER_AIRBAG_STATUS_NOT_ACTIVATED_2010 : PASSENGER_AIRBAG_STATUS_ACTIVATED_2010;
 
             CAN_2E1_2010_Byte2Struct field2{};
-            field2.data.auto_wiper_status = state->AutoWipingActive ? AUTO_WIPER_STATUS_ACTIVATED : AUTO_WIPER_STATUS_NOT_ACTIVATED;
-            field2.data.esp_status = state->EspDeactivated ? ESP_STATUS_NOT_ACTIVATED : ESP_STATUS_ACTIVATED;
+            field2.data.auto_wiper_status = state->AutoWipingActive ? AUTO_WIPER_STATUS_ACTIVATED_2010 : AUTO_WIPER_STATUS_NOT_ACTIVATED_2010;
+            field2.data.esp_status = state->EspDeactivated ? ESP_STATUS_NOT_ACTIVATED_2010 : ESP_STATUS_ACTIVATED_2010;
 
             CAN_2E1_2010_Byte3Struct field3{};
-            field3.data.child_safety_status = state->PassengerAirbag ? CHILD_SAFETY_STATUS_ACTIVATED : CHILD_SAFETY_STATUS_NOT_ACTIVATED;
+            field3.data.child_safety_status = state->PassengerAirbag ? CHILD_SAFETY_STATUS_ACTIVATED_2010 : CHILD_SAFETY_STATUS_NOT_ACTIVATED_2010;
 
             message.data[0] = field1.asByte;
             message.data[1] = field2.asByte;
@@ -44,6 +46,11 @@ class MessageHandler_2E1_2010 : public IMessageHandler
             message.data[5] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

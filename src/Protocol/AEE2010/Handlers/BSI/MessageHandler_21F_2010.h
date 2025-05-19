@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_21F_2010.h"
 
-class MessageHandler_21F_2010 : public IMessageHandler
+class MessageHandler_21F_2010 : public IMessageHandler<MessageHandler_21F_2010>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_21F_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x21F;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_21F_2010_Byte1Struct field1{};
             field1.data.list                   = state->RadioRemote.data.list;
@@ -52,6 +54,11 @@ class MessageHandler_21F_2010 : public IMessageHandler
             message.data[2] = field3.asByte;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

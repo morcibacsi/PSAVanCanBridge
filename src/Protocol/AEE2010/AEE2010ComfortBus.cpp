@@ -3,36 +3,6 @@
 
 #include "AEE2010ComfortBus.hpp"
 
-#include "Handlers/BSI/MessageHandler_0B6_2010.h"
-#include "Handlers/BSI/MessageHandler_0E6_2010.h"
-#include "Handlers/BSI/MessageHandler_0F6_2010.h"
-#include "Handlers/BSI/MessageHandler_1A1_2010.h"
-#include "Handlers/BSI/MessageHandler_1A8_2010.h"
-#include "Handlers/BSI/MessageHandler_2B6_2010.h"
-#include "Handlers/BSI/MessageHandler_2E1_2010.h"
-#include "Handlers/BSI/MessageHandler_3B6_2010.h"
-#include "Handlers/BSI/MessageHandler_3E7_2010.h"
-#include "Handlers/BSI/MessageHandler_10B_2010.h"
-#include "Handlers/BSI/MessageHandler_21F_2010.h"
-#include "Handlers/BSI/MessageHandler_036_2010.h"
-#include "Handlers/BSI/MessageHandler_120_2010.h"
-#include "Handlers/BSI/MessageHandler_128_2010.h"
-#include "Handlers/BSI/MessageHandler_161_2010.h"
-#include "Handlers/BSI/MessageHandler_168_2010.h"
-#include "Handlers/BSI/MessageHandler_2A1_2010.h"
-#include "Handlers/BSI/MessageHandler_221_2010.h"
-#include "Handlers/BSI/MessageHandler_227_2010.h"
-#include "Handlers/BSI/MessageHandler_228_2010.h"
-#include "Handlers/BSI/MessageHandler_236_2010.h"
-#include "Handlers/BSI/MessageHandler_260_2010.h"
-#include "Handlers/BSI/MessageHandler_261_2010.h"
-#include "Handlers/BSI/MessageHandler_276_2010.h"
-#include "Handlers/BSI/MessageHandler_336_2010.h"
-#include "Handlers/BSI/MessageHandler_361_2010.h"
-
-#include "Handlers/CMB/MessageHandler_122_2010.h"
-#include "Handlers/CMB/MessageHandler_217_2010.h"
-
 AEE2010ComfortBus::AEE2010ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
@@ -60,36 +30,6 @@ AEE2010ComfortBus::AEE2010ComfortBus(
 void AEE2010ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
     _immediateSignalCallback = immediateSignalCallback;
-
-    _messageHandlers[0x0B6] = new MessageHandler_0B6_2010();
-    _messageHandlers[0x0E6] = new MessageHandler_0E6_2010();
-    _messageHandlers[0x0F6] = new MessageHandler_0F6_2010();
-    _messageHandlers[0x1A1] = new MessageHandler_1A1_2010();
-    _messageHandlers[0x1A8] = new MessageHandler_1A8_2010();
-    _messageHandlers[0x2A1] = new MessageHandler_2A1_2010();//
-    _messageHandlers[0x2B6] = new MessageHandler_2B6_2010();//vin
-    _messageHandlers[0x2E1] = new MessageHandler_2E1_2010();//
-    _messageHandlers[0x3B6] = new MessageHandler_3B6_2010();//vin
-    _messageHandlers[0x3E7] = new MessageHandler_3E7_2010();
-    _messageHandlers[0x10B] = new MessageHandler_10B_2010();
-    _messageHandlers[0x21F] = new MessageHandler_21F_2010();
-    _messageHandlers[0x036] = new MessageHandler_036_2010();
-    _messageHandlers[0x120] = new MessageHandler_120_2010();
-    _messageHandlers[0x128] = new MessageHandler_128_2010();
-    _messageHandlers[0x161] = new MessageHandler_161_2010();
-    _messageHandlers[0x168] = new MessageHandler_168_2010();
-    _messageHandlers[0x221] = new MessageHandler_221_2010();
-    _messageHandlers[0x227] = new MessageHandler_227_2010();
-    _messageHandlers[0x228] = new MessageHandler_228_2010();
-    _messageHandlers[0x236] = new MessageHandler_236_2010();
-    _messageHandlers[0x260] = new MessageHandler_260_2010();
-    _messageHandlers[0x261] = new MessageHandler_261_2010();
-    _messageHandlers[0x276] = new MessageHandler_276_2010();
-    _messageHandlers[0x336] = new MessageHandler_336_2010();
-    _messageHandlers[0x361] = new MessageHandler_361_2010();
-
-    _messageHandlers[0x122] = new MessageHandler_122_2010();
-    _messageHandlers[0x217] = new MessageHandler_217_2010();
 }
 
 bool AEE2010ComfortBus::ReceiveMessage(BusMessage& message)
@@ -100,35 +40,25 @@ bool AEE2010ComfortBus::ReceiveMessage(BusMessage& message)
 
 void AEE2010ComfortBus::ParseMessage(const BusMessage& message)
 {
-    if (message.id > MAX_CAN_ID)
+    std::apply([&](auto&... handler)
     {
-        return;
-    }
-
-    auto handler = _messageHandlers[message.id];
-
-    if (handler == nullptr)
-    {
-        return;
-    }
-    handler->Parse(_carState, message);
+        (..., (std::remove_reference_t<decltype(handler)>::MessageId == message.id
+            ? (handler.Parse(_carState, message), void())
+            : void()
+        ));
+    }, handlers);
 }
 
 void AEE2010ComfortBus::GenerateMessages(MessageDirection direction)
 {
-    if (direction == MessageDirection::Destination)
+    std::apply([&](auto&... handler)
     {
-        for (IMessageHandler* handler : _messageHandlers)
-        {
-            if (handler != nullptr)
+        (..., [&]
             {
-                BusMessage message = handler->Generate(_carState);
-                _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
-            }
-        }
-
-        return;
-    }
+                BusMessage msg = handler.Generate(_carState);
+                _scheduler->AddOrUpdateMessage(msg, _carState->CurrenTime);
+            }());
+    }, handlers);
 }
 
 void AEE2010ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
@@ -260,28 +190,25 @@ void AEE2010ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
 void AEE2010ComfortBus::SendImmediateMessage(uint32_t id)
 {
     //printf("AEEE2004 SendImmediateMessage: %X\n", (unsigned int)id);
-
-    IMessageHandler* handler = _messageHandlers[id];
-
-    if (handler == nullptr)
-    {
-        return;
-    }
-    BusMessage message = handler->Generate(_carState);
-    _scheduler->AddOrUpdateMessage(message, _carState->CurrenTime);
-
-    _scheduler->SendImmedateMessage(id, _carState->CurrenTime, *_transportLayer);
+    std::apply([&](auto&... handler) {
+        (..., (std::remove_reference_t<decltype(handler)>::MessageId == id
+            ? (
+                _scheduler->AddOrUpdateMessage(handler.Generate(_carState), _carState->CurrenTime),
+                _scheduler->SendImmedateMessage(id, _carState->CurrenTime, *_transportLayer),
+                void()
+            )
+            : void()));
+    }, handlers);
 }
 
 bool AEE2010ComfortBus::CanParseMessage(const BusMessage& message)
 {
-    if (message.id > MAX_CAN_ID)
+    for (uint32_t id : SupportedMessageIds)
     {
-        return false;
+        if (id == message.id)
+        {
+            return true;
+        }
     }
-
-    auto handler = _messageHandlers[message.id];
-    bool result = handler != nullptr;
-
-    return result;
+    return false;
 }

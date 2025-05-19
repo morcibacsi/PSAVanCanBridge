@@ -5,11 +5,15 @@
 #include "BusMessage.hpp"
 #include "../Helpers/CarState.hpp"
 
+template<typename Derived>
 class IMessageHandler {
 public:
-    virtual ~IMessageHandler() = default;
-
     // Generates a specific message based on the car state
-    virtual BusMessage Generate(CarState* state) = 0;
-    virtual void Parse(CarState* state, const BusMessage& message) { };
+    inline BusMessage CallGenerate(CarState* state) {
+        return static_cast<Derived*>(this)->Generate(state);
+    }
+
+    inline void CallParse(CarState* state, const BusMessage& msg) {
+        static_cast<Derived*>(this)->Parse(state, msg);
+    }
 };

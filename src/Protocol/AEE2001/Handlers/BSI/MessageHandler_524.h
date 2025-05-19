@@ -15,7 +15,7 @@
 #include "CanDisplayPopupHandler3.h"
 #include "VanCanDisplayPopupMap.h"
 
-class MessageHandler_524 : public IMessageHandler
+class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
 {
     CanDisplayPopupHandler3* _canPopupHandler;
     VanCanDisplayPopupMap* _popupMapping;
@@ -248,13 +248,16 @@ class MessageHandler_524 : public IMessageHandler
     }
 
     public:
-        MessageHandler_524(CanDisplayPopupHandler3* canPopupHandler)
+        static constexpr uint32_t MessageId = 0x524;
+
+        MessageHandler_524()
         {
-            _canPopupHandler = canPopupHandler;
             _popupMapping = new VanCanDisplayPopupMap();
         }
 
-        BusMessage Generate(CarState* state) override
+        void SetCanDisplayPopupHandler(CanDisplayPopupHandler3* canPopupHandler) { _canPopupHandler = canPopupHandler; }
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x524;
@@ -265,7 +268,7 @@ class MessageHandler_524 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanDisplayV2Struct);
 

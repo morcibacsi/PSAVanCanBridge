@@ -10,7 +10,7 @@
 /*
     Cruise control related data
 */
-class MessageHandler_122_2010 : public IMessageHandler
+class MessageHandler_122_2010 : public IMessageHandler<MessageHandler_122_2010>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_122_2010 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x122;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = 0x00;
             message.data[1] = 0x00;
@@ -36,6 +38,11 @@ class MessageHandler_122_2010 : public IMessageHandler
             message.data[7] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif

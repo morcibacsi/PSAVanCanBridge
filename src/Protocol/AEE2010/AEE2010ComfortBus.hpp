@@ -10,16 +10,44 @@
 #include "../FeedbackSignal.hpp"
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
+#include "../../Helpers/SupportedMessageHelperTemplate.hpp"
 
+#include "Handlers/BSI/MessageHandler_0B6_2010.h"
+#include "Handlers/BSI/MessageHandler_0E6_2010.h"
+#include "Handlers/BSI/MessageHandler_0F6_2010.h"
+#include "Handlers/BSI/MessageHandler_1A1_2010.h"
+#include "Handlers/BSI/MessageHandler_1A8_2010.h"
+#include "Handlers/BSI/MessageHandler_2B6_2010.h"
+#include "Handlers/BSI/MessageHandler_2E1_2010.h"
+#include "Handlers/BSI/MessageHandler_3B6_2010.h"
+#include "Handlers/BSI/MessageHandler_3E7_2010.h"
+#include "Handlers/BSI/MessageHandler_10B_2010.h"
+#include "Handlers/BSI/MessageHandler_21F_2010.h"
+#include "Handlers/BSI/MessageHandler_036_2010.h"
+#include "Handlers/BSI/MessageHandler_120_2010.h"
+#include "Handlers/BSI/MessageHandler_128_2010.h"
+#include "Handlers/BSI/MessageHandler_161_2010.h"
+#include "Handlers/BSI/MessageHandler_168_2010.h"
+#include "Handlers/BSI/MessageHandler_2A1_2010.h"
+#include "Handlers/BSI/MessageHandler_221_2010.h"
+#include "Handlers/BSI/MessageHandler_227_2010.h"
+#include "Handlers/BSI/MessageHandler_228_2010.h"
+#include "Handlers/BSI/MessageHandler_236_2010.h"
+#include "Handlers/BSI/MessageHandler_260_2010.h"
+#include "Handlers/BSI/MessageHandler_261_2010.h"
+#include "Handlers/BSI/MessageHandler_276_2010.h"
+#include "Handlers/BSI/MessageHandler_336_2010.h"
+#include "Handlers/BSI/MessageHandler_361_2010.h"
+
+#include "Handlers/CMB/MessageHandler_122_2010.h"
+#include "Handlers/CMB/MessageHandler_217_2010.h"
 class AEE2010ComfortBus : public IProtocolHandler
 {
     private:
-    static const int MAX_CAN_ID = 0x3E7 + 1;
 
     CarState* _carState;  // Car state.
     ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
     MessageScheduler* _scheduler;  // Message scheduler injected via constructor.
-    IMessageHandler* _messageHandlers[MAX_CAN_ID]{};
     std::vector<uint32_t> _messagesToSkip;
     std::vector<uint32_t> _messagesToForward;
 
@@ -28,6 +56,39 @@ class AEE2010ComfortBus : public IProtocolHandler
     void SendImmediateMessage(uint32_t id);
 
     public:
+    std::tuple<
+        MessageHandler_0B6_2010,
+        MessageHandler_0E6_2010,
+        MessageHandler_0F6_2010,
+        MessageHandler_1A1_2010,
+        MessageHandler_1A8_2010,
+        MessageHandler_2B6_2010,
+        MessageHandler_2E1_2010,
+        MessageHandler_3B6_2010,
+        MessageHandler_3E7_2010,
+        MessageHandler_10B_2010,
+        MessageHandler_21F_2010,
+        MessageHandler_036_2010,
+        MessageHandler_120_2010,
+        MessageHandler_128_2010,
+        MessageHandler_161_2010,
+        MessageHandler_168_2010,
+        MessageHandler_2A1_2010,
+        MessageHandler_221_2010,
+        MessageHandler_227_2010,
+        MessageHandler_228_2010,
+        MessageHandler_236_2010,
+        MessageHandler_260_2010,
+        MessageHandler_261_2010,
+        MessageHandler_276_2010,
+        MessageHandler_336_2010,
+        MessageHandler_361_2010,
+        MessageHandler_122_2010,
+        MessageHandler_217_2010
+    > handlers;
+
+    constexpr static auto SupportedMessageIds = ExtractMessageIds<decltype(handlers)>();
+
     AEE2010ComfortBus(
         CarState* carState,
         ITransportLayer* transport,

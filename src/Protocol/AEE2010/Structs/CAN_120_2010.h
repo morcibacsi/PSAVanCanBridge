@@ -9,22 +9,22 @@
 const uint16_t CAN2010_ID_120 = 0x120;
 const uint8_t CAN2010_ID_120_LEN = 8;
 
-const uint8_t MENU_NOT_AVAILABLE_AND_ACTIVATION_IMPOSSIBLE = 0;
-const uint8_t MENU_NOT_AVAILABLE_ACTIVATION_POSSIBLE       = 1;
-const uint8_t MENU_AVAILABLE_AND_ACTIVATION_IMPOSSIBLE     = 2;
-const uint8_t MENU_AVAILABLE_AND_ACTIVATION_POSSIBLE       = 3;
+const uint8_t MENU_NOT_AVAILABLE_AND_ACTIVATION_IMPOSSIBLE_2010 = 0;
+const uint8_t MENU_NOT_AVAILABLE_ACTIVATION_POSSIBLE_2010       = 1;
+const uint8_t MENU_AVAILABLE_AND_ACTIVATION_IMPOSSIBLE_2010     = 2;
+const uint8_t MENU_AVAILABLE_AND_ACTIVATION_POSSIBLE_2010       = 3;
 
-const uint8_t TOTAL_BLOCK_NUMBER_INVALID = 0;
-const uint8_t TOTAL_BLOCK_NUMBER_1       = 1;
-const uint8_t TOTAL_BLOCK_NUMBER_2       = 2;
-const uint8_t TOTAL_BLOCK_NUMBER_3       = 3;
+const uint8_t TOTAL_BLOCK_NUMBER_INVALID_2010 = 0;
+const uint8_t TOTAL_BLOCK_NUMBER_1_2010       = 1;
+const uint8_t TOTAL_BLOCK_NUMBER_2_2010       = 2;
+const uint8_t TOTAL_BLOCK_NUMBER_3_2010       = 3;
 
-const uint8_t BLOCK_NUMBER_INVALID = 0;
-const uint8_t BLOCK_NUMBER_1       = 1;
-const uint8_t BLOCK_NUMBER_2       = 2;
-const uint8_t BLOCK_NUMBER_3       = 3;
+const uint8_t BLOCK_NUMBER_INVALID_2010 = 0;
+const uint8_t BLOCK_NUMBER_1_2010       = 1;
+const uint8_t BLOCK_NUMBER_2_2010       = 2;
+const uint8_t BLOCK_NUMBER_3_2010       = 3;
 
-union CAN_120_2004_Byte1Struct {
+union CAN_120_2010_Byte1Struct {
     struct {
         uint8_t                        : 2; // bit 0-1
         uint8_t menu_available         : 2; // bit 2-3
@@ -35,7 +35,7 @@ union CAN_120_2004_Byte1Struct {
 };
 
 // Read right to left in documentation
-union CAN_120_2004_Byte2Struct {
+union CAN_120_2010_Byte2Struct {
     struct
     {
         uint8_t unknown0                    : 1; // bit 0
@@ -50,7 +50,7 @@ union CAN_120_2004_Byte2Struct {
     uint8_t asByte;
 };
 
-union CAN_120_2004_Byte3Struct {
+union CAN_120_2010_Byte3Struct {
     struct
     {
         uint8_t unknown0                    : 1; // bit 0
@@ -65,7 +65,7 @@ union CAN_120_2004_Byte3Struct {
     uint8_t asByte;
 };
 
-union CAN_120_2004_Byte4Struct {
+union CAN_120_2010_Byte4Struct {
     struct
     {
         uint8_t unknown0                 : 1; // bit 0
@@ -80,7 +80,7 @@ union CAN_120_2004_Byte4Struct {
     uint8_t asByte;
 };
 
-union CAN_120_2004_Byte5Struct {
+union CAN_120_2010_Byte5Struct {
     struct
     {
         uint8_t unknown0                 : 1; // bit 0
@@ -95,7 +95,7 @@ union CAN_120_2004_Byte5Struct {
     uint8_t asByte;
 };
 
-union CAN_120_2004_Byte6Struct {
+union CAN_120_2010_Byte6Struct {
     struct
     {
         uint8_t RearLHTyreNotMonitored  : 1; // bit 0
@@ -110,7 +110,7 @@ union CAN_120_2004_Byte6Struct {
     uint8_t asByte;
 };
 
-union CAN_120_2004_Byte7Struct {
+union CAN_120_2010_Byte7Struct {
     struct
     {
         uint8_t unknown0                  : 1; // bit 0
@@ -126,8 +126,8 @@ union CAN_120_2004_Byte7Struct {
 };
 
 
-struct CMB2004_120Struct {
-    CAN_120_2004_Byte1Struct Status;
+struct CMB2010_120Struct {
+    CAN_120_2010_Byte1Struct Status;
     uint8_t Field2;
     uint8_t Field3;
     uint8_t Field4;
@@ -137,8 +137,8 @@ struct CMB2004_120Struct {
     uint8_t Field8;
 };
 
-union CMB2004_120Packet {
-    CMB2004_120Struct data;
-    uint8_t CMB2004_120Packet[sizeof(CMB2004_120Struct)];
+union CMB2010_120Packet {
+    CMB2010_120Struct data;
+    uint8_t CMB2004_120Packet[sizeof(CMB2010_120Struct)];
 };
 #endif

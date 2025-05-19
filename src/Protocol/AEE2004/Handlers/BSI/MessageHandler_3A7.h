@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_3A7.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_3A7 : public IMessageHandler
+class MessageHandler_3A7 : public IMessageHandler<MessageHandler_3A7>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_3A7 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x3A7;
+
+        BusMessage Generate(CarState* state)
         {
             Can3A7Byte1Struct field1{};
             field1.data.maintenance_due = state->IsMaintenanceDue;
@@ -50,7 +52,7 @@ class MessageHandler_3A7 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can3A7Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));

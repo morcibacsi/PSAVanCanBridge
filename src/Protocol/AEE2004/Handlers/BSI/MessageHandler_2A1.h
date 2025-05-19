@@ -9,7 +9,7 @@
 
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_2A1 : public IMessageHandler
+class MessageHandler_2A1 : public IMessageHandler<MessageHandler_2A1>
 {
     private:
         BusMessage message
@@ -23,7 +23,9 @@ class MessageHandler_2A1 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x2A1;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->Trip1Speed;
             message.data[1] = state->Trip1Distance.data.leftByte;
@@ -36,7 +38,7 @@ class MessageHandler_2A1 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             if (message.dataLength < 7)
             {

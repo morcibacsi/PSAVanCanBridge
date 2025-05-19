@@ -11,10 +11,12 @@
 #include "../../../AEE2004/Structs/CAN_10B.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_744 : public IMessageHandler
+class MessageHandler_744 : public IMessageHandler<MessageHandler_744>
 {
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x744;
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0x744;
@@ -25,7 +27,7 @@ class MessageHandler_744 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             constexpr std::size_t ExpectedPacketSize = sizeof(VanRearWheelDataStructs);
 

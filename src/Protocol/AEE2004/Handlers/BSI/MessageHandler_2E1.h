@@ -8,7 +8,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_2E1_2004.h"
 
-class MessageHandler_2E1 : public IMessageHandler
+class MessageHandler_2E1 : public IMessageHandler<MessageHandler_2E1>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_2E1 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x2E1;
+
+        BusMessage Generate(CarState* state)
         {
             CAN_2E1_2004_Byte1Struct field1{};
             field1.data.automatic_door_locking_status = state->DeadlockActive ? AUTO_DOOR_LOCKING_STATUS_ACTIVATED : AUTO_DOOR_LOCKING_STATUS_NOT_ACTIVATED;
@@ -43,6 +45,10 @@ class MessageHandler_2E1 : public IMessageHandler
             message.data[4] = 0x00;
 
             return message;
+        }
+
+        void Parse(CarState* state, const BusMessage& msg)
+        {
         }
 };
 #endif

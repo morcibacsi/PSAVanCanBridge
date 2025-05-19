@@ -10,7 +10,7 @@
 #include "../../Structs/CAN_0F6.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0F6 : public IMessageHandler
+class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
 {
     private:
         BusMessage message
@@ -24,7 +24,9 @@ class MessageHandler_0F6 : public IMessageHandler
             .isActive = true
         };
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0F6;
+
+        BusMessage Generate(CarState* state)
         {
             //TODO copied from AEE2010
             CanDash1Byte1Struct field1{};
@@ -70,7 +72,7 @@ class MessageHandler_0F6 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             //Can0F6Dash1Struct tmp;
             //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
@@ -80,9 +82,10 @@ class MessageHandler_0F6 : public IMessageHandler
             carState->ExternalTemperature = tmp->ExternalTemperature;
             carState->CoolantTemperature  = tmp->CoolantTemperature;
             //TODO check if this is correct
-            carState->EngineRunning      = tmp->IgnitionField.data.engine_status;
+            carState->EngineStatus       = tmp->IgnitionField.data.engine_status;
+            carState->EngineRunning      = tmp->IgnitionField.data.engine_status == 2;
             carState->TrailerPresent     = tmp->IgnitionField.data.config_mode == 0 ? 1 : 0;
-            carState->Ignition = tmp->IgnitionField.data.ignition;
+            carState->Ignition           = tmp->IgnitionField.data.ignition;
 
             carState->IsReverseEngaged                          = tmp->LightsStatus.data.reverse_gear_light;
             carState->WiperStatus                               = tmp->LightsStatus.data.wiper_status;

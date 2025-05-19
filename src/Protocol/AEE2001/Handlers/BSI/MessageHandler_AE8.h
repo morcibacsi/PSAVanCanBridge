@@ -10,10 +10,12 @@
 #include "../../Structs/VAN_8A4.h"
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_AE8 : public IMessageHandler
+class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
 {
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0xAE8;
+
+        BusMessage Generate(CarState* state)
         {
             BusMessage message;
             message.id = 0xAE8;
@@ -26,7 +28,7 @@ class MessageHandler_AE8 : public IMessageHandler
             return message;
         }
 
-        void Parse(CarState* carState, const BusMessage& message) override
+        void Parse(CarState* carState, const BusMessage& message)
         {
             if (message.dataLength != 24 || carState->PARKING_AID_TYPE != 1)
             {

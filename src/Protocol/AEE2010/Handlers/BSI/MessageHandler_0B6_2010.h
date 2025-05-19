@@ -7,7 +7,7 @@
 #include <memory>
 #include "../../../IMessageHandler.hpp"
 
-class MessageHandler_0B6_2010 : public IMessageHandler
+class MessageHandler_0B6_2010 : public IMessageHandler<MessageHandler_0B6_2010>
 {
     private:
         BusMessage message
@@ -22,7 +22,9 @@ class MessageHandler_0B6_2010 : public IMessageHandler
         };
 
     public:
-        BusMessage Generate(CarState* state) override
+        static constexpr uint32_t MessageId = 0x0B6;
+
+        BusMessage Generate(CarState* state)
         {
             message.data[0] = state->Rpm.data.leftByte;
             message.data[1] = state->Rpm.data.rightByte;
@@ -34,6 +36,11 @@ class MessageHandler_0B6_2010 : public IMessageHandler
             message.data[7] = 0xD0;
 
             return message;
+        }
+
+        void Parse(CarState* carState, const BusMessage& message)
+        {
+
         }
 };
 #endif
