@@ -10,6 +10,7 @@
 #include "CarRadioRemote.h"
 #include "AirConditionerState.h"
 #include "DisplayMessage.h"
+#include "ParkingAidStatus.h"
 
 struct CarState
 {
@@ -51,12 +52,7 @@ struct CarState
     uint8_t CoolantTemperature = 0;
 
     //0E1
-    uint8_t ParkingExteriorRearLeft  = 0xFF;
-    uint8_t ParkingExteriorRearRight = 0xFF;
-    uint8_t ParkingInteriorRearLeft  = 0xFF;
-    uint8_t ParkingInteriorRearRight = 0xFF;
-    uint8_t ParkingSoundEnabled;
-    uint8_t HasParkingRadarData = 0;
+    ParkingAidStatusStruct ParkingAidStatus{};
 
     //0E6 AEE2010
     uint8_t ABRFault = 0;
