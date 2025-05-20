@@ -52,14 +52,10 @@ bool VANTransportLayer::ReceiveMessage(BusMessage& message)
 
     message.id = (vanMessage[1] << 8 | vanMessage[2]) >> 4;
     message.command = vanMessage[2] & 0x0F;
-    //message.id = (vanMessage[1] << 8 | vanMessage[2]);
 
-    std::memcpy(message.data, vanMessage + 3, vanMessageLength-2); // -2 to remove CRC from the data
-    message.dataLength = vanMessageLength - 2; // -2 to remove CRC from the data
+    std::memcpy(message.data, vanMessage + 3, vanMessageLength-2); //+3 to skip SOF+IDEN+COM, -2 to remove CRC from the data
+    message.dataLength = vanMessageLength - 5; // -5 to remove SOF, IDEN, COM, CRC from the data
     message.crc = vanMessage[vanMessageLength - 2] << 8 | vanMessage[vanMessageLength - 1] << 0; // last two bytes of the data
-
-    //message.data.assign(vanMessage + 3, vanMessage + vanMessageLength-2); // -2 to remove CRC from the data
-    //message.crc.assign(vanMessage + vanMessageLength-2, vanMessage + vanMessageLength); // last two bytes of the data
 
     return true;
 }
