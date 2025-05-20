@@ -126,7 +126,7 @@ void ReadSourceFunction(void * parameter)
 
     do
     {
-        if (sourceTransportLayer->ReceiveMessage(message))
+        if (sourceProtocolHandler->ReceiveMessage(message))
         {
             //printf("Received message from source\n");
             if (message.id == 0)
