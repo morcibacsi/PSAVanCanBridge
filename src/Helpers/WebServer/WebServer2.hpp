@@ -98,7 +98,7 @@ WebServer(
         RegisterHandler("/index.html", HTTP_GET, &WebServer::get_index_handler);
         RegisterHandler("/api/keepalive", HTTP_GET, &WebServer::get_keep_alive_handler);
         RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler);
-        RegisterHandler("/api/config", HTTP_GET, &WebServer::get_config_handler);
+        RegisterHandler("/api/config.json", HTTP_GET, &WebServer::get_config_handler);
         RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler);
         RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler);
     }
@@ -110,7 +110,7 @@ WebServer(
         httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/keepalive", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
-        httpd_unregister_uri_handler(server, "/api/config", HTTP_GET);
+        httpd_unregister_uri_handler(server, "/api/config.json", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
         httpd_unregister_uri_handler(server, "/api/time", HTTP_POST);
     }

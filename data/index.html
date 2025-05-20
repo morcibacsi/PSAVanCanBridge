@@ -743,7 +743,7 @@
 
             async function fetchConfig() {
                 try {
-                    const response = await fetch(apiEndpoint + "config");
+                    const response = await fetch(apiEndpoint + "config.json");
                     if (!response.ok) throw new Error(`Failed to fetch config: ${response.statusText}`);
                     jsonData = await response.json();
                     populateForm(jsonData);
@@ -944,10 +944,15 @@
                                 const inputs = document.querySelectorAll(`[id^=${fullPath}]`);
                                 json[key] = Array.from(inputs).map(input => parseFloat(input.value));
                             }
-                        } else if (typeof json[key] === 'object') {
+                        }
+                    }
+                    else
+                    {
+                        if (typeof json[key] === 'object') {
                             gatherFormData(json[key], fullPath);
                         }
                     }
+
                 }
             }
 
@@ -970,11 +975,16 @@
                     const optionElement = document.createElement('option');
                     optionElement.value = option.value;
                     optionElement.textContent = option.label;
-                    if (option.value == jsonData[path]) {
+                    const valueFromJson = getValueByPath(jsonData, path);
+                    if (option.value == valueFromJson) {
                         optionElement.selected = true;
                     }
                     selectElement.appendChild(optionElement);
                 });
+            }
+
+            function getValueByPath(obj, path) {
+                return path.split('.').reduce((acc, part) => acc && acc[part], obj);
             }
 
             function addSliderGroup(labelText, path, value) {
