@@ -18,14 +18,15 @@ class ConfigFile {
     private:
 
         CarState* _carState;
-
+        int getJsonInt(cJSON *json, const char *key, int defaultValue);
+        bool getJsonBool(cJSON *json, const char *key, bool defaultValue);
+        std::unique_ptr<cJSON, cJSONDeleter> LoadFromFile();
     public:
         ConfigFile(CarState* carState);
         ~ConfigFile() = default;
         void Write();
         bool Read();
         void Remove();
-        void Test();
         void SaveJson(const char *json_str);
         std::unique_ptr<cJSON, cJSONDeleter> GetAsJson();
 };
