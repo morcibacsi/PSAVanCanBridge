@@ -17,11 +17,16 @@ struct CarState
 
     uint8_t Ignition = 0;
     uint8_t EngineRunning = 0;
+    //0 - not running, 1 - starting, 2 - running, 3 - stopped
+    uint8_t EngineStatus = 0;
+    // 0 - stop, 1 - contact, 2 - starter, 3 - free
+    uint8_t KeyPosition = 0;
     uint8_t IsReverseEngaged = 0;
-    uint8_t TrailerPresent = 0;
+    //uint8_t TrailerPresent = 0;
     uint8_t WiperStatus = 0;
     //0 - off, 1 - on, 2 - standby soon
     uint8_t IgnitionMode = 0xFF;
+    uint8_t FactoryMode = 0;
 
     uint8_t ExternalTemperature = 0xFF;
     uint8_t EconomyMode = 0;
@@ -213,6 +218,7 @@ struct CarState
 
     uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 
+    //1 - AEE2001, 2 - AEE2004, 3 - AEE2010
     uint8_t SOURCE_PROTOCOL = 0;
     uint8_t DESTINATION_PROTOCOL = 0;
 

@@ -51,24 +51,27 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             VanDashboardStructs vanPacket{};
             std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
 
-            carState->Ignition = vanPacket.Field1.ignition_on || vanPacket.Field1.accesories_on || vanPacket.Field1.engine_running;
-            carState->ExternalTemperature = vanPacket.ExternalTemperature;
-            carState->CoolantTemperature = vanPacket.CoolantTemperature;
-            carState->EngineRunning = vanPacket.Field1.engine_running;
-
-            carState->IsReverseEngaged = vanPacket.Field1.reverse_gear;
             //carState->IsReverseEngaged = 1;
-            carState->TrailerPresent = vanPacket.Field1.trailer_present;
+            carState->IsReverseEngaged    = vanPacket.Field1.reverse_gear;
+            carState->ExternalTemperature = vanPacket.ExternalTemperature;
+            carState->CoolantTemperature  = vanPacket.CoolantTemperature;
+
+            carState->EngineStatus       = vanPacket.Field1.engine_running == 1 ? 2 : 0;
+            carState->EngineRunning      = vanPacket.Field1.engine_running;
+            //carState->TrailerPresent     = vanPacket.Field1.trailer_present;
+            carState->Ignition           = vanPacket.Field1.key_position > 0;
+            carState->KeyPosition        = vanPacket.Field1.key_position;
+            carState->FactoryMode        = vanPacket.Field1.factory_mode;
+
             carState->EconomyMode = vanPacket.Field1.economy_mode;
-            //carState->HasParkingRadarData = vanPacket.Field1.reverse_gear;
 
-            carState->Odometer.data.leftByte = vanPacket.MileageByte1;
+            carState->Odometer.data.leftByte   = vanPacket.MileageByte1;
             carState->Odometer.data.middleByte = vanPacket.MileageByte2;
-            carState->Odometer.data.rightByte = vanPacket.MileageByte3;
+            carState->Odometer.data.rightByte  = vanPacket.MileageByte3;
 
-            carState->BlackPanelStatus = vanPacket.Field0.black_panel_status;
+            carState->BlackPanelStatus    = vanPacket.Field0.black_panel_status;
             carState->DashboardBrightness = vanPacket.Field0.brightness;
-            carState->NightMode = vanPacket.Field0.is_backlight_off == 1 ? 0 : 1;
+            carState->NightMode            = vanPacket.Field0.is_backlight_off == 1 ? 0 : 1;
             carState->CarSignalLights.data.parking_light_indicator = carState->NightMode;
 
             carState->TripOnCMB.asUint24 = (carState->Odometer.asUint24 - carState->MILEAGE_AT_CMB_TRIP_RESET) * 100;

@@ -12,17 +12,22 @@ const uint16_t CAN_ID_0F6_DASH = 0x0F6;
 const uint8_t CAN_INDICATOR_LEFT  = 121; //y
 const uint8_t CAN_INDICATOR_RIGHT = 120; //x
 
-const uint8_t CAN_KEY_POSITION_STOP       = 0x00;
-const uint8_t CAN_KEY_POSITION_CONTACT    = 0x01;
-const uint8_t CAN_KEY_POSITION_STARTER    = 0x10;
+const uint8_t KEY_POSITION_2004_STOP    = 0b00;
+const uint8_t KEY_POSITION_2004_CONTACT = 0b01;
+const uint8_t KEY_POSITION_2004_STARTER = 0b10;
+const uint8_t KEY_POSITION_2004_FREE    = 0b11;
+
+const uint8_t CONFIG_MODE_2004_FACTORY = 0b00;
+const uint8_t CONFIG_MODE_2004_FREE1   = 0b01;
+const uint8_t CONFIG_MODE_2004_CLIENT  = 0b10;
+const uint8_t CONFIG_MODE_2004_FREE2   = 0b11;
 
 // Read right to left in documentation
 union CanDash1Byte1Struct {
     struct {
         uint8_t engine_status    : 2; // bit 0-1
         uint8_t generator_status : 1; // bit 2
-        uint8_t ignition         : 1; // bit 3
-        uint8_t starting         : 1; // bit 4
+        uint8_t key_position     : 2; // bit 3-4
         uint8_t factory_mode     : 1; // bit 5
         uint8_t config_mode      : 2; // bit 6-7
     }data;

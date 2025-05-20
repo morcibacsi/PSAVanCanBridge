@@ -28,24 +28,23 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
 
         BusMessage Generate(CarState* state)
         {
-            //TODO copied from AEE2010
             CanDash1Byte1Struct field1{};
-            field1.data.config_mode = state->TrailerPresent == 1 ? 0 : 2;
-
-            field1.data.ignition = 1;
+            field1.data.key_position = KEY_POSITION_2004_CONTACT;
             if (state->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
             {
-                field1.data.ignition = state->Ignition;
+                field1.data.key_position = state->KeyPosition;
             }
 
-            field1.data.engine_status = state->EngineRunning == 1 ? 2 : 0;
+            field1.data.engine_status    = state->EngineStatus;
             field1.data.generator_status = state->EngineRunning;
+            field1.data.factory_mode     = state->FactoryMode;
+            field1.data.config_mode      = state->FactoryMode == 1 ? CONFIG_MODE_2004_FACTORY : CONFIG_MODE_2004_CLIENT;
 
             CanDash1Byte8Struct field8{};
             field8.data.reverse_gear_light = state->IsReverseEngaged;
-            field8.data.wiper_status = state->WiperStatus;
-            field8.data.turn_left_light = state->CarSignalLights.data.left_turn_indicator;
-            field8.data.turn_right_light = state->CarSignalLights.data.right_turn_indicator;
+            field8.data.wiper_status       = state->WiperStatus;
+            field8.data.turn_left_light    = state->CarSignalLights.data.left_turn_indicator;
+            field8.data.turn_right_light   = state->CarSignalLights.data.right_turn_indicator;
 
             //0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, temperature, 0x50
 /*
@@ -74,20 +73,19 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can0F6Dash1Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
             const auto* tmp = reinterpret_cast<const Can0F6Dash1Struct*>(message.data);
 
             carState->IsReverseEngaged    = tmp->LightsStatus.data.reverse_gear_light;
             carState->ExternalTemperature = tmp->ExternalTemperature;
             carState->CoolantTemperature  = tmp->CoolantTemperature;
-            //TODO check if this is correct
+
             carState->EngineStatus       = tmp->IgnitionField.data.engine_status;
             carState->EngineRunning      = tmp->IgnitionField.data.engine_status == 2;
-            carState->TrailerPresent     = tmp->IgnitionField.data.config_mode == 0 ? 1 : 0;
-            carState->Ignition           = tmp->IgnitionField.data.ignition;
+            //carState->TrailerPresent     = tmp->IgnitionField.data.config_mode == 0 ? 1 : 0;
+            carState->Ignition           = tmp->IgnitionField.data.key_position > 0;
+            carState->KeyPosition        = tmp->IgnitionField.data.key_position;
+            carState->FactoryMode        = tmp->IgnitionField.data.factory_mode;
 
-            carState->IsReverseEngaged                          = tmp->LightsStatus.data.reverse_gear_light;
             carState->WiperStatus                               = tmp->LightsStatus.data.wiper_status;
             carState->CarSignalLights.data.left_turn_indicator  = tmp->LightsStatus.data.turn_left_light;
             carState->CarSignalLights.data.right_turn_indicator = tmp->LightsStatus.data.turn_right_light;

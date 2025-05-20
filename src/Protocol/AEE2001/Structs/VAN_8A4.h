@@ -22,14 +22,13 @@ typedef struct {
 } VanDashboardByte0Struct;
 
 typedef struct {
-    uint8_t accesories_on   : 1; // bit 0
-    uint8_t ignition_on     : 1; // bit 1
+    uint8_t key_position    : 2; // bit 0-1
     uint8_t engine_running  : 1; // bit 2
     uint8_t standby_mode    : 1; // bit 3
     uint8_t economy_mode    : 1; // bit 4
     uint8_t reverse_gear    : 1; // bit 5
-    uint8_t trailer_present : 1; // bit 6
-    uint8_t                 : 1; // bit 7
+    uint8_t factory_mode    : 1; // bit 6
+    uint8_t alarm_active    : 1; // bit 7
 } VanDashboardByte1Struct;
 
 //Read left to right in documentation
