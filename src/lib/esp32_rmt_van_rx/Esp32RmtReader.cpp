@@ -31,27 +31,6 @@ void Esp32RmtReader::SwitchLed(uint8_t state)
 
 bool Esp32RmtReader::RmtRxDoneCallback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata)
 {
-    /*
-    BaseType_t high_task_wakeup = pdFALSE;
-
-    RmtSymbolBuffer buffer;
-    buffer.num_symbols = edata->num_symbols;
-
-    // Allocate memory for the symbols
-    buffer.symbols = (rmt_symbol_word_t*) malloc(buffer.num_symbols * sizeof(rmt_symbol_word_t));
-    if (buffer.symbols != NULL) {
-        memcpy(buffer.symbols, edata->received_symbols, buffer.num_symbols * sizeof(rmt_symbol_word_t));
-        xQueueSendFromISR(_receive_queue, &buffer, &high_task_wakeup);
-    } else {
-        // Handle allocation failure (optional log or counter)
-    }
-
-    // Start receiving again
-    rmt_receive(_rx_channel, _raw_symbols, sizeof(_raw_symbols), &_receive_config);
-
-    return high_task_wakeup == pdTRUE;
-    */
-
     BaseType_t high_task_wakeup = pdFALSE;
 
     size_t num_bytes = edata->num_symbols * sizeof(rmt_symbol_word_t);
@@ -63,16 +42,6 @@ bool Esp32RmtReader::RmtRxDoneCallback(rmt_channel_handle_t channel, const rmt_r
         memcpy(dest, edata->received_symbols, num_bytes);
         xRingbufferSendComplete(_ringbuf, dest);
     }
-    /*
-    if (uxRingbufferGetCurFreeSize(_ringbuf) >= num_bytes)
-    {
-        void* dest = xRingbufferSendAcquire(_ringbuf, num_bytes, 0);
-        if (dest != NULL) {
-            memcpy(dest, edata->received_symbols, num_bytes);
-            xRingbufferSendComplete(_ringbuf, dest);
-        }
-    }
-    */
 
     // restart RX
     rmt_receive(_rx_channel, _raw_symbols, sizeof(_raw_symbols), &_receive_config);
@@ -148,7 +117,7 @@ void Esp32RmtReader::ReceiveData(uint8_t *messageLength, uint8_t message[])
     memset(_message, 0x00, RMT_READER_MAX_DATA * sizeof(*_message));
 
     size_t item_size;
-    rmt_symbol_word_t* symbols = (rmt_symbol_word_t*) xRingbufferReceive(_ringbuf, &item_size, 0);
+    rmt_symbol_word_t* symbols = (rmt_symbol_word_t*) xRingbufferReceive(_ringbuf, &item_size, portMAX_DELAY);
 
     if (symbols != nullptr)
     {
@@ -170,68 +139,4 @@ void Esp32RmtReader::ReceiveData(uint8_t *messageLength, uint8_t message[])
 
         vRingbufferReturnItem(_ringbuf, (void*) symbols);
     }
-
-/*
-    *messageLength = 0;
-    _messageLength = 0;
-    memset(_message, 0x00, RMT_READER_MAX_DATA * sizeof(*_message));
-
-    RmtSymbolBuffer buffer;
-    if (xQueueReceive(_receive_queue, &buffer, 0) == pdPASS)
-    {
-        SwitchLed(1);
-        BeforeProcessSignal();
-
-        for (size_t i = 0; i < buffer.num_symbols; ++i)
-        {
-            ProcessSignal(buffer.symbols[i].level0, buffer.symbols[i].duration0);
-            ProcessSignal(buffer.symbols[i].level1, buffer.symbols[i].duration1);
-        }
-
-        *messageLength = _messageLength;
-        memcpy(message, _message, _messageLength);
-
-        AfterProcessSignal();
-        SwitchLed(0);
-
-        // Free the allocated memory
-        free(buffer.symbols);
-    }
-    return;
-*/
-    /*
-    *messageLength = 0;
-    _messageLength = 0;
-    memset(_message, 0x00, RMT_READER_MAX_DATA*sizeof(*_message));
-
-    //size_t i;
-    //size_t rx_size = 0;
-    if (xQueueReceive(_receive_queue, &_rx_data, 0) == pdPASS)
-    {
-        //printf("RMT_RX Number of symbols received: %d \n", _num_symbols);
-
-        // turn on visible led
-        SwitchLed(1);
-
-        // call to virtual method which should be implemented in derived class
-        BeforeProcessSignal();
-
-        //printf("Received %d symbols\r\n", _rx_data.num_symbols);
-
-        for (size_t i = 0; i < _rx_data.num_symbols; i++) {
-            ProcessSignal(_rx_data.received_symbols[i].level0, _rx_data.received_symbols[i].duration0);
-            ProcessSignal(_rx_data.received_symbols[i].level1, _rx_data.received_symbols[i].duration1);
-        }
-        //printf("max duration: %d\r\n", max_duration);
-
-        *messageLength = _messageLength;
-        memcpy(message, _message, _messageLength);
-
-        // call to virtual method which should be implemented in derived class
-        AfterProcessSignal();
-
-        // turn off visible led
-        SwitchLed(0);
-    }
-    */
 }
