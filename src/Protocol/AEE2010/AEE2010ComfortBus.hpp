@@ -12,6 +12,8 @@
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
 
+#include "Handlers/AAS/MessageHandler_0E1_2010.hpp"
+
 #include "Handlers/BSI/MessageHandler_0B6_2010.h"
 #include "Handlers/BSI/MessageHandler_0E6_2010.h"
 #include "Handlers/BSI/MessageHandler_0F6_2010.h"
@@ -58,6 +60,7 @@ class AEE2010ComfortBus : public IProtocolHandler
     public:
     std::tuple<
         MessageHandler_0B6_2010,
+        MessageHandler_0E1_2010,
         MessageHandler_0E6_2010,
         MessageHandler_0F6_2010,
         MessageHandler_1A1_2010,
