@@ -35,11 +35,11 @@ class MessageHandler_4DC : public IMessageHandler<MessageHandler_4DC>
                 return;
             }
 
-            VanAirConditioner2Struct vanPacket{};
-            std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
+            VanAirConditioner2Struct packet{};
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
 
-            carState->AirConditionerStatus.data.IsWindowHeatingOn = vanPacket.Status1.rear_window_heating_on;
-            carState->AirConditionerStatus.data.IsACCompressorOn = vanPacket.Status1.ac_compressor_auth_on;
+            carState->AirConditionerStatus.data.IsWindowHeatingOn = packet.Status1.rear_window_heating_on;
+            carState->AirConditionerStatus.data.IsACCompressorOn = packet.Status1.ac_compressor_auth_on;
         }
 };
 #endif

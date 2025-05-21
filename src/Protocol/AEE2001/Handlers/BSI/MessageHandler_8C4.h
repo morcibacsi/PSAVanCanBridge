@@ -42,11 +42,10 @@ class MessageHandler_8C4 : public IMessageHandler<MessageHandler_8C4>
 
             if (eventSource.data.event_src == VAN_EVENT_SRC_BSI)
             {
-                VanEventBSIStructs vanPacket;
-                std::memcpy(&vanPacket, message.data, sizeof(vanPacket));
+                VanEventBSIStructs packet;
+                std::memcpy(&packet, message.data, sizeof(packet));
 
-                //if (vanPacket.Event.data.trip_change_status == 1 || vanPacket.Event.data.door_change_status == 1)
-                if (vanPacket.Event.asByte > 0)
+                if (packet.Event.asByte > 0)
                 {
                     if (_feedbackSignalCallback)
                     {

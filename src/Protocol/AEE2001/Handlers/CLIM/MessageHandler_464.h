@@ -42,35 +42,35 @@ class MessageHandler_464 : public IMessageHandler<MessageHandler_464>
                 return;
             }
 
-            VanAirConditioner1Struct vanPacket{};
-            std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
+            VanAirConditioner1Struct packet{};
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
 
-            uint8_t isRecyclingOn = vanPacket.Status.data.recycling_on;
+            uint8_t isRecyclingOn = packet.Status.data.recycling_on;
             uint8_t isAirConEnabled = 0;
             uint8_t airConFanSpeed = 0;
             uint8_t isHeatingPanelOn = 1;
 
-            if (message.data[0] == 0x00 && (vanPacket.PowerConsumption == 0x00))
+            if (message.data[0] == 0x00 && (packet.PowerConsumption == 0x00))
             {
                 isHeatingPanelOn = 0;
             }
             if (
-                   (message.data[0] == 0x00 && (vanPacket.PowerConsumption == 0x00))  // off
-                || (message.data[0] == 0x00 && (vanPacket.PowerConsumption == 0x0E))  // off + rear window heating
-                || (message.data[0] == 0x01 && (vanPacket.PowerConsumption == 0x0E))  // off + rear window heating toggle
-                || (message.data[0] == 0x04 && (vanPacket.PowerConsumption == 0x00))  // off + recycle
-                || (message.data[0] == 0x04 && (vanPacket.PowerConsumption == 0x0E))  // off + rear window heating + recycle
-                || (message.data[0] == 0x05 && (vanPacket.PowerConsumption == 0x00))  // off + rear window heating + recycle toggle
-                || (message.data[0] == 0x05 && (vanPacket.PowerConsumption == 0x0E))  // off + rear window heating + recycle toggle
+                   (message.data[0] == 0x00 && (packet.PowerConsumption == 0x00))  // off
+                || (message.data[0] == 0x00 && (packet.PowerConsumption == 0x0E))  // off + rear window heating
+                || (message.data[0] == 0x01 && (packet.PowerConsumption == 0x0E))  // off + rear window heating toggle
+                || (message.data[0] == 0x04 && (packet.PowerConsumption == 0x00))  // off + recycle
+                || (message.data[0] == 0x04 && (packet.PowerConsumption == 0x0E))  // off + rear window heating + recycle
+                || (message.data[0] == 0x05 && (packet.PowerConsumption == 0x00))  // off + rear window heating + recycle toggle
+                || (message.data[0] == 0x05 && (packet.PowerConsumption == 0x0E))  // off + rear window heating + recycle toggle
                 )
             {
                 //nothing to do
             }
             else
             {
-                isAirConEnabled = vanPacket.Status.data.aircon_requested;
+                isAirConEnabled = packet.Status.data.aircon_requested;
                 airConFanSpeed = _vanCanAirConditionerSpeedMap->GetFanSpeedFromVANByte(
-                    vanPacket.PowerConsumption,
+                    packet.PowerConsumption,
                     carState->AirConditionerStatus.data.IsACCompressorOn,
                     carState->AirConditionerStatus.data.IsWindowHeatingOn,
                     isRecyclingOn

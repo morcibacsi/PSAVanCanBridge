@@ -44,19 +44,19 @@ class MessageHandler_9C4 : public IMessageHandler<MessageHandler_9C4>
                 return;
             }
 
-            VanRadioRemoteStruct vanPacket;
-            std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
+            VanRadioRemoteStruct packet;
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
 
-            carState->RadioRemote.data.scroll_position = vanPacket.ScroolPosition;
+            carState->RadioRemote.data.scroll_position = packet.ScroolPosition;
 
-            carState->RadioRemote.data.source          = vanPacket.ButtonStatus.data.source;
-            carState->RadioRemote.data.volume_minus    = vanPacket.ButtonStatus.data.volume_minus;
-            carState->RadioRemote.data.volume_plus     = vanPacket.ButtonStatus.data.volume_plus;
-            carState->RadioRemote.data.seek_up         = vanPacket.ButtonStatus.data.seek_up;
-            carState->RadioRemote.data.seek_down       = vanPacket.ButtonStatus.data.seek_down;
+            carState->RadioRemote.data.source          = packet.ButtonStatus.data.source;
+            carState->RadioRemote.data.volume_minus    = packet.ButtonStatus.data.volume_minus;
+            carState->RadioRemote.data.volume_plus     = packet.ButtonStatus.data.volume_plus;
+            carState->RadioRemote.data.seek_up         = packet.ButtonStatus.data.seek_up;
+            carState->RadioRemote.data.seek_down       = packet.ButtonStatus.data.seek_down;
 
-            carState->RadioRemote.data.owerflow_scan_positive = vanPacket.ButtonStatus.data.counter_overflow_positive;
-            carState->RadioRemote.data.owerflow_scan_negative = vanPacket.ButtonStatus.data.counter_overflow_negative;
+            carState->RadioRemote.data.owerflow_scan_positive = packet.ButtonStatus.data.counter_overflow_positive;
+            carState->RadioRemote.data.owerflow_scan_negative = packet.ButtonStatus.data.counter_overflow_negative;
 
             if (_immediateSignalCallback)
             {

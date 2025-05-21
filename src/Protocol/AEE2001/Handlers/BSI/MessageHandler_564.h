@@ -46,30 +46,30 @@ class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
                 return;
             }
 
-            VanCarStatusWithTripComputerStruct vanPacket{};
-            std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
+            VanCarStatusWithTripComputerStruct packet{};
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
 
-            carState->DoorStatus.data.front_left_door_open  = vanPacket.Doors.FrontLeft;
-            carState->DoorStatus.data.front_right_door_open = vanPacket.Doors.FrontRight;
-            carState->DoorStatus.data.rear_left_door_open   = vanPacket.Doors.RearLeft;
-            carState->DoorStatus.data.rear_right_door_open  = vanPacket.Doors.RearRight;
-            carState->DoorStatus.data.trunk_open            = vanPacket.Doors.BootLid;
-            carState->DoorStatus.data.hood_open             = vanPacket.Doors.Hood;
-            carState->DoorStatus.data.fuel_flap_open        = vanPacket.Doors.FuelFlap;
-            carState->DoorStatus.data.rear_window_open      = vanPacket.Doors.Sunroof;
+            carState->DoorStatus.data.front_left_door_open  = packet.Doors.FrontLeft;
+            carState->DoorStatus.data.front_right_door_open = packet.Doors.FrontRight;
+            carState->DoorStatus.data.rear_left_door_open   = packet.Doors.RearLeft;
+            carState->DoorStatus.data.rear_right_door_open  = packet.Doors.RearRight;
+            carState->DoorStatus.data.trunk_open            = packet.Doors.BootLid;
+            carState->DoorStatus.data.hood_open             = packet.Doors.Hood;
+            carState->DoorStatus.data.fuel_flap_open        = packet.Doors.FuelFlap;
+            carState->DoorStatus.data.rear_window_open      = packet.Doors.Sunroof;
 
             CanDisplayDoorStatus1Struct doorStatus{};
             doorStatus.asByte = 0;
-            doorStatus.data.is_front_left_open  = vanPacket.Doors.FrontLeft;
-            doorStatus.data.is_front_right_open = vanPacket.Doors.FrontRight;
-            doorStatus.data.is_rear_left_open   = vanPacket.Doors.RearLeft;
-            doorStatus.data.is_rear_right_open  = vanPacket.Doors.RearRight;
-            doorStatus.data.is_boot_open        = vanPacket.Doors.BootLid;
-            doorStatus.data.is_bonnet_open      = vanPacket.Doors.Hood;
+            doorStatus.data.is_front_left_open  = packet.Doors.FrontLeft;
+            doorStatus.data.is_front_right_open = packet.Doors.FrontRight;
+            doorStatus.data.is_rear_left_open   = packet.Doors.RearLeft;
+            doorStatus.data.is_rear_right_open  = packet.Doors.RearRight;
+            doorStatus.data.is_boot_open        = packet.Doors.BootLid;
+            doorStatus.data.is_bonnet_open      = packet.Doors.Hood;
 
             CanDisplayDoorStatus2Struct doorStatus2{};
             doorStatus2.asByte = 0;
-            doorStatus2.data.is_fuel_flap_open = vanPacket.Doors.FuelFlap;
+            doorStatus2.data.is_fuel_flap_open = packet.Doors.FuelFlap;
 
             CanDisplayPopupItem item{};
             item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
@@ -85,35 +85,35 @@ class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
             _canPopupHandler->QueueNewMessage(carState->CurrenTime, item);
 
             //221
-            carState->RightStickButtonPushed = vanPacket.Field10.TripButton;
+            carState->RightStickButtonPushed = packet.Field10.TripButton;
             //printf("MessageHandler_564::Parse - RightStickButtonPushed: %d\n", carState->RightStickButtonPushed);
 
-            carState->RemainingRange.data.leftByte  = vanPacket.FuelLeftToPumpInKm1;
-            carState->RemainingRange.data.rightByte = vanPacket.FuelLeftToPumpInKm2;
+            carState->RemainingRange.data.leftByte  = packet.FuelLeftToPumpInKm1;
+            carState->RemainingRange.data.rightByte = packet.FuelLeftToPumpInKm2;
 
-            carState->InstantConsumption.data.leftByte  = vanPacket.FuelConsumption1;
-            carState->InstantConsumption.data.rightByte = vanPacket.FuelConsumption2;
+            carState->InstantConsumption.data.leftByte  = packet.FuelConsumption1;
+            carState->InstantConsumption.data.rightByte = packet.FuelConsumption2;
 
-            carState->TotalRange.data.leftByte  = vanPacket.Trip1Distance1;
-            carState->TotalRange.data.rightByte = vanPacket.Trip1Distance2;
+            carState->TotalRange.data.leftByte  = packet.Trip1Distance1;
+            carState->TotalRange.data.rightByte = packet.Trip1Distance2;
 
             //2A1
-            carState->Trip1Speed = vanPacket.AvgCourseSpeed;
+            carState->Trip1Speed = packet.AvgCourseSpeed;
 
-            carState->Trip1Distance.data.leftByte  = vanPacket.Trip1Distance1;
-            carState->Trip1Distance.data.rightByte = vanPacket.Trip1Distance2;
+            carState->Trip1Distance.data.leftByte  = packet.Trip1Distance1;
+            carState->Trip1Distance.data.rightByte = packet.Trip1Distance2;
 
-            carState->Trip1Consumption.data.leftByte  = vanPacket.Trip1FuelConsumption1;
-            carState->Trip1Consumption.data.rightByte = vanPacket.Trip1FuelConsumption2;
+            carState->Trip1Consumption.data.leftByte  = packet.Trip1FuelConsumption1;
+            carState->Trip1Consumption.data.rightByte = packet.Trip1FuelConsumption2;
 
             //261
-            carState->Trip2Speed = vanPacket.AvgTravelSpeed;
+            carState->Trip2Speed = packet.AvgTravelSpeed;
 
-            carState->Trip2Distance.data.leftByte  = vanPacket.Trip2Distance1;
-            carState->Trip2Distance.data.rightByte = vanPacket.Trip2Distance2;
+            carState->Trip2Distance.data.leftByte  = packet.Trip2Distance1;
+            carState->Trip2Distance.data.rightByte = packet.Trip2Distance2;
 
-            carState->Trip2Consumption.data.leftByte  = vanPacket.Trip2FuelConsumption1;
-            carState->Trip2Consumption.data.rightByte = vanPacket.Trip2FuelConsumption2;
+            carState->Trip2Consumption.data.leftByte  = packet.Trip2FuelConsumption1;
+            carState->Trip2Consumption.data.rightByte = packet.Trip2FuelConsumption2;
 
             if (_immediateSignalCallback)
             {

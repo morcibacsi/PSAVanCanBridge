@@ -36,21 +36,22 @@ class MessageHandler_744 : public IMessageHandler<MessageHandler_744>
                 return;
             }
 
-            VanRearWheelDataStructs vanPacket;
-            std::memcpy(&vanPacket, message.data, ExpectedPacketSize);
+            VanRearWheelDataStructs packet;
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
 
             CAN_10B_Byte4Struct canStatus;
-            canStatus.asByte = vanPacket.SteeringStatus.asByte;
-            canStatus.data.rotation_direction = vanPacket.SteeringStatus.data.rotation_direction == 0 ? 1 : 0;
+            canStatus.asByte                  = packet.SteeringStatus.asByte;
+            canStatus.data.rotation_direction = packet.SteeringStatus.data.rotation_direction == 0 ? 1 : 0;
 
-            carState->RearLeftWheelCounter.data.leftByte = vanPacket.RearLeftWheelCounter1;
-            carState->RearLeftWheelCounter.data.rightByte = vanPacket.RearLeftWheelCounter2;
-            carState->RearRightWheelCounter.data.leftByte = vanPacket.RearRightWheelCounter1;
-            carState->RearRightWheelCounter.data.rightByte = vanPacket.RearRightWheelCounter2;
+            carState->RearLeftWheelCounter.data.leftByte   = packet.RearLeftWheelCounter1;
+            carState->RearLeftWheelCounter.data.rightByte  = packet.RearLeftWheelCounter2;
+            carState->RearRightWheelCounter.data.leftByte  = packet.RearRightWheelCounter1;
+            carState->RearRightWheelCounter.data.rightByte = packet.RearRightWheelCounter2;
 
-            carState->SteeringAngle.data.leftByte = vanPacket.SteeringAngle1;
-            carState->SteeringAngle.data.rightByte = vanPacket.SteeringAngle2;
-            carState->SteeringSpeed = vanPacket.SteeringSpeed;
+            carState->SteeringAngle.data.leftByte  = packet.SteeringAngle1;
+            carState->SteeringAngle.data.rightByte = packet.SteeringAngle2;
+
+            carState->SteeringSpeed  = packet.SteeringSpeed;
             carState->SteeringStatus = canStatus.asByte;
         }
 };
