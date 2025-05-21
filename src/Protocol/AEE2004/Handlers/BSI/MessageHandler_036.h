@@ -89,16 +89,15 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //CanIgnitionStruct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const CanIgnitionStruct*>(message.data);
+            CanIgnitionStruct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
             //TODO think about the OdometerStates as they are actually set in the 0x217 message
-            carState->EconomyMode         = tmp->LoadShedding.data.economy_mode_active;
-            carState->DashboardBrightness = tmp->Brightness.data.dashboard_brightness;
-            carState->NightMode           = tmp->Brightness.data.night_mode;
-            carState->BlackPanelStatus    = tmp->Brightness.data.black_panel_status;
-            carState->IgnitionMode        = tmp->Ignition.data.ignition_mode;
+            carState->EconomyMode         = packet.LoadShedding.data.economy_mode_active;
+            carState->DashboardBrightness = packet.Brightness.data.dashboard_brightness;
+            carState->NightMode           = packet.Brightness.data.night_mode;
+            carState->BlackPanelStatus    = packet.Brightness.data.black_panel_status;
+            carState->IgnitionMode        = packet.Ignition.data.ignition_mode;
 
             if (_feedbackSignalCallback)
             {

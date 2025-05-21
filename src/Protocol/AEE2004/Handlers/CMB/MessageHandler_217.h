@@ -90,44 +90,43 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //CAN_217Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const CAN_217Struct*>(message.data);
+            CAN_217Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->OdometerStates.data.SpeedDisplayedOnCmb = tmp->SpeedDisplayedOnCmb;
-            carState->OdometerStates.data.brightness          = tmp->Brightness.data.brightness;
-            carState->OdometerStates.data.black_panel         = tmp->Brightness.data.brightness;
-            carState->OdometerStates.data.reset_maintenance   = tmp->Brightness.data.reset_maintenance;
+            carState->OdometerStates.data.SpeedDisplayedOnCmb = packet.SpeedDisplayedOnCmb;
+            carState->OdometerStates.data.brightness          = packet.Brightness.data.brightness;
+            carState->OdometerStates.data.black_panel         = packet.Brightness.data.brightness;
+            carState->OdometerStates.data.reset_maintenance   = packet.Brightness.data.reset_maintenance;
 
-            carState->OdometerStates.data.airbag_fault  = tmp->Field2.data.airbag_fault;
-            carState->OdometerStates.data.auto_check    = tmp->Field2.data.auto_check;
-            carState->OdometerStates.data.check         = tmp->Field2.data.check;
-            carState->OdometerStates.data.cmb_fault     = tmp->Field2.data.cmb_fault;
+            carState->OdometerStates.data.airbag_fault  = packet.Field2.data.airbag_fault;
+            carState->OdometerStates.data.auto_check    = packet.Field2.data.auto_check;
+            carState->OdometerStates.data.check         = packet.Field2.data.check;
+            carState->OdometerStates.data.cmb_fault     = packet.Field2.data.cmb_fault;
             //TODO check if we can use in settings
-            carState->OdometerStates.data.distance_unit = tmp->Field2.data.distance_unit;
-            carState->OdometerStates.data.reset_trip    = tmp->Field2.data.reset_trip;
-            carState->OdometerStates.data.reset_trip_1  = tmp->Field2.data.reset_trip_1;
+            carState->OdometerStates.data.distance_unit = packet.Field2.data.distance_unit;
+            carState->OdometerStates.data.reset_trip    = packet.Field2.data.reset_trip;
+            carState->OdometerStates.data.reset_trip_1  = packet.Field2.data.reset_trip_1;
 
-            carState->OdometerStates.data.aas_pushed                = tmp->Field3.data.aas_pushed;
-            carState->OdometerStates.data.child_lock_pushed         = tmp->Field3.data.child_lock_pushed;
-            carState->OdometerStates.data.esp_pushed                = tmp->Field3.data.esp_pushed;
-            carState->OdometerStates.data.matt_check_request        = tmp->Field3.data.matt_check_request;
-            carState->OdometerStates.data.partial_filtered_odometer = tmp->Field3.data.partial_filtered_odometer;
-            carState->OdometerStates.data.sport_push                = tmp->Field3.data.sport_push;
+            carState->OdometerStates.data.aas_pushed                = packet.Field3.data.aas_pushed;
+            carState->OdometerStates.data.child_lock_pushed         = packet.Field3.data.child_lock_pushed;
+            carState->OdometerStates.data.esp_pushed                = packet.Field3.data.esp_pushed;
+            carState->OdometerStates.data.matt_check_request        = packet.Field3.data.matt_check_request;
+            carState->OdometerStates.data.partial_filtered_odometer = packet.Field3.data.partial_filtered_odometer;
+            carState->OdometerStates.data.sport_push                = packet.Field3.data.sport_push;
 
-            carState->OdometerStates.data.ac_on_pushed                = tmp->Field4.data.ac_on_pushed;
-            carState->OdometerStates.data.blindspot_monitor_push      = tmp->Field4.data.blindspot_monitor_push;
-            carState->OdometerStates.data.compressor_displacement_req = tmp->Field4.data.compressor_displacement_req;
-            carState->OdometerStates.data.mpd_push                    = tmp->Field4.data.mpd_push;
-            carState->OdometerStates.data.rear_window_heating_pushed  = tmp->Field4.data.rear_window_heating_pushed;
-            carState->OdometerStates.data.reset_trip_2                = tmp->Field4.data.reset_trip_2;
-            carState->OdometerStates.data.stl_pushed                  = tmp->Field4.data.stl_pushed;
+            carState->OdometerStates.data.ac_on_pushed                = packet.Field4.data.ac_on_pushed;
+            carState->OdometerStates.data.blindspot_monitor_push      = packet.Field4.data.blindspot_monitor_push;
+            carState->OdometerStates.data.compressor_displacement_req = packet.Field4.data.compressor_displacement_req;
+            carState->OdometerStates.data.mpd_push                    = packet.Field4.data.mpd_push;
+            carState->OdometerStates.data.rear_window_heating_pushed  = packet.Field4.data.rear_window_heating_pushed;
+            carState->OdometerStates.data.reset_trip_2                = packet.Field4.data.reset_trip_2;
+            carState->OdometerStates.data.stl_pushed                  = packet.Field4.data.stl_pushed;
 
-            carState->OdometerStates.data.artiv_minus                 = tmp->Field5.data.artiv_minus;
-            carState->OdometerStates.data.artiv_plus                  = tmp->Field5.data.artiv_plus;
-            carState->OdometerStates.data.artiv_push                  = tmp->Field5.data.artiv_push;
-            carState->OdometerStates.data.reset_maintenance_matt      = tmp->Field5.data.reset_maintenance_matt;
-            carState->OdometerStates.data.stt_push                    = tmp->Field5.data.stt_pushed;
+            carState->OdometerStates.data.artiv_minus                 = packet.Field5.data.artiv_minus;
+            carState->OdometerStates.data.artiv_plus                  = packet.Field5.data.artiv_plus;
+            carState->OdometerStates.data.artiv_push                  = packet.Field5.data.artiv_push;
+            carState->OdometerStates.data.reset_maintenance_matt      = packet.Field5.data.reset_maintenance_matt;
+            carState->OdometerStates.data.stt_push                    = packet.Field5.data.stt_pushed;
 
             if (carState->MODIFY_217_WITH_CURRENT_SPEED)
             {

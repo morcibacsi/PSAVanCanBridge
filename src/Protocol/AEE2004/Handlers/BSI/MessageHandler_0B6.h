@@ -43,23 +43,22 @@ class MessageHandler_0B6 : public IMessageHandler<MessageHandler_0B6>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can0B6Struct tmp;
-            //constexpr std::size_t ExpectedPacketSize = sizeof(Can0B6Struct);
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can0B6Struct*>(message.data);
+            Can0B6Struct packet;
+            constexpr std::size_t ExpectedPacketSize = sizeof(Can0B6Struct);
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->Rpm.data.leftByte             = tmp->RpmByte1;
-            carState->Rpm.data.rightByte            = tmp->RpmByte2;
-            carState->Speed.data.leftByte           = tmp->SpeedByte1;
-            carState->Speed.data.rightByte          = tmp->SpeedByte2;
-            carState->DistanceForCMB.data.leftByte  = tmp->DistanceForCMB1;
-            carState->DistanceForCMB.data.rightByte = tmp->DistanceForCMB2;
-            carState->ConsumptionForCMB             = tmp->ConsumptionForCMB;
-            carState->SpeedValidationInfo           = tmp->Field8.asByte;
+            carState->Rpm.data.leftByte             = packet.RpmByte1;
+            carState->Rpm.data.rightByte            = packet.RpmByte2;
+            carState->Speed.data.leftByte           = packet.SpeedByte1;
+            carState->Speed.data.rightByte          = packet.SpeedByte2;
+            carState->DistanceForCMB.data.leftByte  = packet.DistanceForCMB1;
+            carState->DistanceForCMB.data.rightByte = packet.DistanceForCMB2;
+            carState->ConsumptionForCMB             = packet.ConsumptionForCMB;
+            carState->SpeedValidationInfo           = packet.Field8.asByte;
 
             UInt16 speed{};
-            speed.data.leftByte  = tmp->SpeedByte1;
-            speed.data.rightByte = tmp->SpeedByte2;
+            speed.data.leftByte  = packet.SpeedByte1;
+            speed.data.rightByte = packet.SpeedByte2;
             carState->SpeedInKmh = speed.asUint16 * 0.01;;
         }
 };

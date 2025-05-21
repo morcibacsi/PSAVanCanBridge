@@ -54,22 +54,21 @@ class MessageHandler_3A7 : public IMessageHandler<MessageHandler_3A7>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can3A7Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can3A7Struct*>(message.data);
+            Can3A7Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->IsMaintenanceDue          = tmp->MaintenanceType.data.maintenance_due;
-            carState->WrenchIcon                = tmp->MaintenanceType.data.wrench_with_km;
-            carState->MaintenanceSignKm         = tmp->KmMaintenanceInfo.data.maintenance_sign_km;
-            carState->MaintenanceSignTime       = tmp->TemporaryMaintenanceInfo.data.maintenance_sign_time;
-            carState->MaintenanceSignKmBlinking = tmp->KmMaintenanceInfo.data.km_blinking;
-            carState->MaintenanceSignTime       = tmp->TemporaryMaintenanceInfo.data.time_blinking;
+            carState->IsMaintenanceDue          = packet.MaintenanceType.data.maintenance_due;
+            carState->WrenchIcon                = packet.MaintenanceType.data.wrench_with_km;
+            carState->MaintenanceSignKm         = packet.KmMaintenanceInfo.data.maintenance_sign_km;
+            carState->MaintenanceSignTime       = packet.TemporaryMaintenanceInfo.data.maintenance_sign_time;
+            carState->MaintenanceSignKmBlinking = packet.KmMaintenanceInfo.data.km_blinking;
+            carState->MaintenanceSignTime       = packet.TemporaryMaintenanceInfo.data.time_blinking;
 
-            carState->MaintenanceKilometers.data.leftByte  = tmp->MaintenanceKmByte1;
-            carState->MaintenanceKilometers.data.rightByte = tmp->MaintenanceKmByte2;
+            carState->MaintenanceKilometers.data.leftByte  = packet.MaintenanceKmByte1;
+            carState->MaintenanceKilometers.data.rightByte = packet.MaintenanceKmByte2;
 
-            carState->MaintenanceTime.data.leftByte  = tmp->NumberOfDaysBeforeMaintenanceByte1;
-            carState->MaintenanceTime.data.rightByte = tmp->NumberOfDaysBeforeMaintenanceByte2;
+            carState->MaintenanceTime.data.leftByte  = packet.NumberOfDaysBeforeMaintenanceByte1;
+            carState->MaintenanceTime.data.rightByte = packet.NumberOfDaysBeforeMaintenanceByte2;
         }
 };
 #endif

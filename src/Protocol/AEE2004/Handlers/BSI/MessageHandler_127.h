@@ -39,13 +39,10 @@ class MessageHandler_127 : public IMessageHandler<MessageHandler_127>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can127_2004_Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can127_2004_Struct*>(message.data);
+            Can127_2004_Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->CarIndicatorLights.data.authorize_vth = tmp->Status.data.enable_vth;
-
-            //_canMessageHandlerContainer2010->SetData(0x168);
+            carState->CarIndicatorLights.data.authorize_vth = packet.Status.data.enable_vth;
         }
 };
 #endif

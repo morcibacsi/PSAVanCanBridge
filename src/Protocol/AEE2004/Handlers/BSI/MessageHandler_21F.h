@@ -70,27 +70,26 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
                 return;
             }
 
-            //CAN_21F_2004_Struct tmp;
-            //std::memcpy(&tmp, message.data, packetSize);
-            const auto* tmp = reinterpret_cast<const CAN_21F_2004_Struct*>(message.data);
+            CAN_21F_2004_Struct packet;
+            std::memcpy(&packet, message.data, packetSize);
 
-            carState->RadioRemote.data.list                   = tmp->Command.data.list;
-            carState->RadioRemote.data.mode_phone             = tmp->Command.data.mode_phone;
-            carState->RadioRemote.data.owerflow_scan_negative = tmp->Command.data.owerflow_scan_negative;
-            carState->RadioRemote.data.owerflow_scan_positive = tmp->Command.data.owerflow_scan_positive;
-            carState->RadioRemote.data.seek_down              = tmp->Command.data.seek_down;
-            carState->RadioRemote.data.seek_up                = tmp->Command.data.seek_up;
-            carState->RadioRemote.data.volume_minus           = tmp->Command.data.volume_minus;
-            carState->RadioRemote.data.volume_plus            = tmp->Command.data.volume_plus;
+            carState->RadioRemote.data.list                   = packet.Command.data.list;
+            carState->RadioRemote.data.mode_phone             = packet.Command.data.mode_phone;
+            carState->RadioRemote.data.owerflow_scan_negative = packet.Command.data.owerflow_scan_negative;
+            carState->RadioRemote.data.owerflow_scan_positive = packet.Command.data.owerflow_scan_positive;
+            carState->RadioRemote.data.seek_down              = packet.Command.data.seek_down;
+            carState->RadioRemote.data.seek_up                = packet.Command.data.seek_up;
+            carState->RadioRemote.data.volume_minus           = packet.Command.data.volume_minus;
+            carState->RadioRemote.data.volume_plus            = packet.Command.data.volume_plus;
 
-            carState->RadioRemote.data.scroll_position = tmp->ScrollPosition;
+            carState->RadioRemote.data.scroll_position = packet.ScrollPosition;
 
             if (packetSize > 2)
             {
-                carState->RadioRemote.data.command_valid = tmp->Command3.data.command_valid;
-                carState->RadioRemote.data.list_minus    = tmp->Command3.data.list_minus;
-                carState->RadioRemote.data.list_plus     = tmp->Command3.data.list_plus;
-                carState->RadioRemote.data.source        = tmp->Command3.data.source;
+                carState->RadioRemote.data.command_valid = packet.Command3.data.command_valid;
+                carState->RadioRemote.data.list_minus    = packet.Command3.data.list_minus;
+                carState->RadioRemote.data.list_plus     = packet.Command3.data.list_plus;
+                carState->RadioRemote.data.source        = packet.Command3.data.source;
             }
 
             if (_immediateSignalCallback)

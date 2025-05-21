@@ -68,31 +68,30 @@ class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can361_2004Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can361_2004Struct*>(message.data);
+            Can361_2004Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->PermanentRearFlapLock  = tmp->Field2.data.permanent_rear_flap_lock;
-            carState->ConfigEnabled          = tmp->Field2.data.config_enabled;
+            carState->PermanentRearFlapLock  = packet.Field2.data.permanent_rear_flap_lock;
+            carState->ConfigEnabled          = packet.Field2.data.config_enabled;
 
-            carState->AutoLighting           = tmp->Field3.data.auto_lighting;
-            carState->AutomaticElectricBrake = tmp->Field3.data.automatic_electric_brake;
-            carState->FollowMeHome           = tmp->Field3.data.follow_me_home;
-            carState->HingePanelSelect       = tmp->Field3.data.hinge_panel_select;
-            carState->IrcPresent             = tmp->Field3.data.irc_present;
+            carState->AutoLighting           = packet.Field3.data.auto_lighting;
+            carState->AutomaticElectricBrake = packet.Field3.data.automatic_electric_brake;
+            carState->FollowMeHome           = packet.Field3.data.follow_me_home;
+            carState->HingePanelSelect       = packet.Field3.data.hinge_panel_select;
+            carState->IrcPresent             = packet.Field3.data.irc_present;
 
-            carState->DrlPresent             = tmp->Field4.data.drl_present;
-            carState->RearWiperOption        = tmp->Field4.data.rear_wiper_option;
+            carState->DrlPresent             = packet.Field4.data.drl_present;
+            carState->RearWiperOption        = packet.Field4.data.rear_wiper_option;
 
-            carState->AasDisable             = tmp->Field5.data.aas_disable;
-            carState->AmbientLighting        = tmp->Field5.data.ambient_lighting;
-            carState->BlindspotMonitoring    = tmp->Field5.data.blindspot_monitoring;
-            carState->HighwayLightingPresent = tmp->Field5.data.highway_lighting_present;
+            carState->AasDisable             = packet.Field5.data.aas_disable;
+            carState->AmbientLighting        = packet.Field5.data.ambient_lighting;
+            carState->BlindspotMonitoring    = packet.Field5.data.blindspot_monitoring;
+            carState->HighwayLightingPresent = packet.Field5.data.highway_lighting_present;
 
-            carState->TnbPresent             = tmp->Field6.data.tnb_present;
-            carState->BreakingOnAlarmRisk    = tmp->Field6.data.breaking_on_alarm_risk;
-            carState->TpmsPresent            = tmp->Field6.data.tpms_present;
-            carState->TpmsResetPresent       = tmp->Field6.data.tpms_reset_present;
+            carState->TnbPresent             = packet.Field6.data.tnb_present;
+            carState->BreakingOnAlarmRisk    = packet.Field6.data.breaking_on_alarm_risk;
+            carState->TpmsPresent            = packet.Field6.data.tpms_present;
+            carState->TpmsResetPresent       = packet.Field6.data.tpms_reset_present;
         }
 };
 #endif

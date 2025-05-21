@@ -73,26 +73,27 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            const auto* tmp = reinterpret_cast<const Can0F6Dash1Struct*>(message.data);
+            Can0F6Dash1Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->IsReverseEngaged    = tmp->LightsStatus.data.reverse_gear_light;
-            carState->ExternalTemperature = tmp->ExternalTemperature;
-            carState->CoolantTemperature  = tmp->CoolantTemperature;
+            carState->IsReverseEngaged    = packet.LightsStatus.data.reverse_gear_light;
+            carState->ExternalTemperature = packet.ExternalTemperature;
+            carState->CoolantTemperature  = packet.CoolantTemperature;
 
-            carState->EngineStatus       = tmp->IgnitionField.data.engine_status;
-            carState->EngineRunning      = tmp->IgnitionField.data.engine_status == 2;
-            //carState->TrailerPresent     = tmp->IgnitionField.data.config_mode == 0 ? 1 : 0;
-            carState->Ignition           = tmp->IgnitionField.data.key_position > 0;
-            carState->KeyPosition        = tmp->IgnitionField.data.key_position;
-            carState->FactoryMode        = tmp->IgnitionField.data.factory_mode;
+            carState->EngineStatus       = packet.IgnitionField.data.engine_status;
+            carState->EngineRunning      = packet.IgnitionField.data.engine_status == 2;
+            //carState->TrailerPresent     = packet.IgnitionField.data.config_mode == 0 ? 1 : 0;
+            carState->Ignition           = packet.IgnitionField.data.key_position > 0;
+            carState->KeyPosition        = packet.IgnitionField.data.key_position;
+            carState->FactoryMode        = packet.IgnitionField.data.factory_mode;
 
-            carState->WiperStatus                               = tmp->LightsStatus.data.wiper_status;
-            carState->CarSignalLights.data.left_turn_indicator  = tmp->LightsStatus.data.turn_left_light;
-            carState->CarSignalLights.data.right_turn_indicator = tmp->LightsStatus.data.turn_right_light;
+            carState->WiperStatus                               = packet.LightsStatus.data.wiper_status;
+            carState->CarSignalLights.data.left_turn_indicator  = packet.LightsStatus.data.turn_left_light;
+            carState->CarSignalLights.data.right_turn_indicator = packet.LightsStatus.data.turn_right_light;
 
-            carState->Odometer.data.leftByte   = tmp->MileageByte1;
-            carState->Odometer.data.middleByte = tmp->MileageByte2;
-            carState->Odometer.data.rightByte  = tmp->MileageByte3;
+            carState->Odometer.data.leftByte   = packet.MileageByte1;
+            carState->Odometer.data.middleByte = packet.MileageByte2;
+            carState->Odometer.data.rightByte  = packet.MileageByte3;
         }
 };
 #endif

@@ -61,24 +61,23 @@ class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //CAN_221_2004_Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const CAN_221_2004_Struct*>(message.data);
+            CAN_221_2004_Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->RightStickButtonPushed = tmp->Field1.data.right_stick_button_pushed;
-            carState->LeftStickButtonPushed  = tmp->Field1.data.left_stick_button_pushed;
+            carState->RightStickButtonPushed = packet.Field1.data.right_stick_button_pushed;
+            carState->LeftStickButtonPushed  = packet.Field1.data.left_stick_button_pushed;
 
-            carState->InvalidRemainingRange  = tmp->Field1.data.remaining_range_invalid;
-            carState->InvalidConsumption     = tmp->Field1.data.consumption_invalid;
+            carState->InvalidRemainingRange  = packet.Field1.data.remaining_range_invalid;
+            carState->InvalidConsumption     = packet.Field1.data.consumption_invalid;
 
-            carState->InstantConsumption.data.leftByte  = tmp->InstantConsumptionByte1;
-            carState->InstantConsumption.data.rightByte = tmp->InstantConsumptionByte2;
+            carState->InstantConsumption.data.leftByte  = packet.InstantConsumptionByte1;
+            carState->InstantConsumption.data.rightByte = packet.InstantConsumptionByte2;
 
-            carState->RemainingRange.data.leftByte  = tmp->RemainingRangeByte1;
-            carState->RemainingRange.data.rightByte = tmp->RemainingRangeByte2;
+            carState->RemainingRange.data.leftByte  = packet.RemainingRangeByte1;
+            carState->RemainingRange.data.rightByte = packet.RemainingRangeByte2;
 
-            carState->TotalRange.data.leftByte      = tmp->TotalRangeByte1;
-            carState->TotalRange.data.rightByte     = tmp->TotalRangeByte1;
+            carState->TotalRange.data.leftByte      = packet.TotalRangeByte1;
+            carState->TotalRange.data.rightByte     = packet.TotalRangeByte1;
 
             if (_immediateSignalCallback)
             {

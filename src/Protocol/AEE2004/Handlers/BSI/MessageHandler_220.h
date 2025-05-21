@@ -58,18 +58,17 @@ class MessageHandler_220 : public IMessageHandler<MessageHandler_220>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can220_2004_Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can220_2004_Struct*>(message.data);
+            Can220_2004_Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->DoorStatus.data.front_left_door_open  = tmp->Field1.data.front_left_door_open;
-            carState->DoorStatus.data.front_right_door_open = tmp->Field1.data.front_right_door_open;
-            carState->DoorStatus.data.rear_left_door_open   = tmp->Field1.data.rear_left_door_open;
-            carState->DoorStatus.data.rear_right_door_open  = tmp->Field1.data.rear_right_door_open;
-            carState->DoorStatus.data.trunk_open            = tmp->Field1.data.trunk_open;
-            carState->DoorStatus.data.hood_open             = tmp->Field1.data.hood_open;
-            carState->DoorStatus.data.fuel_flap_open        = tmp->Field1.data.fuel_flap_open;
-            carState->DoorStatus.data.rear_window_open      = tmp->Field1.data.rear_window_open;
+            carState->DoorStatus.data.front_left_door_open  = packet.Field1.data.front_left_door_open;
+            carState->DoorStatus.data.front_right_door_open = packet.Field1.data.front_right_door_open;
+            carState->DoorStatus.data.rear_left_door_open   = packet.Field1.data.rear_left_door_open;
+            carState->DoorStatus.data.rear_right_door_open  = packet.Field1.data.rear_right_door_open;
+            carState->DoorStatus.data.trunk_open            = packet.Field1.data.trunk_open;
+            carState->DoorStatus.data.hood_open             = packet.Field1.data.hood_open;
+            carState->DoorStatus.data.fuel_flap_open        = packet.Field1.data.fuel_flap_open;
+            carState->DoorStatus.data.rear_window_open      = packet.Field1.data.rear_window_open;
 
             if (_immediateSignalCallback)
             {

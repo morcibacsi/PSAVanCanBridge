@@ -41,16 +41,13 @@ class MessageHandler_161 : public IMessageHandler<MessageHandler_161>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //CAN_161_2004Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const CAN_161_2004Struct*>(message.data);
+            CAN_161_2004Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->OilLevelRestart      = tmp->Field1.data.oil_level_restart;
-            carState->EngineOilTemperature = tmp->EngineOilTemperature;
-            carState->EngineOilLevel       = tmp->EngineOilLevel;
-            carState->FuelLevel            = tmp->FuelLevel;
-
-            //_canMessageHandlerContainer2010->SetData(0x161);
+            carState->OilLevelRestart      = packet.Field1.data.oil_level_restart;
+            carState->EngineOilTemperature = packet.EngineOilTemperature;
+            carState->EngineOilLevel       = packet.EngineOilLevel;
+            carState->FuelLevel            = packet.FuelLevel;
         }
 };
 #endif

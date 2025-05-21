@@ -28,12 +28,12 @@ class MessageHandler_2E1 : public IMessageHandler<MessageHandler_2E1>
         {
             CAN_2E1_2004_Byte1Struct field1{};
             field1.data.automatic_door_locking_status = carState->DeadlockActive ? AUTO_DOOR_LOCKING_STATUS_ACTIVATED : AUTO_DOOR_LOCKING_STATUS_NOT_ACTIVATED;
-            field1.data.auto_headlight_status = carState->AutoHeadlampActive ? AUTO_HEADLIGHT_STATUS_ACTIVATED : AUTO_HEADLIGHT_STATUS_NOT_ACTIVATED;
-            field1.data.passenger_airbag_status = carState->PassengerAirbag ? PASSENGER_AIRBAG_STATUS_NOT_ACTIVATED : PASSENGER_AIRBAG_STATUS_ACTIVATED;
+            field1.data.auto_headlight_status         = carState->AutoHeadlampActive ? AUTO_HEADLIGHT_STATUS_ACTIVATED : AUTO_HEADLIGHT_STATUS_NOT_ACTIVATED;
+            field1.data.passenger_airbag_status       = carState->PassengerAirbag ? PASSENGER_AIRBAG_STATUS_NOT_ACTIVATED : PASSENGER_AIRBAG_STATUS_ACTIVATED;
 
             CAN_2E1_2004_Byte2Struct field2{};
             field2.data.auto_wiper_status = carState->AutoWipingActive ? AUTO_WIPER_STATUS_ACTIVATED : AUTO_WIPER_STATUS_NOT_ACTIVATED;
-            field2.data.esp_status = carState->EspDeactivated ? ESP_STATUS_NOT_ACTIVATED : ESP_STATUS_ACTIVATED;
+            field2.data.esp_status        = carState->EspDeactivated ? ESP_STATUS_NOT_ACTIVATED : ESP_STATUS_ACTIVATED;
 
             CAN_2E1_2004_Byte3Struct field3{};
             field3.data.child_safety_status = carState->PassengerAirbag ? CHILD_SAFETY_STATUS_ACTIVATED : CHILD_SAFETY_STATUS_NOT_ACTIVATED;

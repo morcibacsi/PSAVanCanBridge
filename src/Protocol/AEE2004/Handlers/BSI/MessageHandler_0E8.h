@@ -71,11 +71,11 @@ class MessageHandler_0E8 : public IMessageHandler<MessageHandler_0E8>
             }
 
             CAN_0E8_Byte5Struct field5{};
-            field5.data.auto_lighting_alert_enabled = carState->State_AutoLightsEnabled;
-            field5.data.auto_lighting_alert_disabled = !carState->State_AutoLightsEnabled;
-            field5.data.auto_wiper_alert_enabled = carState->State_AutoWipeEnabled;
-            field5.data.auto_wiper_alert_disabled = !carState->State_AutoWipeEnabled;
-            field5.data.lock_alert_while_driving_enabled = carState->State_AutoLockEnabled;
+            field5.data.auto_lighting_alert_enabled       = carState->State_AutoLightsEnabled;
+            field5.data.auto_lighting_alert_disabled      = !carState->State_AutoLightsEnabled;
+            field5.data.auto_wiper_alert_enabled          = carState->State_AutoWipeEnabled;
+            field5.data.auto_wiper_alert_disabled         = !carState->State_AutoWipeEnabled;
+            field5.data.lock_alert_while_driving_enabled  = carState->State_AutoLockEnabled;
             field5.data.lock_alert_while_driving_disabled = !carState->State_AutoLockEnabled;
 
             message.data[0] = field1.asByte;
@@ -90,9 +90,8 @@ class MessageHandler_0E8 : public IMessageHandler<MessageHandler_0E8>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //Can0E6Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const Can0E8Struct*>(message.data);
+            Can0E6Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
         }
 };
 #endif

@@ -57,18 +57,17 @@ class MessageHandler_1A8 : public IMessageHandler<MessageHandler_1A8>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            //CAN_1A8_2004Struct tmp;
-            //std::memcpy(&tmp, message.data, static_cast<std::size_t>(sizeof(tmp)));
-            const auto* tmp = reinterpret_cast<const CAN_1A8_2004Struct*>(message.data);
+            CAN_1A8_2004Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->CruiseControlSpeed.data.leftByte      = tmp->CruiseControlSpeed1;
-            carState->CruiseControlSpeed.data.rightByte     = tmp->CruiseControlSpeed2;
-            carState->CruiseControlActivateFunction         = tmp->Field1.data.activate_function;
-            carState->CruiseControlSelectedFunction         = tmp->Field1.data.selected_function;
-            carState->CruiseControlStatusOfSelectedFunction = tmp->Field1.data.status_of_selected_function;
-            carState->TripOnCMB.data.leftByte               = tmp->TripOnCMB1;
-            carState->TripOnCMB.data.middleByte             = tmp->TripOnCMB2;
-            carState->TripOnCMB.data.rightByte              = tmp->TripOnCMB3;
+            carState->CruiseControlSpeed.data.leftByte      = packet.CruiseControlSpeed1;
+            carState->CruiseControlSpeed.data.rightByte     = packet.CruiseControlSpeed2;
+            carState->CruiseControlActivateFunction         = packet.Field1.data.activate_function;
+            carState->CruiseControlSelectedFunction         = packet.Field1.data.selected_function;
+            carState->CruiseControlStatusOfSelectedFunction = packet.Field1.data.status_of_selected_function;
+            carState->TripOnCMB.data.leftByte               = packet.TripOnCMB1;
+            carState->TripOnCMB.data.middleByte             = packet.TripOnCMB2;
+            carState->TripOnCMB.data.rightByte              = packet.TripOnCMB3;
 
             if (_immediateSignalCallback)
             {
