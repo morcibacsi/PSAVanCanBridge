@@ -27,18 +27,18 @@ class MessageHandler_228_2010 : public IMessageHandler<MessageHandler_228_2010>
     public:
         static constexpr uint32_t MessageId = 0x228;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_228_2010_Byte3Struct byte2{};
-            byte2.data.activate_function           = state->CruiseControlActivateFunction;
-            byte2.data.selected_function           = state->CruiseControlSelectedFunction;
-            byte2.data.status_of_selected_function = state->CruiseControlStatusOfSelectedFunction;
+            byte2.data.activate_function           = carState->CruiseControlActivateFunction;
+            byte2.data.selected_function           = carState->CruiseControlSelectedFunction;
+            byte2.data.status_of_selected_function = carState->CruiseControlStatusOfSelectedFunction;
             byte2.data.setting_status = SETTING_STATUS_NO_ADJUSTMENT_2010;
             byte2.data.target_present = 1;
             //byte2.data. = 1;
 
-            message.data[0] = state->CruiseControlSpeed.data.leftByte;
-            message.data[1] = state->CruiseControlSpeed.data.rightByte;
+            message.data[0] = carState->CruiseControlSpeed.data.leftByte;
+            message.data[1] = carState->CruiseControlSpeed.data.rightByte;
             message.data[2] = byte2.asByte;
             message.data[3] = 0x80;
             message.data[4] = 0x14;

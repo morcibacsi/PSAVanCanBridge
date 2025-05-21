@@ -27,15 +27,15 @@ class MessageHandler_0B6 : public IMessageHandler<MessageHandler_0B6>
     public:
         static constexpr uint32_t MessageId = 0x0B6;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->Rpm.data.leftByte;
-            message.data[1] = state->Rpm.data.rightByte;
-            message.data[2] = state->Speed.data.leftByte;
-            message.data[3] = state->Speed.data.rightByte;
-            message.data[4] = state->DistanceForCMB.data.leftByte;
-            message.data[5] = state->DistanceForCMB.data.rightByte;
-            message.data[6] = state->ConsumptionForCMB;
+            message.data[0] = carState->Rpm.data.leftByte;
+            message.data[1] = carState->Rpm.data.rightByte;
+            message.data[2] = carState->Speed.data.leftByte;
+            message.data[3] = carState->Speed.data.rightByte;
+            message.data[4] = carState->DistanceForCMB.data.leftByte;
+            message.data[5] = carState->DistanceForCMB.data.rightByte;
+            message.data[6] = carState->ConsumptionForCMB;
             message.data[7] = 0xD0;
 
             return message;

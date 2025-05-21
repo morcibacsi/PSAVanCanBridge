@@ -22,7 +22,7 @@ class MessageHandler_464 : public IMessageHandler<MessageHandler_464>
             _vanCanAirConditionerSpeedMap = new VanCanAirConditionerSpeedMap();
         }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x464;

@@ -27,34 +27,34 @@ class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
     public:
         static constexpr uint32_t MessageId = 0x361;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             Can361_2004Byte2Struct field2{};
-            field2.data.permanent_rear_flap_lock = state->PermanentRearFlapLock;
-            field2.data.config_enabled           = state->ConfigEnabled;
+            field2.data.permanent_rear_flap_lock = carState->PermanentRearFlapLock;
+            field2.data.config_enabled           = carState->ConfigEnabled;
 
             Can361_2004Byte3Struct field3{};
-            field3.data.auto_lighting                 = state->AutoLighting;
-            field3.data.automatic_electric_brake      = state->AutomaticElectricBrake;
-            field3.data.follow_me_home                = state->FollowMeHome;
-            field3.data.hinge_panel_select            = state->HingePanelSelect;
-            field3.data.irc_present                   = state->IrcPresent;
+            field3.data.auto_lighting                 = carState->AutoLighting;
+            field3.data.automatic_electric_brake      = carState->AutomaticElectricBrake;
+            field3.data.follow_me_home                = carState->FollowMeHome;
+            field3.data.hinge_panel_select            = carState->HingePanelSelect;
+            field3.data.irc_present                   = carState->IrcPresent;
 
             Can361_2004Byte4Struct field4{};
-            field4.data.drl_present        = state->DrlPresent;
-            field4.data.rear_wiper_option  = state->RearWiperOption;
+            field4.data.drl_present        = carState->DrlPresent;
+            field4.data.rear_wiper_option  = carState->RearWiperOption;
 
             Can361_2004Byte5Struct field5{};
-            field5.data.aas_disable              = state->AasDisable;
-            field5.data.ambient_lighting         = state->AmbientLighting;
-            field5.data.blindspot_monitoring     = state->BlindspotMonitoring;
-            field5.data.highway_lighting_present = state->HighwayLightingPresent;
+            field5.data.aas_disable              = carState->AasDisable;
+            field5.data.ambient_lighting         = carState->AmbientLighting;
+            field5.data.blindspot_monitoring     = carState->BlindspotMonitoring;
+            field5.data.highway_lighting_present = carState->HighwayLightingPresent;
 
             Can361_2004Byte6Struct field6{};
-            field6.data.tnb_present             = state->TnbPresent;
-            field6.data.breaking_on_alarm_risk  = state->BreakingOnAlarmRisk;
-            field6.data.tpms_present            = state->TpmsPresent;
-            field6.data.tpms_reset_present      = state->TpmsResetPresent;
+            field6.data.tnb_present             = carState->TnbPresent;
+            field6.data.breaking_on_alarm_risk  = carState->BreakingOnAlarmRisk;
+            field6.data.tpms_present            = carState->TpmsPresent;
+            field6.data.tpms_reset_present      = carState->TpmsResetPresent;
 
             message.data[0] = 0x00;
             message.data[1] = field2.asByte;

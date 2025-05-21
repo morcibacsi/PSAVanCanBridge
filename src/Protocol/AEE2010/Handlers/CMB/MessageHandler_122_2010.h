@@ -26,7 +26,7 @@ class MessageHandler_122_2010 : public IMessageHandler<MessageHandler_122_2010>
     public:
         static constexpr uint32_t MessageId = 0x122;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             message.data[0] = 0x00;
             message.data[1] = 0x00;

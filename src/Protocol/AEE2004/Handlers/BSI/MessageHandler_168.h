@@ -34,49 +34,49 @@ class MessageHandler_168 : public IMessageHandler<MessageHandler_168>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CanDash3Byte1Struct field1{};
-            field1.data.auto_gearbox_alert       = state->CarIndicatorLights.data.gearbox_fault;
-            field1.data.break_fluid_alert        = state->CarIndicatorLights.data.break_fluid_alert;
-            field1.data.coolant_level_alert      = state->CarIndicatorLights.data.coolant_level_alert;
-            field1.data.coolant_temp_max         = state->CarIndicatorLights.data.coolant_temp_max;
-            field1.data.oil_level_alert          = state->CarIndicatorLights.data.oil_level_alert;
-            field1.data.oil_pressure_alert       = state->CarIndicatorLights.data.oil_pressure_alert;
+            field1.data.auto_gearbox_alert       = carState->CarIndicatorLights.data.gearbox_fault;
+            field1.data.break_fluid_alert        = carState->CarIndicatorLights.data.break_fluid_alert;
+            field1.data.coolant_level_alert      = carState->CarIndicatorLights.data.coolant_level_alert;
+            field1.data.coolant_temp_max         = carState->CarIndicatorLights.data.coolant_temp_max;
+            field1.data.oil_level_alert          = carState->CarIndicatorLights.data.oil_level_alert;
+            field1.data.oil_pressure_alert       = carState->CarIndicatorLights.data.oil_pressure_alert;
             //TODO
             //field1.data.oil_temp_max             = state->CarIndicatorLights.data.oil_temp_max;
 
             CanDash3Byte2Struct field2{};
             //TODO
             //field2.data.diesel_additive_alert    = state->CarIndicatorLights.data.diesel_additive_alert;
-            field2.data.fap_clogged              = state->CarIndicatorLights.data.fap_clogged;
-            field2.data.tyre_punctured           = state->CarIndicatorLights.data.tyre_punctured;
-            field2.data.tyre_pressure_low        = state->CarIndicatorLights.data.tyre_pressure_low;
+            field2.data.fap_clogged              = carState->CarIndicatorLights.data.fap_clogged;
+            field2.data.tyre_punctured           = carState->CarIndicatorLights.data.tyre_punctured;
+            field2.data.tyre_pressure_low        = carState->CarIndicatorLights.data.tyre_pressure_low;
 
             CanDash3Byte3Struct field3{};
-            field3.data.foot_on_clutch                      = state->CarSignalLights.data.foot_on_clutch;
-            field3.data.row2_rr_seatbelt_forgotten          = state->CarIndicatorLights.data.row2_rr_seatbelt_forgot;
-            field3.data.row2_rr_seatbelt_forgotten_blinking = state->CarIndicatorLights.data.row2_rr_seatbelt_blink;
-            field3.data.row2_rl_seatbelt_forgotten          = state->CarIndicatorLights.data.row2_rl_seatbelt_forgot;
-            field3.data.row2_rl_seatbelt_forgotten_blinking = state->CarIndicatorLights.data.row2_rl_seatbelt_blink;
+            field3.data.foot_on_clutch                      = carState->CarSignalLights.data.foot_on_clutch;
+            field3.data.row2_rr_seatbelt_forgotten          = carState->CarIndicatorLights.data.row2_rr_seatbelt_forgot;
+            field3.data.row2_rr_seatbelt_forgotten_blinking = carState->CarIndicatorLights.data.row2_rr_seatbelt_blink;
+            field3.data.row2_rl_seatbelt_forgotten          = carState->CarIndicatorLights.data.row2_rl_seatbelt_forgot;
+            field3.data.row2_rl_seatbelt_forgotten_blinking = carState->CarIndicatorLights.data.row2_rl_seatbelt_blink;
             //TODO
-            //field3.data.row2_rc_seatbelt_forgotten = state->CarIndicatorLights.data.r;
+            //field3.data.row2_rc_seatbelt_forgotten = carState->CarIndicatorLights.data.r;
 
             CanDash3Byte4Struct field4{};
-            field4.data.abs_fault                = state->CarIndicatorLights.data.abs_fault;
-            field4.data.brake_pad_fault          = state->CarIndicatorLights.data.brake_pad_fault;
-            field4.data.esp_fault                = state->CarIndicatorLights.data.esp_fault;
-            field4.data.mil                      = state->CarIndicatorLights.data.mil;
-            field4.data.gearbox_fault            = state->CarIndicatorLights.data.gearbox_fault;
-            field4.data.water_in_diesel          = state->CarIndicatorLights.data.water_in_diesel;
-            field4.data.serious_suspension_fault = state->CarIndicatorLights.data.serious_suspension_fault;
+            field4.data.abs_fault                = carState->CarIndicatorLights.data.abs_fault;
+            field4.data.brake_pad_fault          = carState->CarIndicatorLights.data.brake_pad_fault;
+            field4.data.esp_fault                = carState->CarIndicatorLights.data.esp_fault;
+            field4.data.mil                      = carState->CarIndicatorLights.data.mil;
+            field4.data.gearbox_fault            = carState->CarIndicatorLights.data.gearbox_fault;
+            field4.data.water_in_diesel          = carState->CarIndicatorLights.data.water_in_diesel;
+            field4.data.serious_suspension_fault = carState->CarIndicatorLights.data.serious_suspension_fault;
 
             CanDash3Byte5Struct field5{};
-            field5.data.antipollution_fault      = state->CarIndicatorLights.data.antipollution_fault;
-            field5.data.battery_charge_fault     = state->CarIndicatorLights.data.battery_charge_fault;
+            field5.data.antipollution_fault      = carState->CarIndicatorLights.data.antipollution_fault;
+            field5.data.battery_charge_fault     = carState->CarIndicatorLights.data.battery_charge_fault;
             //TODO
-            //field5.data.diesel_additive_fault    = state->CarIndicatorLights.data.diesel_additive_fault;
-            //field5.data.driver_airbag            = state->CarIndicatorLights.data.driver_airbag
+            //field5.data.diesel_additive_fault    = carState->CarIndicatorLights.data.diesel_additive_fault;
+            //field5.data.driver_airbag            = carState->CarIndicatorLights.data.driver_airbag
 
             message.data[0] = field1.asByte;
             message.data[1] = field2.asByte;

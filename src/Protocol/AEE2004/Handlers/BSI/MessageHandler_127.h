@@ -26,10 +26,10 @@ class MessageHandler_127 : public IMessageHandler<MessageHandler_127>
     public:
         static constexpr uint32_t MessageId = 0x127;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             Can2004_127Byte1 field1{};
-            field1.data.enable_vth = state->Ignition == 1;
+            field1.data.enable_vth = carState->Ignition == 1;
 
             message.data[0] = field1.asByte;
             message.data[1] = 0x00;

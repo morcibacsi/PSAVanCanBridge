@@ -28,7 +28,7 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
         void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
         void SetCanDisplayPopupHandler(CanDisplayPopupHandler3* canPopupHandler) { _canPopupHandler = canPopupHandler; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x8A4;

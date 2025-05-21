@@ -16,7 +16,7 @@ class MessageHandler_744 : public IMessageHandler<MessageHandler_744>
     public:
         static constexpr uint32_t MessageId = 0x744;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x744;

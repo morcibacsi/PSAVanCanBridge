@@ -27,19 +27,19 @@ class MessageHandler_3B6 : public IMessageHandler<MessageHandler_3B6>
     public:
         static constexpr uint32_t MessageId = 0x3B6;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->VIN_FOR_HEADUNIT[3];
-            message.data[1] = state->VIN_FOR_HEADUNIT[4];
-            message.data[2] = state->VIN_FOR_HEADUNIT[5];
-            message.data[3] = state->VIN_FOR_HEADUNIT[6];
-            message.data[4] = state->VIN_FOR_HEADUNIT[7];
-            message.data[5] = state->VIN_FOR_HEADUNIT[8];
+            message.data[0] = carState->VIN_FOR_HEADUNIT[3];
+            message.data[1] = carState->VIN_FOR_HEADUNIT[4];
+            message.data[2] = carState->VIN_FOR_HEADUNIT[5];
+            message.data[3] = carState->VIN_FOR_HEADUNIT[6];
+            message.data[4] = carState->VIN_FOR_HEADUNIT[7];
+            message.data[5] = carState->VIN_FOR_HEADUNIT[8];
 
             return message;
         }
 
-        void Parse(CarState* state, const BusMessage& msg)
+        void Parse(CarState* carState, const BusMessage& msg)
         {
         }
 };

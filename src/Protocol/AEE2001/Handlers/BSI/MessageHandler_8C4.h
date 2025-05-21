@@ -24,7 +24,7 @@ class MessageHandler_8C4 : public IMessageHandler<MessageHandler_8C4>
 
         void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x8C4;

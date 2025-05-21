@@ -24,21 +24,21 @@ class MessageHandler_221_2010 : public IMessageHandler<MessageHandler_221_2010>
     public:
         static constexpr uint32_t MessageId = 0x221;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_221_2010_Byte1Struct byte1{};
-            byte1.data.consumption_invalid       = state->InvalidConsumption;
-            byte1.data.remaining_range_invalid   = state->InvalidRemainingRange;
-            byte1.data.left_stick_button_pushed  = state->LeftStickButtonPushed;
-            byte1.data.right_stick_button_pushed = state->RightStickButtonPushed;
+            byte1.data.consumption_invalid       = carState->InvalidConsumption;
+            byte1.data.remaining_range_invalid   = carState->InvalidRemainingRange;
+            byte1.data.left_stick_button_pushed  = carState->LeftStickButtonPushed;
+            byte1.data.right_stick_button_pushed = carState->RightStickButtonPushed;
 
             message.data[0] = byte1.asByte;
-            message.data[1] = state->InstantConsumption.data.leftByte;
-            message.data[2] = state->InstantConsumption.data.rightByte;
-            message.data[3] = state->RemainingRange.data.leftByte;
-            message.data[4] = state->RemainingRange.data.rightByte;
-            message.data[5] = state->TotalRange.data.leftByte;
-            message.data[6] = state->TotalRange.data.rightByte;
+            message.data[1] = carState->InstantConsumption.data.leftByte;
+            message.data[2] = carState->InstantConsumption.data.rightByte;
+            message.data[3] = carState->RemainingRange.data.leftByte;
+            message.data[4] = carState->RemainingRange.data.rightByte;
+            message.data[5] = carState->TotalRange.data.leftByte;
+            message.data[6] = carState->TotalRange.data.rightByte;
 
             return message;
         }

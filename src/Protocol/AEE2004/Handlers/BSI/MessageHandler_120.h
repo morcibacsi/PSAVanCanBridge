@@ -24,16 +24,16 @@ class MessageHandler_120 : public IMessageHandler<MessageHandler_120>
     public:
         static constexpr uint32_t MessageId = 0x120;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_120_2004_Byte4Struct field4{};
-            field4.data.GearboxFaultRepairNeeded = state->CarIndicatorLights.data.gearbox_fault;
+            field4.data.GearboxFaultRepairNeeded = carState->CarIndicatorLights.data.gearbox_fault;
 
             CAN_120_2004_Byte5Struct field5{};
-            field5.data.EngineFaultRepairNeeded = state->CarIndicatorLights.data.mil || state->CarIndicatorLights.data.antipollution_fault;
+            field5.data.EngineFaultRepairNeeded = carState->CarIndicatorLights.data.mil || carState->CarIndicatorLights.data.antipollution_fault;
 
             CAN_120_2004_Byte7Struct field7{};
-            field7.data.SuspensionFaulty = state->CarIndicatorLights.data.serious_suspension_fault;
+            field7.data.SuspensionFaulty = carState->CarIndicatorLights.data.serious_suspension_fault;
 
             message.data[0] = 0xFF;
             message.data[1] = 0x00;
@@ -47,7 +47,7 @@ class MessageHandler_120 : public IMessageHandler<MessageHandler_120>
             return message;
         }
 
-        void Parse(CarState* state, const BusMessage& msg)
+        void Parse(CarState* carState, const BusMessage& msg)
         {
         }
 };

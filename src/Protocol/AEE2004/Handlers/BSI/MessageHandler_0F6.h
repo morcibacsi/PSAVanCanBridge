@@ -26,25 +26,25 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
     public:
         static constexpr uint32_t MessageId = 0x0F6;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CanDash1Byte1Struct field1{};
             field1.data.key_position = KEY_POSITION_2004_CONTACT;
-            if (state->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
             {
-                field1.data.key_position = state->KeyPosition;
+                field1.data.key_position = carState->KeyPosition;
             }
 
-            field1.data.engine_status    = state->EngineStatus;
-            field1.data.generator_status = state->EngineRunning;
-            field1.data.factory_mode     = state->FactoryMode;
-            field1.data.config_mode      = state->FactoryMode == 1 ? CONFIG_MODE_2004_FACTORY : CONFIG_MODE_2004_CLIENT;
+            field1.data.engine_status    = carState->EngineStatus;
+            field1.data.generator_status = carState->EngineRunning;
+            field1.data.factory_mode     = carState->FactoryMode;
+            field1.data.config_mode      = carState->FactoryMode == 1 ? CONFIG_MODE_2004_FACTORY : CONFIG_MODE_2004_CLIENT;
 
             CanDash1Byte8Struct field8{};
-            field8.data.reverse_gear_light = state->IsReverseEngaged;
-            field8.data.wiper_status       = state->WiperStatus;
-            field8.data.turn_left_light    = state->CarSignalLights.data.left_turn_indicator;
-            field8.data.turn_right_light   = state->CarSignalLights.data.right_turn_indicator;
+            field8.data.reverse_gear_light = carState->IsReverseEngaged;
+            field8.data.wiper_status       = carState->WiperStatus;
+            field8.data.turn_left_light    = carState->CarSignalLights.data.left_turn_indicator;
+            field8.data.turn_right_light   = carState->CarSignalLights.data.right_turn_indicator;
 
             //0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, temperature, 0x50
 /*
@@ -59,12 +59,12 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
 */
 ///*
             message.data[0] = field1.asByte;
-            message.data[1] = state->CoolantTemperature;
-            message.data[2] = state->Odometer.data.leftByte;
-            message.data[3] = state->Odometer.data.middleByte;
-            message.data[4] = state->Odometer.data.rightByte;
-            message.data[5] = state->ExternalTemperature;
-            message.data[6] = state->ExternalTemperature;
+            message.data[1] = carState->CoolantTemperature;
+            message.data[2] = carState->Odometer.data.leftByte;
+            message.data[3] = carState->Odometer.data.middleByte;
+            message.data[4] = carState->Odometer.data.rightByte;
+            message.data[5] = carState->ExternalTemperature;
+            message.data[6] = carState->ExternalTemperature;
             message.data[7] = field8.asByte;
 
 //*/

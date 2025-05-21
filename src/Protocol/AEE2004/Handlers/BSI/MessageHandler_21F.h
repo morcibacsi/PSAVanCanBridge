@@ -35,26 +35,26 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_21F_Byte1Struct field1{};
-            field1.data.list                   = state->RadioRemote.data.list;
-            field1.data.mode_phone             = state->RadioRemote.data.mode_phone;
-            field1.data.volume_minus           = state->RadioRemote.data.volume_minus;
-            field1.data.volume_plus            = state->RadioRemote.data.volume_plus;
-            field1.data.owerflow_scan_negative = state->RadioRemote.data.owerflow_scan_negative;
-            field1.data.owerflow_scan_positive = state->RadioRemote.data.owerflow_scan_positive;
-            field1.data.seek_down              = state->RadioRemote.data.seek_down;
-            field1.data.seek_up                = state->RadioRemote.data.seek_up;
+            field1.data.list                   = carState->RadioRemote.data.list;
+            field1.data.mode_phone             = carState->RadioRemote.data.mode_phone;
+            field1.data.volume_minus           = carState->RadioRemote.data.volume_minus;
+            field1.data.volume_plus            = carState->RadioRemote.data.volume_plus;
+            field1.data.owerflow_scan_negative = carState->RadioRemote.data.owerflow_scan_negative;
+            field1.data.owerflow_scan_positive = carState->RadioRemote.data.owerflow_scan_positive;
+            field1.data.seek_down              = carState->RadioRemote.data.seek_down;
+            field1.data.seek_up                = carState->RadioRemote.data.seek_up;
 
             CAN_21F_Byte3Struct field3{};
-            field3.data.command_valid = state->RadioRemote.data.command_valid;
-            field3.data.list_minus    = state->RadioRemote.data.list_minus;
-            field3.data.list_plus     = state->RadioRemote.data.list_plus;
-            field3.data.source        = state->RadioRemote.data.source;
+            field3.data.command_valid = carState->RadioRemote.data.command_valid;
+            field3.data.list_minus    = carState->RadioRemote.data.list_minus;
+            field3.data.list_plus     = carState->RadioRemote.data.list_plus;
+            field3.data.source        = carState->RadioRemote.data.source;
 
             message.data[0] = field1.asByte;
-            message.data[1] = state->RadioRemote.data.scroll_position;
+            message.data[1] = carState->RadioRemote.data.scroll_position;
             message.data[2] = field3.asByte;
 
             return message;

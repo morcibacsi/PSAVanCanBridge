@@ -15,7 +15,7 @@ class MessageHandler_4DC : public IMessageHandler<MessageHandler_4DC>
     public:
         static constexpr uint32_t MessageId = 0x4DC;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x4DC;

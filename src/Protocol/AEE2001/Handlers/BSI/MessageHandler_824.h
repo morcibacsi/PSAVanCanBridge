@@ -22,7 +22,7 @@ class MessageHandler_824 : public IMessageHandler<MessageHandler_824>
 
     void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-    BusMessage Generate(CarState* state)
+    BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x824;

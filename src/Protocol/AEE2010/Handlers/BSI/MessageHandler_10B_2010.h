@@ -26,14 +26,14 @@ class MessageHandler_10B_2010 : public IMessageHandler<MessageHandler_10B_2010>
     public:
         static constexpr uint32_t MessageId = 0x10B;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->SteeringAngle.data.leftByte;
-            message.data[1] = state->SteeringAngle.data.rightByte;
-            message.data[2] = state->SteeringSpeed;
-            message.data[3] = state->SteeringStatus;
+            message.data[0] = carState->SteeringAngle.data.leftByte;
+            message.data[1] = carState->SteeringAngle.data.rightByte;
+            message.data[2] = carState->SteeringSpeed;
+            message.data[3] = carState->SteeringStatus;
             message.data[4] = 0x00;
-            message.data[5] = state->SteeringSpeed;
+            message.data[5] = carState->SteeringSpeed;
             message.data[6] = 0x00;
 
             return message;

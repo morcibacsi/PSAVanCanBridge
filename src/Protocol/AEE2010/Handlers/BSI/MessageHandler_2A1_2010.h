@@ -25,15 +25,15 @@ class MessageHandler_2A1_2010 : public IMessageHandler<MessageHandler_2A1_2010>
     public:
         static constexpr uint32_t MessageId = 0x2A1;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->Trip1Speed;
-            message.data[1] = state->Trip1Distance.data.leftByte;
-            message.data[2] = state->Trip1Distance.data.rightByte;
-            message.data[3] = state->Trip1Consumption.data.leftByte;
-            message.data[4] = state->Trip1Consumption.data.rightByte;
-            message.data[5] = state->Trip1LastResetSince.data.leftByte;
-            message.data[6] = state->Trip1LastResetSince.data.rightByte;
+            message.data[0] = carState->Trip1Speed;
+            message.data[1] = carState->Trip1Distance.data.leftByte;
+            message.data[2] = carState->Trip1Distance.data.rightByte;
+            message.data[3] = carState->Trip1Consumption.data.leftByte;
+            message.data[4] = carState->Trip1Consumption.data.rightByte;
+            message.data[5] = carState->Trip1LastResetSince.data.leftByte;
+            message.data[6] = carState->Trip1LastResetSince.data.rightByte;
 
             return message;
         }

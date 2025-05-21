@@ -74,44 +74,44 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
         return result;
     }
 
-    uint8_t GetBarCountFromDistance(CarState* state, uint8_t distanceData, bool isCorner)
+    uint8_t GetBarCountFromDistance(CarState* carState, uint8_t distanceData, bool isCorner)
     {
         uint8_t result = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
 
         if (isCorner)
         {
-            if (distanceData <= state->AAS_REAR_CORNER_DISTANCES[0])
+            if (distanceData <= carState->AAS_REAR_CORNER_DISTANCES[0])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone4);
             }
-            if (distanceData <= state->AAS_REAR_CORNER_DISTANCES[1])
+            if (distanceData <= carState->AAS_REAR_CORNER_DISTANCES[1])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone3);
             }
-            if (distanceData <= state->AAS_REAR_CORNER_DISTANCES[2])
+            if (distanceData <= carState->AAS_REAR_CORNER_DISTANCES[2])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone2);
             }
-            if (distanceData <= state->AAS_REAR_CORNER_DISTANCES[3])
+            if (distanceData <= carState->AAS_REAR_CORNER_DISTANCES[3])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone1Near);
             }
         }
         else
         {
-            if (distanceData <= state->AAS_REAR_DISTANCES[0])
+            if (distanceData <= carState->AAS_REAR_DISTANCES[0])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone7);
             }
-            if (distanceData <= state->AAS_REAR_DISTANCES[1])
+            if (distanceData <= carState->AAS_REAR_DISTANCES[1])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone5);
             }
-            if (distanceData <= state->AAS_REAR_DISTANCES[2])
+            if (distanceData <= carState->AAS_REAR_DISTANCES[2])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone3);
             }
-            if (distanceData <= state->AAS_REAR_DISTANCES[3])
+            if (distanceData <= carState->AAS_REAR_DISTANCES[3])
             {
                 result = static_cast<uint8_t>(ParkingAidBarCount::Zone1Near);
             }
@@ -120,60 +120,60 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
         return result;
     }
 
-    uint8_t GetBeepDelayFromDistance(CarState* state, uint8_t minDistance, bool isCorner)
+    uint8_t GetBeepDelayFromDistance(CarState* carState, uint8_t minDistance, bool isCorner)
     {
         //0-62
         uint8_t result = 62;
 
         if (isCorner == 1)
         {
-            if (minDistance < state->AAS_REAR_CORNER_DISTANCES[0])
+            if (minDistance < carState->AAS_REAR_CORNER_DISTANCES[0])
             {
                 result = 62;
             }
-            if (minDistance <= state->AAS_REAR_CORNER_DISTANCES[1])
+            if (minDistance <= carState->AAS_REAR_CORNER_DISTANCES[1])
             {
                 result = 40;
             }
-            if (minDistance <= state->AAS_REAR_CORNER_DISTANCES[2])
+            if (minDistance <= carState->AAS_REAR_CORNER_DISTANCES[2])
             {
                 result = 20;
             }
-            if (minDistance <= state->AAS_REAR_CORNER_DISTANCES[3])
+            if (minDistance <= carState->AAS_REAR_CORNER_DISTANCES[3])
             {
                 result = 0;
             }
         }
         else
         {
-            if (minDistance <= state->AAS_REAR_DISTANCES[0])
+            if (minDistance <= carState->AAS_REAR_DISTANCES[0])
             {
                 //the delay is decremented by 1 for every 2 cm when the distance is between 100-145 (starting from 62)
 
                 //23 is the number of delay steps between the "1 bar distance" and the "2 bar distance"
                 //(145 cm - 100cm )/23 = ~2
                 //62 is the default delay
-                result = 62 - ((state->AAS_REAR_DISTANCES[0]-minDistance)/2);
+                result = 62 - ((carState->AAS_REAR_DISTANCES[0]-minDistance)/2);
             }
-            if (minDistance <= state->AAS_REAR_DISTANCES[1])
+            if (minDistance <= carState->AAS_REAR_DISTANCES[1])
             {
                 //the delay is decremented by 1 for every 2.5 cm when the distance is between 50-100 (starting from 40)
 
                 //20 is the number of delay steps between the "2 bar distance" and the "3 bar distance"
                 //(100 cm - 50cm )/20 = ~2.5
                 //40 is the delay of the first 2 bar distance
-                result = 40 - ((state->AAS_REAR_DISTANCES[1]-minDistance)/2.5);
+                result = 40 - ((carState->AAS_REAR_DISTANCES[1]-minDistance)/2.5);
             }
-            if (minDistance <= state->AAS_REAR_DISTANCES[2])
+            if (minDistance <= carState->AAS_REAR_DISTANCES[2])
             {
                 //the delay is decremented by 1 for every 2.5 cm when the distance is between 30-50 (starting from 20)
 
                 //the last delay before we reach "4 bar distance" is 12, so 8 = 20-12
                 //(50 cm - 30cm )/8 = ~2.5
                 //20 is the delay of the first 3 bar distance
-                result = 20 - ((state->AAS_REAR_DISTANCES[2]-minDistance)/2.5);
+                result = 20 - ((carState->AAS_REAR_DISTANCES[2]-minDistance)/2.5);
             }
-            if (minDistance <= state->AAS_REAR_DISTANCES[3])
+            if (minDistance <= carState->AAS_REAR_DISTANCES[3])
             {
                 //if the distance reaches 30 cm the delay is 0
                 result = 0;
@@ -183,7 +183,7 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
         return result;
     }
 
-    uint8_t GetBeepDurationFromDistance(CarState* state, uint8_t minDistance, bool isCorner)
+    uint8_t GetBeepDurationFromDistance(CarState* carState, uint8_t minDistance, bool isCorner)
     {
         //in a 5008 it is always 0
         return 0;
@@ -192,30 +192,30 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
 
         if (isCorner == 1)
         {
-            if (minDistance < state->AAS_REAR_CORNER_DISTANCES[3])
+            if (minDistance < carState->AAS_REAR_CORNER_DISTANCES[3])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration3);
             }
-            if (minDistance < state->AAS_REAR_CORNER_DISTANCES[2])
+            if (minDistance < carState->AAS_REAR_CORNER_DISTANCES[2])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration2);
             }
-            if (minDistance < state->AAS_REAR_CORNER_DISTANCES[0])
+            if (minDistance < carState->AAS_REAR_CORNER_DISTANCES[0])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration1);
             }
         }
         else
         {
-            if (minDistance < state->AAS_REAR_DISTANCES[3])
+            if (minDistance < carState->AAS_REAR_DISTANCES[3])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration3);
             }
-            if (minDistance < state->AAS_REAR_DISTANCES[2])
+            if (minDistance < carState->AAS_REAR_DISTANCES[2])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration2);
             }
-            if (minDistance < state->AAS_REAR_DISTANCES[0])
+            if (minDistance < carState->AAS_REAR_DISTANCES[0])
             {
                 result = static_cast<uint8_t>(ParkingAidBeepDuration::Duration1);
             }
@@ -227,7 +227,7 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
     public:
         static constexpr uint32_t MessageId = 0xAE8;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0xAE8;

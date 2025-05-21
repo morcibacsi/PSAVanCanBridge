@@ -29,25 +29,25 @@ class MessageHandler_036_2010 : public IMessageHandler<MessageHandler_036_2010>
     public:
         static constexpr uint32_t MessageId = 0x036;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_036_2010_Byte1Struct byte1{};
-            byte1.data.driving_direction = state->IsReverseEngaged ? DRIVING_DIRECTION_REVERSE : DRIVING_DIRECTION_FORWARD;
+            byte1.data.driving_direction = carState->IsReverseEngaged ? DRIVING_DIRECTION_REVERSE : DRIVING_DIRECTION_FORWARD;
 
             CAN_036_2010_Byte3Struct byte3{};
-            byte3.data.economy_mode_active = state->EconomyMode;
+            byte3.data.economy_mode_active = carState->EconomyMode;
 
             CAN_036_2010_Byte4Struct byte4{};
-            byte4.data.night_mode = state->NightMode;
-            byte4.data.dashboard_brightness = state->DashboardBrightness;
-            byte4.data.black_panel_status = state->BlackPanelStatus;
+            byte4.data.night_mode = carState->NightMode;
+            byte4.data.dashboard_brightness = carState->DashboardBrightness;
+            byte4.data.black_panel_status = carState->BlackPanelStatus;
 
             CAN_036_2010_Byte5Struct byte5{};
             byte5.data.ignition_mode = 1;
 
-            if (state->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
             {
-                byte5.data.ignition_mode = state->IgnitionMode;
+                byte5.data.ignition_mode = carState->IgnitionMode;
             }
 
             message.data[0] = byte1.asByte;

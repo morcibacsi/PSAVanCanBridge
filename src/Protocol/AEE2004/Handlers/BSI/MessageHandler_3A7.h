@@ -26,27 +26,27 @@ class MessageHandler_3A7 : public IMessageHandler<MessageHandler_3A7>
     public:
         static constexpr uint32_t MessageId = 0x3A7;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             Can3A7Byte1Struct field1{};
-            field1.data.maintenance_due = state->IsMaintenanceDue;
-            field1.data.wrench_with_km = state->WrenchIcon;
+            field1.data.maintenance_due = carState->IsMaintenanceDue;
+            field1.data.wrench_with_km = carState->WrenchIcon;
 
             Can3A7Byte2Struct field2{};
-            field2.data.maintenance_sign_km = state->MaintenanceSignKm;
-            field2.data.km_blinking = state->MaintenanceSignKmBlinking;
+            field2.data.maintenance_sign_km = carState->MaintenanceSignKm;
+            field2.data.km_blinking = carState->MaintenanceSignKmBlinking;
 
             Can3A7Byte3Struct field3{};
-            field3.data.maintenance_sign_time = state->MaintenanceSignTime;
-            field3.data.time_blinking = state->MaintenanceSignTimeBlinking;
+            field3.data.maintenance_sign_time = carState->MaintenanceSignTime;
+            field3.data.time_blinking = carState->MaintenanceSignTimeBlinking;
 
             message.data[0] = field1.asByte;
             message.data[1] = field2.asByte;
             message.data[2] = field3.asByte;
-            message.data[3] = state->MaintenanceKilometers.data.leftByte;
-            message.data[4] = state->MaintenanceKilometers.data.rightByte;
-            message.data[5] = state->MaintenanceTime.data.leftByte;
-            message.data[6] = state->MaintenanceTime.data.rightByte;
+            message.data[3] = carState->MaintenanceKilometers.data.leftByte;
+            message.data[4] = carState->MaintenanceKilometers.data.rightByte;
+            message.data[5] = carState->MaintenanceTime.data.leftByte;
+            message.data[6] = carState->MaintenanceTime.data.rightByte;
             message.data[7] = 0x05;
 
             return message;

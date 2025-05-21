@@ -35,29 +35,29 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
 
         void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CanIgnitionByte3Struct ecoField{};
-            ecoField.data.economy_mode_active = state->EconomyMode;
+            ecoField.data.economy_mode_active = carState->EconomyMode;
 
             CanIgnitionByte4Struct brightnessField{};
-            brightnessField.data.night_mode           = state->NightMode;
-            brightnessField.data.dashboard_brightness = state->DashboardBrightness;
-            brightnessField.data.black_panel_status   = state->BlackPanelStatus;
+            brightnessField.data.night_mode           = carState->NightMode;
+            brightnessField.data.dashboard_brightness = carState->DashboardBrightness;
+            brightnessField.data.black_panel_status   = carState->BlackPanelStatus;
 
             CanIgnitionByte5Struct ignitionField{};
 
             CanIgnitionByte7Struct rearCamField{};
 
-            if (state->RADIO_TYPE == 5 && state->ENABLE_REVERSE_CAMERA_ON_RTX)
+            if (carState->RADIO_TYPE == 5 && carState->ENABLE_REVERSE_CAMERA_ON_RTX)
             {
-                rearCamField.data.activate_rear_camera = state->IsReverseEngaged;
+                rearCamField.data.activate_rear_camera = carState->IsReverseEngaged;
             }
 
             ignitionField.data.ignition_mode = 1;
-            if (state->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
             {
-                ignitionField.data.ignition_mode = state->IgnitionMode;
+                ignitionField.data.ignition_mode = carState->IgnitionMode;
             }
 
 

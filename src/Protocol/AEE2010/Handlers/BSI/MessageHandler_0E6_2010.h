@@ -41,22 +41,22 @@ class MessageHandler_0E6_2010 : public IMessageHandler<MessageHandler_0E6_2010>
     public:
         static constexpr uint32_t MessageId = 0x0E6;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_0E6_2010_Byte1Struct byte1{};
-            byte1.data.abr_fault = state->ABRFault;
-            byte1.data.brake_fluid_level_alert = state->BrakeFluidLevelAlert;
-            byte1.data.brake_pads_worn = state->BrakePadsWorn;
+            byte1.data.abr_fault = carState->ABRFault;
+            byte1.data.brake_fluid_level_alert = carState->BrakeFluidLevelAlert;
+            byte1.data.brake_pads_worn = carState->BrakePadsWorn;
             byte1.data.ref_in_progress = 0;
             byte1.data.auto_warning_lights_by_brake_cpu = 0;
-            byte1.data.abs_in_progress = state->ABSInProgess;
+            byte1.data.abs_in_progress = carState->ABSInProgess;
             byte1.data.ref_fault = 0;
 
             message.data[0] = byte1.asByte;
-            message.data[1] = state->RearLeftWheelCounter.data.leftByte;
-            message.data[2] = state->RearLeftWheelCounter.data.rightByte;
-            message.data[3] = state->RearRightWheelCounter.data.leftByte;
-            message.data[4] = state->RearRightWheelCounter.data.rightByte;
+            message.data[1] = carState->RearLeftWheelCounter.data.leftByte;
+            message.data[2] = carState->RearLeftWheelCounter.data.rightByte;
+            message.data[3] = carState->RearRightWheelCounter.data.leftByte;
+            message.data[4] = carState->RearRightWheelCounter.data.rightByte;
             message.data[5] = 0x83;
             message.data[6] = 0x8C;
             message.data[7] = chk_esp(message.data);

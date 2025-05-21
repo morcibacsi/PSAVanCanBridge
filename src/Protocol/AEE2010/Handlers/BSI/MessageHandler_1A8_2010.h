@@ -23,10 +23,10 @@ class MessageHandler_1A8_2010 : public IMessageHandler<MessageHandler_1A8_2010>
     public:
         static constexpr uint32_t MessageId = 0x1A8;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             uint8_t field1 = 0x00;
-            if (state->CruiseControlActivateFunction)
+            if (carState->CruiseControlActivateFunction)
             {
                 field1 = 0x02;
             } else
@@ -35,13 +35,13 @@ class MessageHandler_1A8_2010 : public IMessageHandler<MessageHandler_1A8_2010>
             }
 
             message.data[0] = field1;
-            message.data[1] = state->CruiseControlSpeed.data.leftByte;
-            message.data[2] = state->CruiseControlSpeed.data.rightByte;
-            message.data[3] = state->CruiseControlSpeed.data.leftByte;
-            message.data[4] = state->CruiseControlSpeed.data.rightByte;
-            message.data[5] = state->TripOnCMB.data.leftByte;
-            message.data[6] = state->TripOnCMB.data.middleByte;
-            message.data[7] = state->TripOnCMB.data.rightByte;
+            message.data[1] = carState->CruiseControlSpeed.data.leftByte;
+            message.data[2] = carState->CruiseControlSpeed.data.rightByte;
+            message.data[3] = carState->CruiseControlSpeed.data.leftByte;
+            message.data[4] = carState->CruiseControlSpeed.data.rightByte;
+            message.data[5] = carState->TripOnCMB.data.leftByte;
+            message.data[6] = carState->TripOnCMB.data.middleByte;
+            message.data[7] = carState->TripOnCMB.data.rightByte;
 
             return message;
         }

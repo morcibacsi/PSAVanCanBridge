@@ -22,11 +22,11 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
     uint8_t _prevIgnition = 0;
     uint8_t _vanComfortState = VAN_COMFORT_STATE_IDLE;
 
-    uint8_t GetVanComfortState(CarState* state)
+    uint8_t GetVanComfortState(CarState* carState)
     {
         uint8_t result = 0;
 
-        if (state->Ignition == 1)
+        if (carState->Ignition == 1)
         {
             result = 1;
         }
@@ -54,7 +54,7 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
             }
         }
 
-        _prevIgnition = state->Ignition;
+        _prevIgnition = carState->Ignition;
 
         return result;
     }
@@ -67,23 +67,23 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
         {
         }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             uint8_t resetTotals = 0;
             uint8_t resetCumulative = 0;
 
-            if (state->RightStickButtonPushed)
+            if (carState->RightStickButtonPushed)
             {
                 if (_prevTripButtonState == 0)
                 {
                     _prevTripButtonState = 1;
-                    _tripButtonPressedSince = state->CurrenTime;
+                    _tripButtonPressedSince = carState->CurrenTime;
                 }
 
-                if (_tripButtonPressedSince != 0 && state->CurrenTime - _tripButtonPressedSince > 3000)
+                if (_tripButtonPressedSince != 0 && carState->CurrenTime - _tripButtonPressedSince > 3000)
                 {
                     _tripButtonPressedSince = 0;
-                    switch (state->CurrentEmfMode)
+                    switch (carState->CurrentEmfMode)
                     {
                         case 2:
                             resetTotals = 1;
@@ -108,14 +108,14 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
             }
 
             VanEmfStatusByte0Struct field1{};
-            field1.data.keep_alive_van_comfort = GetVanComfortState(state);
-            field1.data.cumulative_trip_reset = state->Ignition && resetCumulative;
-            field1.data.reset_course_totals = state->Ignition && resetTotals;
+            field1.data.keep_alive_van_comfort = GetVanComfortState(carState);
+            field1.data.cumulative_trip_reset = carState->Ignition && resetCumulative;
+            field1.data.reset_course_totals = carState->Ignition && resetTotals;
 
-            bool emulateDisplay = state->EMULATE_DISPLAY_ON_SOURCE;
-            bool reverseNotEngaged = (state->IsReverseEngaged == 0);
+            bool emulateDisplay = carState->EMULATE_DISPLAY_ON_SOURCE;
+            bool reverseNotEngaged = (carState->IsReverseEngaged == 0);
             bool reverseEngagedButParkingAidIsNotVanBusType =
-                (state->IsReverseEngaged == 1 && state->PARKING_AID_TYPE != 0x01);
+                (carState->IsReverseEngaged == 1 && carState->PARKING_AID_TYPE != 0x01);
 
             BusMessage msg;
             msg.id = 0x5E4;

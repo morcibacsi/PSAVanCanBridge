@@ -24,12 +24,12 @@ class MessageHandler_227_2010 : public IMessageHandler<MessageHandler_227_2010>
     public:
         static constexpr uint32_t MessageId = 0x227;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->CarLedStatusByte1.asByte;
-            message.data[1] = state->CarLedStatusByte2.asByte;
-            message.data[2] = state->CarLedStatusByte3.asByte;
-            message.data[3] = state->CarLedStatusByte4.asByte;
+            message.data[0] = carState->CarLedStatusByte1.asByte;
+            message.data[1] = carState->CarLedStatusByte2.asByte;
+            message.data[2] = carState->CarLedStatusByte3.asByte;
+            message.data[3] = carState->CarLedStatusByte4.asByte;
             message.data[4] = 0x00;
             message.data[5] = 0x00;
             message.data[6] = 0x00;

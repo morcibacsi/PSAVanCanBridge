@@ -25,23 +25,23 @@ class MessageHandler_276_2010 : public IMessageHandler<MessageHandler_276_2010>
     public:
         static constexpr uint32_t MessageId = 0x276;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_276_2010_Byte1Struct byte1{};
-            byte1.data.year = state->Year - 2000;
+            byte1.data.year = carState->Year - 2000;
             byte1.data.time_format = 1; // 24 hour format
 
             CAN_276_2010_Byte2Struct byte2{};
-            byte2.data.month = state->Month;
+            byte2.data.month = carState->Month;
 
             CAN_276_2010_Byte3Struct byte3{};
-            byte3.data.day = state->MDay;
+            byte3.data.day = carState->MDay;
 
             CAN_276_2010_Byte4Struct byte4{};
-            byte4.data.hour = state->Hour;
+            byte4.data.hour = carState->Hour;
 
             CAN_276_2010_Byte5Struct byte5{};
-            byte5.data.minute = state->Minute;
+            byte5.data.minute = carState->Minute;
 
             message.data[0] = byte1.asByte;
             message.data[1] = byte2.asByte;

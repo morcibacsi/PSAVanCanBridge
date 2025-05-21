@@ -26,13 +26,13 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
 
         void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            if (_prevReverseEngaged == 0 && state->IsReverseEngaged == 1)
+            if (_prevReverseEngaged == 0 && carState->IsReverseEngaged == 1)
             {
                 _state = 1;
             }
-            _prevReverseEngaged = state->IsReverseEngaged;
+            _prevReverseEngaged = carState->IsReverseEngaged;
 
             BusMessage message;
             message.id = 0xA68;
@@ -41,7 +41,7 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             message.protocol = ProtocolType::AEE2001;
             message.type = MessageType::Normal;
             message.ack = true;
-            message.isActive = state->PARKING_AID_TYPE == 1 && state->IsReverseEngaged == 1;
+            message.isActive = carState->PARKING_AID_TYPE == 1 && carState->IsReverseEngaged == 1;
 
             switch (_state)
             {

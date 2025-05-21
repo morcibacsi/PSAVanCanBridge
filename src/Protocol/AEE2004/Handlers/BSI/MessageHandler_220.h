@@ -35,20 +35,20 @@ class MessageHandler_220 : public IMessageHandler<MessageHandler_220>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_220_2004_Byte1Struct field1{};
-            field1.data.front_left_door_open  = state->DoorStatus.data.front_left_door_open;
-            field1.data.front_right_door_open = state->DoorStatus.data.front_right_door_open;
+            field1.data.front_left_door_open  = carState->DoorStatus.data.front_left_door_open;
+            field1.data.front_right_door_open = carState->DoorStatus.data.front_right_door_open;
 
-            field1.data.rear_left_door_open   = state->DoorStatus.data.rear_left_door_open;
-            field1.data.rear_right_door_open  = state->DoorStatus.data.rear_right_door_open;
+            field1.data.rear_left_door_open   = carState->DoorStatus.data.rear_left_door_open;
+            field1.data.rear_right_door_open  = carState->DoorStatus.data.rear_right_door_open;
 
-            field1.data.hood_open  = state->DoorStatus.data.hood_open;
-            field1.data.trunk_open = state->DoorStatus.data.trunk_open;
+            field1.data.hood_open  = carState->DoorStatus.data.hood_open;
+            field1.data.trunk_open = carState->DoorStatus.data.trunk_open;
 
-            field1.data.fuel_flap_open   = state->DoorStatus.data.fuel_flap_open;
-            field1.data.rear_window_open = state->DoorStatus.data.rear_window_open;
+            field1.data.fuel_flap_open   = carState->DoorStatus.data.fuel_flap_open;
+            field1.data.rear_window_open = carState->DoorStatus.data.rear_window_open;
 
             message.data[0] = field1.asByte;
             message.data[1] = 0x00;

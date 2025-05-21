@@ -25,28 +25,28 @@ class MessageHandler_260_2010 : public IMessageHandler<MessageHandler_260_2010>
     public:
         static constexpr uint32_t MessageId = 0x260;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_260_2010_Byte1Struct byte1{};
-            byte1.data.consumption_unit = state->CONSUMPTION_UNIT;
-            byte1.data.distance_unit    = state->DISTANCE_UNIT;
-            byte1.data.language         = state->LANGUAGE;
+            byte1.data.consumption_unit = carState->CONSUMPTION_UNIT;
+            byte1.data.distance_unit    = carState->DISTANCE_UNIT;
+            byte1.data.language         = carState->LANGUAGE;
             byte1.data.unit_and_language_data_valid = 1;
 
             CAN_260_2010_Byte2Struct byte2{};
-            byte2.data.volume_unit      = state->VOLUME_UNIT;
-            byte2.data.temperature_unit = state->TEMPERATURE_UNIT;
-            byte2.data.ambience_level   = state->AMBIENCE_LEVEL;
-            byte2.data.sound_harmony    = state->SOUND_HARMONY;
+            byte2.data.volume_unit      = carState->VOLUME_UNIT;
+            byte2.data.temperature_unit = carState->TEMPERATURE_UNIT;
+            byte2.data.ambience_level   = carState->AMBIENCE_LEVEL;
+            byte2.data.sound_harmony    = carState->SOUND_HARMONY;
             byte2.data.vehicle_function_data = 1;
 
             CAN_260_2010_Byte3Struct byte3{};
-            byte3.data.ambience_lighting        = state->AmbientLighting;
-            byte3.data.drl                      = state->DRL;
-            byte3.data.automatic_electric_brake = state->AutomaticElectricBrake;
+            byte3.data.ambience_lighting        = carState->AmbientLighting;
+            byte3.data.drl                      = carState->DRL;
+            byte3.data.automatic_electric_brake = carState->AutomaticElectricBrake;
 
             CAN_260_2010_Byte6Struct byte6{};
-            byte6.data.braking_on_alarm_risk = state->BreakingOnAlarmRisk;
+            byte6.data.braking_on_alarm_risk = carState->BreakingOnAlarmRisk;
 
             message.data[0] = byte1.asByte;
             message.data[1] = byte2.asByte;

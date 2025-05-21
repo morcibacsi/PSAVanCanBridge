@@ -24,20 +24,20 @@ class MessageHandler_3E7_2010 : public IMessageHandler<MessageHandler_3E7_2010>
     public:
         static constexpr uint32_t MessageId = 0x3E7;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_3E7_2010Byte1Struct field1{};
-            field1.data.maintenance_type_km   = state->IsMaintenanceDue;
-            field1.data.wrench_icon           = state->WrenchIcon;
-            field1.data.maintenance_sign_km   = state->MaintenanceSignKm;
-            field1.data.maintenance_sign_time = state->MaintenanceSignTime;
-            field1.data.km_blinking           = state->MaintenanceSignTimeBlinking || state->MaintenanceSignKmBlinking;
+            field1.data.maintenance_type_km   = carState->IsMaintenanceDue;
+            field1.data.wrench_icon           = carState->WrenchIcon;
+            field1.data.maintenance_sign_km   = carState->MaintenanceSignKm;
+            field1.data.maintenance_sign_time = carState->MaintenanceSignTime;
+            field1.data.km_blinking           = carState->MaintenanceSignTimeBlinking || carState->MaintenanceSignKmBlinking;
 
             message.data[0] = field1.asByte;
-            message.data[1] = state->MaintenanceTime.data.leftByte;
-            message.data[2] = state->MaintenanceTime.data.rightByte;
-            message.data[3] = state->MaintenanceKilometers.data.leftByte;
-            message.data[4] = state->MaintenanceKilometers.data.rightByte;
+            message.data[1] = carState->MaintenanceTime.data.leftByte;
+            message.data[2] = carState->MaintenanceTime.data.rightByte;
+            message.data[3] = carState->MaintenanceKilometers.data.leftByte;
+            message.data[4] = carState->MaintenanceKilometers.data.rightByte;
 
             return message;
         }

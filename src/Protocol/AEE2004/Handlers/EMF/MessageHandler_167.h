@@ -25,7 +25,7 @@ class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
     public:
         static constexpr uint32_t MessageId = 0x167;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             Can2004_167Byte1 byte1{};
             byte1.data.trip_data_on_odometer = ODOMETER_TRIP_INFO_NOT_MANAGED_BY_EMF;
@@ -50,7 +50,7 @@ class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
             return message;
         }
 
-        void Parse(CarState* state, const BusMessage& msg)
+        void Parse(CarState* carState, const BusMessage& msg)
         {
         }
 };

@@ -24,18 +24,18 @@ class MessageHandler_161_2010 : public IMessageHandler<MessageHandler_161_2010>
     public:
         static constexpr uint32_t MessageId = 0x161;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_161_2010_Byte5Struct byte5{};
-            byte5.data.fuel_tank_capacity_in_liters = state->FUEL_TANK_CAPACITY_IN_LITERS;
+            byte5.data.fuel_tank_capacity_in_liters = carState->FUEL_TANK_CAPACITY_IN_LITERS;
 
             message.data[0] = 0x00;
             message.data[1] = 0x00;
-            message.data[2] = state->EngineOilTemperature;
-            message.data[3] = state->FuelLevel;
+            message.data[2] = carState->EngineOilTemperature;
+            message.data[3] = carState->FuelLevel;
             message.data[4] = byte5.asByte;
             message.data[5] = 0x00;
-            message.data[6] = state->EngineOilLevel;
+            message.data[6] = carState->EngineOilLevel;
 
             return message;
         }

@@ -35,22 +35,22 @@ class MessageHandler_1A8 : public IMessageHandler<MessageHandler_1A8>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_1A8_2004_Byte1Struct field1{};
-            field1.data.unit_of_speed               = state->CruiseControlSpeedUnit;
-            field1.data.activate_function           = state->CruiseControlActivateFunction;
-            field1.data.selected_function           = state->CruiseControlSelectedFunction;
-            field1.data.status_of_selected_function = state->CruiseControlStatusOfSelectedFunction;
+            field1.data.unit_of_speed               = carState->CruiseControlSpeedUnit;
+            field1.data.activate_function           = carState->CruiseControlActivateFunction;
+            field1.data.selected_function           = carState->CruiseControlSelectedFunction;
+            field1.data.status_of_selected_function = carState->CruiseControlStatusOfSelectedFunction;
 
             message.data[0] = field1.asByte;
-            message.data[1] = state->CruiseControlSpeed.data.leftByte;
-            message.data[2] = state->CruiseControlSpeed.data.rightByte;
+            message.data[1] = carState->CruiseControlSpeed.data.leftByte;
+            message.data[2] = carState->CruiseControlSpeed.data.rightByte;
             message.data[3] = 0x00;
             message.data[4] = 0x00;
-            message.data[5] = state->TripOnCMB.data.leftByte;
-            message.data[6] = state->TripOnCMB.data.middleByte;
-            message.data[7] = state->TripOnCMB.data.rightByte;
+            message.data[5] = carState->TripOnCMB.data.leftByte;
+            message.data[6] = carState->TripOnCMB.data.middleByte;
+            message.data[7] = carState->TripOnCMB.data.rightByte;
 
             return message;
         }

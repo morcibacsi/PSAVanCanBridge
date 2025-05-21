@@ -26,15 +26,15 @@ class MessageHandler_161 : public IMessageHandler<MessageHandler_161>
     public:
         static constexpr uint32_t MessageId = 0x161;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             message.data[0] = 0x00;
             message.data[1] = 0x00;
-            message.data[2] = state->EngineOilTemperature;
-            message.data[3] = state->FuelLevel;
+            message.data[2] = carState->EngineOilTemperature;
+            message.data[3] = carState->FuelLevel;
             message.data[4] = 0x00;
             message.data[5] = 0x00;
-            message.data[6] = state->EngineOilLevel;
+            message.data[6] = carState->EngineOilLevel;
 
             return message;
         }

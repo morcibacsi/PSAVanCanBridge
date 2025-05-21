@@ -26,7 +26,7 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             BusMessage message;
             message.id = 0x4FC;

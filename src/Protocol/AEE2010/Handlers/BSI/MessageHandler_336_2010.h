@@ -27,11 +27,11 @@ class MessageHandler_336_2010 : public IMessageHandler<MessageHandler_336_2010>
     public:
         static constexpr uint32_t MessageId = 0x336;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->VIN_FOR_HEADUNIT[0];
-            message.data[1] = state->VIN_FOR_HEADUNIT[1];
-            message.data[2] = state->VIN_FOR_HEADUNIT[2];
+            message.data[0] = carState->VIN_FOR_HEADUNIT[0];
+            message.data[1] = carState->VIN_FOR_HEADUNIT[1];
+            message.data[2] = carState->VIN_FOR_HEADUNIT[2];
 
             return message;
         }

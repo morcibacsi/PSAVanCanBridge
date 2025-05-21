@@ -36,25 +36,25 @@ class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             CAN_221_2004_Byte1Struct field1{};
-            field1.data.left_stick_button_pushed  = state->LeftStickButtonPushed;
-            field1.data.right_stick_button_pushed = state->RightStickButtonPushed;
-            //printf("MessageHandler_221::Generate - RightStickButtonPushed: %d\n", state->RightStickButtonPushed);
-            field1.data.remaining_range_invalid   = state->InvalidRemainingRange;
-            field1.data.consumption_invalid       = state->InvalidConsumption;
+            field1.data.left_stick_button_pushed  = carState->LeftStickButtonPushed;
+            field1.data.right_stick_button_pushed = carState->RightStickButtonPushed;
+            //printf("MessageHandler_221::Generate - RightStickButtonPushed: %d\n", carState->RightStickButtonPushed);
+            field1.data.remaining_range_invalid   = carState->InvalidRemainingRange;
+            field1.data.consumption_invalid       = carState->InvalidConsumption;
 
             message.data[0] = field1.asByte;
 
-            message.data[1] = state->InstantConsumption.data.leftByte;
-            message.data[2] = state->InstantConsumption.data.rightByte;
+            message.data[1] = carState->InstantConsumption.data.leftByte;
+            message.data[2] = carState->InstantConsumption.data.rightByte;
 
-            message.data[3] = state->RemainingRange.data.leftByte;
-            message.data[4] = state->RemainingRange.data.rightByte;
+            message.data[3] = carState->RemainingRange.data.leftByte;
+            message.data[4] = carState->RemainingRange.data.rightByte;
 
-            message.data[5] = state->TotalRange.data.leftByte;
-            message.data[6] = state->TotalRange.data.rightByte;
+            message.data[5] = carState->TotalRange.data.leftByte;
+            message.data[6] = carState->TotalRange.data.rightByte;
 
             return message;
         }

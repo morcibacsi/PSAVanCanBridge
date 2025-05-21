@@ -27,23 +27,23 @@ class MessageHandler_1A1_2010 : public IMessageHandler<MessageHandler_1A1_2010>
     public:
         static constexpr uint32_t MessageId = 0x1A1;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[0] = state->DisplayMessage.data.Field1;
-            message.data[1] = state->DisplayMessage.data.Field2;
-            message.data[2] = state->DisplayMessage.data.Field3;
-            message.data[3] = state->DisplayMessage.data.Field4;
-            message.data[4] = state->DisplayMessage.data.Field5;
-            message.data[5] = state->DisplayMessage.data.Field6;
-            message.data[6] = state->DisplayMessage.data.Field7;
-            message.data[7] = state->DisplayMessage.data.Field8;
+            message.data[0] = carState->DisplayMessage.data.Field1;
+            message.data[1] = carState->DisplayMessage.data.Field2;
+            message.data[2] = carState->DisplayMessage.data.Field3;
+            message.data[3] = carState->DisplayMessage.data.Field4;
+            message.data[4] = carState->DisplayMessage.data.Field5;
+            message.data[5] = carState->DisplayMessage.data.Field6;
+            message.data[6] = carState->DisplayMessage.data.Field7;
+            message.data[7] = carState->DisplayMessage.data.Field8;
 
-            bool isDoorOpen = state->DoorStatus.asByte > 0;
-            bool doorStateChanged = _prevDoorStatus != state->DoorStatus.asByte;
+            bool isDoorOpen = carState->DoorStatus.asByte > 0;
+            bool doorStateChanged = _prevDoorStatus != carState->DoorStatus.asByte;
             bool showDoorMessage =
-                state->Ignition &&
-                state->GENERATE_POPUP_FOR_DOOR_STATUS &&
-                (state->DisplayMessage.data.Field1 == 0xFF || state->DisplayMessage.data.Field2 == 0xFF) &&
+                carState->Ignition &&
+                carState->GENERATE_POPUP_FOR_DOOR_STATUS &&
+                (carState->DisplayMessage.data.Field1 == 0xFF || carState->DisplayMessage.data.Field2 == 0xFF) &&
                 (isDoorOpen || doorStateChanged);
 
             if (showDoorMessage == false)
@@ -55,7 +55,7 @@ class MessageHandler_1A1_2010 : public IMessageHandler<MessageHandler_1A1_2010>
             {
                 message.data[0] = CAN_POPUP_MSG_HIDE;
                 message.data[1] = CAN_POPUP_MSG_CLEAR;
-                _prevDoorStatus = state->DoorStatus.asByte;
+                _prevDoorStatus = carState->DoorStatus.asByte;
                 return message;
             }
 
@@ -69,16 +69,16 @@ class MessageHandler_1A1_2010 : public IMessageHandler<MessageHandler_1A1_2010>
 
                 CanDisplayDoorStatus1Struct doorStatus;
                 doorStatus.asByte = 0;
-                doorStatus.data.is_front_left_open  = state->DoorStatus.data.front_left_door_open;
-                doorStatus.data.is_front_right_open = state->DoorStatus.data.front_right_door_open;
-                doorStatus.data.is_rear_left_open   = state->DoorStatus.data.rear_left_door_open;
-                doorStatus.data.is_rear_right_open  = state->DoorStatus.data.rear_right_door_open;
-                doorStatus.data.is_boot_open        = state->DoorStatus.data.trunk_open;
-                doorStatus.data.is_bonnet_open      = state->DoorStatus.data.hood_open;
+                doorStatus.data.is_front_left_open  = carState->DoorStatus.data.front_left_door_open;
+                doorStatus.data.is_front_right_open = carState->DoorStatus.data.front_right_door_open;
+                doorStatus.data.is_rear_left_open   = carState->DoorStatus.data.rear_left_door_open;
+                doorStatus.data.is_rear_right_open  = carState->DoorStatus.data.rear_right_door_open;
+                doorStatus.data.is_boot_open        = carState->DoorStatus.data.trunk_open;
+                doorStatus.data.is_bonnet_open      = carState->DoorStatus.data.hood_open;
 
                 CanDisplayDoorStatus2Struct doorStatus2;
                 doorStatus2.asByte = 0;
-                doorStatus2.data.is_fuel_flap_open = state->DoorStatus.data.fuel_flap_open;
+                doorStatus2.data.is_fuel_flap_open = carState->DoorStatus.data.fuel_flap_open;
 
                 message.data[0] = CAN_POPUP_MSG_SHOW_CATEGORY1;
                 message.data[1] = CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;

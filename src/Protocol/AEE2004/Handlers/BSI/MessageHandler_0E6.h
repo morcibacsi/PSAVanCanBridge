@@ -27,12 +27,12 @@ class MessageHandler_0E6 : public IMessageHandler<MessageHandler_0E6>
     public:
         static constexpr uint32_t MessageId = 0x0E6;
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
-            message.data[1] = state->RearLeftWheelCounter.data.leftByte;
-            message.data[2] = state->RearLeftWheelCounter.data.rightByte;
-            message.data[3] = state->RearRightWheelCounter.data.leftByte;
-            message.data[4] = state->RearRightWheelCounter.data.rightByte;
+            message.data[1] = carState->RearLeftWheelCounter.data.leftByte;
+            message.data[2] = carState->RearLeftWheelCounter.data.rightByte;
+            message.data[3] = carState->RearRightWheelCounter.data.leftByte;
+            message.data[4] = carState->RearRightWheelCounter.data.rightByte;
 
             return message;
         }

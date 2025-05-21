@@ -34,51 +34,51 @@ class MessageHandler_128 : public IMessageHandler<MessageHandler_128>
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
 
-        BusMessage Generate(CarState* state)
+        BusMessage Generate(CarState* carState)
         {
             Can2004CombineLightsByte1 field0{};
-            field0.data.fuel_level_low             = state->CarSignalLights.data.fuel_level_low;
-            field0.data.driver_seatbelt_warning    = state->CarSignalLights.data.driver_seatbelt_warning;
-            field0.data.passenger_seatbelt_warning = state->CarSignalLights.data.passenger_seatbelt_warning;
-            field0.data.handbrake_signal           = state->CarSignalLights.data.handbrake_signal;
-            //field0.data.air_bag_fault              = state->CarIndicatorLights.data.a
-            field0.data.diesel_pre_heating         = state->CarSignalLights.data.diesel_pre_heating;
+            field0.data.fuel_level_low             = carState->CarSignalLights.data.fuel_level_low;
+            field0.data.driver_seatbelt_warning    = carState->CarSignalLights.data.driver_seatbelt_warning;
+            field0.data.passenger_seatbelt_warning = carState->CarSignalLights.data.passenger_seatbelt_warning;
+            field0.data.handbrake_signal           = carState->CarSignalLights.data.handbrake_signal;
+            //field0.data.air_bag_fault              = carState->CarIndicatorLights.data.a
+            field0.data.diesel_pre_heating         = carState->CarSignalLights.data.diesel_pre_heating;
 
             Can2004CombineLightsByte2 field1{};
-            field1.data.abs_active = state->ABSInProgess;
-            field1.data.stop_light = state->CarSignalLights.data.stop_light;
+            field1.data.abs_active = carState->ABSInProgess;
+            field1.data.stop_light = carState->CarSignalLights.data.stop_light;
             //field1.data.service_indicator_exclamation = 0;
 
             Can2004CombineLightsByte3 field2{};
-            field2.data.esp_inactivated = state->CarSignalLights.data.esp_inactivated;
-            field2.data.esp_in_progress = state->CarSignalLights.data.esp_in_progress;
+            field2.data.esp_inactivated = carState->CarSignalLights.data.esp_inactivated;
+            field2.data.esp_in_progress = carState->CarSignalLights.data.esp_in_progress;
 
             Can2004CombineLightsByte4 field3{};
-            field3.data.operation_indicator_light_on        = state->CarSignalLights.data.operation_indicator_light_on;
-            field3.data.operation_indicator_light_blinking  = state->CarSignalLights.data.operation_indicator_light_blinking;
-            field3.data.foot_on_break_indicator             = state->CarSignalLights.data.foot_on_break_indicator;
-            field3.data.rear_seatbelt_warning_blinking      = state->CarSignalLights.data.row1_rc_seatbelt_forgotten || state->CarSignalLights.data.row1_rr_seatbelt_forgotten || state->CarSignalLights.data.row1_rl_seatbelt_forgotten;
-            field3.data.autopark_light                      = state->CarSignalLights.data.parking_light_indicator;
-            field3.data.passenger_seatbelt_warning_blinking = state->CarSignalLights.data.passenger_seatbelt_warning_blinking;
+            field3.data.operation_indicator_light_on        = carState->CarSignalLights.data.operation_indicator_light_on;
+            field3.data.operation_indicator_light_blinking  = carState->CarSignalLights.data.operation_indicator_light_blinking;
+            field3.data.foot_on_break_indicator             = carState->CarSignalLights.data.foot_on_break_indicator;
+            field3.data.rear_seatbelt_warning_blinking      = carState->CarSignalLights.data.row1_rc_seatbelt_forgotten || carState->CarSignalLights.data.row1_rr_seatbelt_forgotten || carState->CarSignalLights.data.row1_rl_seatbelt_forgotten;
+            field3.data.autopark_light                      = carState->CarSignalLights.data.parking_light_indicator;
+            field3.data.passenger_seatbelt_warning_blinking = carState->CarSignalLights.data.passenger_seatbelt_warning_blinking;
 
             Can2004CombineLightsByte5 field4{};
-            field4.data.right_turn_indicator    = state->CarSignalLights.data.right_turn_indicator;
-            field4.data.left_turn_indicator     = state->CarSignalLights.data.left_turn_indicator;
-            field4.data.front_foglight          = state->CarSignalLights.data.front_foglight;
-            field4.data.rear_foglight           = state->CarSignalLights.data.rear_foglight;
-            field4.data.low_beam_on             = state->CarSignalLights.data.low_beam_on;
-            field4.data.high_beam_on            = state->CarSignalLights.data.high_beam_on;
-            field4.data.parking_light_indicator = state->CarSignalLights.data.parking_light_indicator;
+            field4.data.right_turn_indicator    = carState->CarSignalLights.data.right_turn_indicator;
+            field4.data.left_turn_indicator     = carState->CarSignalLights.data.left_turn_indicator;
+            field4.data.front_foglight          = carState->CarSignalLights.data.front_foglight;
+            field4.data.rear_foglight           = carState->CarSignalLights.data.rear_foglight;
+            field4.data.low_beam_on             = carState->CarSignalLights.data.low_beam_on;
+            field4.data.high_beam_on            = carState->CarSignalLights.data.high_beam_on;
+            field4.data.parking_light_indicator = carState->CarSignalLights.data.parking_light_indicator;
 
             Can2004CombineLightsByte6 field5{};
-            field5.data.cmb_active = state->OdometerEnabled;
+            field5.data.cmb_active = carState->OdometerEnabled;
 
             Can2004CombineLightsByte7 field6{};
-            field6.data.gear_position_cmb = state->GearPositionCmb;
+            field6.data.gear_position_cmb = carState->GearPositionCmb;
 
             Can2004CombineLightsByte8 field7{};
-            field7.data.auto_gearbox_mode      = state->GearBoxMode;
-            field7.data.auto_gearbox_selection = state->GearBoxSelection;
+            field7.data.auto_gearbox_mode      = carState->GearBoxMode;
+            field7.data.auto_gearbox_selection = carState->GearBoxSelection;
 
             message.data[0] = field0.asByte;
             message.data[1] = field1.asByte;
