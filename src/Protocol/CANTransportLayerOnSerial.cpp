@@ -1,5 +1,4 @@
 #include <algorithm>
-#include "CANTransportLayerOnSerial.hpp"
 #include <cstring>
 #include <stdio.h>
 
@@ -9,6 +8,8 @@
 #include "sdkconfig.h"
 #include "esp_log.h"
 #include "esp_check.h"
+
+#include "CANTransportLayerOnSerial.hpp"
 #include "../Helpers/IntUnions.h"
 
 CANTransportLayerOnSerial::CANTransportLayerOnSerial()

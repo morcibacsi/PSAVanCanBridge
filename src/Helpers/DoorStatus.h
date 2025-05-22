@@ -1,6 +1,6 @@
 #pragma once
 
-#include <inttypes.h>
+#include <cstdint>
 
 //Same order in AEE2004 0x220 do not change the order
 union DoorStatusStruct {

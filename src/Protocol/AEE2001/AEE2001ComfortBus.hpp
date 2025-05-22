@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <memory>
 #include "../BusMessage.hpp"
 #include "../IProtocolHandler.hpp"
 #include "../ITransportLayer.hpp"
@@ -11,23 +9,23 @@
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
-#include "Handlers/BSI/CanDisplayPopupHandler3.h"
+#include "Handlers/BSI/CanDisplayPopupHandler3.hpp"
 
-#include "Handlers/BSI/MessageHandler_4FC.h"
-#include "Handlers/BSI/MessageHandler_4DC.h"
-#include "Handlers/BSI/MessageHandler_8A4.h"
-#include "Handlers/BSI/MessageHandler_8C4.h"
-#include "Handlers/BSI/MessageHandler_9C4.h"
-#include "Handlers/BSI/MessageHandler_524.h"
-#include "Handlers/BSI/MessageHandler_564.h"
-#include "Handlers/BSI/MessageHandler_744.h"
-#include "Handlers/BSI/MessageHandler_824.h"
-#include "Handlers/BSI/MessageHandler_A68.h"
-#include "Handlers/BSI/MessageHandler_AE8.h"
+#include "Handlers/BSI/MessageHandler_4FC.hpp"
+#include "Handlers/BSI/MessageHandler_4DC.hpp"
+#include "Handlers/BSI/MessageHandler_8A4.hpp"
+#include "Handlers/BSI/MessageHandler_8C4.hpp"
+#include "Handlers/BSI/MessageHandler_9C4.hpp"
+#include "Handlers/BSI/MessageHandler_524.hpp"
+#include "Handlers/BSI/MessageHandler_564.hpp"
+#include "Handlers/BSI/MessageHandler_744.hpp"
+#include "Handlers/BSI/MessageHandler_824.hpp"
+#include "Handlers/BSI/MessageHandler_A68.hpp"
+#include "Handlers/BSI/MessageHandler_AE8.hpp"
 
-#include "Handlers/CLIM/MessageHandler_464.h"
+#include "Handlers/CLIM/MessageHandler_464.hpp"
 
-#include "Handlers/EMF/MessageHandler_5E4.h"
+#include "Handlers/EMF/MessageHandler_5E4.hpp"
 
 class AEE2001ComfortBus : public IProtocolHandler
 {

@@ -1,4 +1,4 @@
-#include "VanCanAirConditionerSpeedMap.h"
+#include "VanCanAirConditionerSpeedMap.hpp"
 //#include "DebugPrint.h"
 
 VanCanAirConditionerSpeedMap::VanCanAirConditionerSpeedMap()

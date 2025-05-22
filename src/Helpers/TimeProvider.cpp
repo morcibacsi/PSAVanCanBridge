@@ -1,4 +1,4 @@
-#include "TimeProvider.h"
+#include "TimeProvider.hpp"
 #include <string.h>
 
 TimeProvider::TimeProvider(uint8_t sdaPin, uint8_t sclPin, CarState* carState)

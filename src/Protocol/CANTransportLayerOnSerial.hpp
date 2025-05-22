@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
+
 #include "ITransportLayer.hpp"
 #include "BusMessage.hpp"
 #include "../lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"

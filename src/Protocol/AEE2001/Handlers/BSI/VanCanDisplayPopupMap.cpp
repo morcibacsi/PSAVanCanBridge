@@ -1,6 +1,6 @@
 #include "../../../AEE2004/Structs/CanDisplayStructs.h"
 #include "../../Structs/VAN_524.h"
-#include "VanCanDisplayPopupMap.h"
+#include "VanCanDisplayPopupMap.hpp"
 #include <string.h>
 
 void VanCanDisplayPopupMap::SetPopupMessageTypeMapping()

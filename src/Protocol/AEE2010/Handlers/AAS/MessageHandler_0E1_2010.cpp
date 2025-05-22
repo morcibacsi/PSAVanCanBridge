@@ -1,6 +1,6 @@
-#include <inttypes.h>
-#include <memory>
+#include <cstdint>
 #include <cstring>
+
 #include "../../Structs/CAN_0E1_2010.h"
 #include "MessageHandler_0E1_2010.hpp"
 

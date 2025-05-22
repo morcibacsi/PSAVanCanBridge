@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include "VanCanGearboxPositionMap.h"
-#include "../../../AEE2004/Structs/CAN_128.h"
+#include "VanCanGearboxPositionMap.hpp"
+#include "../../../AEE2004/Structs/CAN_128_2004.h"
 #include "../../Structs/VAN_4FC.h"
 
 void VanCanGearboxPositionMap::SetGearboxMapping()

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <functional>
 #include "BusMessage.hpp"
 #include "ITransportLayer.hpp"
 #include "MessageScheduler.hpp"
@@ -12,12 +9,6 @@
 class IProtocolHandler {
 
 public:
-    typedef enum {
-        CAN_ACCEPT_UNCHANGED = 0,
-        CAN_ACCEPT_CHANGED = 1,
-        REJECT = 2,
-    } CAN_ACCEPT_MESSAGE;
-
     typedef enum {
         Source = 0,
         Destination = 1,

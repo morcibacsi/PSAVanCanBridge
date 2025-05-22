@@ -3,9 +3,9 @@
 #ifndef _MessageHandler_0E1_2010_h
     #define _MessageHandler_0E1_2010_h
 
-#include <inttypes.h>
-#include <memory>
+#include <cstdint>
 #include <cstring>
+
 #include "../../../IMessageHandler.hpp"
 
 class MessageHandler_0E1_2010 : public IMessageHandler<MessageHandler_0E1_2010>

@@ -3,6 +3,9 @@
 #ifndef _VAN_524_h
     #define _VAN_524_h
 
+
+#include <stdint.h>
+
 /*
     This packet is mainly dedicated to the central display and it's messages however some bits might be used by the instrument cluster also.
     The 9th byte (using zero based indexing) contains the ID of the messages which needs to be shown on the multifunction display (MFD).

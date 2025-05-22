@@ -6,7 +6,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
-#include <functional>
 
 #include "Protocol/IProtocolHandler.hpp"
 #include "Protocol/ITransportLayer.hpp"
@@ -23,13 +22,14 @@
 #include "Protocol/AEE2010/AEE2010ComfortBus.hpp"
 
 #include "RgbLed.hpp"
-#include "Helpers/TimeProvider.h"
+#include "Helpers/TimeProvider.hpp"
 
 #include "Helpers/CarState.hpp"
 #include "Helpers/FileSystem.hpp"
 #include "Helpers/ConfigFile.hpp"
 #include "Helpers/CrcStore.hpp"
 #include "Helpers/CpuConfig.h"
+#include "Helpers/WebServer/WebServer.hpp"
 
 ITransportLayer* sourceTransportLayer;
 ITransportLayer* destinationTransportLayer;
@@ -47,16 +47,13 @@ TaskHandle_t SendToDestinationTask;
 
 RgbLed* led;
 TimeProvider* timeProvider;
+WebServer* webServer;
+
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
 
 //#include "Helpers/Ble/NimBLE.h"
 //NimBLE ble;
-
-//ESP_IDF_VERSION_MAJOR
-
-#include "Helpers/WebServer/WebServer.hpp"
-WebServer* webServer;
 
 #define VAN_RX_PIN GPIO_NUM_3
 #define VAN_TX_PIN GPIO_NUM_2
@@ -128,36 +125,27 @@ void ReadSourceFunction(void * parameter)
     {
         if (sourceProtocolHandler->ReceiveMessage(message))
         {
-            //printf("Received message from source\n");
             if (message.id == 0)
             {
                 continue;
             }
 
-///*
             bool destinationCanAcceptMessage = destinationProtocolHandler->CanAcceptMessage(message);
             if (destinationCanAcceptMessage)
-            //if (true)
             {
-                // Forward the message directly to the destination
                 destinationProtocolHandler->HandleForwardedMessage(message);
                 continue;
             }
-//            */
+
             //processMessage = !crcStore->IsCrcSameAsPrevious(message.id, message.command, message.crc, carState->CurrenTime);
             processMessage = sourceProtocolHandler->CanParseMessage(message);
             if (processMessage)
             {
-                //printf("Received message from source\n");
-                //led->blink_led();
-                //PrintMessage(message);
+                PrintMessage(message);
                 sourceProtocolHandler->ParseMessage(message);
             }
-            //printf("Ignition: %d IgnitionMode: %d\r\n", carState->Ignition, carState->IgnitionMode);
             taskYIELD();
         }
-
-        //vTaskDelay(pdMS_TO_TICKS(10));
     } while (1);
 }
 
@@ -165,7 +153,6 @@ void SendToDestinationFunction(void * parameter)
 {
     do
     {
-        //printf("SendToDestinationFunction\n");
         carState->CurrenTime =  millis();
         timeProvider->Process(carState->CurrenTime);
         webServer->Process();
@@ -180,7 +167,6 @@ void SendToSourceFunction(void * parameter)
 {
     do
     {
-        //printf("SendToSourceFunction\n");
         sourceProtocolHandler->GenerateMessages(IProtocolHandler::MessageDirection::Source);
         sourceProtocolHandler->UpdateMessages(carState->CurrenTime);
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -189,7 +175,6 @@ void SendToSourceFunction(void * parameter)
 
 extern "C" void app_main(void)
 {
-
     /* If user is using USB-serial-jtag then idf monitor needs some time to
     *  re-connect to the USB port. We wait 1 sec here to allow for it to make the reconnection
     *  before we print anything. Otherwise the chip will go back to sleep again before the user
@@ -261,56 +246,9 @@ extern "C" void app_main(void)
 
         crcStoreItems = {
             {0x036},
-//            {0x0B6},
         };
         automaticallyStoreNewIds = true;
 
-//
-/*
-        crcStoreItems = {
-            {0x036},
-            {0x0B6},
-            {0x0E6},
-            {0x0F6},
-            {0x10B},
-            {0x10B},
-            {0x120},
-            {0x122},
-            {0x127},
-            {0x128},
-            {0x161},
-            {0x12D},
-            {0x13E},
-            {0x14C},
-            {0x168},
-            {0x17E},
-            {0x18C},
-            {0x1A1},
-            {0x1A8},
-            {0x1BE},
-            {0x1CC},
-            {0x217},
-            {0x21F},
-            {0x228},
-            {0x236},
-            {0x24C},
-            {0x260},
-            {0x220},
-            {0x221},
-            {0x227},
-            {0x261},
-            {0x276},
-            {0x28C},
-            {0x2A0},
-            {0x2A1},
-            {0x2B6},
-            {0x2E1},
-            {0x336},
-            {0x361},
-            {0x3A7},
-            {0x3B6},
-        };
-//*/
         sourceTransportLayer = new CANTransportLayer(CAN2_RX_PIN, CAN2_TX_PIN, 1);
         //sourceTransportLayer = new CANTransportLayerOnSerial();
         sourceProtocolHandler = new AEE2004ComfortBus(
@@ -350,6 +288,7 @@ extern "C" void app_main(void)
     crcStore = new CrcStore(crcStoreItems, automaticallyStoreNewIds);
 
     printf("Register message handler on destination\n");
+
     //call RegisterMessageHandlers on the destination protocol handler with a dummy function
     destinationProtocolHandler->RegisterMessageHandlers(EmptyImmediateSignalCaller);
 
@@ -363,7 +302,6 @@ extern "C" void app_main(void)
     //ble.setReaderHandler(&bleEvent);
 
     cpu_config_t ReadSourceTaskConfig        = { .cpu_core = 0, .priority = 5 };
-    cpu_config_t ParseSourceTaskConfig       = { .cpu_core = 0, .priority = 3 };
     cpu_config_t SendToSourceTaskConfig      = { .cpu_core = 0, .priority = 2 };
     cpu_config_t SendToDestinationTaskConfig = { .cpu_core = 0, .priority = 4 };
 

@@ -1,6 +1,7 @@
 #include <algorithm>
-#include "VANTransportLayer.hpp"
 #include <cstring>
+
+#include "VANTransportLayer.hpp"
 
 VANTransportLayer::VANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t dataRxLedIndicatorPin)
 {

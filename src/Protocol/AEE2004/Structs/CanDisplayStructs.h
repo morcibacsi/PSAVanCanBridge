@@ -4,7 +4,7 @@
 #ifndef _CanDisplayStructs_h
     #define _CanDisplayStructs_h
 
-#include <cstdint>
+#include <stdint.h>
 
 #pragma region Popup message consts
 //0x80

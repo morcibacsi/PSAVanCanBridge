@@ -3,6 +3,8 @@
 #ifndef _VAN_564_h
     #define _VAN_564_h
 
+#include <stdint.h>
+
 // VANID: 564
 const uint16_t VAN_ID_CARSTATUS = 0x564;
 

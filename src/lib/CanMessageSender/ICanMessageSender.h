@@ -3,7 +3,7 @@
 #ifndef _ICanMessageSender_h
     #define _ICanMessageSender_h
 
-#include <inttypes.h>
+#include <cstdint>
 
 class ICanMessageSender {
   public:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <memory>
+
 #include "../BusMessage.hpp"
 #include "../IProtocolHandler.hpp"
 #include "../ITransportLayer.hpp"
@@ -14,35 +14,36 @@
 
 #include "Handlers/AAS/MessageHandler_0E1_2010.hpp"
 
-#include "Handlers/BSI/MessageHandler_0B6_2010.h"
-#include "Handlers/BSI/MessageHandler_0E6_2010.h"
-#include "Handlers/BSI/MessageHandler_0F6_2010.h"
-#include "Handlers/BSI/MessageHandler_1A1_2010.h"
-#include "Handlers/BSI/MessageHandler_1A8_2010.h"
-#include "Handlers/BSI/MessageHandler_2B6_2010.h"
-#include "Handlers/BSI/MessageHandler_2E1_2010.h"
-#include "Handlers/BSI/MessageHandler_3B6_2010.h"
-#include "Handlers/BSI/MessageHandler_3E7_2010.h"
-#include "Handlers/BSI/MessageHandler_10B_2010.h"
-#include "Handlers/BSI/MessageHandler_21F_2010.h"
-#include "Handlers/BSI/MessageHandler_036_2010.h"
-#include "Handlers/BSI/MessageHandler_120_2010.h"
-#include "Handlers/BSI/MessageHandler_128_2010.h"
-#include "Handlers/BSI/MessageHandler_161_2010.h"
-#include "Handlers/BSI/MessageHandler_168_2010.h"
-#include "Handlers/BSI/MessageHandler_2A1_2010.h"
-#include "Handlers/BSI/MessageHandler_221_2010.h"
-#include "Handlers/BSI/MessageHandler_227_2010.h"
-#include "Handlers/BSI/MessageHandler_228_2010.h"
-#include "Handlers/BSI/MessageHandler_236_2010.h"
-#include "Handlers/BSI/MessageHandler_260_2010.h"
-#include "Handlers/BSI/MessageHandler_261_2010.h"
-#include "Handlers/BSI/MessageHandler_276_2010.h"
-#include "Handlers/BSI/MessageHandler_336_2010.h"
-#include "Handlers/BSI/MessageHandler_361_2010.h"
+#include "Handlers/BSI/MessageHandler_0B6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_0E6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_0F6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_1A1_2010.hpp"
+#include "Handlers/BSI/MessageHandler_1A8_2010.hpp"
+#include "Handlers/BSI/MessageHandler_2B6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_2E1_2010.hpp"
+#include "Handlers/BSI/MessageHandler_3B6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_3E7_2010.hpp"
+#include "Handlers/BSI/MessageHandler_10B_2010.hpp"
+#include "Handlers/BSI/MessageHandler_21F_2010.hpp"
+#include "Handlers/BSI/MessageHandler_036_2010.hpp"
+#include "Handlers/BSI/MessageHandler_120_2010.hpp"
+#include "Handlers/BSI/MessageHandler_128_2010.hpp"
+#include "Handlers/BSI/MessageHandler_161_2010.hpp"
+#include "Handlers/BSI/MessageHandler_168_2010.hpp"
+#include "Handlers/BSI/MessageHandler_2A1_2010.hpp"
+#include "Handlers/BSI/MessageHandler_221_2010.hpp"
+#include "Handlers/BSI/MessageHandler_227_2010.hpp"
+#include "Handlers/BSI/MessageHandler_228_2010.hpp"
+#include "Handlers/BSI/MessageHandler_236_2010.hpp"
+#include "Handlers/BSI/MessageHandler_260_2010.hpp"
+#include "Handlers/BSI/MessageHandler_261_2010.hpp"
+#include "Handlers/BSI/MessageHandler_276_2010.hpp"
+#include "Handlers/BSI/MessageHandler_336_2010.hpp"
+#include "Handlers/BSI/MessageHandler_361_2010.hpp"
 
-#include "Handlers/CMB/MessageHandler_122_2010.h"
-#include "Handlers/CMB/MessageHandler_217_2010.h"
+#include "Handlers/CMB/MessageHandler_122_2010.hpp"
+#include "Handlers/CMB/MessageHandler_217_2010.hpp"
+
 class AEE2010ComfortBus : public IProtocolHandler
 {
     private:

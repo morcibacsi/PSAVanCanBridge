@@ -2,10 +2,12 @@
 
 #include <string>
 #include <algorithm>
+#include <cstdint>
+
 #include "ITransportLayer.hpp"
 #include "BusMessage.hpp"
-#include <lib/CanMessageSender/ICanMessageSender.h>
-#include "../Helpers/VanCrcCalculator.h"
+#include "../lib/CanMessageSender/ICanMessageSender.h"
+#include "../Helpers/VanCrcCalculator.hpp"
 
 class CANTransportLayer : public ITransportLayer {
 private:

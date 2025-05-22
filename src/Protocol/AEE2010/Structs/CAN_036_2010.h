@@ -33,7 +33,7 @@ union CAN_036_2010_Byte1Struct{
 // Read right to left in documentation
 union CAN_036_2010_Byte3Struct{
     struct {
-        uint8_t ambience_level        : 7; // bit 5-6
+        uint8_t ambience_level        : 7; // bit 0-6
         uint8_t economy_mode_active   : 1; // bit 7
     } data;
     uint8_t asByte;

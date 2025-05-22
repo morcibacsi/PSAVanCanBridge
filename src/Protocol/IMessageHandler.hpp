@@ -1,7 +1,7 @@
 #pragma once
 
-#include <inttypes.h>
-#include <memory>
+#include <cstdint>
+
 #include "BusMessage.hpp"
 #include "../Helpers/CarState.hpp"
 

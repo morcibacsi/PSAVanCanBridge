@@ -4,6 +4,8 @@
 #ifndef _VAN_464_h
     #define _VAN_464_h
 
+#include <stdint.h>
+
 const uint8_t VAN_ID_AIR_CONDITIONER_1_LENGTH = 5;
 
 // VANID: 464

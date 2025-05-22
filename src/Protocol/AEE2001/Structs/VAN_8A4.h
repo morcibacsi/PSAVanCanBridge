@@ -3,6 +3,8 @@
 #ifndef _VAN_8A4_h
 #define _VAN_8A4_h
 
+#include <stdint.h>
+
 // VANID: 8A4
 const uint16_t VAN_ID_DASHBOARD = 0x8A4;
 

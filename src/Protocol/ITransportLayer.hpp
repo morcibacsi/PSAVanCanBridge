@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include "BusMessage.hpp"
 
 class ITransportLayer {

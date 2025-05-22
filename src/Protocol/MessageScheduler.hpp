@@ -1,8 +1,9 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <unordered_map>
 #include <cstring>
+
 #include "BusMessage.hpp"
 #include "ITransportLayer.hpp"
 #include "freertos/FreeRTOS.h"

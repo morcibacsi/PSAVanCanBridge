@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+
 #include "ProtocolType.hpp"
 
 typedef enum {

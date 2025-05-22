@@ -9,7 +9,6 @@
 #include "esp_err.h"
 //#include "lib/esp_ws28xx/esp_ws28xx.h"
 
-
 class RgbLed
 {
 private:

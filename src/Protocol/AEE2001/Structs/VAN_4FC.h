@@ -4,6 +4,8 @@
 #ifndef _VAN_4FC_h
     #define _VAN_4FC_h
 
+#include <stdint.h>
+
 // VANID: 4FC
 const uint16_t VAN_ID_INSTRUMENT_CLUSTER_V2 = 0x4FC;
 

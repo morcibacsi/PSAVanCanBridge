@@ -1,6 +1,6 @@
 #pragma once
 
-#include <inttypes.h>
+#include <cstdint>
 
 //These are in the same order as in the AEE2004/2010 so don't change the order
 union CarLedStatusByte1Struct {
