@@ -78,6 +78,14 @@ void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
 
 void AEE2001ComfortBus::GenerateMessagesForSource()
 {
+    // only for testing without BSI on bench
+    //
+    /*
+    BusMessage ignitionMessage = std::get<MessageHandler_8A4>(handlers).Generate(_carState);;
+    ignitionMessage.isActive = true;
+    _schedulerForSourceNetwork->AddOrUpdateMessage(ignitionMessage, _carState->CurrenTime);
+    //*/
+
     BusMessage aasMessage = std::get<MessageHandler_A68>(handlers).Generate(_carState);;
     _schedulerForSourceNetwork->AddOrUpdateMessage(aasMessage, _carState->CurrenTime);
 

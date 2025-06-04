@@ -31,11 +31,35 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
 
         BusMessage Generate(CarState* carState)
         {
-            BusMessage message;
+            BusMessage message{};
             message.id = 0x8A4;
             message.periodicityMs = 500;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
+            message.type = MessageType::Normal;
+            message.ack = false;
+            message.dataLength = sizeof(VanDashboardStructs);
+            message.isActive = false;
+
+            VanDashboardByte0Struct field0{};
+            field0.data.brightness         = 15;
+
+            VanDashboardByte1Struct field1{};
+            field1.data.key_position    = 3;
+            field1.data.engine_running  = 1;
+            field1.data.standby_mode    = 0;
+            field1.data.economy_mode    = 0;
+            field1.data.reverse_gear    = 1;
+            field1.data.factory_mode    = 0;
+            field1.data.alarm_active    = 0;
+
+            message.data[0] = field0.asByte;
+            message.data[1] = field1.asByte;
+            message.data[2] = 0xFF;
+            message.data[3] = 0x0F;
+            message.data[4] = 0x0F;
+            message.data[5] = 0xAA;
+            message.data[6] = 0x74;
 
             return message;
         }
@@ -53,26 +77,26 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             std::memcpy(&packet, message.data, ExpectedPacketSize);
 
             //carState->IsReverseEngaged = 1;
-            carState->IsReverseEngaged    = packet.Field1.reverse_gear;
+            carState->IsReverseEngaged    = packet.Field1.data.reverse_gear;
             carState->ExternalTemperature = packet.ExternalTemperature;
             carState->CoolantTemperature  = packet.CoolantTemperature;
 
-            carState->EngineStatus       = packet.Field1.engine_running == 1 ? 2 : 0;
-            carState->EngineRunning      = packet.Field1.engine_running;
+            carState->EngineStatus       = packet.Field1.data.engine_running == 1 ? 2 : 0;
+            carState->EngineRunning      = packet.Field1.data.engine_running;
             //carState->TrailerPresent     = packet.Field1.trailer_present;
-            carState->Ignition           = packet.Field1.key_position > 0;
-            carState->KeyPosition        = packet.Field1.key_position;
-            carState->FactoryMode        = packet.Field1.factory_mode;
+            carState->Ignition           = packet.Field1.data.key_position > 0;
+            carState->KeyPosition        = packet.Field1.data.key_position;
+            carState->FactoryMode        = packet.Field1.data.factory_mode;
 
-            carState->EconomyMode        = packet.Field1.economy_mode;
+            carState->EconomyMode        = packet.Field1.data.economy_mode;
 
             carState->Odometer.data.leftByte   = packet.MileageByte1;
             carState->Odometer.data.middleByte = packet.MileageByte2;
             carState->Odometer.data.rightByte  = packet.MileageByte3;
 
-            carState->BlackPanelStatus    = packet.Field0.black_panel_status;
-            carState->DashboardBrightness = packet.Field0.brightness;
-            carState->NightMode           = packet.Field0.is_backlight_off == 1 ? 0 : 1;
+            carState->BlackPanelStatus    = packet.Field0.data.black_panel_status;
+            carState->DashboardBrightness = packet.Field0.data.brightness;
+            carState->NightMode           = packet.Field0.data.is_backlight_off == 1 ? 0 : 1;
 
             carState->CarSignalLights.data.parking_light_indicator = carState->NightMode;
 
@@ -89,7 +113,7 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             }
             else
             {
-                if (packet.Field1.standby_mode)
+                if (packet.Field1.data.standby_mode)
                 {
                     carState->IgnitionMode = 2;
                 }
