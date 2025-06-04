@@ -61,6 +61,7 @@ bool transmit_data_125kbps()
     // in case of any changes in this function, please verify the timings with a logic analyzer (1 bit = 8us)
     // every instruction takes some cycle so in case of modification the ulp_lp_core_delay_cycles() should be adjusted
     uint8_t bitToWrite;
+    uint8_t prevBit = 0xFF; // invalid state to force first write
     uint8_t busLevel;
 
     for (int i = 0; i < VAN_DATA_LENGTH; i++)
@@ -68,7 +69,16 @@ bool transmit_data_125kbps()
         for (int bitCounter = 9; bitCounter >= 0; bitCounter--)
         {
             bitToWrite = (VAN_DATA[i] >> bitCounter) & 1;
-            ulp_lp_core_gpio_set_level(VAN_TX_PIN, bitToWrite);
+
+            if (bitToWrite != prevBit)
+            {
+                ulp_lp_core_gpio_set_level(VAN_TX_PIN, bitToWrite);
+                prevBit = bitToWrite;
+            }
+            else
+            {
+                ulp_lp_core_delay_cycles(15);
+            }
 
             if (bitToWrite == 1)
             {
@@ -81,29 +91,31 @@ bool transmit_data_125kbps()
                     return false;
                 }
 
-                ulp_lp_core_delay_cycles(42);
-
+                ulp_lp_core_delay_cycles(17);
                 if (bitCounter != 0)
                 {
                     ulp_lp_core_delay_cycles(8);
                 }
+                else
+                {
+                    ulp_lp_core_delay_cycles(1);
+                }
             }
             else
             {
-                // we don't need to check the bus level for 0 bit as it is a dominant bit
-                ulp_lp_core_delay_cycles(60);
-
+                ulp_lp_core_delay_cycles(45);
                 if (bitCounter != 0)
                 {
                     ulp_lp_core_delay_cycles(10);
+                }
+                else
+                {
+                    ulp_lp_core_delay_cycles(4);
                 }
             }
         }
     }
 
-    // TODO: experiment with the delay to see if it helps in the car
-    //ulp_lp_core_delay_cycles(60);
-    ulp_lp_core_delay_us(7);
     ulp_lp_core_gpio_set_level(VAN_TX_PIN, 1);
     return true;
 }
