@@ -28,7 +28,7 @@ BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
 
     CanParkingAidByte6_2010Struct field6{};
     field6.data.show                 = carState->ParkingAidStatus.data.RearStatus == (uint8_t)ParkingAidStatus::Active;
-    field6.data.front_right_distance = carState->ParkingAidStatus.data.RearRightDistance;
+    field6.data.front_right_distance = carState->ParkingAidStatus.data.FrontRightDistance;
     field6.data.front_distance       = carState->ParkingAidStatus.data.FrontDistance;
 
     message.data[0] = status.asByte;

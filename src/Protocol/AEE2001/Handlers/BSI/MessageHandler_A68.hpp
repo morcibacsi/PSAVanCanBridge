@@ -27,10 +27,21 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
 
         BusMessage Generate(CarState* carState)
         {
+            bool isParkingAidOnVanBus = carState->PARKING_AID_TYPE == 1;
+
             if (_prevReverseEngaged == 0 && carState->IsReverseEngaged == 1)
             {
                 _state = 1;
             }
+            if (carState->IsReverseEngaged == 0)
+            {
+                _state = 0;
+                if (isParkingAidOnVanBus)
+                {
+                    carState->ParkingAidStatus.data.RearStatus = static_cast<uint8_t>(ParkingAidStatus::Disabled);
+                }
+            }
+
             _prevReverseEngaged = carState->IsReverseEngaged;
 
             BusMessage message;
@@ -40,7 +51,8 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             message.protocol = ProtocolType::AEE2001;
             message.type = MessageType::Normal;
             message.ack = true;
-            message.isActive = carState->PARKING_AID_TYPE == 1 && carState->IsReverseEngaged == 1;
+            message.dataLength = 2;
+            message.isActive = isParkingAidOnVanBus && carState->IsReverseEngaged == 1;
 
             switch (_state)
             {
