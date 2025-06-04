@@ -63,11 +63,11 @@ void LpCoreVanTx::InternalSendFrame(const uint8_t retryCount, const uint8_t data
         i++;
     }
     // EOF
-    //ptr[1 + i] = 0x3FF;
+    ptr[i] = 0x3FF;
 
     //ulp_VAN_DATA_LENGTH = length + 1;
     ulp_VAN_RETRY_COUNT = retryCount;
-    ulp_VAN_DATA_LENGTH = length + 0;
+    ulp_VAN_DATA_LENGTH = length + 1;
     ulp_VAN_TX_FINISHED = 0;
     ulp_VAN_START_TX = 1;
 }
