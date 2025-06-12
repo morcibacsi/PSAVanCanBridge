@@ -19,6 +19,20 @@ volatile lp_io_num_t VAN_TX_PIN;
 #define VAN_FRAME_TYPE_NORMAL 0
 #define VAN_FRAME_TYPE_QUERY 1
 
+#define NOP1()  __asm__ __volatile__("nop")
+#define NOP2()  NOP1(); NOP1()
+#define NOP4()  NOP2(); NOP2()
+#define NOP8()  NOP4(); NOP4()
+#define NOP10()  NOP4(); NOP4(); NOP2()
+#define DELAY_10_CYCLES() NOP8(); NOP1(); NOP1()
+#define DELAY_15_CYCLES() NOP8(); NOP1(); NOP1()
+#define DELAY_20_CYCLES() DELAY_10_CYCLES(); DELAY_10_CYCLES()
+#define DELAY_25_CYCLES() DELAY_10_CYCLES(); DELAY_10_CYCLES(); NOP1(); NOP1(); NOP1(); NOP1(); NOP1()
+#define DELAY_50_CYCLES() DELAY_25_CYCLES(); DELAY_25_CYCLES()
+#define DELAY_75_CYCLES() DELAY_50_CYCLES(); DELAY_25_CYCLES()
+#define DELAY_90_CYCLES() DELAY_50_CYCLES(); DELAY_25_CYCLES(); DELAY_15_CYCLES()
+#define DELAY_100_CYCLES() DELAY_50_CYCLES(); DELAY_50_CYCLES()
+
 bool wait_for_start()
 {
     while (VAN_START_APP == 0)
@@ -77,12 +91,12 @@ bool transmit_data_125kbps()
             }
             else
             {
-                ulp_lp_core_delay_cycles(15);
+                DELAY_20_CYCLES();
             }
 
             if (bitToWrite == 1)
             {
-                ulp_lp_core_delay_cycles(10);
+                DELAY_10_CYCLES();
                 busLevel = ulp_lp_core_gpio_get_level(VAN_RX_PIN);
 
                 if (busLevel == 0)
@@ -91,27 +105,33 @@ bool transmit_data_125kbps()
                     return false;
                 }
 
-                ulp_lp_core_delay_cycles(17);
+                //DELAY_75_CYCLES();
+                ///*
                 if (bitCounter != 0)
                 {
-                    ulp_lp_core_delay_cycles(8);
+                    DELAY_75_CYCLES();
                 }
                 else
                 {
-                    ulp_lp_core_delay_cycles(1);
+                    DELAY_50_CYCLES();
+                    DELAY_10_CYCLES();
                 }
+                //*/
             }
             else
             {
-                ulp_lp_core_delay_cycles(45);
+                //DELAY_100_CYCLES();
+                ///*
                 if (bitCounter != 0)
                 {
-                    ulp_lp_core_delay_cycles(10);
+                    DELAY_90_CYCLES();
+                    NOP8();
                 }
                 else
                 {
-                    ulp_lp_core_delay_cycles(4);
+                    DELAY_90_CYCLES();
                 }
+                //*/
             }
         }
     }
