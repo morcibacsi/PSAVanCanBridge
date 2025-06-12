@@ -25,10 +25,13 @@ class MessageHandler_824 : public IMessageHandler<MessageHandler_824>
     BusMessage Generate(CarState* carState)
         {
             BusMessage message;
-            message.id = 0x824;
+            message.id = MessageId;
             message.periodicityMs = 50;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
+            message.type = MessageType::Normal;
+            message.isActive = false;
+            message.ack = false;
 
             return message;
         }

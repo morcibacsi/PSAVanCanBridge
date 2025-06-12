@@ -45,7 +45,7 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             _prevReverseEngaged = carState->IsReverseEngaged;
 
             BusMessage message;
-            message.id = 0xA68;
+            message.id = MessageId;
             message.periodicityMs = 100;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
@@ -64,7 +64,6 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
                     message.data[0] = 0x21;
                     message.data[1] = 0xA0;
                 break;
-
                 default:
                     break;
             }

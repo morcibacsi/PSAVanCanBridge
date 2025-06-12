@@ -29,10 +29,12 @@ class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
         BusMessage Generate(CarState* carState)
         {
             BusMessage message;
-            message.id = 0x564;
+            message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
+            message.type = MessageType::Query;
+            message.isActive = false; // it is sent as a feedback message when 8C4 is received
 
             return message;
         }

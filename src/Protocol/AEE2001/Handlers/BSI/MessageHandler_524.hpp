@@ -259,10 +259,12 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
         BusMessage Generate(CarState* carState)
         {
             BusMessage message;
-            message.id = 0x524;
+            message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
+            message.type = MessageType::Normal;
+            message.isActive = false;
 
             return message;
         }

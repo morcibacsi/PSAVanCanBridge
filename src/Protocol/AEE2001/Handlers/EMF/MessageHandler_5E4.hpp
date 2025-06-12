@@ -116,7 +116,7 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
                 (carState->IsReverseEngaged == 1 && carState->PARKING_AID_TYPE != 0x01);
 
             BusMessage msg;
-            msg.id = 0x5E4;
+            msg.id = MessageId;
             msg.protocol = ProtocolType::AEE2001;
             msg.type = MessageType::Normal;
             msg.ack = true;

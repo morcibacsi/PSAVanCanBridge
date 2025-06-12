@@ -229,7 +229,7 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
         BusMessage Generate(CarState* carState)
         {
             BusMessage message;
-            message.id = 0xAE8;
+            message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;

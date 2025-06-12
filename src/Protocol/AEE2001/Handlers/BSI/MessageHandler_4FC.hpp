@@ -29,10 +29,13 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
         BusMessage Generate(CarState* carState)
         {
             BusMessage message;
-            message.id = 0x4FC;
+            message.id = MessageId;
             message.periodicityMs = 200;
             message.offsetMs = 20;
             message.protocol = ProtocolType::AEE2001;
+            message.type = MessageType::Normal;
+            message.isActive = false;
+            message.ack = true;
 
             return message;
         }
