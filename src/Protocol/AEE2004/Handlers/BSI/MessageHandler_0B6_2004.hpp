@@ -43,7 +43,6 @@ class MessageHandler_0B6 : public IMessageHandler<MessageHandler_0B6>
         void Parse(CarState* carState, const BusMessage& message)
         {
             Can0B6Struct packet;
-            constexpr std::size_t ExpectedPacketSize = sizeof(Can0B6Struct);
             std::memcpy(&packet, message.data, sizeof(packet));
 
             carState->Rpm.data.leftByte             = packet.RpmByte1;

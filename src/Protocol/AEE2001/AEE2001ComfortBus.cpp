@@ -107,21 +107,14 @@ void AEE2001ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
 
             if (emulateDisplay && (reverseNotEngaged || reverseEngagedButParkingAidIsNotVanBusType))
             {
-                BusMessage msgToSend;
-                msgToSend.id = 0x564;
-                msgToSend.protocol = ProtocolType::AEE2001;
-                msgToSend.type = MessageType::Query;
+                BusMessage msgToSend = std::get<MessageHandler_564>(handlers).Generate(_carState);
                 _transportLayer->SendMessage(msgToSend, true);
             }
             break;
         }
         case FeedbackSignal::QueryParkingRadarData:
         {
-            BusMessage msgToSend;
-            msgToSend.id = 0xAE8;
-            //msgToSend.id = 0x568;
-            msgToSend.protocol = ProtocolType::AEE2001;
-            msgToSend.type = MessageType::Query;
+            BusMessage msgToSend = std::get<MessageHandler_AE8>(handlers).Generate(_carState);
             _transportLayer->SendMessage(msgToSend, true);
             break;
         }
@@ -129,12 +122,11 @@ void AEE2001ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
         {
             if (_carState->IsReverseEngaged)
             {
-                auto aasHandler = std::get<MessageHandler_A68>(handlers);
-                auto message = aasHandler.Generate(_carState);
+                BusMessage msgToSend = std::get<MessageHandler_A68>(handlers).Generate(_carState);
 
-                if (message.isActive)
+                if (msgToSend.isActive)
                 {
-                    _transportLayer->SendMessage(message, true);
+                    _transportLayer->SendMessage(msgToSend, true);
                 }
             }
 

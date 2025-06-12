@@ -84,6 +84,7 @@ struct CarState
     uint8_t EngineOilLevel = 0;
 
     //167
+    //0 - None
     //2 - Totals
     //4 - Cumulative
     //7 - Trip not managed by EMF
