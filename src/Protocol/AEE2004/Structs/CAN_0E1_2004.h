@@ -48,12 +48,17 @@ const uint8_t AAS_BEEP_DURATION_4 = 0b11;
 const uint8_t AAS_SOUND_LOCATION_REAR  = 0;
 const uint8_t AAS_SOUND_LOCATION_FRONT = 1;
 
+const uint8_t AAS_MEASUREMENT_SIDE_INACTIVE = 0b00;
+const uint8_t AAS_MEASUREMENT_SIDE_LEFT     = 0b01;
+const uint8_t AAS_MEASUREMENT_SIDE_RIGHT    = 0b10;
+const uint8_t AAS_MEASUREMENT_SIDE_UNUSED   = 0b11;
+
 union CanParkingAidByte1Struct {
     struct
     {
-        uint8_t rear_status  : 3;
-        uint8_t front_status : 3;
-        uint8_t unused       : 2;
+        uint8_t measurement_side : 2; // bit 0-1
+        uint8_t front_status     : 3; // bit 2-4
+        uint8_t rear_status      : 3; // bit 5-7
     } data;
     uint8_t asByte;
 };

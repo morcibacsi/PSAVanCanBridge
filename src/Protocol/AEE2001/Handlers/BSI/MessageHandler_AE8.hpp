@@ -241,12 +241,19 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            if (message.dataLength != 24 || carState->PARKING_AID_TYPE != 1)
+            if ((message.dataLength != 24 && message.dataLength != 26) || carState->PARKING_AID_TYPE != 1)
             {
                 return;
             }
 
-            if (message.data[2] == 0xA0)
+            if (message.data[2] == 0x80)
+            {
+                //we got the manufacturer info which means the diag session is started so we can start parsing the sensor distance data
+                carState->ParkingAidStatus.data.VanParsingCanStart = 1;
+                return;
+            }
+
+            if (message.data[2] == 0xA0 && carState->ParkingAidStatus.data.VanParsingCanStart)
             {
                 uint8_t ParkingExteriorRearLeft  = message.data[3];
                 uint8_t ParkingExteriorRearRight = message.data[4];
@@ -261,19 +268,13 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
                             ParkingInteriorRearRight,
                             &isCorner);
 
-                carState->ParkingAidStatus.data.RearStatus =
-                carState->IsReverseEngaged == 1
-                    ? static_cast<uint8_t>(ParkingAidStatus::Active)
-                    : static_cast<uint8_t>(ParkingAidStatus::Disabled);
-
                 uint8_t enableSoundFromSpeaker = 0;
                 if (carState->ENABLE_PARKING_AID_SOUND_FROM_SPEAKER)
                 {
                     enableSoundFromSpeaker = 1;
                 }
 
-                carState->ParkingAidStatus.data.SoundEnabled = carState->IsReverseEngaged && enableSoundFromSpeaker && minDistance < 0xFF;
-                carState->ParkingAidStatus.data.Location = static_cast<uint8_t>(ParkingAidLocation::Rear); //there are no front sensors on VAN, only rear is supported
+                carState->ParkingAidStatus.data.BeepLocation = static_cast<uint8_t>(ParkingAidBeepLocation::Rear); //there are no front sensors on VAN, only rear is supported
                 carState->ParkingAidStatus.data.Channel = GetBeepDirection(
                             ParkingExteriorRearLeft,
                             ParkingExteriorRearRight,
@@ -302,6 +303,12 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
                 carState->ParkingAidStatus.data.FrontDistance = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
                 carState->ParkingAidStatus.data.FrontLeftDistance = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
                 carState->ParkingAidStatus.data.FrontRightDistance = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+
+                carState->ParkingAidStatus.data.RearStatus =
+                    carState->IsReverseEngaged == 1
+                        ? static_cast<uint8_t>(ParkingAidStatus::Active)
+                        : static_cast<uint8_t>(ParkingAidStatus::Wait);
+                carState->ParkingAidStatus.data.SoundEnabled = carState->IsReverseEngaged && enableSoundFromSpeaker && minDistance < 0xFF;
             }
         }
 };

@@ -51,9 +51,9 @@ const uint8_t AAS_SOUND_LOCATION_FRONT_2010 = 1;
 union CanParkingAidByte1_2010Struct {
     struct
     {
-        uint8_t rear_status  : 3;
-        uint8_t front_status : 3;
-        uint8_t unused       : 2;
+        uint8_t measurement_side : 2; // bit 0-1
+        uint8_t front_status     : 3; // bit 2-4
+        uint8_t rear_status      : 3; // bit 5-7
     } data;
     uint8_t asByte;
 };

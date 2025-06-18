@@ -18,6 +18,25 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;
 
+    void DisableAas(CarState* carState, uint8_t status)
+    {
+        carState->ParkingAidStatus.data.RearStatus    = status;
+        carState->ParkingAidStatus.data.FrontStatus   = status;
+        carState->ParkingAidStatus.data.SoundEnabled  = 0;
+        carState->ParkingAidStatus.data.BeepDelay     = 0x3F;
+        carState->ParkingAidStatus.data.BeepDuration  = 0;
+        carState->ParkingAidStatus.data.Channel       = static_cast<uint8_t>(ParkingAidChannel::None);
+        carState->ParkingAidStatus.data.BeepLocation  = static_cast<uint8_t>(ParkingAidBeepLocation::Rear);
+        carState->ParkingAidStatus.data.BeepDirection = static_cast<uint8_t>(ParkingAidBeepDirection::NoBeep);
+        carState->ParkingAidStatus.data.FrontDistance = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.RearDistance  = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.FrontLeftDistance  = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.FrontRightDistance = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.RearLeftDistance   = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.RearRightDistance  = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
+        carState->ParkingAidStatus.data.VanParsingCanStart = 0;
+    }
+
     public:
         static constexpr uint32_t MessageId = 0x8A4;
 
@@ -73,6 +92,8 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
                 return;
             }
 
+            bool isParkingAidOnVanBus = carState->PARKING_AID_TYPE == 1;
+
             VanDashboardStructs packet{};
             std::memcpy(&packet, message.data, ExpectedPacketSize);
 
@@ -110,9 +131,19 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             if (carState->Ignition)
             {
                 carState->IgnitionMode = 1;
+
+                if (!carState->IsReverseEngaged && isParkingAidOnVanBus)
+                {
+                    DisableAas(carState, static_cast<uint8_t>(ParkingAidStatus::Wait));
+                }
             }
             else
             {
+                if (isParkingAidOnVanBus)
+                {
+                    DisableAas(carState, static_cast<uint8_t>(ParkingAidStatus::OutOfService));
+                }
+
                 if (packet.Field1.data.standby_mode)
                 {
                     carState->IgnitionMode = 2;

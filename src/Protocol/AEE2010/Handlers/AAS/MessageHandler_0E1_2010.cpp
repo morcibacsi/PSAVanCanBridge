@@ -7,11 +7,12 @@
 BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
 {
     CanParkingAidByte1_2010Struct status{};
-    status.data.rear_status = carState->ParkingAidStatus.data.RearStatus;
+    status.data.rear_status  = carState->ParkingAidStatus.data.RearStatus;
+    status.data.front_status = carState->ParkingAidStatus.data.FrontStatus;
 
     CanParkingAidByte2_2010Struct soundOptions{};
     soundOptions.data.sound_enabled = carState->ParkingAidStatus.data.SoundEnabled;
-    soundOptions.data.location      = carState->ParkingAidStatus.data.Location;
+    soundOptions.data.location      = carState->ParkingAidStatus.data.BeepLocation;
     soundOptions.data.channel       = carState->ParkingAidStatus.data.Channel;
 
     CanParkingAidByte3_2010Struct beep{};
@@ -27,7 +28,7 @@ BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
     frontLeftAndRearRight.data.front_left_distance = carState->ParkingAidStatus.data.FrontLeftDistance;
 
     CanParkingAidByte6_2010Struct field6{};
-    field6.data.show                 = carState->ParkingAidStatus.data.RearStatus == (uint8_t)ParkingAidStatus::Active;
+    field6.data.show                 = carState->ParkingAidStatus.data.RearStatus == static_cast<uint8_t>(ParkingAidStatus::Active);
     field6.data.front_right_distance = carState->ParkingAidStatus.data.FrontRightDistance;
     field6.data.front_distance       = carState->ParkingAidStatus.data.FrontDistance;
 

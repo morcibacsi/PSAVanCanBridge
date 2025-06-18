@@ -4,14 +4,10 @@
 
 enum class ParkingAidStatus
 {
-    Disabled = 0,
+    Undefined = 0,
+    Wait = 0b101,
+    OutOfService = 0b110,
     Active = 0b100,
-};
-
-enum class ParkingAidLocation
-{
-    Rear = 0,
-    Front = 1,
 };
 
 enum class ParkingAidChannel
@@ -58,20 +54,22 @@ enum class ParkingAidBeepLocation
 
 union ParkingAidStatusStruct {
     struct {
-        uint8_t RearStatus;
-        uint8_t SoundEnabled;
-        uint8_t Location;
-        uint8_t Channel;
-        uint8_t RearDistance;
-        uint8_t RearLeftDistance;
-        uint8_t RearRightDistance;
-        uint8_t FrontDistance;
-        uint8_t FrontLeftDistance;
-        uint8_t FrontRightDistance;
-        uint8_t BeepDirection;
-        uint8_t BeepDuration;
-        uint8_t BeepLocation;
-        uint8_t BeepDelay; //0-62
+        uint8_t RearStatus         : 3;
+        uint8_t FrontStatus        : 3;
+        uint8_t SoundEnabled       : 1;
+        uint8_t Channel            : 2;
+        uint8_t RearDistance       : 3;
+        uint8_t RearLeftDistance   : 3;
+        uint8_t RearRightDistance  : 3;
+        uint8_t FrontDistance      : 3;
+        uint8_t FrontLeftDistance  : 3;
+        uint8_t FrontRightDistance : 3;
+        uint8_t BeepDirection      : 2;
+        uint8_t BeepDuration       : 2;
+        uint8_t BeepLocation       : 1;
+        uint8_t BeepDelay          : 8; //0-62
+        uint8_t VanParsingCanStart : 1;
+        uint32_t unused            : 23;
     } data;
-    uint8_t asByte;
+    uint64_t asNumeric;
 };

@@ -36,10 +36,6 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             if (carState->IsReverseEngaged == 0)
             {
                 _state = 0;
-                if (isParkingAidOnVanBus)
-                {
-                    carState->ParkingAidStatus.data.RearStatus = static_cast<uint8_t>(ParkingAidStatus::Disabled);
-                }
             }
 
             _prevReverseEngaged = carState->IsReverseEngaged;
@@ -52,7 +48,7 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             message.type = MessageType::Normal;
             message.ack = true;
             message.dataLength = 2;
-            message.isActive = isParkingAidOnVanBus && carState->IsReverseEngaged == 1;
+            message.isActive = isParkingAidOnVanBus && carState->IsReverseEngaged == 1 && carState->EngineRunning == 1 && carState->RightStickButtonPushed == 0;
 
             switch (_state)
             {
@@ -63,8 +59,9 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
                 case 2:
                     message.data[0] = 0x21;
                     message.data[1] = 0xA0;
-                break;
+                    break;
                 default:
+                    message.isActive = false;
                     break;
             }
 
