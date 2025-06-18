@@ -50,12 +50,18 @@ class MessageHandler_1E3 : public IMessageHandler<MessageHandler_1E3>
                 fanSpeed = carState->AirConditionerStatus.data.FanSpeed;
             }
 
+            uint8_t direction = 0x00;
+            if (carState->QUERY_AC_STATUS)
+            {
+                direction = carState->AirConditionerStatus.data.Direction;
+            }
+
             message.data[0] = byte1.asByte;
             message.data[1] = byte2.asByte;
             message.data[2] = 0x00;
             message.data[3] = 0x00;
-            message.data[4] = 0x00;
-            message.data[5] = 0x00;
+            message.data[4] = direction;
+            message.data[5] = direction;
             message.data[6] = fanSpeed;
 
             return message;

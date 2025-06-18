@@ -42,6 +42,7 @@ void AEE2001ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
     std::get<MessageHandler_824>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 
     std::get<MessageHandler_A68>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
+    std::get<MessageHandler_A5C>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
 }
 
 bool AEE2001ComfortBus::ReceiveMessage(BusMessage& message)
@@ -86,8 +87,11 @@ void AEE2001ComfortBus::GenerateMessagesForSource()
     _schedulerForSourceNetwork->AddOrUpdateMessage(ignitionMessage, _carState->CurrenTime);
     //*/
 
-    BusMessage aasMessage = std::get<MessageHandler_A68>(handlers).Generate(_carState);;
+    BusMessage aasMessage = std::get<MessageHandler_A68>(handlers).Generate(_carState);
     _schedulerForSourceNetwork->AddOrUpdateMessage(aasMessage, _carState->CurrenTime);
+
+    BusMessage acMessage = std::get<MessageHandler_A5C>(handlers).Generate(_carState);
+    _schedulerForSourceNetwork->AddOrUpdateMessage(acMessage, _carState->CurrenTime);
 
     BusMessage emfMessage = std::get<MessageHandler_5E4>(handlers).Generate(_carState);
     _schedulerForSourceNetwork->AddOrUpdateMessage(emfMessage, _carState->CurrenTime);
@@ -111,6 +115,13 @@ void AEE2001ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
                 _transportLayer->SendMessage(msgToSend, true);
             }
             break;
+        }
+        case FeedbackSignal::QueryAirConData:
+        {
+            BusMessage msgToSend = std::get<MessageHandler_ADC>(handlers).Generate(_carState);
+            _transportLayer->SendMessage(msgToSend, false);
+            break;
+
         }
         case FeedbackSignal::QueryParkingRadarData:
         {

@@ -4,6 +4,7 @@ enum class FeedbackSignal {
     None,
     GetTripComputerData,
     QueryParkingRadarData,
+    QueryAirConData,
     IgnitionChanged,
     DisplayMessage,
     ServiceReminderReset,

@@ -22,6 +22,8 @@
 #include "Handlers/BSI/MessageHandler_824.hpp"
 #include "Handlers/BSI/MessageHandler_A68.hpp"
 #include "Handlers/BSI/MessageHandler_AE8.hpp"
+#include "Handlers/BSI/MessageHandler_ADC.hpp"
+#include "Handlers/BSI/MessageHandler_A5C.hpp"
 
 #include "Handlers/CLIM/MessageHandler_464.hpp"
 
@@ -61,6 +63,8 @@ class AEE2001ComfortBus : public IProtocolHandler
         MessageHandler_824,
         MessageHandler_A68,
         MessageHandler_AE8,
+        MessageHandler_A5C,
+        MessageHandler_ADC,
         MessageHandler_464
     > handlers;
 

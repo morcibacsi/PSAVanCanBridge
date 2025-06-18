@@ -13,6 +13,8 @@ union AirConditionerState
         uint8_t IsWindowHeatingOn: 1;
         uint8_t FanSpeed         : 8;
         uint8_t                  : 3;
+        uint8_t Direction        : 8;
+        uint8_t Temperature      : 8;
     } data;
-    uint16_t asByte;
+    uint32_t asByte;
 };
