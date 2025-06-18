@@ -42,6 +42,7 @@ FileSystem* fileSystem;
 ConfigFile* configFile;
 
 TaskHandle_t ReadSourceTask;
+TaskHandle_t ReadDestinationTask;
 TaskHandle_t SendToSourceTask;
 TaskHandle_t SendToDestinationTask;
 
@@ -143,6 +144,31 @@ void ReadSourceFunction(void * parameter)
             {
                 PrintMessage(message);
                 sourceProtocolHandler->ParseMessage(message);
+            }
+            taskYIELD();
+        }
+    } while (1);
+}
+
+void ReadDestinationFunction(void * parameter)
+{
+    BusMessage message{};
+    bool processMessage = true;
+
+    do
+    {
+        if (destinationProtocolHandler->ReceiveMessage(message))
+        {
+            if (message.id == 0)
+            {
+                continue;
+            }
+
+            processMessage = destinationProtocolHandler->CanParseMessage(message);
+            if (processMessage)
+            {
+                PrintMessage(message);
+                destinationProtocolHandler->ParseMessage(message);
             }
             taskYIELD();
         }
@@ -302,6 +328,7 @@ extern "C" void app_main(void)
     //ble.setReaderHandler(&bleEvent);
 
     cpu_config_t ReadSourceTaskConfig        = { .cpu_core = 0, .priority = 5 };
+    cpu_config_t ReadDestinationTaskConfig   = { .cpu_core = 0, .priority = 1 };
     cpu_config_t SendToSourceTaskConfig      = { .cpu_core = 0, .priority = 2 };
     cpu_config_t SendToDestinationTaskConfig = { .cpu_core = 0, .priority = 4 };
 
@@ -313,6 +340,15 @@ extern "C" void app_main(void)
         ReadSourceTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &ReadSourceTask,                // Task handle.
         ReadSourceTaskConfig.cpu_core); // Core where the task should run
+
+    xTaskCreatePinnedToCore(
+        ReadDestinationFunction,             // Function to implement the task
+        "ReadDestination",                   // Name of the task
+        20000,                               // Stack size in words
+        NULL,                                // Task input parameter
+        ReadDestinationTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
+        &ReadDestinationTask,                // Task handle.
+        ReadDestinationTaskConfig.cpu_core); // Core where the task should run
 
     xTaskCreatePinnedToCore(
         SendToSourceFunction,             // Function to implement the task

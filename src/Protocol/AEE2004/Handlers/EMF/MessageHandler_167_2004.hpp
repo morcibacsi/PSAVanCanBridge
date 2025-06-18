@@ -52,6 +52,10 @@ class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
 
         void Parse(CarState* carState, const BusMessage& msg)
         {
+            CAN2004_167Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
+
+            carState->CurrentEmfMode = packet.EMFRequest.data.trip_data_on_odometer;
         }
 };
 #endif
