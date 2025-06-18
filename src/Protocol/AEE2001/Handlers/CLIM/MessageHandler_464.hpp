@@ -79,6 +79,11 @@ class MessageHandler_464 : public IMessageHandler<MessageHandler_464>
                 );
             }
 
+            if (carState->EngineRunning == 0 || isHeatingPanelOn == 0)
+            {
+                airConFanSpeed = 0xF;
+            }
+
             carState->AirConditionerStatus.data.IsHeatingPanelOn = isHeatingPanelOn;
             carState->AirConditionerStatus.data.IsRecyclingOn = isRecyclingOn;
             carState->AirConditionerStatus.data.IsAirConEnabled = isAirConEnabled;
