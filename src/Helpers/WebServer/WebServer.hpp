@@ -10,7 +10,7 @@
 #include "gzipped_webpage_data.h"
 
 typedef esp_err_t (*my_httpd_handler_t)(httpd_req_t *req);
-const int WIFI_INITIAL_TIMEOUT = 40;
+const int WIFI_INITIAL_TIMEOUT = 120;
 const int WIFI_AFTER_CONNECT_TIMEOUT = 7;
 
 class WebServer {
