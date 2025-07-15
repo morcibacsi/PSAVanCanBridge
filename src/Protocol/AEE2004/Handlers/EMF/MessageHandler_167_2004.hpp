@@ -13,7 +13,7 @@ class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
     private:
         BusMessage message
         {
-            .id = 0x167,
+            .id = MessageId,
             .data = {0},
             .dataLength = 8,
             .protocol = ProtocolType::AEE2004,
@@ -53,7 +53,7 @@ class MessageHandler_167 : public IMessageHandler<MessageHandler_167>
         void Parse(CarState* carState, const BusMessage& msg)
         {
             CAN2004_167Struct packet;
-            std::memcpy(&packet, message.data, sizeof(packet));
+            std::memcpy(&packet, msg.data, sizeof(packet));
 
             carState->CurrentEmfMode = packet.EMFRequest.data.trip_data_on_odometer;
         }

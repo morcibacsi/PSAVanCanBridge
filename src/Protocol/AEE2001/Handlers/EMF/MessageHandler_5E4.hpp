@@ -67,48 +67,10 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
 
         BusMessage Generate(CarState* carState)
         {
-            uint8_t resetTotals = 0;
-            uint8_t resetCumulative = 0;
-
-            if (carState->RightStickButtonPushed)
-            {
-                if (_prevTripButtonState == 0)
-                {
-                    _prevTripButtonState = 1;
-                    _tripButtonPressedSince = carState->CurrenTime;
-                }
-
-                if (_tripButtonPressedSince != 0 && carState->CurrenTime - _tripButtonPressedSince > 3000)
-                {
-                    _tripButtonPressedSince = 0;
-                    switch (carState->CurrentEmfMode)
-                    {
-                        case 2:
-                            resetTotals = 1;
-                            break;
-                        case 4:
-                            resetCumulative = 1;
-                            break;
-                        case 7:
-                            resetTotals = 1;
-                            resetCumulative = 1;
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                _prevTripButtonState = 0;
-                _tripButtonPressedSince = 0;
-            }
-
             VanEmfStatusByte0Struct field1{};
             field1.data.keep_alive_van_comfort = GetVanComfortState(carState);
-            field1.data.cumulative_trip_reset = carState->Ignition && resetCumulative;
-            field1.data.reset_course_totals = carState->Ignition && resetTotals;
+            field1.data.cumulative_trip_reset  = carState->Ignition && carState->ResetCumulative;
+            field1.data.reset_course_totals    = carState->Ignition && carState->ResetTotals;
 
             bool emulateDisplay = carState->EMULATE_DISPLAY_ON_SOURCE;
             bool reverseNotEngaged = (carState->IsReverseEngaged == 0);
@@ -131,7 +93,23 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
+            constexpr std::size_t ExpectedPacketSize = sizeof(VanEmfStatusStructs);
 
+            VanEmfStatusStructs packet;
+            std::memcpy(&packet, message.data, ExpectedPacketSize);
+
+            if (carState->EMULATE_DISPLAY_ON_SOURCE)
+            {
+                //we use this to detect if the reset was sent successfully
+                if (packet.Status.data.reset_course_totals)
+                {
+                    carState->ResetTotals = 0;
+                }
+                if (packet.Status.data.cumulative_trip_reset)
+                {
+                    carState->ResetCumulative = 0;
+                }
+            }
         }
 };
 #endif

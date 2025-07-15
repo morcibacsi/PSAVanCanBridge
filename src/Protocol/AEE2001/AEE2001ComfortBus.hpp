@@ -28,6 +28,7 @@
 #include "Handlers/CLIM/MessageHandler_464.hpp"
 
 #include "Handlers/EMF/MessageHandler_5E4.hpp"
+#include "Handlers/EMF/TripComputerResetHelper.hpp"
 
 class AEE2001ComfortBus : public IProtocolHandler
 {
@@ -37,6 +38,7 @@ class AEE2001ComfortBus : public IProtocolHandler
     ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
     MessageScheduler* _schedulerForSourceNetwork;  // Message scheduler injected via constructor.
     CanDisplayPopupHandler3* _canPopupHandler;
+    TripComputerResetHelper* _tripComputerResetHelper;
 
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;

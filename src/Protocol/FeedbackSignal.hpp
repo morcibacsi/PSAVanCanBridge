@@ -8,7 +8,8 @@ enum class FeedbackSignal {
     IgnitionChanged,
     DisplayMessage,
     ServiceReminderReset,
-    EmergencyBrakeActivated
+    EmergencyBrakeActivated,
+    ResetTripComputer,
 };
 
 using FeedbackSignalCallback = void (*)(FeedbackSignal signal);

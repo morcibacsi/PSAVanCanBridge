@@ -89,6 +89,8 @@ struct CarState
     //4 - Cumulative
     //7 - Trip not managed by EMF
     uint8_t CurrentEmfMode = 0;
+    uint8_t ResetTotals = 0;
+    uint8_t ResetCumulative = 0;
 
     //168 AEE2010
     CarIndicatorLightsStruct CarIndicatorLights{};

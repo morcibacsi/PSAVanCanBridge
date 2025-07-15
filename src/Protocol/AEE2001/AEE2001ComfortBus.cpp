@@ -17,12 +17,15 @@ AEE2001ComfortBus::AEE2001ComfortBus(
     _carState = carState;
 
     _canPopupHandler = new CanDisplayPopupHandler3(_carState);
+    _tripComputerResetHelper = new TripComputerResetHelper(_carState);
 }
 
 void AEE2001ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
     _feedbackSignalCallback = &FeedbackSignalTrampoline;;
     _immediateSignalCallback = immediateSignalCallback;
+
+    _tripComputerResetHelper->SetFeedbackSignalCallback(_feedbackSignalCallback);
 
     std::get<MessageHandler_4FC>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 
@@ -68,6 +71,7 @@ void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
     {
         GenerateMessagesForSource();
         _canPopupHandler->Process(_carState->CurrenTime);
+        _tripComputerResetHelper->Process();
         return;
     }
 
@@ -142,6 +146,12 @@ void AEE2001ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
             }
 
             _canPopupHandler->SetIgnition(_carState->CurrenTime, _carState->Ignition);
+            break;
+        }
+        case FeedbackSignal::ResetTripComputer:
+        {
+            BusMessage msgToSend = std::get<MessageHandler_5E4>(handlers).Generate(_carState);
+            _transportLayer->SendMessage(msgToSend, true);
             break;
         }
 
