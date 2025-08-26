@@ -1,5 +1,15 @@
 # PSA VAN-CAN protocol bridge
 
+## Sponsorship
+
+![pcbway_logo.png](./images/pcbway_logo.png)
+
+This project is kindly sponsored by [PCBWay](https://pcbway.com/). They make it easy (and affordable) to get high-quality PCBs, from quick prototypes to fully assembled boards.
+
+I’ve been really happy with their process—simple ordering, helpful support, fast turnaround, and the option for both SMD and THT assembly.
+
+Thanks to PCBWay, you can also order the latest revision of this board directly from them, the files needed for manufacturing can be found in [this repository][psavancanbridgehw].
+
 ## What is it ?
 
 In the early 2000s, the PSA Group (Peugeot and Citroën) used a VAN+CAN architecture in their cars. This protocol, also known as AEE2001, used the VAN bus to communicate with various comfort-related equipment and the CAN bus for communication between the BSI and the engine ECU. Around 2005, PSA transitioned to a full CAN (or CAN+CAN) architecture. The CAN+CAN system underwent several evolutions—AEE2004, AEE2007, and later AEE2010—none of which are backward compatible. This means, for example, that a head unit from a newer architecture will not work in a car with an older one. Actually AEE2004 and AEE2007 are mostly compatible and when I refer to AEE2004 below it applies to AEE2007 as well.
