@@ -336,4 +336,4 @@ The images can be found in the repository.
 
 ## The lead
 
-![components](../images/components.png)
+![components](../images/components_aee2001_aee2004.png)
