@@ -215,7 +215,7 @@ class CanDisplayPopupHandler3
         _carState->DisplayMessage.data.Field4 = message.DoorStatus1;
         _carState->DisplayMessage.data.Field5 = message.DoorStatus2;
         _carState->DisplayMessage.data.Field6 = 0xFF;
-        _carState->DisplayMessage.data.Field8 = byte7;
+        _carState->DisplayMessage.data.Field7 = byte7;
         _carState->DisplayMessage.data.Field8 = byte8;
 
         if (message.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
