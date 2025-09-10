@@ -89,6 +89,15 @@ List of supported functions:
  - Economy mode and seatbelt warnings (if the vehicle speed is above 10km/h)
  - Semi-automatic VIN coding for head unit anti-theft beep suppression
 
+### FAQ:
+
+- Does the odometer from XY work?
+    - Yes, it should. However, some functions are managed by the odometer itself (ESP deactivation button, door lock button, automatic door locking above 10 km/h, hazard lights, etc.). Because of this, you need to keep at least the printed circuit board from the original odometer, hidden somewhere behind the dashboard.
+- Do SMEG, RT6, NAC, etc. work? Which one is the most reliable?
+    - All of them should work the same. However, you may need to configure your head unit in the BSI to one that supports navigation. This will enable the additional data frames in your car that are required for navigation.
+- Is it possible to use a head unit from one generation with a display from another generation? For example: RD4 (AEE2004) with a 6-pin display (AEE2010), or RD3 (AEE2001) with a 6-pin display (AEE2010) or a 12-pin display (AEE2004)?
+    - No. Not even by chaining multiple devices together. The radio and display are tightly coupled and exchange a large number of messages during operation. While it would be theoretically possible to support such a mixed setup, it simply isn't worth the effort to implement.
+
 ### Removing the original display (AEE2001 - VAN)
 
 Removing the original display disables the trip computer, door status messages, and the digital A/C system also might stop working. For instance, in the 307, the VAN wires for A/C are routed through the display, breaking the circuit when it's removed. To fix this, create two jumpers on the original connector (pins 4–5 for DATA, 17–18 for DATAB).
@@ -204,9 +213,17 @@ Take note that I left out the quadlock socket (only the plug is there) as it has
 
 ![matt_quadlock_bridge_patch_lead](./images/matt_quadlock_bridge_patch.jpg)
 
+### Uploading the firmware
+
+When the ESP32 is connected to your PC it is shown as a COM port in the device manager. You can use [esptool from espressiff](https://github.com/espressif/esptool) to upload the firmware from the release. The command used to upload:
+
+```cmd
+esptool.exe --chip esp32c6 --port COM10 --baud 921600 --before default_reset --after hard_reset write_flash -z --flash_mode keep --flash_freq keep --flash_size keep 0x0 bootloader.bin 0x8000 partitions.bin 0xe000 ota_data_initial.bin 0x10000 firmware.bin
+```
+
 ## Setup
 
-The device creates a Wi-Fi access point at startup for 40 seconds, or when:
+The device creates a Wi-Fi access point (SSID: PSA VAN-CAN Bridge, password: 123456789) at startup for 120 seconds, or when:
  - The front-left door is open
  - High beams are on
  - Emergency lights are blinking
