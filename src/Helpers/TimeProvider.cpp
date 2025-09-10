@@ -43,6 +43,12 @@ void TimeProvider::Start()
     }
 
     _rtc = ds3231_init(bus_handle);
+
+    if (_rtc == NULL)
+    {
+        printf("Failed to initialize DS3231\n");
+        return;
+    }
     ds3231_debug_print_data(_rtc);
 
     //SetDateTime(2024, 12, 21, 13, 45, 0);
@@ -52,7 +58,7 @@ void TimeProvider::Start()
 
 bool TimeProvider::Process(unsigned long currentTime)
 {
-    if (!_carState->HAS_RTC)
+    if (!_started || !_carState->HAS_RTC)
     {
         return false;
     }
