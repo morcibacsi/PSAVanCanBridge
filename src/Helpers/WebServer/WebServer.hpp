@@ -96,7 +96,7 @@ WebServer(
     {
         RegisterHandler("/", HTTP_GET, &WebServer::get_index_handler);
         RegisterHandler("/index.html", HTTP_GET, &WebServer::get_index_handler);
-        RegisterHandler("/api/keepalive", HTTP_GET, &WebServer::get_keep_alive_handler);
+        RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler);
         RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler);
         RegisterHandler("/api/config.json", HTTP_GET, &WebServer::get_config_handler);
         RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler);
@@ -108,7 +108,7 @@ WebServer(
         // Unregister all endpoints
         httpd_unregister_uri_handler(server, "/", HTTP_GET);
         httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
-        httpd_unregister_uri_handler(server, "/api/keepalive", HTTP_GET);
+        httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/config.json", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
@@ -180,12 +180,26 @@ WebServer(
         return ESP_OK;
     }
 
-    static esp_err_t get_keep_alive_handler(httpd_req_t *req)
+    static esp_err_t get_time_handler(httpd_req_t *req)
     {
         // Send a 200 OK response with no content
         auto *instance = static_cast<WebServer *>(req->user_ctx);
         instance->_lastRequestTime = instance->_carState->CurrenTime;
-        httpd_resp_send(req, NULL, 0);
+
+        httpd_resp_set_type(req, "application/json");
+
+        cJSON *json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(json, "hour", instance->_carState->Hour);
+        cJSON_AddNumberToObject(json, "minute", instance->_carState->Minute);
+        cJSON_AddNumberToObject(json, "second", instance->_carState->Second);
+        cJSON_AddNumberToObject(json, "day", instance->_carState->MDay);
+        cJSON_AddNumberToObject(json, "month", instance->_carState->Month);
+        cJSON_AddNumberToObject(json, "year", instance->_carState->Year);
+        cJSON_AddStringToObject(json, "firmware_version", instance->_carState->Version);
+        const char *jsonResponse = cJSON_Print(json);
+        cJSON_Delete(json);
+        httpd_resp_sendstr(req, jsonResponse);
+
         return ESP_OK;
     }
 

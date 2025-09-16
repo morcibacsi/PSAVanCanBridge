@@ -725,14 +725,30 @@
             const apiEndpoint = 'api/';
             let jsonData = {};
 
-            //call keepalive every 5 seconds
-            setInterval(() => {
-                fetch(apiEndpoint + "keepalive", { method: 'GET' })
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Failed to keep alive: ${response.statusText}`);
-                    })
-                    .catch(error => console.error('Error keeping alive:', error));
-            }, 1000);
+            setInterval(async () =>
+                {
+                    const response = await fetch(apiEndpoint + "time", { method: 'GET' })
+                    if (!response.ok) {
+                        console.error('Error getting time:', response.statusText);
+                    }
+                    else {
+                        const responeJson = await response.json();
+                        const datetimeOutput = document.getElementById('rtc-time-value');
+                        const fwVersionOutput = document.getElementById('firmware-version-value');
+                        if (datetimeOutput) {
+                            datetimeOutput.textContent = responeJson.year + "-" +
+                                String(responeJson.month).padStart(2, '0') + "-" +
+                                String(responeJson.day).padStart(2, '0') + " " +
+                                String(responeJson.hour).padStart(2, '0') + ":" +
+                                String(responeJson.minute).padStart(2, '0') + ":" +
+                                String(responeJson.second).padStart(2, '0');
+                        }
+                        if (fwVersionOutput) {
+                            fwVersionOutput.textContent = responeJson.firmware_version;
+                        }
+                    }
+                }, 1000
+            );
 
             const formContainer = document.getElementById('form-elements');
 
@@ -1117,6 +1133,13 @@
             <button type="submit" id="saveConfig">Save</button>
             <button type="button" id="reboot">Reboot</button>
         </form>
+        <div>
+            <p id="rtc-time">RTC time: <span id="rtc-time-value"></span></p>
+            <p>Firmware version: <span id="firmware-version-value">v3.0.1</span></p>
+        </div>
+        <div class="footer">
+            <p>PSA VAN-CAN Bridge - <a href="https://github.com/morcibacsi/PSAVanCanBridge">GitHub Repository</a></p>
+        </div>
     </div>
 </body>
 </html>
