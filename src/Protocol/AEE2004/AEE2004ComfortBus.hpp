@@ -107,6 +107,10 @@ class AEE2004ComfortBus : public IProtocolHandler
 
     void HandleFeedbackSignal(FeedbackSignal signal);
 
+    bool CanAcceptMessage(const BusMessage& message) override;
+
+    void HandleForwardedMessage(const BusMessage& message) override;
+
     void UpdateMessages(uint64_t currentTime) override;
 
     void ProcessImmediateSignal(ImmediateSignal signal) override;

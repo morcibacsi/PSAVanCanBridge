@@ -144,6 +144,37 @@ void AEE2004ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
     }
 }
 
+
+bool AEE2004ComfortBus::CanAcceptMessage(const BusMessage& message)
+{
+    if (message.protocol == ProtocolType::AEE2004)
+    {
+        return true;
+    }
+    if (message.protocol == ProtocolType::AEE2010)
+    {
+        switch (message.id)
+        {
+            case 0x31C:
+            case 0x532:
+            case 0x5F2:
+            return true;
+            break;
+
+        default:
+            return false;
+            break;
+        }
+    }
+    return false;
+}
+
+void AEE2004ComfortBus::HandleForwardedMessage(const BusMessage& message)
+{
+    //printf("AEE2004ComfortBus::HandleForwardedMessage: %X\n", (unsigned int)message.id);
+    _transportLayer->SendMessage(message);
+}
+
 void AEE2004ComfortBus::UpdateMessages(uint64_t currentTime)
 {
     // Let the scheduler manage periodic sending.

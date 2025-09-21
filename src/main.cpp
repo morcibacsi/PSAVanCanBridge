@@ -164,6 +164,13 @@ void ReadDestinationFunction(void * parameter)
                 continue;
             }
 
+            bool sourceCanAcceptMessage = sourceProtocolHandler->CanAcceptMessage(message);
+            if (sourceCanAcceptMessage)
+            {
+                sourceProtocolHandler->HandleForwardedMessage(message);
+                continue;
+            }
+
             processMessage = destinationProtocolHandler->CanParseMessage(message);
             if (processMessage)
             {
