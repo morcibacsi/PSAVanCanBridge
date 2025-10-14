@@ -11,7 +11,7 @@
 
 class MessageHandler_824 : public IMessageHandler<MessageHandler_824>
 {
-    ImmediateSignalCallback _immediateSignalCallback;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x824;
@@ -57,7 +57,7 @@ class MessageHandler_824 : public IMessageHandler<MessageHandler_824>
 
             carState->ConsumptionForCMB = message.data[6];
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::SpeedAndRpm);
             }

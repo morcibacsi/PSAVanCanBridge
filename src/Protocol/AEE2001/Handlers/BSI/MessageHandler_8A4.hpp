@@ -14,9 +14,9 @@
 
 class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
 {
-    CanDisplayPopupHandler3* _canPopupHandler;
-    ImmediateSignalCallback _immediateSignalCallback;
-    FeedbackSignalCallback _feedbackSignalCallback;
+    CanDisplayPopupHandler3* _canPopupHandler = nullptr;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
+    FeedbackSignalCallback _feedbackSignalCallback = nullptr;
 
     void DisableAas(CarState* carState, uint8_t status)
     {
@@ -154,12 +154,12 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
                 }
             }
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::ReverseChanged);
             }
 
-            if (_feedbackSignalCallback)
+            if (_feedbackSignalCallback != nullptr)
             {
                 _feedbackSignalCallback(FeedbackSignal::IgnitionChanged);
             }

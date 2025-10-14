@@ -24,7 +24,7 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
             .isActive = true
         };
 
-        FeedbackSignalCallback _feedbackSignalCallback;
+        FeedbackSignalCallback _feedbackSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x036;
@@ -99,7 +99,7 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
             carState->BlackPanelStatus    = packet.Brightness.data.black_panel_status;
             carState->IgnitionMode        = packet.Ignition.data.ignition_mode;
 
-            if (_feedbackSignalCallback)
+            if (_feedbackSignalCallback != nullptr)
             {
                 _feedbackSignalCallback(FeedbackSignal::IgnitionChanged);
             }

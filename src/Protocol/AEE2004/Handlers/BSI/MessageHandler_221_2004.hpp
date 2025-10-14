@@ -25,7 +25,7 @@ class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x221;
@@ -79,7 +79,7 @@ class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
             carState->TotalRange.data.leftByte      = packet.TotalRangeByte1;
             carState->TotalRange.data.rightByte     = packet.TotalRangeByte1;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::TripButtonPressed);
             }

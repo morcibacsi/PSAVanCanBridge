@@ -12,7 +12,7 @@
 
 class MessageHandler_8C4 : public IMessageHandler<MessageHandler_8C4>
 {
-    FeedbackSignalCallback _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x8C4;
@@ -49,7 +49,7 @@ class MessageHandler_8C4 : public IMessageHandler<MessageHandler_8C4>
 
                 if (packet.Event.asByte > 0)
                 {
-                    if (_feedbackSignalCallback)
+                    if (_feedbackSignalCallback != nullptr)
                     {
                         _feedbackSignalCallback(FeedbackSignal::GetTripComputerData);
                     }

@@ -25,7 +25,7 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
             .isActive = false
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x217;
@@ -134,7 +134,7 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
                 carState->OdometerStates.data.SpeedDisplayedOnCmb = carState->SpeedInKmh;
             }
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::CmbStatusChanged);
             }

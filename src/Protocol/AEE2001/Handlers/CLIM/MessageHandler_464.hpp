@@ -12,7 +12,7 @@
 
 class MessageHandler_464 : public IMessageHandler<MessageHandler_464>
 {
-    VanCanAirConditionerSpeedMap* _vanCanAirConditionerSpeedMap;
+    VanCanAirConditionerSpeedMap* _vanCanAirConditionerSpeedMap = nullptr;
     public:
         static constexpr uint32_t MessageId = 0x464;
 

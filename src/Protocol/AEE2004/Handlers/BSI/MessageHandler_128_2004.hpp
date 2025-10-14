@@ -24,7 +24,7 @@ class MessageHandler_128 : public IMessageHandler<MessageHandler_128>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x128;
@@ -154,7 +154,7 @@ class MessageHandler_128 : public IMessageHandler<MessageHandler_128>
             carState->GearBoxMode              = packet.Indicator8.data.auto_gearbox_mode;
             carState->RecommendedGearBlinking  = packet.Indicator8.data.recommended_gear_blinking;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::CmbIndicatorLightsChanged);
                 _immediateSignalCallback(ImmediateSignal::CmbSignalLightsChanged);

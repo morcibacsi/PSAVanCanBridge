@@ -23,7 +23,7 @@ class MessageHandler_1A1 : public IMessageHandler<MessageHandler_1A1>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
     public:
         static constexpr uint32_t MessageId = 0x1A1;
 
@@ -63,7 +63,7 @@ class MessageHandler_1A1 : public IMessageHandler<MessageHandler_1A1>
             carState->DisplayMessage.data.Field7 = message.data[6];
             carState->DisplayMessage.data.Field8 = message.data[7];
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::PopupMessage);
             }

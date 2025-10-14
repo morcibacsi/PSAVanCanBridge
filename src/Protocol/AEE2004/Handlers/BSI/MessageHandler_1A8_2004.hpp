@@ -24,7 +24,7 @@ class MessageHandler_1A8 : public IMessageHandler<MessageHandler_1A8>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x1A8;
@@ -69,7 +69,7 @@ class MessageHandler_1A8 : public IMessageHandler<MessageHandler_1A8>
             carState->TripOnCMB.data.middleByte             = packet.TripOnCMB2;
             carState->TripOnCMB.data.rightByte              = packet.TripOnCMB3;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::CruiseControl);
             }

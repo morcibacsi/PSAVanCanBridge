@@ -24,7 +24,7 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x21F;
@@ -92,7 +92,7 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
                 carState->RadioRemote.data.source        = packet.Command3.data.source;
             }
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::RadioRemote);
             }

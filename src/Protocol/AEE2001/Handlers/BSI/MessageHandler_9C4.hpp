@@ -13,7 +13,7 @@
 
 class MessageHandler_9C4 : public IMessageHandler<MessageHandler_9C4>
 {
-    ImmediateSignalCallback _immediateSignalCallback;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x9C4;
@@ -61,7 +61,7 @@ class MessageHandler_9C4 : public IMessageHandler<MessageHandler_9C4>
             carState->RadioRemote.data.owerflow_scan_positive = packet.ButtonStatus.data.counter_overflow_positive;
             carState->RadioRemote.data.owerflow_scan_negative = packet.ButtonStatus.data.counter_overflow_negative;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::RadioRemote);
             }

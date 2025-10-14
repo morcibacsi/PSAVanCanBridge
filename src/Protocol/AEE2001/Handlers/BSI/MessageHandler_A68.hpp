@@ -12,7 +12,7 @@
 
 class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
 {
-    FeedbackSignalCallback _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback = nullptr;
     uint8_t _prevReverseEngaged = 0;
     uint8_t _state = 0;
 
@@ -78,13 +78,13 @@ class MessageHandler_A68 : public IMessageHandler<MessageHandler_A68>
             if (message.data[0] == 0x21 && message.data[1] == 0x80)
             {
                 _state = 2;
-                _feedbackSignalCallback(FeedbackSignal::QueryParkingRadarData);
+                (_feedbackSignalCallback != nullptr) ? _feedbackSignalCallback(FeedbackSignal::QueryParkingRadarData) : void();
                 return;
             }
 
             if (message.data[0] == 0x21 && message.data[1] == 0xA0)
             {
-                _feedbackSignalCallback(FeedbackSignal::QueryParkingRadarData);
+                (_feedbackSignalCallback != nullptr) ? _feedbackSignalCallback(FeedbackSignal::QueryParkingRadarData) : void();
                 return;
             }
         }

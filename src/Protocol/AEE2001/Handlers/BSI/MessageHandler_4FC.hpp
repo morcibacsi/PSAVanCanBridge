@@ -14,7 +14,7 @@
 class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
 {
     VanCanGearboxPositionMap* _vanCanGearboxPositionMap;
-    ImmediateSignalCallback _immediateSignalCallback;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x4FC;
@@ -103,7 +103,7 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
                 carState->CruiseControlSpeed.data.leftByte      = packet.CruiseControlSpeedByte1;
                 carState->CruiseControlSpeed.data.rightByte     = packet.CruiseControlSpeedByte2;
 
-                if (_immediateSignalCallback)
+                if (_immediateSignalCallback != nullptr)
                 {
                     _immediateSignalCallback(ImmediateSignal::CruiseControl);
                 }

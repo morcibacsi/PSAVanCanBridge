@@ -24,7 +24,7 @@ class MessageHandler_220 : public IMessageHandler<MessageHandler_220>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x220;
@@ -70,7 +70,7 @@ class MessageHandler_220 : public IMessageHandler<MessageHandler_220>
             carState->DoorStatus.data.fuel_flap_open        = packet.Field1.data.fuel_flap_open;
             carState->DoorStatus.data.rear_window_open      = packet.Field1.data.rear_window_open;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::PopupMessage);
             }

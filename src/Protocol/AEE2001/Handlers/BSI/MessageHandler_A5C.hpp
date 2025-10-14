@@ -18,7 +18,7 @@ const uint8_t STATE_GET_ACTUATOR_DATA = 3;
 class MessageHandler_A5C : public IMessageHandler<MessageHandler_A5C>
 {
 
-    FeedbackSignalCallback _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback = nullptr;
     uint8_t _prevIgnition = 0;
     uint8_t _state = STATE_DEFAULT;
 
@@ -91,7 +91,8 @@ class MessageHandler_A5C : public IMessageHandler<MessageHandler_A5C>
             if (message.data[0] == 0x21 && message.data[1] == 0x80)
             {
                 _state = STATE_GET_ACTUATOR_DATA;
-                _feedbackSignalCallback(FeedbackSignal::QueryAirConData);
+
+                (_feedbackSignalCallback != nullptr) ? _feedbackSignalCallback(FeedbackSignal::QueryAirConData) : void();
                 return;
             }
 
@@ -99,7 +100,7 @@ class MessageHandler_A5C : public IMessageHandler<MessageHandler_A5C>
             if (message.data[0] == 0x21 && message.data[1] == 0xC0)
             {
                 _state = STATE_GET_ACTUATOR_DATA;
-                _feedbackSignalCallback(FeedbackSignal::QueryAirConData);
+                (_feedbackSignalCallback != nullptr) ? _feedbackSignalCallback(FeedbackSignal::QueryAirConData) : void();
                 return;
             }
 
@@ -108,7 +109,7 @@ class MessageHandler_A5C : public IMessageHandler<MessageHandler_A5C>
             {
                 //_state = STATE_GET_SENSOR_DATA; // This state is not used in this handler, but could be used for future expansion
                 _state = STATE_GET_ACTUATOR_DATA;
-                _feedbackSignalCallback(FeedbackSignal::QueryAirConData);
+                (_feedbackSignalCallback != nullptr) ? _feedbackSignalCallback(FeedbackSignal::QueryAirConData) : void();
                 return;
             }
         }

@@ -13,8 +13,8 @@
 
 class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
 {
-    CanDisplayPopupHandler3* _canPopupHandler;
-    ImmediateSignalCallback _immediateSignalCallback;
+    CanDisplayPopupHandler3* _canPopupHandler = nullptr;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x564;
@@ -118,7 +118,7 @@ class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
             carState->Trip2Consumption.data.leftByte  = packet.Trip2FuelConsumption1;
             carState->Trip2Consumption.data.rightByte = packet.Trip2FuelConsumption2;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 //printf("MessageHandler_564::Parse - ImmediateSignal::TripButtonPressed\n");
                 _immediateSignalCallback(ImmediateSignal::TripButtonPressed);

@@ -13,7 +13,7 @@
 
 class MessageHandler_ADC : public IMessageHandler<MessageHandler_ADC>
 {
-    FeedbackSignalCallback _feedbackSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback = nullptr;
     uint8_t _prevIgnition = 0;
     uint8_t _state = 0;
 

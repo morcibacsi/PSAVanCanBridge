@@ -24,7 +24,7 @@ class MessageHandler_168 : public IMessageHandler<MessageHandler_168>
             .isActive = true
         };
 
-        ImmediateSignalCallback _immediateSignalCallback;
+        ImmediateSignalCallback _immediateSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x168;
@@ -142,7 +142,7 @@ class MessageHandler_168 : public IMessageHandler<MessageHandler_168>
             carState->CarIndicatorLights.data.stt_lamp_status         = packet.Field7.data.stt_lamp_status;
             carState->CarIndicatorLights.data.power_steering_fault    = packet.Field7.data.power_steering_fault;
 
-            if (_immediateSignalCallback)
+            if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::CmbIndicatorLightsChanged);
                 _immediateSignalCallback(ImmediateSignal::CmbSignalLightsChanged);

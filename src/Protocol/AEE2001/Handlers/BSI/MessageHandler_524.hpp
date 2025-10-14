@@ -16,8 +16,8 @@
 
 class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
 {
-    CanDisplayPopupHandler3* _canPopupHandler;
-    VanCanDisplayPopupMap* _popupMapping;
+    CanDisplayPopupHandler3* _canPopupHandler = nullptr;
+    VanCanDisplayPopupMap* _popupMapping = nullptr;
 
     uint8_t ChangeAutoSetting(uint8_t messageByte, uint8_t newSetting, uint8_t messageType, uint8_t& settingVar)
     {
