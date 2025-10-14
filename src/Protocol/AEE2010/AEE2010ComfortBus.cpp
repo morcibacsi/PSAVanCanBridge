@@ -12,6 +12,8 @@ AEE2010ComfortBus::AEE2010ComfortBus(
     _carState = carState;
     _transportLayer = transport;
     _scheduler = scheduler;
+    _immediateSignalCallback = nullptr;
+
     _messagesToSkip = std::vector<uint32_t>() = {
         0x0B6, 0x0E6, 0x0F6, 0x1A1, 0x1A8,
         0x2B6, 0x3B6, 0x3E7, 0x21F, 0x036,

@@ -3,6 +3,8 @@
 
 VanCanAirConditionerSpeedMap::VanCanAirConditionerSpeedMap()
 {
+    previousSpeed = 0;
+    arrayToUse = AcMap;
 }
 
 uint8_t VanCanAirConditionerSpeedMap::GetFanSpeedFromVANByte(uint8_t vanByte, uint8_t isAcOn, uint8_t isRearWindowHeatingOn, uint8_t isRecycleOn)

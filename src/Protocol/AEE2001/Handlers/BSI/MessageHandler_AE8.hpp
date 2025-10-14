@@ -228,7 +228,7 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
 
         BusMessage Generate(CarState* carState)
         {
-            BusMessage message;
+            BusMessage message{};
             message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;

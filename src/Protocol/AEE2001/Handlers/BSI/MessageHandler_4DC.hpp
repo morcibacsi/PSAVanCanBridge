@@ -16,7 +16,7 @@ class MessageHandler_4DC : public IMessageHandler<MessageHandler_4DC>
 
         BusMessage Generate(CarState* carState)
         {
-            BusMessage message;
+            BusMessage message{};
             message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;

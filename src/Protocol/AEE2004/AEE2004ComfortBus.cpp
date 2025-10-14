@@ -13,6 +13,7 @@ AEE2004ComfortBus::AEE2004ComfortBus(
     _carState = carState;
     _transportLayer = transport;
     _scheduler = scheduler;
+    _immediateSignalCallback = nullptr;
 }
 
 void AEE2004ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)

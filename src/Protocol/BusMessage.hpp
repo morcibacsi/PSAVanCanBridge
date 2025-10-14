@@ -11,7 +11,7 @@ typedef enum {
 
 struct BusMessage {
     uint32_t id;              // Message identifier.
-    uint8_t command;
+    uint8_t command = 0;
     uint8_t data[32]; //Message payload.
     uint8_t dataLength;    // Actual length of data.
     uint16_t crc; //Message CRC.

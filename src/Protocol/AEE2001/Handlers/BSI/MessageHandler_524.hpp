@@ -133,7 +133,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
         {
             if (packet.Field8.esp_asr_deactivated == 0)
             {
-                CanDisplayPopupItem item;
+                CanDisplayPopupItem item{};
                 item.Category = CAN_POPUP_MSG_SHOW_CATEGORY2;
                 item.MessageType = CAN_POPUP_MSG_ESP_ON_ON_CMB;
                 item.DoorStatus1 = 0;
@@ -148,7 +148,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
             }
             else
             {
-                CanDisplayPopupItem item;
+                CanDisplayPopupItem item{};
                 item.Category = CAN_POPUP_MSG_SHOW_CATEGORY3;
                 item.MessageType = CAN_POPUP_MSG_ESP_SYSTEM_DEACTIVATED;
                 item.DoorStatus1 = 0;
@@ -166,7 +166,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
             {
                 if (carState->SpeedInKmh > 10)
                 {
-                    CanDisplayPopupItem item;
+                    CanDisplayPopupItem item{};
                     item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
                     item.MessageType = CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED;
                     item.DoorStatus1 = CAN_POPUP_SEAT_BELTS_OF_DRIVER;
@@ -194,7 +194,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
         if (change == 0 || change == 1)
         {
             carState->DeadlockActive = change;
-            CanDisplayPopupItem item;
+            CanDisplayPopupItem item{};
             item.Category = CAN_POPUP_MSG_SHOW_CATEGORY2;
             item.MessageType = (change == 1) ? CAN_POPUP_MSG_AUTOMATIC_DOOR_LOCKING_ACTIVATED : CAN_POPUP_MSG_AUTOMATIC_DOOR_LOCKING_DEACTIVATED;
             item.DoorStatus1 = 0;
@@ -212,7 +212,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
         if (change == 0 || change == 1)
         {
             carState->AutoWipingActive = change;
-            CanDisplayPopupItem item;
+            CanDisplayPopupItem item{};
             item.Category = CAN_POPUP_MSG_SHOW_CATEGORY2;
             item.MessageType = (change == 1) ? CAN_POPUP_MSG_AUTOMATIC_SCREEN_WIPE_ACTIVATED : CAN_POPUP_MSG_AUTOMATIC_SCREEN_WIPE_DEACTIVATED;
             item.DoorStatus1 = 0;
@@ -230,7 +230,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
         if (change == 0 || change == 1)
         {
             carState->AutoHeadlampActive = change;
-            CanDisplayPopupItem item;
+            CanDisplayPopupItem item{};
             item.Category = CAN_POPUP_MSG_SHOW_CATEGORY2;
             item.MessageType = (change == 1) ? CAN_POPUP_MSG_AUTOMATIC_HEADLAMP_LIGHTING_ACTIVATED : CAN_POPUP_MSG_AUTOMATIC_HEADLAMP_LIGHTING_DEACTIVATED;
             item.DoorStatus1 = 0;
@@ -258,7 +258,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
 
         BusMessage Generate(CarState* carState)
         {
-            BusMessage message;
+            BusMessage message{};
             message.id = MessageId;
             message.periodicityMs = 500;
             message.offsetMs = 20;
@@ -279,7 +279,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
                 return;
             }
 
-            VanDisplayV2Struct packet;
+            VanDisplayV2Struct packet{};
             std::memcpy(&packet, message.data, packetSize);
 
             carState->CarIndicatorLights.data.break_fluid_alert   = packet.Field0.brake_system_fault;

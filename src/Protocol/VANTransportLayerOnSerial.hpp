@@ -12,7 +12,7 @@ class VANTransportLayerOnSerial : public ITransportLayer {
 private:
     #define BUF_SIZE (1024)
     #define ECHO_TASK_STACK_SIZE (4096)
-    uint8_t data[BUF_SIZE];
+    uint8_t data[BUF_SIZE] = {0};
 
 public:
     std::string Name() override { return "VAN"; };

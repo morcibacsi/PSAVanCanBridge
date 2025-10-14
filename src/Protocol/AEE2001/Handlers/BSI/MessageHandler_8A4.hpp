@@ -169,7 +169,7 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
                 //show "Ice alert"
                 if (!_canPopupHandler->IsPopupVisible())
                 {
-                    CanDisplayPopupItem item;
+                    CanDisplayPopupItem item{};
                     item.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
                     item.MessageType = CAN_POPUP_MSG_RISK_OF_ICE;
                     item.DoorStatus1 = 0;

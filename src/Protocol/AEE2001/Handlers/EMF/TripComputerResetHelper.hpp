@@ -19,6 +19,7 @@ class TripComputerResetHelper
         TripComputerResetHelper(CarState* carState)
         {
             _carState = carState;
+            _feedbackSignalCallback = nullptr;
         }
 
         void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }

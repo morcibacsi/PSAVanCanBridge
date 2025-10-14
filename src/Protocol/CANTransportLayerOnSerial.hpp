@@ -12,7 +12,7 @@ class CANTransportLayerOnSerial : public ITransportLayer {
 private:
     #define BUF_SIZE (1024)
     #define ECHO_TASK_STACK_SIZE (4096)
-    uint8_t data[BUF_SIZE];
+    uint8_t data[BUF_SIZE] = {0};
     uint16_t FastChecksum(const uint8_t *data, uint8_t length);
 public:
     std::string Name() override { return "CAN"; };

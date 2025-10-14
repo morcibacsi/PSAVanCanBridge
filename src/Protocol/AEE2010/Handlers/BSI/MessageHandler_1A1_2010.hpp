@@ -11,7 +11,7 @@
 class MessageHandler_1A1_2010 : public IMessageHandler<MessageHandler_1A1_2010>
 {
     private:
-        uint8_t _prevDoorStatus;
+        uint8_t _prevDoorStatus = 0;
 
         BusMessage message
         {

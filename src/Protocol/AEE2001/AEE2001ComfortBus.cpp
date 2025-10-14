@@ -15,6 +15,8 @@ AEE2001ComfortBus::AEE2001ComfortBus(
     _transportLayer = transport;
     _schedulerForSourceNetwork = scheduler;
     _carState = carState;
+    _feedbackSignalCallback = nullptr;
+    _immediateSignalCallback = nullptr;
 
     _canPopupHandler = new CanDisplayPopupHandler3(_carState);
     _tripComputerResetHelper = new TripComputerResetHelper(_carState);

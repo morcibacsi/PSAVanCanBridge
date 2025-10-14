@@ -77,7 +77,7 @@ class MessageHandler_5E4 : public IMessageHandler<MessageHandler_5E4>
             bool reverseEngagedButParkingAidIsNotVanBusType =
                 (carState->IsReverseEngaged == 1 && carState->PARKING_AID_TYPE != 0x01);
 
-            BusMessage msg;
+            BusMessage msg{};
             msg.id = MessageId;
             msg.protocol = ProtocolType::AEE2001;
             msg.type = MessageType::Normal;
