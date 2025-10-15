@@ -29,7 +29,7 @@ void Esp32RmtReader::SwitchLed(uint8_t state)
     }
 }
 
-bool Esp32RmtReader::RmtRxDoneCallback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata)
+bool IRAM_ATTR  Esp32RmtReader::RmtRxDoneCallback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata)
 {
     BaseType_t high_task_wakeup = pdFALSE;
 
