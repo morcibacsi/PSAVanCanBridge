@@ -11,10 +11,12 @@
 #include "AirConditionerState.h"
 #include "DisplayMessage.h"
 #include "ParkingAidStatus.h"
+#include "../Protocol/ProtocolType.hpp"
+#include "../BoardConfig.h"
 
 struct CarState
 {
-    char* Version = (char*)"v3.0.2";
+    char* Version = (char*)"v3.1.0";
     uint64_t CurrenTime = 0;
 
     uint8_t Ignition = 0;
@@ -254,4 +256,17 @@ struct CarState
     // 5: RTx
     uint8_t RADIO_TYPE = 1;
 
+#if BOARD_PROTOCOL_TYPES == 1
+    #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2001) }
+    #define BOARD_SUPPORTED_DESTINATION_PROTOCOLS { static_cast<uint8_t>(ProtocolType::AEE2004), static_cast<uint8_t>(ProtocolType::AEE2010) }
+#elif BOARD_PROTOCOL_TYPES == 2
+    #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2004) }
+    #define BOARD_SUPPORTED_DESTINATION_PROTOCOLS { static_cast<uint8_t>(ProtocolType::AEE2010) }
+#elif BOARD_PROTOCOL_TYPES == 3
+    #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2001), static_cast<uint8_t>(ProtocolType::AEE2004) }
+    #define BOARD_SUPPORTED_DESTINATION_PROTOCOLS { static_cast<uint8_t>(ProtocolType::AEE2004), static_cast<uint8_t>(ProtocolType::AEE2010) }
+#endif
+
+    static constexpr uint8_t SOURCE_PROTOCOLS[] = BOARD_SUPPORTED_SOURCE_PROTOCOLS;
+    static constexpr uint8_t DESTINATION_PROTOCOLS[] = BOARD_SUPPORTED_DESTINATION_PROTOCOLS;
 };

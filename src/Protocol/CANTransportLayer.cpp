@@ -4,13 +4,12 @@
 #include "ITransportLayer.hpp"
 #include "BusMessage.hpp"
 #include "CANTransportLayer.hpp"
-#include "../lib/CanMessageSender/CanMessageSenderEsp32Idf.h"
 #include "../Helpers/IntUnions.h"
 
-CANTransportLayer::CANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t canController)
+CANTransportLayer::CANTransportLayer(ICanMessageSender* canMessageSender)
 {
     _crcCalculator = new VanCrcCalculator();
-    _canMessageSender = new CanMessageSenderEsp32Idf(rxPin, txPin, canController);
+    _canMessageSender = canMessageSender;
     _canMessageSender->Init();
 }
 

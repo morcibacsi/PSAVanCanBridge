@@ -1,5 +1,6 @@
 #include <string.h>
 #include <esp_attr.h>
+#include "../../Helpers/MessageHandlerTupleTemplates.hpp"
 
 #include "AEE2001ComfortBus.hpp"
 
@@ -58,13 +59,12 @@ bool AEE2001ComfortBus::ReceiveMessage(BusMessage& message)
 
 void AEE2001ComfortBus::ParseMessage(const BusMessage& message)
 {
-    std::apply([&](auto&... handler)
+    if (_carState == nullptr)
     {
-        (..., (std::remove_reference_t<decltype(handler)>::MessageId == message.id
-            ? (handler.Parse(_carState, message), void())
-            : void()
-        ));
-    }, handlers);
+        return;
+    }
+
+    processHandlersTuple(handlers, _carState, message);
 }
 
 void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
@@ -92,6 +92,11 @@ void AEE2001ComfortBus::GenerateMessagesForSource()
     ignitionMessage.isActive = true;
     _schedulerForSourceNetwork->AddOrUpdateMessage(ignitionMessage, _carState->CurrenTime);
     //*/
+
+    if (_carState == nullptr || _schedulerForSourceNetwork == nullptr)
+    {
+        return;
+    }
 
     BusMessage aasMessage = std::get<MessageHandler_A68>(handlers).Generate(_carState);
     _schedulerForSourceNetwork->AddOrUpdateMessage(aasMessage, _carState->CurrenTime);

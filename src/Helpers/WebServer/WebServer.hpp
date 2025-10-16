@@ -64,7 +64,8 @@ WebServer(
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
 
         // Configure the Wi-Fi connection
-        wifi_config_t wifi_config = {
+        wifi_config_t wifi_config = {};
+        wifi_config = {
             .ap = {
                 .ssid = "PSA VAN-CAN Bridge",
                 .password = "123456789",
@@ -119,6 +120,7 @@ WebServer(
     esp_err_t startWebServer() {
         httpd_config_t config = HTTPD_DEFAULT_CONFIG();
         config.uri_match_fn = httpd_uri_match_wildcard;
+        config.stack_size = 8192;
         if (httpd_start(&server, &config) == ESP_OK)
         {
             RegisterEndpoints();
@@ -250,29 +252,36 @@ WebServer(
 
     static esp_err_t post_config_handler(httpd_req_t *req)
     {
-        char content[2000];
+        printf("POST /api/config\n");
+        char *content = (char *)malloc(req->content_len + 1);
         int ret, remaining = req->content_len;
-        if (remaining > sizeof(content)) {
-            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
+        printf("Content length: %d\n", remaining);
+
+        if (!content) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
             return ESP_FAIL;
         }
         while (remaining > 0) {
-            ret = httpd_req_recv(req, content, sizeof(content));
+            ret = httpd_req_recv(req, content, remaining);
             if (ret <= 0) {
                 if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
                     httpd_resp_send_408(req);
                 }
+                free(content);
                 return ESP_FAIL;
             }
             remaining -= ret;
         }
+        content[req->content_len] = '\0'; // Null-terminate the received data
 
+        //printf("Received config: %s\n", content);
         auto *instance = static_cast<WebServer *>(req->user_ctx);
         instance->_configFile->SaveJson(content);
         instance->_configFile->Read();
         httpd_resp_set_status(req, "200 OK");
         httpd_resp_sendstr(req, "Config saved");
 
+        free(content);
         return ESP_OK;
     }
 

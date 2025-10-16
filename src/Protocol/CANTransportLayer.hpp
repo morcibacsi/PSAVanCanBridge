@@ -18,7 +18,7 @@ private:
 public:
     std::string Name() override { return "CAN"; };
 
-    CANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t canController);
+    CANTransportLayer(ICanMessageSender* canMessageSender);
 
     void SendMessage(const BusMessage& message, bool highPriority = false) override;
 

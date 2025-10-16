@@ -1,8 +1,9 @@
-#include "AEE2004ComfortBus.hpp"
-
 #include <cstring>
 #include <algorithm>
 #include <esp_attr.h>
+#include "../../Helpers/MessageHandlerTupleTemplates.hpp"
+
+#include "AEE2004ComfortBus.hpp"
 
 AEE2004ComfortBus::AEE2004ComfortBus(
         CarState* carState,
@@ -41,71 +42,44 @@ bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
 
 void IRAM_ATTR AEE2004ComfortBus::ParseMessage(const BusMessage& message)
 {
-    //search for the message id in the map and if exists call the parse function
-    //printf("AEE2004 ParseMessage: %X\n", (unsigned int)message.id);
-
-    std::apply([&](auto&... handler)
+    if (_carState == nullptr)
     {
-        (..., (std::remove_reference_t<decltype(handler)>::MessageId == message.id
-            ? (handler.Parse(_carState, message), void())
-            : void()
-        ));
-    }, handlers);
+        return;
+    }
+    processHandlersTuple(handlers, _carState, message);
 }
 
 void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
 {
     // Generate messages based on the car state and send them via the transport layer.
 
+    if (_carState == nullptr || _scheduler == nullptr)
+    {
+        return;
+    }
+
     if (direction == MessageDirection::Source)
     {
         //GenerateMessagesForSource();
+
+        //
+        /*
+        BusMessage msg_036 = { 0x036, 0x00, {0x0E, 0x00, 0x00, 0x21, 0x21, 0x80, 0x00, 0xA0}, 8, 0, false, ProtocolType::AEE2004, MessageType::Normal, 100, true };
+        _transportLayer->SendMessage(msg_036);
+
+        uint8_t temperature = _carState->ExternalTemperature;
+        BusMessage msg_0f6 = { 0x0F6, 0x00, {0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, temperature, 0x50}, 8, 0, false, ProtocolType::AEE2004, MessageType::Normal, 100, true };
+        _transportLayer->SendMessage(msg_0f6);
+        //*/
+
         return;
     }
 
     if (direction == MessageDirection::Destination)
     {
-        std::apply([&](auto&... handler)
-        {
-            (..., [&]
-            {
-                BusMessage msg = handler.Generate(_carState);
-                _scheduler->AddOrUpdateMessage(msg, _carState->CurrenTime);
-            }());
-        }, handlers);
+        processGeneratorsTuple(handlers, _carState, _scheduler);
         return;
     }
-
-///*
-//*/
-    //
-    /*
-    CanIgnitionByte5Struct ignitionField;
-    if (_carState->Ignition)
-    {
-        ignitionField.data.ignition_mode = CAN_IGNITION_MODE_NORMAL;
-    }
-    else
-    {
-        ignitionField.data.ignition_mode = CAN_IGNITION_MODE_STANDBY;
-    }
-
-    //uint8_t data_036[] = { 0x0E, 0x00, 0x00, 0x21, 0x21, 0x80, 0x00, 0xA0 };
-    //_transportLayer->SendMessage({0x036, {0x0E, 0x00, 0x00, 0x21, 0x21, 0x80, 0x00, 0xA0}, {}, false});
-
-    //uint8_t data_0f6[] = { 0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, 0x65, 0x50 };
-    uint8_t temperature = _carState->ExternalTemperature;
-    //_transportLayer->SendMessage({0x0F6, {0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, temperature, 0x50}, {}, false});
-
-    //_transportLayer->SendMessage({0x036, {0x0E, 0x00, 0x00, 0x21, 0x21, 0x80, 0x00, 0xA0}, {}, false});
-    //_transportLayer->SendMessage({0x036, {0x0E, 0x00, 0x00, 0x21, ignitionField.asByte, 0x80, 0x00, 0xA0}, {}, false});
-
-    BusMessage msg_0f6 = {0x0F6, {0x8E, 0x71, 0x21, 0x8D, 0xF3, 0x65, temperature, 0x50}, {}, false, AEE2004, 100};
-    _scheduler->AddOrUpdateMessage(msg_0f6, _carState->CurrenTime, _carState->CurrenTime); // Periodicity: 100ms
-
-    BusMessage msg_036 = {0x036, {0x0E, 0x00, 0x00, 0x21, ignitionField.asByte, 0x80, 0x00, 0xA0}, {}, false, AEE2004, 100};
-    _scheduler->AddOrUpdateMessage(msg_036, _carState->CurrenTime, _carState->CurrenTime); // Periodicity: 100ms
-    //*/
 }
 
 void AEE2004ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)

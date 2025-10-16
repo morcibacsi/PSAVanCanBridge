@@ -191,6 +191,23 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::LoadFromFile()
 std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
 {
     cJSON *root = cJSON_CreateObject();
+
+    cJSON *supportedSourceProtocolsArray = cJSON_CreateArray();
+    for (const auto &protocol : CarState::SOURCE_PROTOCOLS)
+    {
+        cJSON *element = cJSON_CreateNumber(static_cast<uint8_t>(protocol));
+        cJSON_AddItemToArray(supportedSourceProtocolsArray, element);
+    }
+    cJSON_AddItemToObject(root, "SUPPORTED_SOURCE_PROTOCOLS", supportedSourceProtocolsArray);
+
+    cJSON *supportedDestinationProtocolsArray = cJSON_CreateArray();
+    for (const auto &protocol : CarState::DESTINATION_PROTOCOLS)
+    {
+        cJSON *element = cJSON_CreateNumber(static_cast<uint8_t>(protocol));
+        cJSON_AddItemToArray(supportedDestinationProtocolsArray, element);
+    }
+    cJSON_AddItemToObject(root, "SUPPORTED_DESTINATION_PROTOCOLS", supportedDestinationProtocolsArray);
+
     cJSON *vinArray = cJSON_CreateArray();
     cJSON_AddItemToObject(root, "VIN", vinArray);
 

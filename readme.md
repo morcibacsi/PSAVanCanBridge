@@ -241,7 +241,6 @@ This project uses PlatformIO. Set your board type in platformio.ini. The name fo
 
 MCU_BOARD_REV_OPTION
 
-
 Selecting one of these will load the corresponding BoardConfig_*.h file. These contain the board specific pin settings. The default is the 1.6 version with ULP VAN bus writing (so no TSS463C is needed when used on a car with VAN bus).
 
 Examples:
@@ -249,6 +248,7 @@ Examples:
 #default_envs = esp32_v14
 #default_envs = esp32_v15_van_without_tss463
 #default_envs = esp32_v15_van_with_tss463
+#default_envs = esp32_v13_can
 #default_envs = esp32_v15_can
 default_envs = esp32c6_v16
 ```

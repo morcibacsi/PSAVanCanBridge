@@ -650,6 +650,13 @@
             }
         };
 
+        const protocolNames = {
+            0: "None",
+            1: "AEE2001",
+            2: "AEE2004",
+            3: "AEE2010"
+        };
+
         function getVinAsString(vinAsBytes) {
             let result = "";
 
@@ -799,17 +806,17 @@
                     addSliderGroup(key, fullPath, value);
                 } else if (typeof value === 'number') {
                     if (fullPath == 'SOURCE_PROTOCOL') {
-                        addSelectGroup(key, fullPath, [
-                            { value: 1, label: 'AEE2001' },
-                            { value: 2, label: 'AEE2004' },
-                        ]);
+                        const sourceProtocols = jsonData.SUPPORTED_SOURCE_PROTOCOLS || [];
+                        if (sourceProtocols.length > 0) {
+                            addSelectGroup(key, fullPath, sourceProtocols.map((protocol) => ({ value: protocol, label: protocolNames[protocol] })));
+                        }
                         return;
                     }
                     if (fullPath == 'DESTINATION_PROTOCOL') {
-                        addSelectGroup(key, fullPath, [
-                            { value: 2, label: 'AEE2004' },
-                            { value: 3, label: 'AEE2010' },
-                        ]);
+                        const destProtocols = jsonData.SUPPORTED_DESTINATION_PROTOCOLS || [];
+                        if (destProtocols.length > 0) {
+                            addSelectGroup(key, fullPath, destProtocols.map((protocol) => ({ value: protocol, label: protocolNames[protocol] })));
+                        }
                         return;
                     }
                     if (fullPath == 'PARKING_AID_TYPE') {
@@ -943,6 +950,11 @@
             function gatherFormData(json, path = '') {
                 for (const key in json)
                 {
+                    if (key == "SUPPORTED_SOURCE_PROTOCOLS" || key == "SUPPORTED_DESTINATION_PROTOCOLS")
+                    {
+                        continue;
+                    }
+
                     const fullPath = path ? `${path}.${key}` : key;
                     const element = document.getElementById(fullPath);
 

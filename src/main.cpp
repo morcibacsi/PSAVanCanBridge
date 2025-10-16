@@ -1,3 +1,5 @@
+#include "BoardConfig.h"
+
 #include <stdio.h>
 #include  <vector>
 #include "esp_sleep.h"
@@ -13,6 +15,8 @@
 #include "Protocol/VANTransportLayer.hpp"
 #include "Protocol/VANTransportLayerOnSerial.hpp"
 #include "Protocol/AEE2001/AEE2001ComfortBus.hpp"
+
+#include "lib/CanMessageSender/CanMessageSenderEsp32Idf.h"
 
 #include "Protocol/CANTransportLayer.hpp"
 #include "Protocol/CANTransportLayerOnSerial.hpp"
@@ -31,10 +35,15 @@
 #include "Helpers/CpuConfig.h"
 #include "Helpers/WebServer/WebServer.hpp"
 
+ICanMessageSender* sourceCanMessageSender;
+ICanMessageSender* destinationCanMessageSender;
+
 ITransportLayer* sourceTransportLayer;
 ITransportLayer* destinationTransportLayer;
+
 IProtocolHandler* sourceProtocolHandler;
 IProtocolHandler* destinationProtocolHandler;
+
 CarState* carState;
 CrcStore* crcStore;
 
@@ -60,14 +69,14 @@ bool automaticallyStoreNewIds = false;
 #define VAN_TX_PIN GPIO_NUM_2
 #define VAN_DATA_RX_LED_INDICATOR_PIN 15
 
-#define CAN1_RX_PIN 0
-#define CAN1_TX_PIN 1
+#define CAN1_RX_PIN BOARD_CAN1_RX_PIN
+#define CAN1_TX_PIN BOARD_CAN1_TX_PIN
 
-#define CAN2_RX_PIN 3
-#define CAN2_TX_PIN 2
+#define CAN2_RX_PIN BOARD_CAN2_RX_PIN
+#define CAN2_TX_PIN BOARD_CAN2_TX_PIN
 
-#define SDA_PIN 18
-#define SCL_PIN 19
+#define SDA_PIN BOARD_SDA_PIN
+#define SCL_PIN BOARD_SCL_PIN
 
 uint64_t IRAM_ATTR millis() {
     return (uint64_t)(esp_timer_get_time() / 1000ULL);
@@ -147,6 +156,10 @@ void ReadSourceFunction(void * parameter)
             }
             taskYIELD();
         }
+        else
+        {
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
     } while (1);
 }
 
@@ -217,7 +230,7 @@ extern "C" void app_main(void)
 
     carState = new CarState();
 
-    led = new RgbLed(8);
+    led = new RgbLed(BOARD_LED_PIN);
 
     fileSystem = new FileSystem();
     fileSystem->Init();
@@ -229,6 +242,7 @@ extern "C" void app_main(void)
         configFile->Write();
     };
 
+    printf("Firmware version: %s\n", carState->Version);
     printf("Source protocol: %d\n", carState->SOURCE_PROTOCOL);
     printf("Destination protocol: %d\n", carState->DESTINATION_PROTOCOL);
 
@@ -282,7 +296,14 @@ extern "C" void app_main(void)
         };
         automaticallyStoreNewIds = true;
 
-        sourceTransportLayer = new CANTransportLayer(CAN2_RX_PIN, CAN2_TX_PIN, 1);
+        #if BOARD_SECOND_CAN_TYPE == 1
+            sourceCanMessageSender = new CanMessageSenderEsp32Idf(CAN2_RX_PIN, CAN2_TX_PIN, 1);
+        #endif
+        #if BOARD_SECOND_CAN_TYPE == 2
+            sourceCanMessageSender = new CanMessageSenderMcp2515Idf(BOARD_MISO_PIN, BOARD_MOSI_PIN, BOARD_SCK_PIN, BOARD_CS_PIN, BOARD_SPI_INSTANCE);
+        #endif
+
+        sourceTransportLayer = new CANTransportLayer(sourceCanMessageSender);
         //sourceTransportLayer = new CANTransportLayerOnSerial();
         sourceProtocolHandler = new AEE2004ComfortBus(
             carState,
@@ -293,7 +314,8 @@ extern "C" void app_main(void)
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2004))
     {
         printf("Destination AEE2004\n");
-        destinationTransportLayer = new CANTransportLayer(CAN1_RX_PIN, CAN1_TX_PIN, 0);
+        destinationCanMessageSender = new CanMessageSenderEsp32Idf(CAN1_RX_PIN, CAN1_TX_PIN, 0);
+        destinationTransportLayer = new CANTransportLayer(destinationCanMessageSender);
 
         destinationProtocolHandler = new AEE2004ComfortBus(
             carState,
@@ -304,7 +326,8 @@ extern "C" void app_main(void)
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2010))
     {
         printf("Destination AEE2010\n");
-        destinationTransportLayer = new CANTransportLayer(CAN1_RX_PIN, CAN1_TX_PIN, 0);
+        destinationCanMessageSender = new CanMessageSenderEsp32Idf(CAN1_RX_PIN, CAN1_TX_PIN, 0);
+        destinationTransportLayer = new CANTransportLayer(destinationCanMessageSender);
 
         destinationProtocolHandler = new AEE2010ComfortBus(
             carState,
@@ -334,15 +357,15 @@ extern "C" void app_main(void)
     //ble.startAdv();
     //ble.setReaderHandler(&bleEvent);
 
-    cpu_config_t ReadSourceTaskConfig        = { .cpu_core = 0, .priority = 5 };
-    cpu_config_t ReadDestinationTaskConfig   = { .cpu_core = 0, .priority = 1 };
-    cpu_config_t SendToSourceTaskConfig      = { .cpu_core = 0, .priority = 2 };
-    cpu_config_t SendToDestinationTaskConfig = { .cpu_core = 0, .priority = 4 };
+    cpu_config_t ReadSourceTaskConfig        = { .cpu_core = 0, .priority = 5, .stack_size = 20000 };
+    cpu_config_t ReadDestinationTaskConfig   = { .cpu_core = 0, .priority = 1, .stack_size = 20000 };
+    cpu_config_t SendToSourceTaskConfig      = { .cpu_core = 0, .priority = 2, .stack_size = 20000 };
+    cpu_config_t SendToDestinationTaskConfig = { .cpu_core = 0, .priority = 4, .stack_size = 20000 };
 
     xTaskCreatePinnedToCore(
         ReadSourceFunction,             // Function to implement the task
         "ReadSource",                   // Name of the task
-        20000,                          // Stack size in words
+        ReadSourceTaskConfig.stack_size,// Stack size in words
         NULL,                           // Task input parameter
         ReadSourceTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &ReadSourceTask,                // Task handle.
@@ -351,7 +374,7 @@ extern "C" void app_main(void)
     xTaskCreatePinnedToCore(
         ReadDestinationFunction,             // Function to implement the task
         "ReadDestination",                   // Name of the task
-        20000,                               // Stack size in words
+        ReadDestinationTaskConfig.stack_size,// Stack size in words
         NULL,                                // Task input parameter
         ReadDestinationTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &ReadDestinationTask,                // Task handle.
@@ -360,7 +383,7 @@ extern "C" void app_main(void)
     xTaskCreatePinnedToCore(
         SendToSourceFunction,             // Function to implement the task
         "SendToSource",                   // Name of the task
-        20000,                            // Stack size in words
+        SendToSourceTaskConfig.stack_size,// Stack size in words
         NULL,                             // Task input parameter
         SendToSourceTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &SendToSourceTask,                // Task handle.
@@ -369,7 +392,7 @@ extern "C" void app_main(void)
       xTaskCreatePinnedToCore(
         SendToDestinationFunction,             // Function to implement the task
         "SendToDestination",                   // Name of the task
-        20000,                                 // Stack size in words
+        SendToDestinationTaskConfig.stack_size,// Stack size in words
         NULL,                                  // Task input parameter
         SendToDestinationTaskConfig.priority,  // Priority of the task (higher the number, higher the priority)
         &SendToDestinationTask,                // Task handle.
