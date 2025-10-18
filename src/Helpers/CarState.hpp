@@ -232,6 +232,7 @@ struct CarState
     bool HAS_RTC = false;
     bool REPLACE_REMOTE_MODE_BTN_WITH_SRC = false;
     bool MODIFY_217_WITH_CURRENT_SPEED = false;
+    bool SEND_TIME = false;
 
     bool ENABLE_PARKING_AID_SOUND_FROM_SPEAKER = 0;
     bool ENABLE_REVERSE_CAMERA_ON_RTX = false;

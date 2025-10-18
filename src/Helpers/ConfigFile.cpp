@@ -94,6 +94,7 @@ bool ConfigFile::Read()
         _carState->RADIO_TYPE = getJsonInt(jsonHandle.get(), "RADIO_TYPE", 0);
 
         _carState->HAS_RTC = getJsonBool(jsonHandle.get(), "HAS_RTC", false);
+        _carState->SEND_TIME = getJsonBool(jsonHandle.get(), "SEND_TIME", false);
 
         _carState->MILEAGE_AT_CMB_TRIP_RESET = getJsonInt(jsonHandle.get(), "MILEAGE_AT_CMB_TRIP_RESET", 0);
 
@@ -231,6 +232,7 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddBoolToObject(root, "SEND_AC_CHANGES_TO_DISPLAY", _carState->SEND_AC_CHANGES_TO_DISPLAY);
     cJSON_AddBoolToObject(root, "QUERY_AC_STATUS", _carState->QUERY_AC_STATUS);
     cJSON_AddBoolToObject(root, "HAS_RTC", _carState->HAS_RTC);
+    cJSON_AddBoolToObject(root, "SEND_TIME", _carState->SEND_TIME);
 
     cJSON_AddNumberToObject(root, "PARKING_AID_TYPE", _carState->PARKING_AID_TYPE);
     cJSON_AddNumberToObject(root, "RADIO_TYPE", _carState->RADIO_TYPE);

@@ -40,6 +40,7 @@
 #include "Handlers/BSI/MessageHandler_361_2004.hpp"
 #include "Handlers/CLV/MessageHandler_1E3_2004.hpp"
 #include "Handlers/EMF/MessageHandler_167_2004.hpp"
+#include "Handlers/EMF/MessageHandler_228_2004.hpp"
 #include "Handlers/VTH/MessageHandler_297_2004.hpp"
 
 class AEE2004ComfortBus : public IProtocolHandler
@@ -86,6 +87,7 @@ class AEE2004ComfortBus : public IProtocolHandler
         MessageHandler_361,
         MessageHandler_1E3,
         MessageHandler_167,
+        MessageHandler_228_2004,
         MessageHandler_297
     > handlers;
 
