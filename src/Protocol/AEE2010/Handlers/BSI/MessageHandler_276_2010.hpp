@@ -29,7 +29,7 @@ class MessageHandler_276_2010 : public IMessageHandler<MessageHandler_276_2010>
         {
             CAN_276_2010_Byte1Struct byte1{};
             byte1.data.year = carState->Year - 2000;
-            byte1.data.time_format = 1; // 24 hour format
+            byte1.data.time_format = carState->TIME_FORMAT_24H;
 
             CAN_276_2010_Byte2Struct byte2{};
             byte2.data.month = carState->Month;

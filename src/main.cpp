@@ -332,7 +332,10 @@ extern "C" void app_main(void)
         destinationProtocolHandler = new AEE2010ComfortBus(
             carState,
             destinationTransportLayer,
-            new MessageScheduler());
+            new MessageScheduler(),
+            timeProvider,
+            configFile
+        );
     }
 
     if (sourceProtocolHandler == nullptr || destinationProtocolHandler == nullptr)

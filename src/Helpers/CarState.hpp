@@ -208,6 +208,7 @@ struct CarState
     uint8_t SteeringStatus = 0;
 
     // config
+    bool SAVE_CONFIG = true;
     uint8_t VIN_FOR_HEADUNIT[17];
     uint8_t CONSUMPTION_UNIT = 0;
     uint8_t DISTANCE_UNIT    = 0;
@@ -217,6 +218,7 @@ struct CarState
     uint8_t AMBIENCE_LEVEL   = 0b110;
     uint8_t SOUND_HARMONY    = 0b00;
     uint8_t GENERATE_POPUP_FOR_DOOR_STATUS = 1;
+    uint8_t TIME_FORMAT_24H = 1; // 0 - 12h, 1 - 24h
 
     uint8_t FUEL_TANK_CAPACITY_IN_LITERS = 60;
 

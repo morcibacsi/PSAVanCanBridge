@@ -10,6 +10,7 @@ enum class FeedbackSignal {
     ServiceReminderReset,
     EmergencyBrakeActivated,
     ResetTripComputer,
+    ClockSetByUser,
 };
 
 using FeedbackSignalCallback = void (*)(FeedbackSignal signal);

@@ -30,7 +30,6 @@ void ConfigFile::Write()
         const char *jsonString = cJSON_Print(json);
         SaveJson(jsonString);
         free((void *)jsonString);
-        cJSON_Delete(json);
     }
 }
 
@@ -71,6 +70,7 @@ bool ConfigFile::Read()
             _carState->TEMPERATURE_UNIT = cJSON_GetObjectItem(aee2010, "TEMPERATURE_UNIT")->valueint;
             _carState->AMBIENCE_LEVEL = cJSON_GetObjectItem(aee2010, "AMBIENCE_LEVEL")->valueint;
             _carState->SOUND_HARMONY = cJSON_GetObjectItem(aee2010, "SOUND_HARMONY")->valueint;
+            _carState->TIME_FORMAT_24H = getJsonInt(jsonHandle.get(), "TIME_FORMAT_24H", 1);
             _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC = cJSON_GetObjectItem(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC")->valueint;
         }
 
@@ -262,6 +262,7 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddNumberToObject(aee2010, "TEMPERATURE_UNIT", 0);
     cJSON_AddNumberToObject(aee2010, "AMBIENCE_LEVEL", 0b110);
     cJSON_AddNumberToObject(aee2010, "SOUND_HARMONY", 0b00);
+    cJSON_AddNumberToObject(aee2010, "TIME_FORMAT_24H", _carState->TIME_FORMAT_24H);
     cJSON_AddBoolToObject(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC);
 
     return std::unique_ptr<cJSON, cJSONDeleter>(root);

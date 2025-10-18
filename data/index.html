@@ -475,6 +475,20 @@
                     "tip": ""
                 }
             },
+            "TIME_FORMAT_24H": {
+                "en": {
+                    "label": "S12. Time format",
+                    "tip": "Select between 12-hour and 24-hour time format"
+                },
+                "fr": {
+                    "label": "S12. Format de l'heure",
+                    "tip": "Choisir entre le format 12 heures et 24 heures"
+                },
+                "pt-BR": {
+                    "label": "S12. Formato de hora",
+                    "tip": "Selecione entre o formato de hora de 12 horas e 24 horas"
+                }
+            },
             "VIN": {
                 "en": {
                     "label": "E1. VIN for headunit",
@@ -919,6 +933,13 @@
                             { value: 1, label: 'Harmony 2' },
                             { value: 2, label: 'Harmony 3' },
                             { value: 3, label: 'Harmony 4' },
+                        ]);
+                        return;
+                    }
+                    if (fullPath == 'AEE2010.TIME_FORMAT_24H') {
+                        addSelectGroup(key, fullPath, [
+                            { value: 0, label: '12-hour format' },
+                            { value: 1, label: '24-hour format' },
                         ]);
                         return;
                     }

@@ -58,7 +58,7 @@ void TimeProvider::Start()
 
 bool TimeProvider::Process(unsigned long currentTime)
 {
-    if (!_started || !_carState->HAS_RTC)
+    if (!_started || !_carState->HAS_RTC || _paused)
     {
         return false;
     }
@@ -93,6 +93,9 @@ void TimeProvider::SetDateTime(uint16_t year,  uint8_t month, uint8_t day, uint8
     {
         return;
     }
+
+    Pause();
+
     //_rtc.setDateTime(hour, minute, second, day, month, year, 0);
 
     struct tm timeinfo = {0};
@@ -107,4 +110,6 @@ void TimeProvider::SetDateTime(uint16_t year,  uint8_t month, uint8_t day, uint8
     time_t time = mktime(&timeinfo);
 
     ESP_ERROR_CHECK(ds3231_time_time_t_set(_rtc, time));
+
+    Resume();
 }

@@ -11,6 +11,8 @@
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
+#include "../../Helpers/TimeProvider.hpp"
+#include "../../Helpers/ConfigFile.hpp"
 
 #include "Handlers/AAS/MessageHandler_0E1_2010.hpp"
 
@@ -43,6 +45,8 @@
 #include "Handlers/BSI/MessageHandler_336_2010.hpp"
 #include "Handlers/BSI/MessageHandler_361_2010.hpp"
 
+#include "Handlers/BTEL/MessageHandler_39B_2010.hpp"
+
 #include "Handlers/CMB/MessageHandler_122_2010.hpp"
 #include "Handlers/CMB/MessageHandler_217_2010.hpp"
 
@@ -56,7 +60,17 @@ class AEE2010ComfortBus : public IProtocolHandler
     std::vector<uint32_t> _messagesToSkip;
     std::vector<uint32_t> _messagesToForward;
 
+    TimeProvider* _timeProvider;
+    ConfigFile* _configFile;
+
     ImmediateSignalCallback _immediateSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
+
+    static AEE2010ComfortBus* _instance;
+    static void FeedbackSignalTrampoline(FeedbackSignal signal)
+    {
+        if (_instance) _instance->HandleFeedbackSignal(signal);
+    }
 
     void SendImmediateMessage(uint32_t id);
 
@@ -91,6 +105,7 @@ class AEE2010ComfortBus : public IProtocolHandler
         MessageHandler_321_2010,
         MessageHandler_336_2010,
         MessageHandler_361_2010,
+        MessageHandler_39B_2010,
         MessageHandler_122_2010,
         MessageHandler_217_2010
     > handlers;
@@ -100,7 +115,9 @@ class AEE2010ComfortBus : public IProtocolHandler
     AEE2010ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
-        MessageScheduler* scheduler
+        MessageScheduler* scheduler,
+        TimeProvider* timeProvider,
+        ConfigFile* configFile
         );
 
     void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;

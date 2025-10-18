@@ -14,6 +14,7 @@ unsigned long _previousTime = 0;
 uint8_t _sdaPin;
 uint8_t _sclPin;
 bool _started = false;
+bool _paused = false;
 
 CarState* _carState;
 rtc_handle_t* _rtc;
@@ -24,6 +25,8 @@ public:
     void Start();
     bool Process(unsigned long currentTime);
     void SetDateTime(uint16_t year,  uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
+    void Pause() { _paused = true; };
+    void Resume() { _paused = false; };
 };
 
 #endif

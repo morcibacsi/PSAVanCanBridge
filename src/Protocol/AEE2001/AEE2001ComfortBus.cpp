@@ -25,7 +25,7 @@ AEE2001ComfortBus::AEE2001ComfortBus(
 
 void AEE2001ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
-    _feedbackSignalCallback = &FeedbackSignalTrampoline;;
+    _feedbackSignalCallback = &FeedbackSignalTrampoline;
     _immediateSignalCallback = immediateSignalCallback;
 
     _tripComputerResetHelper->SetFeedbackSignalCallback(_feedbackSignalCallback);

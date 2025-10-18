@@ -1,18 +1,28 @@
+#include <cstring>
 #include <algorithm>
 #include <esp_attr.h>
 #include "../../Helpers/MessageHandlerTupleTemplates.hpp"
 
 #include "AEE2010ComfortBus.hpp"
 
+AEE2010ComfortBus* AEE2010ComfortBus::_instance = nullptr;
+
 AEE2010ComfortBus::AEE2010ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
-        MessageScheduler* scheduler
+        MessageScheduler* scheduler,
+        TimeProvider* timeProvider,
+        ConfigFile* configFile
         )
 {
+    _instance = this;
     _carState = carState;
     _transportLayer = transport;
     _scheduler = scheduler;
+    _timeProvider = timeProvider;
+    _configFile = configFile;
+
+    _feedbackSignalCallback = nullptr;
     _immediateSignalCallback = nullptr;
 
     _messagesToSkip = std::vector<uint32_t>() = {
@@ -33,6 +43,9 @@ AEE2010ComfortBus::AEE2010ComfortBus(
 void AEE2010ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback)
 {
     _immediateSignalCallback = immediateSignalCallback;
+    _feedbackSignalCallback = &FeedbackSignalTrampoline;
+
+    std::get<MessageHandler_39B_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
 }
 
 bool AEE2010ComfortBus::ReceiveMessage(BusMessage& message)
@@ -64,6 +77,22 @@ void AEE2010ComfortBus::GenerateMessages(MessageDirection direction)
 void AEE2010ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
 {
     // React to signals and send immediate messages via the transport layer.
+    switch (signal)
+    {
+        case FeedbackSignal::ClockSetByUser:
+        {
+            _timeProvider->SetDateTime((int)_carState->Year, (int)_carState->Month, (int)_carState->MDay, (int)_carState->Hour, (int)_carState->Minute, 0);
+            if (_carState->SAVE_CONFIG)
+            {
+                _configFile->Write();
+                _carState->SAVE_CONFIG = false;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
     /*
     if (signal == FeedbackSignal::GetTripComputerData)
     {
@@ -189,7 +218,7 @@ void AEE2010ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
 
 void AEE2010ComfortBus::SendImmediateMessage(uint32_t id)
 {
-    //printf("AEEE2004 SendImmediateMessage: %X\n", (unsigned int)id);
+    //printf("AEEE2010 SendImmediateMessage: %X\n", (unsigned int)id);
     std::apply([&](auto&... handler) {
         (..., (std::remove_reference_t<decltype(handler)>::MessageId == id
             ? (
