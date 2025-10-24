@@ -45,6 +45,9 @@ void AEE2010ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
     _immediateSignalCallback = immediateSignalCallback;
     _feedbackSignalCallback = &FeedbackSignalTrampoline;
 
+    std::get<MessageHandler_15B_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
+    std::get<MessageHandler_15B_2010>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+
     std::get<MessageHandler_39B_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
 }
 
@@ -82,6 +85,16 @@ void AEE2010ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
         case FeedbackSignal::ClockSetByUser:
         {
             _timeProvider->SetDateTime((int)_carState->Year, (int)_carState->Month, (int)_carState->MDay, (int)_carState->Hour, (int)_carState->Minute, 0);
+            if (_carState->SAVE_CONFIG)
+            {
+                _configFile->Write();
+                _carState->SAVE_CONFIG = false;
+            }
+            break;
+        }
+        case FeedbackSignal::CarSettingsChanged:
+        {
+            // Settings have changed, save to config file if needed.
             if (_carState->SAVE_CONFIG)
             {
                 _configFile->Write();

@@ -11,6 +11,7 @@
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
 
 #include "Handlers/AAS/MessageHandler_0E1_2004.hpp"
+
 #include "Handlers/BSI/MessageHandler_0B6_2004.hpp"
 #include "Handlers/BSI/MessageHandler_0E6_2004.hpp"
 #include "Handlers/BSI/MessageHandler_0E8_2004.hpp"
@@ -31,16 +32,22 @@
 #include "Handlers/BSI/MessageHandler_128_2004.hpp"
 #include "Handlers/BSI/MessageHandler_161_2004.hpp"
 #include "Handlers/BSI/MessageHandler_168_2004.hpp"
-#include "Handlers/CMB/MessageHandler_217_2004.hpp"
 #include "Handlers/BSI/MessageHandler_220_2004.hpp"
 #include "Handlers/BSI/MessageHandler_221_2004.hpp"
 #include "Handlers/BSI/MessageHandler_227_2004.hpp"
+#include "Handlers/BSI/MessageHandler_260_2004.hpp"
 #include "Handlers/BSI/MessageHandler_261_2004.hpp"
 #include "Handlers/BSI/MessageHandler_336_2004.hpp"
 #include "Handlers/BSI/MessageHandler_361_2004.hpp"
+
+#include "Handlers/BTEL/MessageHandler_15B_2004.hpp"
+
 #include "Handlers/CLV/MessageHandler_1E3_2004.hpp"
+#include "Handlers/CMB/MessageHandler_217_2004.hpp"
+
 #include "Handlers/EMF/MessageHandler_167_2004.hpp"
 #include "Handlers/EMF/MessageHandler_228_2004.hpp"
+
 #include "Handlers/VTH/MessageHandler_297_2004.hpp"
 
 class AEE2004ComfortBus : public IProtocolHandler
@@ -82,9 +89,11 @@ class AEE2004ComfortBus : public IProtocolHandler
         MessageHandler_220,
         MessageHandler_221,
         MessageHandler_227,
+        MessageHandler_260_2004,
         MessageHandler_261,
         MessageHandler_336,
         MessageHandler_361,
+        MessageHandler_15B_2004,
         MessageHandler_1E3,
         MessageHandler_167,
         MessageHandler_228_2004,

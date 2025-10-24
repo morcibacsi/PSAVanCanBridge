@@ -107,7 +107,7 @@ union CAN_260_2010_Byte1Struct{
 union CAN_260_2010_Byte2Struct{
     struct {
         uint8_t sound_harmony         : 2; // bit 0-1
-        uint8_t vehicle_function_data : 1; // bit 2
+        uint8_t data_valid            : 1; // bit 2
         uint8_t ambience_level        : 3; // bit 3-5
         uint8_t temperature_unit      : 1; // bit 6
         uint8_t volume_unit           : 1; // bit 7

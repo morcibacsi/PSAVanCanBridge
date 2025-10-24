@@ -9,6 +9,7 @@
 #include "../../Structs/CAN_361_2004.h"
 #include "../../../IMessageHandler.hpp"
 
+// This contains available options info
 class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
 {
     private:
@@ -20,7 +21,7 @@ class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
             .protocol = ProtocolType::AEE2004,
             .periodicityMs = 500,
             .offsetMs = 25,
-            .isActive = true
+            .isActive = false
         };
 
     public:
@@ -28,34 +29,38 @@ class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
 
         BusMessage Generate(CarState* carState)
         {
+            Can361_2004Byte1Struct field1{};
+            field1.data.profile_number           = 0;
+            field1.data.profil_change_disabled   = carState->AvailableOptions.data.setting_menu_available ? 0 : 1;
+
             Can361_2004Byte2Struct field2{};
-            field2.data.permanent_rear_flap_lock = carState->PermanentRearFlapLock;
-            field2.data.config_enabled           = carState->ConfigEnabled;
+            field2.data.permanent_rear_flap_lock = carState->AvailableOptions.data.permanent_rear_flap_lock;
+            field2.data.config_of_key_enabled    = carState->AvailableOptions.data.config_of_key_enabled;
 
             Can361_2004Byte3Struct field3{};
-            field3.data.auto_lighting                 = carState->AutoLighting;
-            field3.data.automatic_electric_brake      = carState->AutomaticElectricBrake;
-            field3.data.follow_me_home                = carState->FollowMeHome;
-            field3.data.hinge_panel_select            = carState->HingePanelSelect;
-            field3.data.irc_present                   = carState->IrcPresent;
+            field3.data.auto_lighting            = carState->AvailableOptions.data.auto_lighting;
+            field3.data.automatic_electric_brake = carState->AvailableOptions.data.automatic_electric_brake;
+            field3.data.follow_me_home           = carState->AvailableOptions.data.follow_me_home;
+            field3.data.hinge_panel_select       = carState->AvailableOptions.data.hinge_panel_select;
+            field3.data.irc_present              = carState->AvailableOptions.data.irc_present;
 
             Can361_2004Byte4Struct field4{};
-            field4.data.drl_present        = carState->DrlPresent;
-            field4.data.rear_wiper_option  = carState->RearWiperOption;
+            field4.data.drl_present              = carState->AvailableOptions.data.drl_present;
+            field4.data.rear_wiper_option        = carState->AvailableOptions.data.rear_wiper_option;
 
             Can361_2004Byte5Struct field5{};
-            field5.data.aas_disable              = carState->AasDisable;
-            field5.data.ambient_lighting         = carState->AmbientLighting;
-            field5.data.blindspot_monitoring     = carState->BlindspotMonitoring;
-            field5.data.highway_lighting_present = carState->HighwayLightingPresent;
+            field5.data.aas_disable              = carState->AvailableOptions.data.aas_disable;
+            field5.data.ambient_lighting         = carState->AvailableOptions.data.ambient_lighting;
+            field5.data.blindspot_monitoring     = carState->AvailableOptions.data.blindspot_monitoring;
+            field5.data.highway_lighting_present = carState->AvailableOptions.data.highway_lighting_present;
 
             Can361_2004Byte6Struct field6{};
-            field6.data.tnb_present             = carState->TnbPresent;
-            field6.data.breaking_on_alarm_risk  = carState->BreakingOnAlarmRisk;
-            field6.data.tpms_present            = carState->TpmsPresent;
-            field6.data.tpms_reset_present      = carState->TpmsResetPresent;
+            field6.data.tnb_present              = carState->AvailableOptions.data.tnb_present;
+            field6.data.braking_on_alarm_risk    = carState->AvailableOptions.data.braking_on_alarm_risk;
+            field6.data.tpms_present             = carState->AvailableOptions.data.tpms_present;
+            field6.data.tpms_reset_present       = carState->AvailableOptions.data.tpms_reset_present;
 
-            message.data[0] = 0x00;
+            message.data[0] = field1.asByte;
             message.data[1] = field2.asByte;
             message.data[2] = field3.asByte;
             message.data[3] = field4.asByte;
@@ -70,27 +75,27 @@ class MessageHandler_361 : public IMessageHandler<MessageHandler_361>
             Can361_2004Struct packet;
             std::memcpy(&packet, message.data, sizeof(packet));
 
-            carState->PermanentRearFlapLock  = packet.Field2.data.permanent_rear_flap_lock;
-            carState->ConfigEnabled          = packet.Field2.data.config_enabled;
+            carState->AvailableOptions.data.drl_present              = packet.Field4.data.drl_present;
+            carState->AvailableOptions.data.auto_lighting            = packet.Field3.data.auto_lighting;
+            carState->AvailableOptions.data.ambient_lighting         = packet.Field5.data.ambient_lighting;
+            carState->AvailableOptions.data.blindspot_monitoring     = packet.Field5.data.blindspot_monitoring;
+            carState->AvailableOptions.data.highway_lighting_present = packet.Field5.data.highway_lighting_present;
+            carState->AvailableOptions.data.setting_menu_available   = packet.Field1.data.profil_change_disabled == 0 ? 1 : 0;
 
-            carState->AutoLighting           = packet.Field3.data.auto_lighting;
-            carState->AutomaticElectricBrake = packet.Field3.data.automatic_electric_brake;
-            carState->FollowMeHome           = packet.Field3.data.follow_me_home;
-            carState->HingePanelSelect       = packet.Field3.data.hinge_panel_select;
-            carState->IrcPresent             = packet.Field3.data.irc_present;
+            carState->AvailableOptions.data.hinge_panel_select       = packet.Field3.data.hinge_panel_select;
+            carState->AvailableOptions.data.permanent_rear_flap_lock = packet.Field2.data.permanent_rear_flap_lock;
+            carState->AvailableOptions.data.follow_me_home           = packet.Field3.data.follow_me_home;
+            carState->AvailableOptions.data.rear_wiper_option        = packet.Field4.data.rear_wiper_option;
+            carState->AvailableOptions.data.aas_disable              = packet.Field5.data.aas_disable;
 
-            carState->DrlPresent             = packet.Field4.data.drl_present;
-            carState->RearWiperOption        = packet.Field4.data.rear_wiper_option;
+            carState->AvailableOptions.data.automatic_electric_brake = packet.Field3.data.automatic_electric_brake;
+            carState->AvailableOptions.data.config_of_key_enabled    = packet.Field2.data.config_of_key_enabled;
+            carState->AvailableOptions.data.tnb_present              = packet.Field6.data.tnb_present;
 
-            carState->AasDisable             = packet.Field5.data.aas_disable;
-            carState->AmbientLighting        = packet.Field5.data.ambient_lighting;
-            carState->BlindspotMonitoring    = packet.Field5.data.blindspot_monitoring;
-            carState->HighwayLightingPresent = packet.Field5.data.highway_lighting_present;
-
-            carState->TnbPresent             = packet.Field6.data.tnb_present;
-            carState->BreakingOnAlarmRisk    = packet.Field6.data.breaking_on_alarm_risk;
-            carState->TpmsPresent            = packet.Field6.data.tpms_present;
-            carState->TpmsResetPresent       = packet.Field6.data.tpms_reset_present;
+            carState->AvailableOptions.data.braking_on_alarm_risk    = packet.Field6.data.braking_on_alarm_risk;
+            carState->AvailableOptions.data.irc_present              = packet.Field3.data.irc_present;
+            carState->AvailableOptions.data.tpms_present             = packet.Field6.data.tpms_present;
+            carState->AvailableOptions.data.tpms_reset_present       = packet.Field6.data.tpms_reset_present;
         }
 };
 #endif

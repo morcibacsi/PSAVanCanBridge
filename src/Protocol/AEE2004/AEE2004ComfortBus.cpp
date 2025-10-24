@@ -29,6 +29,7 @@ void AEE2004ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
     std::get<MessageHandler_220>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
     std::get<MessageHandler_221>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
     std::get<MessageHandler_217>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_15B_2004>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 }
 
 bool IRAM_ATTR AEE2004ComfortBus::ReceiveMessage(BusMessage& message)
@@ -188,6 +189,11 @@ void AEE2004ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
         {
             SendImmediateMessage(0x0B6);
             SendImmediateMessage(0x297);
+            break;
+        }
+        case ImmediateSignal::CarSettingsChanged:
+        {
+            SendImmediateMessage(0x15B);
             break;
         }
         default:

@@ -13,9 +13,9 @@ const uint16_t CAN_ID_361_2004 = 0x361;
 // Read right to left in documentation
 union Can361_2004Byte1Struct {
     struct {
-        uint8_t profile_number        : 3; // bit 0-1
-        uint8_t profil_change_enabled : 1; // bit 3
-        uint8_t                       : 4; // bit 4-7
+        uint8_t profile_number         : 3; // bit 0-1
+        uint8_t profil_change_disabled : 1; // bit 3
+        uint8_t                        : 4; // bit 4-7
     }data;
   uint8_t asByte;
 };
@@ -27,7 +27,7 @@ union Can361_2004Byte2Struct {
         uint8_t partial_windows          : 1; // bit 1
         uint8_t welcome_function         : 1; // bit 2
         uint8_t securoscope_enabled      : 1; // bit 3
-        uint8_t config_enabled           : 1; // bit 4
+        uint8_t config_of_key_enabled    : 1; // bit 4
         uint8_t                          : 3; // bit 5-7
     }data;
   uint8_t asByte;
@@ -78,7 +78,7 @@ union Can361_2004Byte5Struct {
 union Can361_2004Byte6Struct {
     struct {
         uint8_t                                    : 1; // bit 0
-        uint8_t breaking_on_alarm_risk             : 1; // bit 1
+        uint8_t braking_on_alarm_risk              : 1; // bit 1
         uint8_t tpms_reset_present                 : 1; // bit 2
         uint8_t tnb_present                        : 1; // bit 3
         uint8_t tpms_present                       : 3; // bit 4-6

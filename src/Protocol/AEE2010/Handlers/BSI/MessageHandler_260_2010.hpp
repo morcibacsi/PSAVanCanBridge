@@ -38,21 +38,31 @@ class MessageHandler_260_2010 : public IMessageHandler<MessageHandler_260_2010>
             byte2.data.temperature_unit = carState->TEMPERATURE_UNIT;
             byte2.data.ambience_level   = carState->AMBIENCE_LEVEL;
             byte2.data.sound_harmony    = carState->SOUND_HARMONY;
-            byte2.data.vehicle_function_data = 1;
+            byte2.data.data_valid       = carState->CarSettings.Field1.data.data_valid;
 
             CAN_260_2010_Byte3Struct byte3{};
-            byte3.data.ambience_lighting        = carState->AmbientLighting;
-            byte3.data.drl                      = carState->DRL;
-            byte3.data.automatic_electric_brake = carState->AutomaticElectricBrake;
+            byte3.data.ambience_lighting        = carState->CarSettings.Field4.data.ambience_light;
+            byte3.data.drl                      = carState->CarSettings.Field4.data.daylight_running_light_enabled;
+            byte3.data.automatic_electric_brake = carState->CarSettings.Field2.data.automatic_parking_brake;
+
+            CAN_260_2010_Byte4Struct byte4{};
+            byte4.data.automatic_lights         = carState->CarSettings.Field3.data.automatic_headlights_enabled;
+            byte4.data.follow_me_home           = carState->CarSettings.Field3.data.follow_me_home_enabled;
+            byte4.data.follow_me_home_duration  = carState->CarSettings.Field3.data.follow_me_home_time;
+            byte4.data.highway_lighting         = carState->CarSettings.Field4.data.highway_beam_enabled;
+
+            CAN_260_2010_Byte5Struct byte5{};
+            byte5.data.configurable_button   = carState->CarSettings.ConfigurableButtonFunction2010;
+            byte5.data.auto_wiper_in_reverse = carState->CarSettings.Field6.data.auto_rear_wiper_enabled;
 
             CAN_260_2010_Byte6Struct byte6{};
-            byte6.data.braking_on_alarm_risk = carState->BreakingOnAlarmRisk;
+            byte6.data.braking_on_alarm_risk = 0;
 
             message.data[0] = byte1.asByte;
             message.data[1] = byte2.asByte;
             message.data[2] = byte3.asByte;
-            message.data[3] = 0x00;
-            message.data[4] = 0x00;
+            message.data[3] = byte4.asByte;
+            message.data[4] = byte5.asByte;
             message.data[5] = byte6.asByte;
             message.data[6] = 0x00;
             message.data[7] = 0x00;

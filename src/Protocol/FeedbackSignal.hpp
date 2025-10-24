@@ -11,6 +11,7 @@ enum class FeedbackSignal {
     EmergencyBrakeActivated,
     ResetTripComputer,
     ClockSetByUser,
+    CarSettingsChanged,
 };
 
 using FeedbackSignalCallback = void (*)(FeedbackSignal signal);

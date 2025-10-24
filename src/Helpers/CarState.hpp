@@ -11,12 +11,14 @@
 #include "AirConditionerState.h"
 #include "DisplayMessage.h"
 #include "ParkingAidStatus.h"
+#include "CarSettings.h"
+#include "AvailableOptions_2010.h"
 #include "../Protocol/ProtocolType.hpp"
 #include "../BoardConfig.h"
 
 struct CarState
 {
-    char* Version = (char*)"v3.1.0";
+    char* Version = (char*)"v3.2.0";
     uint64_t CurrenTime = 0;
 
     uint8_t Ignition = 0;
@@ -133,6 +135,9 @@ struct CarState
     //21F
     CarRadioRemoteStruct RadioRemote{};
 
+    //15B, 260, 1DB AEE2004
+    CarSettings_Struct CarSettings{};
+
     //276
     uint8_t Hour = 0;
     uint8_t Minute = 0;
@@ -140,32 +145,6 @@ struct CarState
     uint8_t MDay = 0;
     uint8_t Month = 0;
     uint16_t Year = 0;
-
-    //260
-    //TODO 260-at és 361-et értelmezni
-    //uint8_t AmbientLighting;
-    uint8_t DRL = 0;
-    //uint8_t AutomaticElectricBrake;
-    //uint8_t BreakingOnAlarmRisk;
-
-    //361
-    uint8_t AasDisable = 0;
-    uint8_t AmbientLighting = 0;
-    uint8_t AutoLighting = 0;
-    uint8_t AutomaticElectricBrake = 0;
-    uint8_t BlindspotMonitoring = 0;
-    uint8_t BreakingOnAlarmRisk = 0;
-    uint8_t ConfigEnabled = 0;
-    uint8_t DrlPresent = 0;
-    uint8_t FollowMeHome = 0;
-    uint8_t HighwayLightingPresent = 0;
-    uint8_t HingePanelSelect = 0;
-    uint8_t IrcPresent = 0;
-    uint8_t PermanentRearFlapLock = 0;
-    uint8_t RearWiperOption = 0;
-    uint8_t TnbPresent = 0;
-    uint8_t TpmsPresent = 0;
-    uint8_t TpmsResetPresent = 0;
 
     //227 AEE2010
     CarLedStatusByte1Struct CarLedStatusByte1{};
@@ -206,6 +185,9 @@ struct CarState
     UInt16 SteeringAngle = 0;
     uint8_t SteeringSpeed = 0;
     uint8_t SteeringStatus = 0;
+
+    //361 AEE2010
+    AvailableOptionsStruct_2010 AvailableOptions{};
 
     // config
     bool SAVE_CONFIG = true;
