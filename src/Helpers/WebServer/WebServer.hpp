@@ -58,6 +58,7 @@ WebServer(
 
         // Initialize Wi-Fi
         wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+        cfg.nvs_enable = true;
         ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
         // Set Wi-Fi to station mode
@@ -79,6 +80,7 @@ WebServer(
         // Set Wi-Fi configuration and start Wi-Fi
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
         ESP_ERROR_CHECK(esp_wifi_start());
+        ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(8));
         startWebServer();
     }
 
