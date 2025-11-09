@@ -59,6 +59,13 @@ class AEE2004ComfortBus : public IProtocolHandler
     MessageScheduler* _scheduler;  // Message scheduler injected via constructor.
 
     ImmediateSignalCallback _immediateSignalCallback;
+    FeedbackSignalCallback _feedbackSignalCallback;
+
+    static AEE2004ComfortBus* _instance;
+    static void FeedbackSignalTrampoline(FeedbackSignal signal)
+    {
+        if (_instance) _instance->HandleFeedbackSignal(signal);
+    }
 
     void SendImmediateMessage(uint32_t id);
 

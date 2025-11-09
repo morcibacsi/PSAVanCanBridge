@@ -5,15 +5,19 @@
 
 #include "AEE2004ComfortBus.hpp"
 
+AEE2004ComfortBus* AEE2004ComfortBus::_instance = nullptr;
+
 AEE2004ComfortBus::AEE2004ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
         MessageScheduler* scheduler
         )
 {
+    _instance = this;
     _carState = carState;
     _transportLayer = transport;
     _scheduler = scheduler;
+    _feedbackSignalCallback = &FeedbackSignalTrampoline;
     _immediateSignalCallback = nullptr;
 }
 
@@ -86,6 +90,7 @@ void AEE2004ComfortBus::GenerateMessages(MessageDirection direction)
 void AEE2004ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
 {
     // React to signals and send immediate messages via the transport layer.
+    //printf("AEE2004ComfortBus::HandleFeedbackSignal: %d\n", (int)signal);
     switch (signal)
     {
         case FeedbackSignal::IgnitionChanged:
@@ -197,7 +202,7 @@ void AEE2004ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
             break;
         }
         default:
-        break;
+            break;
     }
 }
 
