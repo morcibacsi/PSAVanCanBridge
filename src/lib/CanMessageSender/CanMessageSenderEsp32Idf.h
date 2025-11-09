@@ -21,12 +21,6 @@ private:
     uint8_t _handle;
 
     SemaphoreHandle_t canSemaphore;
-    SemaphoreHandle_t serialSemaphore;
-
-    //AbsSer *_serialPort;
-
-    void PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[]);
-
 public:
     static const uint8_t CAN_CONTROLLER_0 = 0;
     static const uint8_t CAN_CONTROLLER_1 = 1;

@@ -22,8 +22,9 @@
 #include "Protocol/CANTransportLayerOnSerial.hpp"
 #include "Protocol/AEE2004/AEE2004ComfortBus.hpp"
 
-#include "Protocol/CANTransportLayer.hpp"
 #include "Protocol/AEE2010/AEE2010ComfortBus.hpp"
+
+#include "Protocol/Diagnostics/DiagnosticsContainer.hpp"
 
 #include "RgbLed.hpp"
 #include "Helpers/TimeProvider.hpp"
@@ -35,29 +36,30 @@
 #include "Helpers/CpuConfig.h"
 #include "Helpers/WebServer/WebServer.hpp"
 
-ICanMessageSender* sourceCanMessageSender;
-ICanMessageSender* destinationCanMessageSender;
+ICanMessageSender* sourceCanMessageSender = nullptr;
+ICanMessageSender* destinationCanMessageSender = nullptr;
 
-ITransportLayer* sourceTransportLayer;
-ITransportLayer* destinationTransportLayer;
+ITransportLayer* sourceTransportLayer = nullptr;
+ITransportLayer* destinationTransportLayer = nullptr;
 
-IProtocolHandler* sourceProtocolHandler;
-IProtocolHandler* destinationProtocolHandler;
+IProtocolHandler* sourceProtocolHandler = nullptr;
+IProtocolHandler* destinationProtocolHandler = nullptr;
+IProtocolHandler* diagnosticsContainer = nullptr;
 
-CarState* carState;
-CrcStore* crcStore;
+CarState* carState = nullptr;
+CrcStore* crcStore = nullptr;
 
-FileSystem* fileSystem;
-ConfigFile* configFile;
+FileSystem* fileSystem = nullptr;
+ConfigFile* configFile = nullptr;
 
-TaskHandle_t ReadSourceTask;
-TaskHandle_t ReadDestinationTask;
-TaskHandle_t SendToSourceTask;
-TaskHandle_t SendToDestinationTask;
+TaskHandle_t ReadSourceTask = nullptr;
+TaskHandle_t ReadDestinationTask = nullptr;
+TaskHandle_t SendToSourceTask = nullptr;
+TaskHandle_t SendToDestinationTask = nullptr;
 
-RgbLed* led;
-TimeProvider* timeProvider;
-WebServer* webServer;
+RgbLed* led = nullptr;
+TimeProvider* timeProvider = nullptr;
+WebServer* webServer = nullptr;
 
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
@@ -95,8 +97,13 @@ void bleEvent(string msg, size_t select)
 */
 
 void SendImmediateSignalToDestination(ImmediateSignal signal) {
-    if (destinationProtocolHandler != nullptr) {
+    if (destinationProtocolHandler != nullptr)
+    {
         destinationProtocolHandler->ProcessImmediateSignal(signal);
+    }
+    if (diagnosticsContainer != nullptr)
+    {
+        diagnosticsContainer->ProcessImmediateSignal(signal);
     }
 }
 
@@ -187,8 +194,14 @@ void ReadDestinationFunction(void * parameter)
             processMessage = destinationProtocolHandler->CanParseMessage(message);
             if (processMessage)
             {
-                PrintMessage(message);
+                //PrintMessage(message);
                 destinationProtocolHandler->ParseMessage(message);
+            }
+
+            processMessage = diagnosticsContainer->CanParseMessage(message);
+            if (processMessage)
+            {
+                diagnosticsContainer->ParseMessage(message);
             }
             taskYIELD();
         }
@@ -250,7 +263,7 @@ extern "C" void app_main(void)
     timeProvider->Start();
 
     printf("Create webserver\n");
-    webServer = new WebServer(carState, configFile, timeProvider);
+    webServer = new WebServer(carState, configFile, timeProvider, SendImmediateSignalToDestination);
     webServer->StartWebServer();
     printf("Webserver created\n");
 
@@ -308,7 +321,8 @@ extern "C" void app_main(void)
         sourceProtocolHandler = new AEE2004ComfortBus(
             carState,
             sourceTransportLayer,
-            new MessageScheduler());
+            new MessageScheduler()
+        );
     }
 
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2004))
@@ -320,7 +334,8 @@ extern "C" void app_main(void)
         destinationProtocolHandler = new AEE2004ComfortBus(
             carState,
             destinationTransportLayer,
-            new MessageScheduler());
+            new MessageScheduler()
+        );
     }
 
     if (carState->DESTINATION_PROTOCOL == static_cast<uint8_t>(ProtocolType::AEE2010))
@@ -343,6 +358,13 @@ extern "C" void app_main(void)
         printf("Error: sourceProtocolHandler or destinationProtocolHandler is null\n");
         return;
     }
+
+    diagnosticsContainer = new DiagnosticsContainer(
+        carState,
+        destinationTransportLayer,
+        configFile
+    );
+    diagnosticsContainer->RegisterMessageHandlers(SendImmediateSignalToDestination);
 
     crcStore = new CrcStore(crcStoreItems, automaticallyStoreNewIds);
 

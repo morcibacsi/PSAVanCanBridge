@@ -12,7 +12,8 @@ enum class ImmediateSignal {
     CmbSignalLightsChanged,
     CmbIndicatorLightsChanged,
     CmbStatusChanged,
-    CarSettingsChanged
+    CarSettingsChanged,
+    StartVinRead
 };
 
 using ImmediateSignalCallback = void (*)(ImmediateSignal signal);

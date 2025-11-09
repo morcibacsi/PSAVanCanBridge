@@ -18,12 +18,13 @@ public:
 WebServer(
     CarState* carState,
     ConfigFile* configFile,
-    TimeProvider* timeProvider
-
+    TimeProvider* timeProvider,
+    ImmediateSignalCallback immediateSignalCallback
 ) : server(NULL) {
     _carState = carState;
     _configFile = configFile;
     _timeProvider = timeProvider;
+    _immediateSignalCallback = immediateSignalCallback;
 }
 
     // Initialize NVS and Wi-Fi
@@ -101,6 +102,7 @@ WebServer(
         RegisterHandler("/index.html", HTTP_GET, &WebServer::get_index_handler);
         RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler);
         RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler);
+        RegisterHandler("/api/getVin", HTTP_GET, &WebServer::get_vin_handler);
         RegisterHandler("/api/config.json", HTTP_GET, &WebServer::get_config_handler);
         RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler);
         RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler);
@@ -113,6 +115,7 @@ WebServer(
         httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
+        httpd_unregister_uri_handler(server, "/api/getVin", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/config.json", HTTP_GET);
         httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
         httpd_unregister_uri_handler(server, "/api/time", HTTP_POST);
@@ -213,6 +216,22 @@ WebServer(
         httpd_resp_send(req, NULL, 0);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         esp_restart();
+        return ESP_OK;
+    }
+
+    static esp_err_t get_vin_handler(httpd_req_t *req)
+    {
+        // Send a 200 OK response with no content
+        httpd_resp_send(req, NULL, 0);
+        auto *instance = static_cast<WebServer *>(req->user_ctx);
+        instance->_carState->RADIO_TYPE = req->uri[strlen(req->uri) - 1] - '0';
+
+        printf("Request VIN read, radio type: %d\n", instance->_carState->RADIO_TYPE);
+
+        if (instance->_immediateSignalCallback)
+        {
+            instance->_immediateSignalCallback(ImmediateSignal::StartVinRead);
+        }
         return ESP_OK;
     }
 
@@ -359,9 +378,10 @@ WebServer(
     }
 
 private:
-    CarState* _carState;
-    ConfigFile* _configFile;
-    TimeProvider* _timeProvider;
+    CarState* _carState = nullptr;
+    ConfigFile* _configFile = nullptr;
+    TimeProvider* _timeProvider = nullptr;
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
     uint64_t _lastRequestTime = 0;
     uint64_t _inactivityTimeout = WIFI_INITIAL_TIMEOUT;
     bool _isRunning = false;

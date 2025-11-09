@@ -21,7 +21,7 @@ VANTransportLayerOnSerial::VANTransportLayerOnSerial()
     ESP_LOGI("usb_serial_jtag echo", "USB_SERIAL_JTAG init done");
 }
 
-void VANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool highPriority)
+uint8_t VANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool highPriority)
 {
     printf("VAN >>: %03X ", (unsigned int)(message.id));
     for (size_t i = 0; i < message.dataLength; i++)
@@ -39,7 +39,7 @@ void VANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool high
 
     if (!IsBusAvailable())
     {
-        return;
+        return 0;
     }
 
     switch (message.type)
@@ -56,6 +56,8 @@ void VANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool high
         default:
             break;
     }
+
+    return 1;
 }
 
 bool VANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)

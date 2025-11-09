@@ -13,18 +13,12 @@ class CanMessageSenderMcp2515Idf : public ICanMessageSender
 private:
     const int rx_queue_size = 10;
 
-    uint16_t _prevCanId;
-    unsigned long _prevCanIdTime;
     MCP2515* _mcp2515;
     spi_device_handle_t _spiHandle;
 
-    esp_err_t _alertInit;
     uint8_t _handle;
 
     SemaphoreHandle_t canSemaphore;
-    SemaphoreHandle_t serialSemaphore;
-
-    void PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[]);
 
 public:
     CanMessageSenderMcp2515Idf(uint8_t misoPin, uint8_t mosiPin, uint8_t clkPin, uint8_t csPin, spi_host_device_t spiHost);

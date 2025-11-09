@@ -11,7 +11,7 @@ public:
     virtual ~ITransportLayer() = default;
 
     // Sends a message over the bus.
-    virtual void SendMessage(const BusMessage& message, bool highPriority = false) = 0;
+    virtual uint8_t SendMessage(const BusMessage& message, bool highPriority = false) = 0;
 
     // Receives a message from the bus.
     virtual bool ReceiveMessage(BusMessage& message) = 0;

@@ -28,7 +28,7 @@ public:
 
     VANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t dataRxLedIndicatorPin);
 
-    void SendMessage(const BusMessage& message, bool highPriority = false) override;
+    uint8_t SendMessage(const BusMessage& message, bool highPriority = false) override;
 
     bool ReceiveMessage(BusMessage& message) override;
 

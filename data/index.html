@@ -162,9 +162,60 @@
                 padding: 10px;
             }
         }
+
+        #customConfirm {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, sans-serif;
+        }
+
+        #customConfirmBox {
+            background: #fff;
+            border: 1px solid #999;
+            border-radius: 6px;
+            padding: 16px 20px;
+            max-width: 420px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        #customConfirmBox p {
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #000;
+            margin-bottom: 16px;
+        }
+
+        #customConfirmBox button {
+            min-width: 80px;
+            margin-left: 8px;
+            padding: 4px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #888;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            color: #000;
+        }
+
+        #customConfirmBox button:hover {
+            background-color: #e0e0e0;
+        }
+
+        #confirmButtons {
+            text-align: right;
+        }
     </style>
 
     <script type="text/javascript">
+        const apiEndpoint = 'api/';
+        let jsonData = {};
+
         dictionary = {
             "SOURCE_PROTOCOL": {
                 "en": {
@@ -734,7 +785,7 @@
             console.log('Hour:', hour);
             console.log('Minute:', minute);
 
-            let response = await fetch('api/time', {
+            let response = await fetch(apiEndpoint + 'time', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -746,7 +797,7 @@
         }
 
         async function reboot() {
-            let response = await fetch('api/reboot', {
+            let response = await fetch(apiEndpoint + 'reboot', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -756,10 +807,123 @@
             console.log('Response:', response.status, response.statusText);
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const apiEndpoint = 'api/';
-            let jsonData = {};
+        async function getVin() {
+            const continueGetVin = await showCustomConfirm (
+                `When you change the destination protocol, you must save the config and restart the device to apply it.
+After that, you can get the VIN anytime.
 
+Continue?
+            `);
+
+            if (!continueGetVin) {
+                return;
+            }
+
+            saveConfigToDevice();
+
+            let radioType = document.querySelector('#RADIO_TYPE').value;
+
+            let response = await fetch(apiEndpoint + 'getVin?radioType=' + radioType, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Response:', response.status, response.statusText);
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        }
+
+        function showCustomConfirm(message) {
+            return new Promise(resolve => {
+            const modal = document.getElementById('customConfirm');
+            const msg = document.getElementById('customConfirmMessage');
+            const ok = document.getElementById('confirmOk');
+            const cancel = document.getElementById('confirmCancel');
+
+            msg.textContent = message;
+            modal.style.display = 'flex';
+
+            const cleanup = (result) => {
+                modal.style.display = 'none';
+                ok.removeEventListener('click', onOk);
+                cancel.removeEventListener('click', onCancel);
+                resolve(result);
+            };
+
+            const onOk = () => cleanup(true);
+            const onCancel = () => cleanup(false);
+
+            ok.addEventListener('click', onOk);
+            cancel.addEventListener('click', onCancel);
+            });
+        }
+
+        function saveConfigToDevice() {
+            gatherFormData(jsonData);
+            saveConfig(jsonData).then(() => {
+                console.log('Configuration saved');
+            });
+        }
+
+        function gatherFormData(json, path = '') {
+            for (const key in json)
+            {
+                if (key == "SUPPORTED_SOURCE_PROTOCOLS" || key == "SUPPORTED_DESTINATION_PROTOCOLS")
+                {
+                    continue;
+                }
+
+                const fullPath = path ? `${path}.${key}` : key;
+                const element = document.getElementById(fullPath);
+
+                if (element) {
+                    if (typeof json[key] === 'boolean') {
+                        json[key] = element.checked;
+                    } else if (typeof json[key] === 'number') {
+                        json[key] = parseFloat(element.value);
+                    } else if (typeof json[key] === 'string') {
+                        json[key] = element.value;
+                    } else if (Array.isArray(json[key])) {
+                        if (fullPath == 'VIN') {
+                            json[key] = getVinAsBytes(element.value);
+                        } else {
+                            const inputs = document.querySelectorAll(`[id^=${fullPath}]`);
+                            json[key] = Array.from(inputs).map(input => parseFloat(input.value));
+                        }
+                    }
+                }
+                else
+                {
+                    if (typeof json[key] === 'object') {
+                        gatherFormData(json[key], fullPath);
+                    }
+                }
+
+            }
+        }
+
+        async function saveConfig(updatedData) {
+            try {
+                const response = await fetch(apiEndpoint + "config", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedData),
+                });
+                if (!response.ok) throw new Error(`Failed to save config: ${response.statusText}`);
+                alert('Configuration saved successfully!');
+            } catch (error) {
+                console.error('Error saving config:', error);
+                alert('Failed to save configuration. Please try again later.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
             setInterval(async () =>
                 {
                     const response = await fetch(apiEndpoint + "time", { method: 'GET' })
@@ -792,6 +956,11 @@
                 rebootButton.addEventListener('click', reboot);
             }
 
+            const getVinButton = document.getElementById('getVin');
+            if (getVinButton) {
+                getVinButton.addEventListener('click', getVin);
+            }
+
             async function fetchConfig() {
                 try {
                     const response = await fetch(apiEndpoint + "config.json");
@@ -801,23 +970,6 @@
                 } catch (error) {
                     console.error('Error fetching config:', error);
                     alert('Failed to load configuration. Please try again later.');
-                }
-            }
-
-            async function saveConfig(updatedData) {
-                try {
-                    const response = await fetch(apiEndpoint + "config", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(updatedData),
-                    });
-                    if (!response.ok) throw new Error(`Failed to save config: ${response.statusText}`);
-                    alert('Configuration saved successfully!');
-                } catch (error) {
-                    console.error('Error saving config:', error);
-                    alert('Failed to save configuration. Please try again later.');
                 }
             }
 
@@ -982,43 +1134,6 @@
                 addDateTimeGroup('DATETIME', 'DATETIME', json['DATETIME']);
             }
 
-            function gatherFormData(json, path = '') {
-                for (const key in json)
-                {
-                    if (key == "SUPPORTED_SOURCE_PROTOCOLS" || key == "SUPPORTED_DESTINATION_PROTOCOLS")
-                    {
-                        continue;
-                    }
-
-                    const fullPath = path ? `${path}.${key}` : key;
-                    const element = document.getElementById(fullPath);
-
-                    if (element) {
-                        if (typeof json[key] === 'boolean') {
-                            json[key] = element.checked;
-                        } else if (typeof json[key] === 'number') {
-                            json[key] = parseFloat(element.value);
-                        } else if (typeof json[key] === 'string') {
-                            json[key] = element.value;
-                        } else if (Array.isArray(json[key])) {
-                            if (fullPath == 'VIN') {
-                                json[key] = getVinAsBytes(element.value);
-                            } else {
-                                const inputs = document.querySelectorAll(`[id^=${fullPath}]`);
-                                json[key] = Array.from(inputs).map(input => parseFloat(input.value));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (typeof json[key] === 'object') {
-                            gatherFormData(json[key], fullPath);
-                        }
-                    }
-
-                }
-            }
-
             function get_translated_label(labelText) {
                 console.log('get_translated_label', labelText);
                 const translatedLabel = dictionary[labelText].en.label;
@@ -1123,8 +1238,7 @@
             var form = document.querySelector('.container form');
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                gatherFormData(jsonData);
-                saveConfig(jsonData);
+                saveConfigToDevice();
             });
 
             fetchConfig();
@@ -1133,6 +1247,16 @@
 </head>
 
 <body>
+    <div id="customConfirm">
+    <div id="customConfirmBox">
+        <p id="customConfirmMessage"></p>
+        <div id="confirmButtons">
+        <button id="confirmOk" autofocus>OK</button>
+        <button id="confirmCancel">Cancel</button>
+        </div>
+    </div>
+    </div>
+
     <div id="form-group-date-template" style="display: none;">
         <div class="form-group">
             <label for="replace-id">Label Text</label>
@@ -1179,6 +1303,7 @@
             </div>
             <button type="submit" id="saveConfig">Save</button>
             <button type="button" id="reboot">Reboot</button>
+            <button type="button" id="getVin">Get VIN</button>
         </form>
         <div>
             <p id="rtc-time">RTC time: <span id="rtc-time-value"></span></p>

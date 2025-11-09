@@ -20,7 +20,7 @@ VANTransportLayer::VANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t dataR
     }, "VAN-TxTask", 4096, this, 10, &_txTaskHandle);
 }
 
-void VANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
+uint8_t VANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
 {
     if (highPriority)
     {
@@ -32,6 +32,8 @@ void VANTransportLayer::SendMessage(const BusMessage& message, bool highPriority
         // Send to the back of the queue
         xQueueSendToBack(_txQueue, &message, 0);
     }
+
+    return 1;
 }
 
 bool VANTransportLayer::ReceiveMessage(BusMessage& message)

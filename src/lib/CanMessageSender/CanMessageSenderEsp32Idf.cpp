@@ -2,58 +2,6 @@
 #include "CanMessageSenderEsp32Idf.h"
 #include "driver/gpio.h"
 
-void CanMessageSenderEsp32Idf::PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[])
-{
-    return;
-    //if (!(canId == 0x2A1 || canId == 0x261 || canId == 0x221))
-    if (!(canId == 0x128))
-    {
-        return;
-    }
-
-    //
-        /*
-    //if (!(canId == 0x760 || canId == 0x660 || canId == 0x297 || canId == 0x228))
-    if (!(canId == 0x228))
-    //if (!(canId == 0x168 || canId == 0x128 || canId == 0x0F6 || canId == 0x036))
-    {
-        return;
-    }
-    //*/
-    ///*
-    char tmp[3];
-    if (xSemaphoreTake(serialSemaphore, portMAX_DELAY) == pdTRUE)
-    {
-        //printf("%d - >> ID: %03X, Size: %d, Data: ", _handle, canId, sizeOfByteArray);
-        printf("%d - >> Id: %03X ", _handle, canId);
-        for (size_t i = 0; i < sizeOfByteArray; i++)
-        {
-            printf("%02X ", byteArray[i]);
-        }
-        printf("\n");
-        /*
-
-        _serialPort->print(canId, HEX);
-        _serialPort->print(",1,");
-        _serialPort->print(sizeOfByteArray, DEC);
-        _serialPort->print(",");
-
-        for (size_t i = 0; i < sizeOfByteArray; i++)
-        {
-            snprintf(tmp, 3, "%02X", byteArray[i]);
-            if (i != sizeOfByteArray - 1)
-            {
-                _serialPort->print(tmp);
-                _serialPort->print("");
-            }
-        }
-        _serialPort->println(tmp);
-        */
-        xSemaphoreGive(serialSemaphore);
-    }
-    //*/
-}
-
 CanMessageSenderEsp32Idf::CanMessageSenderEsp32Idf(uint8_t rxPin, uint8_t txPin, uint8_t handle)
 {
     //_serialPort = serialPort;
@@ -74,7 +22,6 @@ CanMessageSenderEsp32Idf::CanMessageSenderEsp32Idf(uint8_t rxPin, uint8_t txPin,
     esp_err_t result = twai_driver_install_v2(&g_config, &t_config, &f_config, &_twai);
 
     canSemaphore = xSemaphoreCreateMutex();
-    serialSemaphore = xSemaphoreCreateMutex();
 }
 
 void CanMessageSenderEsp32Idf::Init()
@@ -91,8 +38,6 @@ uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8
     message.flags = TWAI_MSG_FLAG_NONE;
     message.data_length_code = sizeOfByteArray;
     memcpy(message.data, byteArray, sizeOfByteArray);
-
-    PrintToSerial(canId, ext, sizeOfByteArray, message.data);
 
     uint8_t result = 0;
 
@@ -136,7 +81,6 @@ bool CanMessageSenderEsp32Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint8_
             {
                 buf[i] = message.data[i];
             }
-            //PrintToSerial(*canId, 0, *len, buf);
         }
         return true;
     } else {

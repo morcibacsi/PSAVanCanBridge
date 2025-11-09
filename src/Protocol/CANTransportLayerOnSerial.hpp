@@ -19,7 +19,7 @@ public:
 
     CANTransportLayerOnSerial();
 
-    void SendMessage(const BusMessage& message, bool highPriority = false) override;
+    uint8_t SendMessage(const BusMessage& message, bool highPriority = false) override;
 
     bool ReceiveMessage(BusMessage& message) override;
 

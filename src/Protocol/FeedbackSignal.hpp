@@ -12,6 +12,7 @@ enum class FeedbackSignal {
     ResetTripComputer,
     ClockSetByUser,
     CarSettingsChanged,
+    VinReadComplete
 };
 
 using FeedbackSignalCallback = void (*)(FeedbackSignal signal);

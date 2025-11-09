@@ -3,6 +3,8 @@
 #include <string>
 #include <algorithm>
 #include <cstdint>
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 #include "ITransportLayer.hpp"
 #include "BusMessage.hpp"
@@ -15,12 +17,15 @@ private:
     uint16_t FastChecksum(const uint8_t *data, uint8_t length);
     VanCrcCalculator* _crcCalculator = nullptr;
 
+    SemaphoreHandle_t serialSemaphore;
+
+    void PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[]);
 public:
     std::string Name() override { return "CAN"; };
 
     CANTransportLayer(ICanMessageSender* canMessageSender);
 
-    void SendMessage(const BusMessage& message, bool highPriority = false) override;
+    uint8_t SendMessage(const BusMessage& message, bool highPriority = false) override;
 
     bool ReceiveMessage(BusMessage& message) override;
 

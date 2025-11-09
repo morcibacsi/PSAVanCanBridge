@@ -4,36 +4,8 @@
 
 static const char *TAG = "CAN_MCP2515";
 
-void CanMessageSenderMcp2515Idf::PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[])
-{
-    return;
-    if (!(canId == 0x2A1 || canId == 0x261 || canId == 0x221))
-    {
-        //return;
-    }
-
-    ///*
-    char tmp[3];
-    if (xSemaphoreTake(serialSemaphore, portMAX_DELAY) == pdTRUE)
-    {
-        //printf("%d - >> ID: %03X, Size: %d, Data: ", _handle, canId, sizeOfByteArray);
-        printf("%d - >> Id: %03X ", _handle, canId);
-        for (size_t i = 0; i < sizeOfByteArray; i++)
-        {
-            printf("%02X ", byteArray[i]);
-        }
-        printf("\n");
-
-        xSemaphoreGive(serialSemaphore);
-    }
-    //*/
-}
-
 CanMessageSenderMcp2515Idf::CanMessageSenderMcp2515Idf(uint8_t misoPin, uint8_t mosiPin, uint8_t clkPin, uint8_t csPin, spi_host_device_t spiHost)
 {
-    //_serialPort = serialPort;
-    _prevCanId = 0;
-
     spi_bus_config_t buscfg = {};
     buscfg.miso_io_num = misoPin;
     buscfg.mosi_io_num = mosiPin;
@@ -57,14 +29,6 @@ CanMessageSenderMcp2515Idf::CanMessageSenderMcp2515Idf(uint8_t misoPin, uint8_t 
     _mcp2515 = new MCP2515(&_spiHandle);
 
     canSemaphore = xSemaphoreCreateMutex();
-    serialSemaphore = xSemaphoreCreateMutex();
-
-    _prevCanId = 0;
-    _prevCanIdTime = 0;
-    _alertInit = ESP_OK;
-
-    canSemaphore = xSemaphoreCreateMutex();
-    serialSemaphore = xSemaphoreCreateMutex();
 }
 
 void CanMessageSenderMcp2515Idf::Init()
@@ -74,33 +38,24 @@ void CanMessageSenderMcp2515Idf::Init()
 
 uint8_t CanMessageSenderMcp2515Idf::SendMessage(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[])
 {
-    //can_frame *frame
     can_frame message;
     message.can_id = canId;
     message.can_dlc = sizeOfByteArray;
     memcpy(message.data, byteArray, sizeOfByteArray);
 
-
-    uint8_t result = 0;
+   uint8_t result = 0;
     if (xSemaphoreTake(canSemaphore, pdMS_TO_TICKS(5)) == pdTRUE)
     //if (xSemaphoreTake(canSemaphore, portMAX_DELAY) == pdTRUE)
     {
-        PrintToSerial(canId, ext, sizeOfByteArray, message.data);
         if (_mcp2515->sendMessage(&message) == MCP2515::ERROR_OK)
         {
             //printf("Message queued for transmission\n");
-            //_serialPort->println("Message queued for transmission");
-
             result = 1;
         }
         else
         {
             uint8_t err = _mcp2515->getErrorFlags();
             //printf("CAN send error: 0x%02X \r\n", err);
-
-            //_serialPort->println("Failed to queue message for transmission");
-            //return -1;
-            //result = 0;
         }
         xSemaphoreGive(canSemaphore);
     }
@@ -129,7 +84,6 @@ bool CanMessageSenderMcp2515Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint
             {
                 buf[i] = rx_frame.data[i];
             }
-            //PrintToSerial(*canId, 0, *len, buf);
             result = true;
         }
         else

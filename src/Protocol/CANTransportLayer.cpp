@@ -11,11 +11,13 @@ CANTransportLayer::CANTransportLayer(ICanMessageSender* canMessageSender)
     _crcCalculator = new VanCrcCalculator();
     _canMessageSender = canMessageSender;
     _canMessageSender->Init();
+    serialSemaphore = xSemaphoreCreateMutex();
 }
 
-void CANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
+uint8_t CANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
 {
-    _canMessageSender->SendMessage(message.id, 0, message.dataLength, message.data);
+    PrintToSerial(message.id, 0, message.dataLength, message.data);
+    return _canMessageSender->SendMessage(message.id, 0, message.dataLength, message.data);
 }
 
 bool CANTransportLayer::ReceiveMessage(BusMessage& message)
@@ -30,6 +32,8 @@ bool CANTransportLayer::ReceiveMessage(BusMessage& message)
     {
         return false;
     }
+
+    PrintToSerial(canMessageId, 0, canMessageLength, canMessage);
 
     message.id = canMessageId;
     std::memcpy(message.data, canMessage, canMessageLength);
@@ -55,4 +59,27 @@ uint16_t CANTransportLayer::FastChecksum(const uint8_t *data, uint8_t length)
     }
 
     return (sum2 << 8) | sum1;
+}
+
+
+void CANTransportLayer::PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[])
+{
+    //if (!(canId == 0x2A1 || canId == 0x261 || canId == 0x221))
+    {
+        return;
+    }
+
+    char tmp[3];
+    if (xSemaphoreTake(serialSemaphore, portMAX_DELAY) == pdTRUE)
+    {
+        //printf("%d - >> ID: %03X, Size: %d, Data: ", _handle, canId, sizeOfByteArray);
+        uint8_t _handle = 0;
+        printf("%d - >> Id: %03X ", _handle, canId);
+        for (size_t i = 0; i < sizeOfByteArray; i++)
+        {
+            printf("%02X ", byteArray[i]);
+        }
+        printf("\n");
+        xSemaphoreGive(serialSemaphore);
+    }
 }
