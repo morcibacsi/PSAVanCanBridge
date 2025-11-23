@@ -18,7 +18,7 @@
 
 struct CarState
 {
-    char* Version = (char*)"v3.3.0";
+    char* Version = (char*)"v3.4.0";
     uint64_t CurrenTime = 0;
 
     uint8_t Ignition = 0;

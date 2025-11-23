@@ -3,12 +3,12 @@
 
 #include "VANTransportLayer.hpp"
 
-VANTransportLayer::VANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t dataRxLedIndicatorPin)
+VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender, uint8_t rxPin, uint8_t dataRxLedIndicatorPin)
 {
+    _vanMessageSender = vanMessageSender;
     _crcCalculator = new VanCrcCalculator();
 
-    _vanTx = new LpCoreVanTx((gpio_num_t)rxPin, (gpio_num_t)txPin, LpCoreVanTx::LP_VAN_NETWORK_SPEED::LP_VAN_125KBPS);
-    _vanTx->Start();
+    _vanMessageSender->Start();
 
     _vanRx = new ESP32_RMT_VAN_RX(rxPin, dataRxLedIndicatorPin, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
     //_vanRx = new ESP32_RMT_VAN_RX(rxPin, dataRxLedIndicatorPin, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_BODY);
@@ -65,7 +65,7 @@ bool VANTransportLayer::ReceiveMessage(BusMessage& message)
 
 bool VANTransportLayer::IsBusAvailable()
 {
-    bool result = _vanTx->IsTxPossible();
+    bool result = _vanMessageSender->IsTxPossible();
 
     if (!result)
     {
@@ -102,11 +102,11 @@ void VANTransportLayer::TxTask()
             {
                 case MessageType::Query:
                     //printf("Send query message: %03X\n", (unsigned int) message.id);
-                    _vanTx->SendReplyRequestFrame(message.id);
+                    _vanMessageSender->SendReplyRequestFrame(message.id);
                     break;
                 case MessageType::Normal:
                     //printf("Send normal message: %03X\n", (unsigned int) message.id);
-                    _vanTx->SendNormalFrame(message.id, message.data, message.dataLength, message.ack);
+                    _vanMessageSender->SendNormalFrame(message.id, message.data, message.dataLength, message.ack);
                     break;
                 default:
                     break;

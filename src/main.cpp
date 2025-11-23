@@ -16,7 +16,12 @@
 #include "Protocol/VANTransportLayerOnSerial.hpp"
 #include "Protocol/AEE2001/AEE2001ComfortBus.hpp"
 
+#include "lib/IVanMessageSender.h"
+#include "lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
+#include "lib/esp32_hulp_van_tx/HulpVanTx.hpp"
+
 #include "lib/CanMessageSender/CanMessageSenderEsp32Idf.h"
+#include "lib/CanMessageSender/CanMessageSenderMcp2515Idf.h"
 
 #include "Protocol/CANTransportLayer.hpp"
 #include "Protocol/CANTransportLayerOnSerial.hpp"
@@ -36,6 +41,7 @@
 #include "Helpers/CpuConfig.h"
 #include "Helpers/WebServer/WebServer.hpp"
 
+IVanMessageSender* sourceVanMessageSender = nullptr;
 ICanMessageSender* sourceCanMessageSender = nullptr;
 ICanMessageSender* destinationCanMessageSender = nullptr;
 
@@ -67,9 +73,9 @@ bool automaticallyStoreNewIds = false;
 //#include "Helpers/Ble/NimBLE.h"
 //NimBLE ble;
 
-#define VAN_RX_PIN GPIO_NUM_3
-#define VAN_TX_PIN GPIO_NUM_2
-#define VAN_DATA_RX_LED_INDICATOR_PIN 15
+#define VAN_RX_PIN BOARD_CAN2_RX_PIN
+#define VAN_TX_PIN BOARD_CAN2_TX_PIN
+#define VAN_DATA_RX_LED_INDICATOR_PIN BOARD_LED_PIN
 
 #define CAN1_RX_PIN BOARD_CAN1_RX_PIN
 #define CAN1_TX_PIN BOARD_CAN1_TX_PIN
@@ -292,7 +298,14 @@ extern "C" void app_main(void)
             {0xADC}
         };
 
-        sourceTransportLayer = new VANTransportLayer(VAN_RX_PIN, VAN_TX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
+        #if CONFIG_IDF_TARGET_ESP32
+            sourceVanMessageSender = new HulpVanTx(VAN_RX_PIN, VAN_TX_PIN);
+        #else
+            sourceVanMessageSender = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, LpCoreVanTx::LP_VAN_125KBPS);
+        #endif
+
+
+        sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
         //sourceTransportLayer = new VANTransportLayerOnSerial();
         sourceProtocolHandler = new AEE2001ComfortBus(
             carState,

@@ -15,3 +15,7 @@
     #include "BoardConfig_v15_can.h"
     #include "lib/CanMessageSender/CanMessageSenderMcp2515Idf.h"
 #endif
+#ifdef PIO_INI_BOARD_ESP32_v15_VAN_ULP
+    #include "BoardConfig_v15_van_ulp.h"
+    #include "lib/esp32_hulp_van_tx/HulpVanTx.hpp"
+#endif

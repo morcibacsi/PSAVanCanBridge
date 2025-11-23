@@ -246,8 +246,8 @@ Selecting one of these will load the corresponding BoardConfig_*.h file. These c
 Examples:
 ```ini
 #default_envs = esp32_v14
-#default_envs = esp32_v15_van_without_tss463
-#default_envs = esp32_v15_van_with_tss463
+#default_envs = esp32_v15_van_ulp
+#default_envs = esp32_v15_van_tss463
 #default_envs = esp32_v13_can
 #default_envs = esp32_v15_can
 default_envs = esp32c6_v16

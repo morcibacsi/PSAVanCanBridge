@@ -7,13 +7,14 @@
 #include "BusMessage.hpp"
 #include "../lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
 #include "../lib/esp32_rmt_van_rx/esp32_arduino_rmt_van_rx.h"
+#include "../lib/IVanMessageSender.h"
 #include "../Helpers/VanCrcCalculator.hpp"
 
 class VANTransportLayer : public ITransportLayer {
 private:
-    LpCoreVanTx* _vanTx = nullptr;
     ESP32_RMT_VAN_RX* _vanRx = nullptr;
     VanCrcCalculator* _crcCalculator = nullptr;
+    IVanMessageSender* _vanMessageSender = nullptr;
 
     static constexpr size_t TX_QUEUE_LENGTH = 15;
     static constexpr size_t TX_QUEUE_ITEM_SIZE = sizeof(BusMessage);
@@ -26,7 +27,7 @@ private:
 public:
     std::string Name() override { return "VAN"; };
 
-    VANTransportLayer(uint8_t rxPin, uint8_t txPin, uint8_t dataRxLedIndicatorPin);
+    VANTransportLayer(IVanMessageSender* vanMessageSender, uint8_t rxPin, uint8_t dataRxLedIndicatorPin);
 
     uint8_t SendMessage(const BusMessage& message, bool highPriority = false) override;
 

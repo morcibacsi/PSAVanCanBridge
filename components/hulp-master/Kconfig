@@ -1,0 +1,38 @@
+menu "HULP"
+
+    config HULP_LABEL_AUTO_BASE
+        int "Auto Label Base"
+        default 60000
+        range 0 65535
+        help
+            Starting number for automatic labels. If using HULP_LBLA(), label numbers between this number and 65535 are reserved and should not be used.
+
+    config HULP_USE_APPROX_FAST_CLK
+        bool "Use Approximate Fast Clock Frequency"
+        default n
+        help
+            In calculating some timings, use hardcoded approximate fast clock frequency instead of querying accurate frequency at runtime.
+
+    config HULP_FAST_CLK_CAL_CYCLES
+        int "Fast Clock Frequency Cal Cycles"
+        depends on !HULP_USE_APPROX_FAST_CLK
+        default 100
+        range 50 1000
+        help
+            Slow clock cycles to use to determine fast clock frequency.
+
+    config HULP_UART_TX_OD
+        bool "Open drain UART TX output"
+        default n
+        help
+            UART transmit will use push-pull configuration by default. Enable this to use open drain instead.
+            External pullups may be required for higher baud rates.
+
+    config HULP_MACRO_OPTIMISATIONS
+        bool "Enable macro optimisations"
+        default n
+        help
+            After verifying that the ULP program loads and runs correctly, enable this option to reduce binary size and processing overhead
+            by omitting some checks and allowing further constant folding by the compiler.
+
+endmenu

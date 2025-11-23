@@ -1,0 +1,22 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+UlpVanTx	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+Start	KEYWORD2
+SendNormalFrame	KEYWORD2
+SendReplyRequestFrame	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+ULP_VAN_NETWORK_SPEED	LITERAL1
