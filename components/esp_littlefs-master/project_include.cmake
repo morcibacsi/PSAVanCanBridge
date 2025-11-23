@@ -12,8 +12,6 @@ set_directory_properties(PROPERTIES
 )
 
 function(littlefs_create_partition_image partition base_dir)
-    message(WARNING "FISZEM-FASZOM-BISZEM-BASZOM SZETBASZOM EZT A SZART")
-
 	set(options FLASH_IN_PROJECT)
 	set(multi DEPENDS)
 	cmake_parse_arguments(arg "${options}" "" "${multi}" "${ARGN}")
@@ -25,15 +23,8 @@ function(littlefs_create_partition_image partition base_dir)
 	partition_table_get_partition_info(size "--partition-name ${partition}" "size")
 	partition_table_get_partition_info(offset "--partition-name ${partition}" "offset")
 
-    message(WARNING "FASZOM1: ${base_dir}")
-    message(WARNING "FASZOM2: ${partition}")
-    message(WARNING "FASZOM3: ${size}")
-    message(WARNING "FASZOM4: ${offset}")
-
 	if("${size}" AND "${offset}")
 		set(image_file ${CMAKE_BINARY_DIR}/${partition}.bin)
-
-        message(WARNING "FASZOM: ${image_file}")
 
 		if(CMAKE_HOST_WIN32)
 			set(littlefs_py "${littlefs_py_venv}/Scripts/littlefs-python.exe")
