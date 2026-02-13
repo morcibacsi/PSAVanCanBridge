@@ -136,9 +136,15 @@ bool AEE2004ComfortBus::CanAcceptMessage(const BusMessage& message)
     {
         switch (message.id)
         {
-            case 0x31C:
-            case 0x532:
-            case 0x5F2:
+            case 0x297://VTH
+            //case 0x4B2://VTH
+            case 0x530://VTH
+            case 0x5F0://VTH
+
+            case 0x31C://MATT
+            //case 0x4B0://MATT
+            case 0x532://MATT
+            case 0x5F2://MATT
             return true;
             break;
 

@@ -96,7 +96,11 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
             */
             CanDash3Byte7_2010_Struct field7{};
             field7.data.gearbox_position = carState->CarIndicatorLights.data.gearbox_position;
-            field7.data.authorize_vth    = carState->CarIndicatorLights.data.authorize_vth;
+            field7.data.authorize_vth    = 1;
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            {
+                field7.data.authorize_vth    = carState->CarIndicatorLights.data.authorize_vth;
+            }
             /*
             field7.data.gearbox_position = _dataBroker->GearPosition;
             field7.data.authorize_vth    = _dataBroker->EnableVTH;

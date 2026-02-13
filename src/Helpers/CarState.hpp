@@ -18,7 +18,7 @@
 
 struct CarState
 {
-    char* Version = (char*)"v3.4.0";
+    char* Version = (char*)"v3.4.1";
     uint64_t CurrenTime = 0;
 
     uint8_t Ignition = 0;
@@ -43,6 +43,7 @@ struct CarState
     uint8_t AirbagDisabled = 0;
     uint8_t DistanceUnit = 0;
     uint8_t SpeedInKmh = 0;
+    uint8_t SpeedLimitFromNacInKmh = 0xFF;
 
     //State helpers
     uint8_t State_AutoLockEnabled = 0xFF;
