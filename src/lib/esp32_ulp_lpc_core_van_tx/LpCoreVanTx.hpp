@@ -39,5 +39,24 @@ private:
         void SendReplyRequestFrame(const uint16_t identifier);
         bool IsTxPossible();
 };
+#else
+    #if !defined(CONFIG_IDF_TARGET_ESP32)
+    //dummy class to avoid compiler errors when compiling for a target which is not ESP32 (for example ESP32C3)
+    class LpCoreVanTx : public IVanMessageSender
+    {
+        public:
+            typedef enum {
+                LP_VAN_62K5BPS  = 0,
+                LP_VAN_125KBPS  = 1,
+            } LP_VAN_NETWORK_SPEED;
+
+            LpCoreVanTx(gpio_num_t rxPin, gpio_num_t txPin, LP_VAN_NETWORK_SPEED networkSpeed) {}
+            ~LpCoreVanTx() {}
+            void Start() {}
+            void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck) {}
+            void SendReplyRequestFrame(const uint16_t identifier) {}
+            bool IsTxPossible() { return false; }
+    };
+    #endif
 #endif
 #endif
