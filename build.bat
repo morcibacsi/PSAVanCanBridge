@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: --------------------------
 :: Define platforms
 :: --------------------------
-set "platforms=esp32_v13_can esp32_v14_can esp32_v15_can esp32c6_v16"
+set "platforms=esp32_v13_can esp32_v14_can esp32_v15_can esp32c6_v16 esp32_v15_van_ulp"
 set i=0
 for %%P in (%platforms%) do (
     set /a i+=1
