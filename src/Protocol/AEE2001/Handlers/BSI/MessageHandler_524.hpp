@@ -226,7 +226,7 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
             _canPopupHandler->QueueNewMessage(carState->CurrenTime, item);
         }
 
-        change = ChangeAutoSetting(message, packet.Field8.automatic_lighting_active, VAN_POPUP_MSG_AUTOMATIC_WIPING_ACTIVE, carState->State_AutoLightsEnabled);
+        change = ChangeAutoSetting(message, packet.Field8.automatic_lighting_active, VAN_POPUP_MSG_AUTOMATIC_LIGHTING_ACTIVE, carState->State_AutoLightsEnabled);
         if (change == 0 || change == 1)
         {
             carState->AutoHeadlampActive = change;

@@ -267,7 +267,7 @@ class CanDisplayPopupHandler3
             _carState->DisplayMessage.data.Field4 = 0x00;
             _carState->DisplayMessage.data.Field5 = 0xFF;
             _carState->DisplayMessage.data.Field6 = 0xFF;
-            _carState->DisplayMessage.data.Field8 = 0xFF;
+            _carState->DisplayMessage.data.Field7 = 0xFF;
             _carState->DisplayMessage.data.Field8 = 0xFF;
 
             isPopupVisible = false;
