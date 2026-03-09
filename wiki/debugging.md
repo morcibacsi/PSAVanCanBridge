@@ -14,6 +14,9 @@ The second option is to have a spare BSI, a display, odometer, COM2000 and wire 
 ![My setup during development](../images/wiki/bsi_com2000_junsun_devenv.jpg)
 
 ### 3. VAN bus capture + software replay
+
+⚠️BT only works on v2 branch
+
 The third option has proven to be useful several times when something only happens inside a real car or when a user reports a weird error which can't be reproduced on my car. This requires a VAN bus capture which can be created two ways:
 1. via serial terminal (**make sure you don't connect the 12V to the board while it is connected to your laptop**).
 2. Or if you have an Android device then you can connect to the V2C board via bluetooth and create a capture with this sofware: [https://play.google.com/store/apps/details?id=de.kai_morich.serial_bluetooth_terminal&hl=en](https://play.google.com/store/apps/details?id=de.kai_morich.serial_bluetooth_terminal&hl=en) I am sure that alternatives exists for iPhones as well.
