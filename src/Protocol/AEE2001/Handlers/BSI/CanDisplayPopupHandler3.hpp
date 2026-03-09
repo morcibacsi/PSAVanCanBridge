@@ -193,6 +193,7 @@ class CanDisplayPopupHandler3
                 ShowDebugMessage("Popup added");
             }
         }
+    }
 
     void Process(unsigned long currentTime)
     {
