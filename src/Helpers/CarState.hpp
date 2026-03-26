@@ -190,6 +190,8 @@ struct CarState
     //361 AEE2010
     AvailableOptionsStruct_2010 AvailableOptions{};
 
+    bool DiagConnected = false;
+
     // config
     bool SAVE_CONFIG = true;
     uint8_t VIN_FOR_HEADUNIT[17];

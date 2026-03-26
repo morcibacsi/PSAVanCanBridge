@@ -46,6 +46,7 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
             brightnessField.data.black_panel_status   = carState->BlackPanelStatus;
 
             CanIgnitionByte5Struct ignitionField{};
+            ignitionField.data.network_supervision_enabled = carState->DiagConnected;
 
             CanIgnitionByte7Struct rearCamField{};
 
