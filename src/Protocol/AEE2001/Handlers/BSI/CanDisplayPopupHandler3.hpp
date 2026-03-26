@@ -20,6 +20,7 @@ class CanDisplayPopupHandler3
     //const uint16_t MESSAGE_CHILLTIME = 24000;
     const uint16_t MESSAGE_CHILLTIME = 10;
     const uint16_t POPUP_TRANSITION_PAUSE_TIME = 300; // just tested and compared to 120 and 1200 and this one worked in all cases during testing with EMF C 71.3
+    // also need to add that during high load of BSI as for example during deep diagnostic checkup, there was a notice of 300 not being enough. but it still makes most sense
 
     CarState* _carState;
 
