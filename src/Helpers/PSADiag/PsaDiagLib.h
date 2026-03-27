@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "../../Protocol/ISerial.hpp"
 #include "../../Protocol/ITransportLayer.hpp"
-#include "CAN_TP.hpp"
+#include "../../Protocol/IsoTpFrame.hpp"
 
 union uint32_converter {
     struct {
@@ -17,17 +17,12 @@ union uint32_converter {
     uint32_t asUInt32_t;
 };
 
-
-class PsaDiagLib
+class PsaDiagLib : public IsoTpFrame
 {
     private:
     constexpr static uint32_t KEEP_ALIVE_INTERVAL = 2000;
     ITransportLayer* _canSender;
     ISerial* _serial;
-    CAN_TP* _canTp;
-
-    uint16_t CAN_EMIT_ID;
-    uint16_t CAN_RECV_ID;
 
     uint8_t LIN;
     bool dump = true;
@@ -74,12 +69,13 @@ class PsaDiagLib
     void PrintArrayToSerial(uint16_t sizeOfByteArray, uint8_t *byteArray, uint8_t startIndex = 0);
     void ProcessUnwrappedMessage(unsigned long currentTime, uint16_t canId, uint8_t length, uint8_t data[]);
 
+    void InternalProcess() override {};
+    void ReceiveFinished(unsigned long currentTime) override;
     public:
-    PsaDiagLib(ITransportLayer* canSender, ISerial* serial)
+    PsaDiagLib(ITransportLayer* canSender, ISerial* serial): IsoTpFrame(canSender, 0x760, 0x660, 2000)
     {
         _canSender = canSender;
         _serial = serial;
-        _canTp = new CAN_TP(canSender, 0x772, 0x672);
     };
     void ParseCommand(unsigned long currentTime, uint8_t data[], uint8_t length);
     bool Loop(unsigned long currentTime);

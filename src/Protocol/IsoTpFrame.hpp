@@ -89,15 +89,16 @@ class IsoTpFrame
     struct IsoTpMessage_t _txMsg;
 
     ITransportLayer *_canInterface;
-    IsoTpFrame(ITransportLayer *canInterface, uint16_t txId, uint16_t rxId, uint16_t internalProcessInterval);
-    virtual void InternalProcess() = 0;
-    virtual void ReceiveFinished() = 0;
+    virtual void InternalProcess() {};
+    virtual void ReceiveFinished(unsigned long currentTime) {};
 
     public:
+    IsoTpFrame(ITransportLayer *canInterface, uint16_t txId, uint16_t rxId, uint16_t internalProcessInterval);
 
     uint8_t Send(uint8_t *byteArray, uint8_t sizeOfByteArray);
     virtual uint8_t Receive(unsigned long millis, uint16_t canId, uint8_t len, const uint8_t buf[]);
     uint8_t Process(unsigned long millis);
+    void SetIds(uint16_t txId, uint16_t rxId);
  };
 
 #endif

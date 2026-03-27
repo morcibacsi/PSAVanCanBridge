@@ -45,7 +45,7 @@ class TpMessageHandler_760 : public IsoTpFrame
 
     void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
-    void ReceiveFinished() override;
+    void ReceiveFinished(unsigned long currentTime) override;
 
     void EnterDiagMode();
     void KeepAlive();

@@ -202,21 +202,12 @@ void PsaDiagLib::SendKeepAlive()
             if (LIN > 0)
             {
                 uint8_t keepAliveFrame[3] = { LIN, 0x01, 0x3E };
-
-                BusMessage msg = {};
-                msg.id = CAN_EMIT_ID;
-                msg.dataLength = sizeof(keepAliveFrame);
-                memcpy(msg.data, keepAliveFrame, sizeof(keepAliveFrame));
-                msg.protocol = ProtocolType::AEE2004; // Not used, but set it
-
-                _canSender->SendMessage(msg);
-
-                //_canSender->SendMessage(CAN_EMIT_ID, 0, 3, keepAliveFrame);
+                Send(keepAliveFrame, sizeof(keepAliveFrame));
             }
             else
             {
                 uint8_t data[] = { 0x3E };
-                _canTp->Send(data, 1);
+                Send(data, 1);
             }
         }
         else
@@ -225,21 +216,12 @@ void PsaDiagLib::SendKeepAlive()
             if (LIN > 0)
             {
                 uint8_t keepAliveFrame[4] = { LIN, 0x02, 0x3E, 0x00 };
-
-                BusMessage msg = {};
-                msg.id = CAN_EMIT_ID;
-                msg.dataLength = sizeof(keepAliveFrame);
-                memcpy(msg.data, keepAliveFrame, sizeof(keepAliveFrame));
-                msg.protocol = ProtocolType::AEE2004; // Not used, but set it
-
-                _canSender->SendMessage(msg);
-
-                //_canSender->SendMessage(CAN_EMIT_ID, 0, 4, keepAliveFrame);
+                Send(keepAliveFrame, sizeof(keepAliveFrame));
             }
             else
             {
                 uint8_t data[] = { 0x3E, 0x00 };
-                _canTp->Send(data, 2);
+                Send(data, 2);
             }
         }
         printf("Sent keep-alive\n");
@@ -283,10 +265,8 @@ void PsaDiagLib::ChangeId(unsigned long currentTime, uint8_t data[], uint8_t len
 
     uint16_t recvId = static_cast<uint16_t>(strtoul(s, &end, 16));
 
-    CAN_EMIT_ID = emitId;
-    CAN_RECV_ID = recvId;
+    SetIds(emitId, recvId);
 
-    _canTp->SetIds(CAN_EMIT_ID, CAN_RECV_ID);
     LIN = 0;
     dump = false;
     sendKeepAlives = false;
@@ -338,7 +318,7 @@ void PsaDiagLib::Unlock(uint8_t data[], uint8_t length)
     UnlockCMD[1] = UnlockService;
 
     uint8_t diagCmd[2] = { 0x10, DiagSess };
-    _canTp->Send(diagCmd, 2);
+    Send(diagCmd, 2);
 
     if (DiagSess == 0xC0)
     {
@@ -409,9 +389,9 @@ void PsaDiagLib::PrintCurrentCANId()
     //output example: 764:664
 
     char buffer[9]; // 3 chars + ':' + 3 chars + '\r' + '\n' + null terminator
-    encodeHex3(CAN_EMIT_ID, buffer);   // positions 0-2
+    encodeHex3(_txMsg.tx_id, buffer);   // positions 0-2
     buffer[3] = ':';              // separator
-    encodeHex3(CAN_RECV_ID, buffer + 4); // positions 4-6
+    encodeHex3(_rxMsg.rx_id, buffer + 4); // positions 4-6
 
     buffer[7] = '\r'; // newline
     buffer[8] = '\n'; // null terminator
@@ -443,15 +423,8 @@ void PsaDiagLib::SendRawFrames(unsigned long currentTime, uint8_t data[], uint8_
             return;
         }
 
-        BusMessage msg = {};
-        msg.id = CAN_EMIT_ID;
-        msg.dataLength = messageLength;
-        memcpy(msg.data, converted, messageLength);
-        msg.protocol = ProtocolType::AEE2004; // Not used, but set it
+        Send(converted, messageLength);
 
-        _canSender->SendMessage(msg);
-
-        //_canSender->SendMessage(CAN_EMIT_ID, 0, messageLength, converted);
         waitingReplySerialCMD = true;
         lastCMDSent = currentTime;
     }
@@ -492,14 +465,8 @@ void PsaDiagLib::SendFrames(unsigned long currentTime, uint8_t data[], uint8_t l
 
     if (customFrameSize)
     {
-        BusMessage msg = {};
-        msg.id = CAN_EMIT_ID;
-        msg.dataLength = messageLength;
-        memcpy(msg.data, converted, messageLength);
-        msg.protocol = ProtocolType::AEE2004; // Not used, but set it
+        Send(converted, messageLength);
 
-        _canSender->SendMessage(msg);
-        //_canSender->SendMessage(CAN_EMIT_ID, 0, receiveDiagFrameSize, converted);
         receiveDiagFrameSize = 0;
         customFrameSize = false;
     }
@@ -513,7 +480,7 @@ void PsaDiagLib::SendFrames(unsigned long currentTime, uint8_t data[], uint8_t l
         }
         _serial->println();
         //*/
-        _canTp->Send(converted, messageLength);
+        Send(converted, messageLength);
     }
 
     waitingReplySerialCMD = true;
@@ -532,25 +499,8 @@ bool PsaDiagLib::Loop(unsigned long currentTime)
         SendKeepAlive();
     }
 
-    CAN_TP::ProcessResult result = _canTp->Process(currentTime, &receivedCanTpPacketLength, receivedCanTpPacket);
-    if (result == CAN_TP::RxSuccess)
-    {
-        //serialPort->println("Received CAN-TP message:");
+    Process(currentTime);
 
-        //it is a keep-alive response, no need to print it or process it further, just return
-        if (receivedCanTpPacketLength == 1 && receivedCanTpPacket[0] == 0x7E)
-        {
-            lastKeepAliveReceived = currentTime;
-            printf("Received keep-alive response\n");
-            return true;
-        }
-
-        PrintArrayToSerial(receivedCanTpPacketLength, receivedCanTpPacket);
-
-        ProcessUnwrappedMessage(currentTime, CAN_RECV_ID, receivedCanTpPacketLength, receivedCanTpPacket);
-
-        return true;
-    }
     return false;
 }
 
@@ -559,63 +509,69 @@ void PsaDiagLib::ProcessIncomingMessage(unsigned long currentTime, uint16_t canI
     uint16_t len = canMessageLength;
     if (canId > 0)
     {
-        _canTp->ProcessIncomingMessage(currentTime, canId, len, data);
+        Receive(currentTime, canId, len, data);
 
-        if (canId == CAN_RECV_ID)
+        if (canId == _rxMsg.rx_id)
         {
             lastMessageReceived = currentTime;
-        }
-
-        if (canId == CAN_RECV_ID && dump)
-        {
-            char tmp[5];
-            encodeHex3(CAN_EMIT_ID, tmp);
-            tmp[3] = '\r';
-            tmp[4] = '\n';
-            _serial->write(reinterpret_cast<uint8_t*>(tmp), sizeof(tmp));
-
-            //snprintf(tmp, 4, "%02X", CAN_EMIT_ID);
-            //_serial->print(tmp);
-            //_serial->print(":");
-
-            PrintArrayToSerial(canMessageLength, data);
-        }
-
-        if (canId == CAN_RECV_ID && data[0] >= 0x40 && data[0] <= 0x70)
-        {
-            // UDS or KWP with LIN ECUs, remove encapsulation
-            for (int i = 1; i < canMessageLength; i++) {
-                data[i - 1] = data[i];
+            if (len == 1 && data[0] == 0x7E)
+            {
+                lastKeepAliveReceived = currentTime;
             }
 
-            ProcessUnwrappedMessage(currentTime, canId, canMessageLength-1, data);
-        }
-        else
-        {
-            ProcessUnwrappedMessage(currentTime, canId, canMessageLength, data);
+            if (dump)
+            {
+                char tmp[5];
+                encodeHex3(_rxMsg.tx_id, tmp);
+                tmp[3] = '\r';
+                tmp[4] = '\n';
+                _serial->write(reinterpret_cast<uint8_t*>(tmp), sizeof(tmp));
+
+                //snprintf(tmp, 4, "%02X", CAN_EMIT_ID);
+                //_serial->print(tmp);
+                //_serial->print(":");
+
+                PrintArrayToSerial(canMessageLength, data);
+            }
+
+            ///*
+            if (data[0] >= 0x40 && data[0] <= 0x70)
+            {
+                // UDS or KWP with LIN ECUs, remove encapsulation
+                for (int i = 1; i < canMessageLength; i++) {
+                    data[i - 1] = data[i];
+                }
+
+                ProcessUnwrappedMessage(currentTime, canId, canMessageLength-1, data);
+            }
+            else
+            {
+                ProcessUnwrappedMessage(currentTime, canId, canMessageLength, data);
+            }
+            //*/
         }
     }
 }
 
 void PsaDiagLib::ProcessUnwrappedMessage(unsigned long currentTime, uint16_t canId, uint8_t length, uint8_t data[])
 {
-    if (canId == CAN_EMIT_ID && length == 2 && data[0] == 0x01 && data[1] == 0x3E)
+    if (length == 2 && data[0] == 0x01 && data[1] == 0x3E)
     {
         // Diagbox or external tool sending keep-alives, stop sending ours
         sendKeepAlives = false;
     }
 
-    if (canId == CAN_RECV_ID && length == 1 && data[0] == 0x7E)
+    if (length == 1 && data[0] == 0x7E)
     {
         lastKeepAliveReceived = currentTime;
     }
 
-    if (canId == CAN_RECV_ID && waitForUnlock)
+    if (waitForUnlock)
     {
         if (length == 2 && data[0] == 0x50 && data[1] == UnlockService)
         {
             // open diag session success, send query seed command
-            _canTp->Send(UnlockCMD, 2);
+            Send(UnlockCMD, 2);
         }
         if (length == 6 && data[0] == 0x67 && data[1] == UnlockService)
         {
@@ -632,7 +588,7 @@ void PsaDiagLib::ProcessUnwrappedMessage(unsigned long currentTime, uint16_t can
             response.asUInt32_t = compute_response(UnlockKey, challenge.asUInt32_t);
 
             uint8_t data[] = { 0x27, static_cast<uint8_t>(UnlockService + 1), response.data.byte1, response.data.byte2, response.data.byte3, response.data.byte4};
-            _canTp->Send(data, 6);
+            Send(data, 6);
         }
     }
 }
@@ -663,4 +619,20 @@ void PsaDiagLib::PrintArrayToSerial(uint16_t sizeOfByteArray, uint8_t *byteArray
     }
     _serial->println();
     */
+}
+
+void PsaDiagLib::ReceiveFinished(unsigned long currentTime)
+{
+    // This function is called after a complete CAN-TP message has been received and reassembled
+    // You can add any additional processing here if needed
+
+    if (_rxMsg.len == 1 && _rxMsg.Buffer[0] == 0x7E)
+    {
+        lastKeepAliveReceived = currentTime;
+        printf("Received keep-alive response\n");
+    }
+
+    PrintArrayToSerial(_rxMsg.len, _rxMsg.Buffer);
+
+    //ProcessUnwrappedMessage(currentTime, _rxMsg.rx_id, _rxMsg.len, _rxMsg.Buffer);
 }
