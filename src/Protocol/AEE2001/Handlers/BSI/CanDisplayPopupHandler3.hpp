@@ -71,6 +71,13 @@ class CanDisplayPopupHandler3
         return message.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
     }
 
+    bool IsNoPopupMessage(CanDisplayPopupItem message)
+    {
+        return
+            message.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 &&
+            message.MessageType == CAN_POPUP_MSG_NONE;
+    }
+
     bool IsSamePopup(CanDisplayPopupItem a, CanDisplayPopupItem b)
     {
         return
@@ -163,8 +170,9 @@ class CanDisplayPopupHandler3
 
         const uint8_t incomingMessageType = incomingPopupMessage.MessageType;
         const bool isIncomingDoorMessage = IsDoorMessage(incomingPopupMessage);
+        const bool isNoPopupMessage = IsNoPopupMessage(incomingPopupMessage);
 
-        if (!isIncomingDoorMessage)
+        if (!isIncomingDoorMessage && !isNoPopupMessage)
         {
             if (currentTime - popupMessageTime[incomingMessageType] > MESSAGE_CHILLTIME)
             {
@@ -178,13 +186,16 @@ class CanDisplayPopupHandler3
             }
         }
 
-        if ((riskOfIceShown && incomingMessageType == CAN_POPUP_MSG_RISK_OF_ICE) ||
-            (seatbeltWarningShown && incomingMessageType == CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED) ||
-            (espActivatedShown && incomingMessageType == CAN_POPUP_MSG_ESP_ON_ON_CMB && !espDeActivatedShown) ||
-            (espDeActivatedShown && incomingMessageType == CAN_POPUP_MSG_ESP_SYSTEM_DEACTIVATED && !espActivatedShown)
-           )
+        if (!isNoPopupMessage)
         {
-            return;
+            if ((riskOfIceShown && incomingMessageType == CAN_POPUP_MSG_RISK_OF_ICE) ||
+                (seatbeltWarningShown && incomingMessageType == CAN_POPUP_MSG_FRONT_SEAT_BELTS_NOT_FASTENED) ||
+                (espActivatedShown && incomingMessageType == CAN_POPUP_MSG_ESP_ON_ON_CMB && !espDeActivatedShown) ||
+                (espDeActivatedShown && incomingMessageType == CAN_POPUP_MSG_ESP_SYSTEM_DEACTIVATED && !espActivatedShown)
+               )
+            {
+                return;
+            }
         }
 
         if (isIncomingDoorMessage)
@@ -218,22 +229,46 @@ class CanDisplayPopupHandler3
             return;
         }
 
+        if (isNoPopupMessage)
+        {
+            ShowDebugMessage("NoPopupMessageFrom524");
+
+            // If a non-door popup is active, or waiting, 524 explicitly says "no popup now".
+            // So clear pending non-door and transition away from current non-door popup.
+            ClearPendingPopup();
+
+            if (activePopupState == POPUP_STATE_NON_DOOR)
+            {
+                StartTransition(currentTime);
+                return;
+            }
+
+            // If we are already in transition, just let it complete toward fallback popup logic.
+            // If idle/door, nothing special needed here.
+            return;
+        }
+
         ShowDebugMessage("isNonDoorMessage");
 
-        // Ignore duplicate of currently visible non-door popup
+        // If same popup is already visible, refresh its lifetime and payload.
         if (activePopupState == POPUP_STATE_NON_DOOR)
         {
             if (IsSamePopup(incomingPopupMessage, currentPopupMessage))
             {
+                currentPopupMessage = incomingPopupMessage;
+                popupAddedToShow = currentTime;
+                ShowDebugMessage("RefreshCurrentNonDoorPopup");
                 return;
             }
         }
 
-        // Ignore duplicate of pending non-door popup
+        // If same popup is already pending, refresh its payload.
         if (hasPendingPopupMessage)
         {
             if (IsSamePopup(incomingPopupMessage, pendingPopupMessage))
             {
+                pendingPopupMessage = incomingPopupMessage;
+                ShowDebugMessage("RefreshPendingNonDoorPopup");
                 return;
             }
         }
@@ -261,12 +296,12 @@ class CanDisplayPopupHandler3
             return;
         }
 
-        // If another non-door popup is visible, keep the current one for full 6 seconds.
-        // Only store the newest pending non-door popup.
+        // If another non-door popup is visible, the newly asserted 524 popup becomes the next target immediately.
         if (activePopupState == POPUP_STATE_NON_DOOR)
         {
             QueuePendingPopup(incomingPopupMessage);
-            ShowDebugMessage("PendingNonDoorStored");
+            ShowDebugMessage("NonDoorToNonDoorTransition");
+            StartTransition(currentTime);
             return;
         }
     }
@@ -292,6 +327,8 @@ class CanDisplayPopupHandler3
 
         if (activePopupState == POPUP_STATE_NON_DOOR)
         {
+            // This timeout is now only a fallback safety net.
+            // The normal lifecycle is driven by repeated 524 popup refreshes or explicit NONE/FF.
             bool shouldHideByTimeOut =
                 (currentTime - popupAddedToShow) > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME
                 && (!(currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 &&
@@ -299,7 +336,7 @@ class CanDisplayPopupHandler3
 
             if (shouldHideByTimeOut)
             {
-                ShowDebugMessage("HideByTimeout");
+                ShowDebugMessage("HideByTimeoutFallback");
                 StartTransition(currentTime);
                 return;
             }
