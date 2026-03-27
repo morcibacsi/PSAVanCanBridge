@@ -49,7 +49,9 @@ class CanDisplayPopupHandler3
     bool isDoorMessageVisible = false;
     bool isNonDoorMessageVisible = false;
 
-    // pending is now used only for NON-DOOR messages
+    // Explicit pending slot is used only for NON-DOOR messages.
+    // Door messages use currentDoorMessage as the latest pending snapshot
+    // and are shown after transition when no non-door popup is active/pending.
     CanDisplayPopupItem pendingPopupMessage;
     bool hasPendingPopupMessage = false;
     unsigned long pendingPopupReadyTime = 0;
