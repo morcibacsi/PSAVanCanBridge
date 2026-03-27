@@ -22,6 +22,14 @@ class CanDisplayPopupHandler3
     const uint16_t POPUP_TRANSITION_PAUSE_TIME = 300; // just tested and compared to 120 and 1200 and this one worked in all cases during testing with EMF C 71.3
     // also need to add that during high load of BSI as for example during deep diagnostic checkup, there was a notice of 300 not being enough. but it still makes most sense
 
+    enum PopupState
+    {
+        POPUP_STATE_NONE,
+        POPUP_STATE_NON_DOOR,
+        POPUP_STATE_DOOR,
+        POPUP_STATE_TRANSITION
+    };
+
     CarState* _carState;
 
     bool riskOfIceShown = false;
@@ -41,9 +49,12 @@ class CanDisplayPopupHandler3
     bool isDoorMessageVisible = false;
     bool isNonDoorMessageVisible = false;
 
+    // pending is now used only for NON-DOOR messages
     CanDisplayPopupItem pendingPopupMessage;
     bool hasPendingPopupMessage = false;
     unsigned long pendingPopupReadyTime = 0;
+
+    PopupState activePopupState = POPUP_STATE_NONE;
 
     //void ShowDebugMessage(const String msg)
     void ShowDebugMessage(const char* msg)
@@ -53,47 +64,71 @@ class CanDisplayPopupHandler3
         //debug_println(msg);
     }
 
-    void QueuePendingPopup(unsigned long currentTime, CanDisplayPopupItem message)
+    bool IsDoorMessage(CanDisplayPopupItem message)
+    {
+        return message.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
+    }
+
+    bool IsSamePopup(CanDisplayPopupItem a, CanDisplayPopupItem b)
+    {
+        return
+            a.Category == b.Category &&
+            a.MessageType == b.MessageType;
+    }
+
+    void QueuePendingPopup(CanDisplayPopupItem message)
     {
         pendingPopupMessage = message;
         hasPendingPopupMessage = true;
+    }
+
+    void ClearPendingPopup()
+    {
+        hasPendingPopupMessage = false;
+    }
+
+    void StartTransition(unsigned long currentTime)
+    {
+        if (isPopupVisible)
+        {
+            HideCurrentPopupMessage(currentTime);
+        }
+
+        activePopupState = POPUP_STATE_TRANSITION;
         pendingPopupReadyTime = currentTime + POPUP_TRANSITION_PAUSE_TIME;
     }
 
-    void TryShowPendingPopup(unsigned long currentTime)
+    void StartNonDoorPopup(unsigned long currentTime, CanDisplayPopupItem message)
     {
-        if (!hasPendingPopupMessage)
-        {
-            return;
-        }
-
-        if (isPopupVisible)
-        {
-            return;
-        }
-
-        if (currentTime < pendingPopupReadyTime)
-        {
-            return;
-        }
-
-        if (pendingPopupMessage.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
-        {
-            if (pendingPopupMessage.DoorStatus1 != 0x00 && DoorMessageCanBeDisplayed())
-            {
-                ShowDebugMessage("ShowPendingDoorPopup");
-                ShowPopupMessage(pendingPopupMessage);
-            }
-
-            hasPendingPopupMessage = false;
-            return;
-        }
-
-        ShowDebugMessage("ShowPendingNonDoorPopup");
-        currentPopupMessage = pendingPopupMessage;
+        currentPopupMessage = message;
         popupAddedToShow = currentTime;
+        activePopupState = POPUP_STATE_NON_DOOR;
         ShowPopupMessage(currentPopupMessage);
-        hasPendingPopupMessage = false;
+    }
+
+    void StartDoorPopup()
+    {
+        activePopupState = POPUP_STATE_DOOR;
+        ShowPopupMessage(currentDoorMessage);
+    }
+
+    void FinishTransition(unsigned long currentTime)
+    {
+        if (hasPendingPopupMessage)
+        {
+            CanDisplayPopupItem message = pendingPopupMessage;
+            ClearPendingPopup();
+            StartNonDoorPopup(currentTime, message);
+            return;
+        }
+
+        if (currentDoorMessage.DoorStatus1 != 0x00)
+        {
+            StartDoorPopup();
+            return;
+        }
+
+        activePopupState = POPUP_STATE_NONE;
     }
 
     public:
@@ -125,11 +160,10 @@ class CanDisplayPopupHandler3
         ShowDebugMessage("Ignition is on");
 
         const uint8_t incomingMessageType = incomingPopupMessage.MessageType;
-        const bool isIncomingDoorMessage = incomingMessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN;
+        const bool isIncomingDoorMessage = IsDoorMessage(incomingPopupMessage);
 
         if (!isIncomingDoorMessage)
         {
-            ///*
             if (currentTime - popupMessageTime[incomingMessageType] > MESSAGE_CHILLTIME)
             {
                 ShowDebugMessage("Setting popupMessageTime");
@@ -140,7 +174,6 @@ class CanDisplayPopupHandler3
                 ShowDebugMessage("Refused because of chilltime");
                 return;
             }
-            //*/
         }
 
         if ((riskOfIceShown && incomingMessageType == CAN_POPUP_MSG_RISK_OF_ICE) ||
@@ -157,42 +190,82 @@ class CanDisplayPopupHandler3
             const uint8_t prevDoorStatus = currentDoorMessage.DoorStatus1;
             currentDoorMessage = incomingPopupMessage;
 
-            if (hasPendingPopupMessage &&
-                pendingPopupMessage.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
-            {
-                pendingPopupMessage = currentDoorMessage;
-            }
-
-            if (isDoorMessageVisible)
+            // Door popup is low priority fallback only.
+            // If it is already visible and the bitmask changed, transition and then show the new state.
+            if (activePopupState == POPUP_STATE_DOOR)
             {
                 if (incomingPopupMessage.DoorStatus1 != prevDoorStatus)
                 {
-                    ShowDebugMessage("HidePreviousDoorMessage");
-                    HideCurrentPopupMessage(currentTime);
-                    QueuePendingPopup(currentTime, currentDoorMessage);
+                    ShowDebugMessage("DoorStateChangedWhileVisible");
+                    StartTransition(currentTime);
                 }
+            }
+            else
+            {
+                // If idle and no pending non-door popup exists, prepare transition to show the door popup.
+                if (activePopupState == POPUP_STATE_NONE &&
+                    !hasPendingPopupMessage &&
+                    incomingPopupMessage.DoorStatus1 != 0x00 &&
+                    incomingPopupMessage.DoorStatus1 != prevDoorStatus)
+                {
+                    ShowDebugMessage("IdleToDoorTransition");
+                    StartTransition(currentTime);
+                }
+            }
+
+            return;
+        }
+
+        ShowDebugMessage("isNonDoorMessage");
+
+        // Ignore duplicate of currently visible non-door popup
+        if (activePopupState == POPUP_STATE_NON_DOOR)
+        {
+            if (IsSamePopup(incomingPopupMessage, currentPopupMessage))
+            {
+                return;
             }
         }
-        else
-        {
-            ShowDebugMessage("isNonDoorMessage");
-            if (incomingPopupMessage.Category != currentPopupMessage.Category ||
-                incomingPopupMessage.MessageType != currentPopupMessage.MessageType)
-            {
-                if (isPopupVisible)
-                {
-                    ShowDebugMessage("HidePreviousMessage");
-                    HideCurrentPopupMessage(currentTime);
-                    QueuePendingPopup(currentTime, incomingPopupMessage);
-                }
-                else
-                {
-                    currentPopupMessage = incomingPopupMessage;
-                    popupAddedToShow = currentTime;
-                }
 
-                ShowDebugMessage("Popup added");
+        // Ignore duplicate of pending non-door popup
+        if (hasPendingPopupMessage)
+        {
+            if (IsSamePopup(incomingPopupMessage, pendingPopupMessage))
+            {
+                return;
             }
+        }
+
+        if (activePopupState == POPUP_STATE_NONE)
+        {
+            StartNonDoorPopup(currentTime, incomingPopupMessage);
+            return;
+        }
+
+        // Door popup loses priority immediately to non-door popup.
+        if (activePopupState == POPUP_STATE_DOOR)
+        {
+            QueuePendingPopup(incomingPopupMessage);
+            ShowDebugMessage("DoorToNonDoorTransition");
+            StartTransition(currentTime);
+            return;
+        }
+
+        // If already in transition, just keep the newest pending non-door popup.
+        if (activePopupState == POPUP_STATE_TRANSITION)
+        {
+            QueuePendingPopup(incomingPopupMessage);
+            ShowDebugMessage("PendingNonDoorUpdatedDuringTransition");
+            return;
+        }
+
+        // If another non-door popup is visible, keep the current one for full 6 seconds.
+        // Only store the newest pending non-door popup.
+        if (activePopupState == POPUP_STATE_NON_DOOR)
+        {
+            QueuePendingPopup(incomingPopupMessage);
+            ShowDebugMessage("PendingNonDoorStored");
+            return;
         }
     }
 
@@ -203,66 +276,75 @@ class CanDisplayPopupHandler3
             return;
         }
 
-        TryShowPendingPopup(currentTime);
-
         ShowDebugMessage("Process");
-        if (DoorMessageCanBeDisplayed())
+
+        if (activePopupState == POPUP_STATE_TRANSITION)
         {
-            if (currentDoorMessage.DoorStatus1 != 0x00)
+            if (currentTime >= pendingPopupReadyTime)
             {
-                if (!isPopupVisible && !hasPendingPopupMessage)
-                {
-                    ShowDebugMessage("ShowCurrentDoorMessage1");
-                    ShowPopupMessage(currentDoorMessage);
-                }
+                ShowDebugMessage("TransitionComplete");
+                FinishTransition(currentTime);
             }
-            else
-            {
-                if (isDoorMessageVisible)
-                {
-                    ShowDebugMessage("HideDoorPopupBecauseDoorStatusIsZero");
-                    HideCurrentPopupMessage(currentTime);
-                }
-            }
+            return;
         }
-        else
+
+        if (activePopupState == POPUP_STATE_NON_DOOR)
         {
             bool shouldHideByTimeOut =
                 (currentTime - popupAddedToShow) > CAN_POPUP_MESSAGE_MAX_DISPLAY_TIME
-                && (!(currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 && currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE))
-                ;
+                && (!(currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 &&
+                      currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE));
+
             if (shouldHideByTimeOut)
             {
                 ShowDebugMessage("HideByTimeout");
-                HideCurrentPopupMessage(currentTime);
-
-                if (DoorMessageCanBeDisplayed())
-                {
-                    if (currentDoorMessage.DoorStatus1 != 0x00)
-                    {
-                        QueuePendingPopup(currentTime, currentDoorMessage);
-                    }
-                }
+                StartTransition(currentTime);
+                return;
             }
-            else
+
+            ShowDebugMessage("ShowCurrentPopupMessage");
+            ShowPopupMessage(currentPopupMessage);
+            return;
+        }
+
+        if (activePopupState == POPUP_STATE_DOOR)
+        {
+            // If a non-door popup arrived while door popup is shown, it has priority.
+            if (hasPendingPopupMessage)
             {
-                if (currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 && currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE)
-                {
-                    if (isPopupVisible)
-                    {
-                        ShowDebugMessage("HideByCategory");
-                        HideCurrentPopupMessage(currentTime);
-                    }
-                }
-                else
-                {
-                    if (!hasPendingPopupMessage)
-                    {
-                        isNonDoorMessageVisible = true;
-                        ShowDebugMessage("ShowCurrentPopupMessage");
-                        ShowPopupMessage(currentPopupMessage);
-                    }
-                }
+                ShowDebugMessage("DoorInterruptedByPendingNonDoor");
+                StartTransition(currentTime);
+                return;
+            }
+
+            // Door popup has no timeout. It stays until the bitmask becomes zero.
+            if (currentDoorMessage.DoorStatus1 == 0x00)
+            {
+                ShowDebugMessage("HideDoorPopupBecauseDoorStatusIsZero");
+                StartTransition(currentTime);
+                return;
+            }
+
+            ShowDebugMessage("ShowCurrentDoorMessage");
+            ShowPopupMessage(currentDoorMessage);
+            return;
+        }
+
+        if (activePopupState == POPUP_STATE_NONE)
+        {
+            if (hasPendingPopupMessage)
+            {
+                CanDisplayPopupItem message = pendingPopupMessage;
+                ClearPendingPopup();
+                StartNonDoorPopup(currentTime, message);
+                return;
+            }
+
+            if (currentDoorMessage.DoorStatus1 != 0x00)
+            {
+                ShowDebugMessage("IdleToDoorTransition");
+                StartTransition(currentTime);
+                return;
             }
         }
     }
@@ -286,7 +368,7 @@ class CanDisplayPopupHandler3
         _carState->DisplayMessage.data.Field7 = byte7;
         _carState->DisplayMessage.data.Field8 = byte8;
 
-        if (message.MessageType == CAN_POPUP_MSG_DOORS_BOOT_BONNET_REAR_SCREEN_AND_FUEL_TANK_OPEN)
+        if (IsDoorMessage(message))
         {
             isDoorMessageVisible = true;
             isNonDoorMessageVisible = false;
@@ -321,6 +403,8 @@ class CanDisplayPopupHandler3
 
     void HideCurrentPopupMessage(unsigned long currentTime)
     {
+        (void)currentTime;
+
         if (isPopupVisible)
         {
             CanDisplayByte2Struct byte3{};
@@ -330,7 +414,7 @@ class CanDisplayPopupHandler3
             byte3.data.priority = 1;
 
             uint8_t popupTypeToHide = currentPopupMessage.MessageType;
-            if (isDoorMessageVisible)
+            if (activePopupState == POPUP_STATE_DOOR || isDoorMessageVisible)
             {
                 popupTypeToHide = currentDoorMessage.MessageType;
             }
@@ -365,6 +449,7 @@ class CanDisplayPopupHandler3
         }
         ResetSeatBeltWarning(currentTime);
         ResetEspActivatedShown(currentTime);
+
         currentPopupMessage.MessageType = CAN_POPUP_MSG_NONE;
         currentPopupMessage.Category = CAN_POPUP_MSG_SHOW_CATEGORY3;
 
@@ -372,8 +457,9 @@ class CanDisplayPopupHandler3
         currentDoorMessage.Category = CAN_POPUP_MSG_SHOW_CATEGORY1;
         currentDoorMessage.DoorStatus1 = 0x00;
 
-        hasPendingPopupMessage = false;
+        ClearPendingPopup();
         pendingPopupReadyTime = 0;
+        activePopupState = POPUP_STATE_NONE;
 
         for (size_t i = 0; i < 256; i++)
         {
@@ -394,12 +480,14 @@ class CanDisplayPopupHandler3
 
     void ResetEspActivatedShown(unsigned long currentTime)
     {
+        (void)currentTime;
         espActivatedShown = true;
         espDeActivatedShown = false;
     }
 
     void SetEngineRunning(bool isRunning)
     {
+        (void)isRunning;
     }
 
     void SetIgnition(unsigned long currentTime, bool isOn)
@@ -416,9 +504,9 @@ class CanDisplayPopupHandler3
     bool DoorMessageCanBeDisplayed()
     {
         return
-            !isNonDoorMessageVisible ||
-            (currentPopupMessage.Category == CAN_POPUP_MSG_SHOW_CATEGORY3 &&
-            currentPopupMessage.MessageType == CAN_POPUP_MSG_NONE);
+            activePopupState == POPUP_STATE_NONE &&
+            !hasPendingPopupMessage &&
+            currentDoorMessage.DoorStatus1 != 0x00;
     }
 };
 
