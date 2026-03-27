@@ -82,7 +82,10 @@ class CanDisplayPopupHandler3
     {
         return
             a.Category == b.Category &&
-            a.MessageType == b.MessageType;
+            a.MessageType == b.MessageType &&
+            a.DoorStatus1 == b.DoorStatus1 &&
+            a.DoorStatus2 == b.DoorStatus2 &&
+            a.KmToDisplay == b.KmToDisplay;
     }
 
     void QueuePendingPopup(CanDisplayPopupItem message)
