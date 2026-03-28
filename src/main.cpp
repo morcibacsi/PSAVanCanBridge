@@ -30,6 +30,7 @@
 #include "Protocol/AEE2010/AEE2010ComfortBus.hpp"
 
 #include "Protocol/Diagnostics/DiagnosticsContainer.hpp"
+#include "Protocol/WebSocketSerial.hpp"
 
 #include "RgbLed.hpp"
 #include "Helpers/TimeProvider.hpp"
@@ -40,6 +41,7 @@
 #include "Helpers/CrcStore.hpp"
 #include "Helpers/CpuConfig.h"
 #include "Helpers/WebServer/WebServer.hpp"
+#include "Helpers/PSADiag/PsaDiagLib.h"
 
 IVanMessageSender* sourceVanMessageSender = nullptr;
 ICanMessageSender* sourceCanMessageSender = nullptr;
@@ -51,6 +53,8 @@ ITransportLayer* destinationTransportLayer = nullptr;
 IProtocolHandler* sourceProtocolHandler = nullptr;
 IProtocolHandler* destinationProtocolHandler = nullptr;
 IProtocolHandler* diagnosticsContainer = nullptr;
+
+PsaDiagLib* psaDiagLib = nullptr;
 
 CarState* carState = nullptr;
 CrcStore* crcStore = nullptr;
@@ -66,6 +70,7 @@ TaskHandle_t SendToDestinationTask = nullptr;
 RgbLed* led = nullptr;
 TimeProvider* timeProvider = nullptr;
 WebServer* webServer = nullptr;
+WebSocketSerial* webSocketSerial = nullptr;
 
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
@@ -89,18 +94,6 @@ bool automaticallyStoreNewIds = false;
 uint64_t IRAM_ATTR millis() {
     return (uint64_t)(esp_timer_get_time() / 1000ULL);
 }
-/*
-void bleEvent(string msg, size_t select)
-{
-    switch (select)
-    {
-        case FROM_BLE:
-            //cout << "BLE Income : " << msg << endl;
-            printf("BLE Income : %s\n", msg.c_str());
-            break;
-    }
-}
-*/
 
 void SendImmediateSignalToDestination(ImmediateSignal signal) {
     if (destinationProtocolHandler != nullptr)
@@ -180,9 +173,11 @@ void ReadDestinationFunction(void * parameter)
 {
     BusMessage message{};
     bool processMessage = true;
+    uint64_t currentTime = 0;
 
     do
     {
+        currentTime = millis();
         if (destinationProtocolHandler->ReceiveMessage(message))
         {
             if (message.id == 0)
@@ -204,10 +199,18 @@ void ReadDestinationFunction(void * parameter)
                 destinationProtocolHandler->ParseMessage(message);
             }
 
-            processMessage = diagnosticsContainer->CanParseMessage(message);
-            if (processMessage)
+            if (carState->DiagConnected == false)
             {
-                diagnosticsContainer->ParseMessage(message);
+                processMessage = diagnosticsContainer->CanParseMessage(message);
+                if (processMessage)
+                {
+                    diagnosticsContainer->ParseMessage(message);
+                }
+            }
+            else
+            {
+                psaDiagLib->ProcessIncomingMessage(currentTime, message.id, message.dataLength, message.data);
+                psaDiagLib->Loop(currentTime);
             }
             taskYIELD();
         }
@@ -269,8 +272,9 @@ extern "C" void app_main(void)
     timeProvider->Start();
 
     printf("Create webserver\n");
-    webServer = new WebServer(carState, configFile, timeProvider, SendImmediateSignalToDestination);
-    webServer->StartWebServer();
+    webSocketSerial = new WebSocketSerial(carState);
+    webServer = new WebServer(carState, configFile, timeProvider, webSocketSerial, SendImmediateSignalToDestination);
+    webServer->CreateWebServer();
     printf("Webserver created\n");
 
     //if (carState->SOURCE_PROTOCOL == carState->DESTINATION_PROTOCOL)
@@ -371,6 +375,9 @@ extern "C" void app_main(void)
         printf("Error: sourceProtocolHandler or destinationProtocolHandler is null\n");
         return;
     }
+
+    psaDiagLib = new PsaDiagLib(destinationTransportLayer, webSocketSerial);
+    webServer->SetPsaDiagLib(psaDiagLib);
 
     diagnosticsContainer = new DiagnosticsContainer(
         carState,

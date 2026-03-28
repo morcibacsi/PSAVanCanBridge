@@ -18,7 +18,7 @@
 
 struct CarState
 {
-    char* Version = (char*)"v3.4.1";
+    char* Version = (char*)"v3.5.0";
     uint64_t CurrenTime = 0;
 
     uint8_t Ignition = 0;
@@ -189,6 +189,8 @@ struct CarState
 
     //361 AEE2010
     AvailableOptionsStruct_2010 AvailableOptions{};
+
+    bool DiagConnected = false;
 
     // config
     bool SAVE_CONFIG = true;

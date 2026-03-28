@@ -13,7 +13,7 @@ void TpMessageHandler_760::InternalProcess()
     */
 }
 
-void TpMessageHandler_760::ReceiveFinished()
+void TpMessageHandler_760::ReceiveFinished(unsigned long currentTime)
 {
     // Entered diag mode
     if (_rxMsg.Buffer[0] == 0x50 && _rxMsg.Buffer[1] == 0xC0)
