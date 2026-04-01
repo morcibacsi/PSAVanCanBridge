@@ -44,6 +44,7 @@ class MessageHandler_036_2010 : public IMessageHandler<MessageHandler_036_2010>
 
             CAN_036_2010_Byte5Struct byte5{};
             byte5.data.ignition_mode = 1;
+            byte5.data.network_supervision_enabled = carState->DiagConnected;
 
             if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
             {
