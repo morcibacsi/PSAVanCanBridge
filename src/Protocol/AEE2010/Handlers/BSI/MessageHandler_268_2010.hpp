@@ -27,10 +27,12 @@ class MessageHandler_268_2010 : public IMessageHandler<MessageHandler_268_2010>
 
         BusMessage Generate(CarState* carState)
         {
+            float threshold = carState->SpeedLimitFromNacInKmh * (1.0f + carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT / 100.0f);
+
             CAN_268_2010_Byte2Struct byte2{};
             byte2.data.roadsign_type              = 0;
             byte2.data.speed_info_high_confidence = 1;
-            byte2.data.overspeed                  = carState->OdometerStates.data.SpeedDisplayedOnCmb > carState->SpeedLimitFromNacInKmh ? 1 : 0;
+            byte2.data.overspeed                  = carState->OdometerStates.data.SpeedDisplayedOnCmb > threshold ? 1 : 0;
 
             message.data[0] = carState->SpeedLimitFromNacInKmh;
             message.data[1] = byte2.asByte;

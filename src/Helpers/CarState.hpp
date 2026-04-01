@@ -243,6 +243,7 @@ struct CarState
     // 4: RD3
     // 5: RTx
     uint8_t RADIO_TYPE = 1;
+uint8_t SPEED_SIGN_SPEED_TOLERANCE_PERCENT = 0;
 
 #if BOARD_PROTOCOL_TYPES == 1
     #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2001) }
