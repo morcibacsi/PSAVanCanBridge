@@ -1,8 +1,14 @@
 #include "WebServer.hpp"
+#include "esp_ota_ops.h"
+#include "esp_image_format.h"
 
 static bool webServerCanBeStarted = false;
 static const char* STA_WIFI_SSID = "ssid";
 static const char* STA_WIFI_PASSWORD = "password";
+
+#ifndef MIN
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 // Initialize NVS and Wi-Fi
 void WebServer::CreateWebServer()
@@ -137,6 +143,7 @@ void WebServer::RegisterEndpoints()
     RegisterHandler("/api/config.json", HTTP_GET, &WebServer::get_config_handler, false);
     RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler, false);
     RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler, false);
+    RegisterHandler("/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false);
 }
 
 void WebServer::UnRegisterEndpoints()
@@ -150,6 +157,7 @@ void WebServer::UnRegisterEndpoints()
     httpd_unregister_uri_handler(server, "/api/config.json", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
     httpd_unregister_uri_handler(server, "/api/time", HTTP_POST);
+    httpd_unregister_uri_handler(server, "/api/update", HTTP_POST);
     httpd_unregister_uri_handler(server, "/ws", HTTP_GET);
 }
 
@@ -438,6 +446,94 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "Time saved");
     httpd_resp_set_type(req, "application/json");
 
+    return ESP_OK;
+}
+
+esp_err_t WebServer::post_ota_update_handler(httpd_req_t *req)
+{
+    auto *instance = static_cast<WebServer *>(req->user_ctx);
+    instance->_lastRequestTime = instance->_carState->CurrenTime;
+
+    esp_ota_handle_t update_handle = 0;
+    const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
+
+    if (update_partition == NULL) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No OTA partition found");
+        return ESP_FAIL;
+    }
+
+    int remaining = req->content_len;
+    char *buf = (char*)malloc(1024);
+    if (!buf) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+        return ESP_FAIL;
+    }
+
+    bool is_first_chunk = true;
+    bool ota_begun = false;
+
+    while (remaining > 0)
+    {
+        int recv_len = httpd_req_recv(req, buf, MIN(remaining, 1024));
+        if (recv_len <= 0) {
+            if (recv_len == HTTPD_SOCK_ERR_TIMEOUT)
+                continue;
+            if (ota_begun)
+                esp_ota_abort(update_handle);
+            free(buf);
+            return ESP_FAIL;
+        }
+
+        if (is_first_chunk)
+        {
+            uint16_t expected_chip_id;
+            #if CONFIG_IDF_TARGET_ESP32C6
+                expected_chip_id = ESP_CHIP_ID_ESP32C6;
+            #elif CONFIG_IDF_TARGET_ESP32
+                expected_chip_id = ESP_CHIP_ID_ESP32;
+            #elif CONFIG_IDF_TARGET_ESP32C3
+                expected_chip_id = ESP_CHIP_ID_ESP32C3;
+            #endif
+
+            esp_image_header_t *header = (esp_image_header_t *)buf;
+
+            if (header->magic != ESP_IMAGE_HEADER_MAGIC || header->chip_id != expected_chip_id)
+            {
+                printf("Validation failed! Magic: %02X, Chip ID: %d\n", header->magic, header->chip_id);
+                httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid firmware architecture");
+                free(buf);
+                // We return ESP_OK here to tell the server the handler is done,
+                // but the 400 error was already sent.
+                return ESP_OK;
+            }
+
+            // ONLY start OTA after we are sure the header is correct
+            esp_err_t err = esp_ota_begin(update_partition, OTA_WITH_SEQUENTIAL_WRITES, &update_handle);
+            if (err != ESP_OK)
+            {
+                httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA begin failed");
+                free(buf);
+                return ESP_FAIL;
+            }
+            ota_begun = true;
+            is_first_chunk = false;
+        }
+
+        esp_ota_write(update_handle, (const void *)buf, recv_len);
+        remaining -= recv_len;
+    }
+
+    free(buf);
+
+    if (esp_ota_end(update_handle) != ESP_OK || esp_ota_set_boot_partition(update_partition) != ESP_OK)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA Finalization failed");
+        return ESP_FAIL;
+    }
+
+    httpd_resp_sendstr(req, "Update successful, rebooting...");
+    vTaskDelay(pdMS_TO_TICKS(2000));
+    esp_restart();
     return ESP_OK;
 }
 

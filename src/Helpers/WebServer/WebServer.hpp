@@ -21,7 +21,7 @@ class WebServer {
   private:
 
     static constexpr int WIFI_INITIAL_TIMEOUT = 120;
-    static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 7;
+    static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 30;
     static constexpr bool startInApMode = true;
 
     CarState* _carState = nullptr;
@@ -74,6 +74,7 @@ class WebServer {
     static esp_err_t get_config_handler(httpd_req_t *req);
     static esp_err_t post_config_handler(httpd_req_t *req);
     static esp_err_t post_time_handler(httpd_req_t *req);
+    static esp_err_t post_ota_update_handler(httpd_req_t *req);
     static esp_err_t ws_handler(httpd_req_t *req);
     static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
     static void ip_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
