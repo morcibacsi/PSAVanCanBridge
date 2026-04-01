@@ -62,6 +62,15 @@ union CAN_036_2010_Byte5Struct{
     uint8_t asByte;
 };
 
+union CAN_036_2010_Byte7Struct{
+    struct {
+        uint8_t unused1               : 3; // bit 0-2
+        uint8_t activate_rear_camera  : 1; // bit 3
+        uint8_t unused2               : 4; // bit 4-7
+    } data;
+    uint8_t asByte;
+};
+
 // Read left to right in documentation
 struct CAN_036_2010_Struct {
     CAN_036_2010_Byte1Struct Byte1;
@@ -70,7 +79,7 @@ struct CAN_036_2010_Struct {
     CAN_036_2010_Byte4Struct Brightness;
     CAN_036_2010_Byte5Struct Ignition;
     uint8_t HybridMode;
-    uint8_t Reserved7;
+    CAN_036_2010_Byte7Struct RearCamera;
     uint8_t Unused8;
 };
 

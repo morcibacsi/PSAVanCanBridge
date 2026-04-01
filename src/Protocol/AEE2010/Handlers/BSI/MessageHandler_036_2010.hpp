@@ -51,13 +51,20 @@ class MessageHandler_036_2010 : public IMessageHandler<MessageHandler_036_2010>
                 byte5.data.ignition_mode = carState->IgnitionMode;
             }
 
+            CAN_036_2010_Byte7Struct rearCamField{};
+
+            if (carState->ENABLE_REVERSE_CAMERA_ON_RTX)
+            {
+                rearCamField.data.activate_rear_camera = carState->IsReverseEngaged;
+            }
+
             message.data[0] = byte1.asByte;
             message.data[1] = 0x00;
             message.data[2] = byte3.asByte;
             message.data[3] = byte4.asByte;
             message.data[4] = byte5.asByte;
             message.data[5] = 0x00;
-            message.data[6] = 0x00;
+            message.data[6] = rearCamField.asByte;
             message.data[7] = 0xA0;
 
             return message;
