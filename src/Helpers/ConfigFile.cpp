@@ -71,7 +71,7 @@ bool ConfigFile::Read()
             _carState->AMBIENCE_LEVEL = getJsonInt(aee2010, "AMBIENCE_LEVEL", 6);
             _carState->SOUND_HARMONY = getJsonInt(aee2010, "SOUND_HARMONY", 0);
             _carState->TIME_FORMAT_24H = getJsonInt(aee2010, "TIME_FORMAT_24H", 1);
-            _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC = getJsonInt(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", 1);
+            _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC = getJsonBool(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", false);
             _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT = getJsonInt(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", 0);
         }
 
@@ -258,13 +258,13 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
 
     cJSON *aee2010;
     cJSON_AddItemToObject(root, "AEE2010", aee2010=cJSON_CreateObject());
-    cJSON_AddNumberToObject(aee2010, "CONSUMPTION_UNIT", 0);
-    cJSON_AddNumberToObject(aee2010, "DISTANCE_UNIT", 0);
-    cJSON_AddNumberToObject(aee2010, "LANGUAGE", 0b00001);
-    cJSON_AddNumberToObject(aee2010, "VOLUME_UNIT", 0);
-    cJSON_AddNumberToObject(aee2010, "TEMPERATURE_UNIT", 0);
-    cJSON_AddNumberToObject(aee2010, "AMBIENCE_LEVEL", 0b110);
-    cJSON_AddNumberToObject(aee2010, "SOUND_HARMONY", 0b00);
+    cJSON_AddNumberToObject(aee2010, "CONSUMPTION_UNIT", _carState->CONSUMPTION_UNIT);
+    cJSON_AddNumberToObject(aee2010, "DISTANCE_UNIT", _carState->DISTANCE_UNIT);
+    cJSON_AddNumberToObject(aee2010, "LANGUAGE", _carState->LANGUAGE);
+    cJSON_AddNumberToObject(aee2010, "VOLUME_UNIT", _carState->VOLUME_UNIT);
+    cJSON_AddNumberToObject(aee2010, "TEMPERATURE_UNIT", _carState->TEMPERATURE_UNIT);
+    cJSON_AddNumberToObject(aee2010, "AMBIENCE_LEVEL", _carState->AMBIENCE_LEVEL);
+    cJSON_AddNumberToObject(aee2010, "SOUND_HARMONY", _carState->SOUND_HARMONY);
     cJSON_AddNumberToObject(aee2010, "TIME_FORMAT_24H", _carState->TIME_FORMAT_24H);
     cJSON_AddNumberToObject(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT);
     cJSON_AddBoolToObject(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC);
