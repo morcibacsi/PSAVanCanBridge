@@ -53,6 +53,12 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
             field3.data.list_plus     = carState->RadioRemote.data.list_plus;
             field3.data.source        = carState->RadioRemote.data.source;
 
+            if (carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC)
+            {
+                field1.data.mode_phone = field3.data.source;
+                field3.data.source = 0;
+            }
+
             message.data[0] = field1.asByte;
             message.data[1] = carState->RadioRemote.data.scroll_position;
             message.data[2] = field3.asByte;

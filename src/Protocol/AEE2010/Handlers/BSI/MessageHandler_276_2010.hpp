@@ -43,13 +43,17 @@ class MessageHandler_276_2010 : public IMessageHandler<MessageHandler_276_2010>
             CAN_276_2010_Byte5Struct byte5{};
             byte5.data.minute = carState->Minute;
 
+            CAN_276_2010_BytesStruct urea_info{};
+            urea_info.setUrea(carState->UreaRemaining.asUint16);
+            urea_info.field.request_display = carState->ShowUreaRemaining;
+
             message.data[0] = byte1.asByte;
             message.data[1] = byte2.asByte;
             message.data[2] = byte3.asByte;
             message.data[3] = byte4.asByte;
             message.data[4] = byte5.asByte;
-            message.data[5] = 0x00;
-            message.data[6] = 0x00;
+            message.data[5] = urea_info.asBytes[0];
+            message.data[6] = urea_info.asBytes[1];
             message.data[7] = 0x00;
 
             return message;

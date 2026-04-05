@@ -53,6 +53,47 @@ union CAN_276_2010_Byte5Struct{
     uint8_t asByte;
 };
 
+union CAN_276_2010_BytesStruct {
+    struct {
+        // BYTE 1: bits 1.0 to 1.7
+        // "urea_remaining" takes bits 1.0 through 1.7 (8 bits)
+        uint8_t urea_low        : 8;
+
+        // BYTE 2: bits 2.0 to 2.7
+        // "urea_remaining" takes bits 2.0 through 2.5 (6 bits)
+        // "unused" is at 2.6
+        // "request_urea_display" is at 2.7
+        uint8_t urea_high       : 6; // bits 2.0 - 2.5
+        uint8_t unused          : 1; // bit 2.6
+        uint8_t request_display : 1; // bit 2.7
+    } field;
+
+    uint8_t  asBytes[2];
+    uint16_t asWord;
+
+    // Helper method to get the full 14-bit urea value
+    uint16_t getUrea() const {
+        return (field.urea_high << 8) | field.urea_low;
+    }
+
+    // Helper method to set the full 14-bit urea value
+    void setUrea(uint16_t value) {
+        field.urea_low = value & 0xFF;
+        field.urea_high = (value >> 8) & 0x3F;
+    }
+};
+
+
+union CAN_276_2010_Byte6Struct{
+    struct
+    {
+        uint8_t urea_remaining_2     : 6; // bit 0-5
+        uint8_t unused               : 1; // bit 6
+        uint8_t request_urea_display : 1; // bit 7
+    } data;
+    uint8_t asByte;
+};
+
 
 // Read left to right in documentation
 struct CAN_276_2010_Struct {

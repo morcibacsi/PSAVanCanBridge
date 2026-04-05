@@ -50,7 +50,7 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
 
             CanIgnitionByte7Struct rearCamField{};
 
-            if (carState->RADIO_TYPE == 5 && carState->ENABLE_REVERSE_CAMERA_ON_RTX)
+            if (carState->ENABLE_REVERSE_CAMERA_ON_RTX)
             {
                 rearCamField.data.activate_rear_camera = carState->IsReverseEngaged;
             }

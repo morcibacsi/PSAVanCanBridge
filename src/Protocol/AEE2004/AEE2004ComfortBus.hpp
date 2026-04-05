@@ -30,6 +30,7 @@
 #include "Handlers/BSI/MessageHandler_126_2004.hpp"
 #include "Handlers/BSI/MessageHandler_127_2004.hpp"
 #include "Handlers/BSI/MessageHandler_128_2004.hpp"
+#include "Handlers/BSI/MessageHandler_136_2004.hpp"
 #include "Handlers/BSI/MessageHandler_161_2004.hpp"
 #include "Handlers/BSI/MessageHandler_168_2004.hpp"
 #include "Handlers/BSI/MessageHandler_220_2004.hpp"
@@ -90,6 +91,7 @@ class AEE2004ComfortBus : public IProtocolHandler
         MessageHandler_126,
         MessageHandler_127,
         MessageHandler_128,
+        MessageHandler_136,
         MessageHandler_161,
         MessageHandler_168,
         MessageHandler_217,

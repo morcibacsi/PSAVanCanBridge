@@ -94,7 +94,7 @@ struct CarState
     //2 - Totals
     //4 - Cumulative
     //7 - Trip not managed by EMF
-    uint8_t CurrentEmfMode = 0;
+    uint8_t CurrentEmfMode = 7;
     uint8_t ResetTotals = 0;
     uint8_t ResetCumulative = 0;
 
@@ -190,6 +190,10 @@ struct CarState
     //361 AEE2010
     AvailableOptionsStruct_2010 AvailableOptions{};
 
+    //136 AEE2004
+    UInt16 UreaRemaining = 0x3FFF;
+    uint8_t ShowUreaRemaining = 0;
+
     bool DiagConnected = false;
 
     // config
@@ -243,6 +247,7 @@ struct CarState
     // 4: RD3
     // 5: RTx
     uint8_t RADIO_TYPE = 1;
+uint8_t SPEED_SIGN_SPEED_TOLERANCE_PERCENT = 0;
 
 #if BOARD_PROTOCOL_TYPES == 1
     #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2001) }

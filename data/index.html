@@ -143,6 +143,13 @@
             margin-top: 10px;
         }
 
+        button:disabled {
+            background-color: #cccccc;   /* gray background */
+            color: #666666;              /* muted text */
+            cursor: not-allowed;         /* clear “disabled” cursor */
+            opacity: 0.7;                /* slightly faded */
+        }
+
         button:hover {
             background-color: #0056b3;
         }
@@ -582,6 +589,12 @@
                     "tip": ""
                 }
             },
+            "SPEED_SIGN_SPEED_TOLERANCE_PERCENT": {
+                en: {
+                    label: "E4. Speed sign speed tolerance in percent",
+                    tip: "When the car is speeding, we only blink the speed sign when the car is speeding more than the set percentage above the speed limit."
+                }
+            },
             "DELETE_BTN": {
                 "en": {
                     "label": "Delete config",
@@ -837,12 +850,18 @@ Continue?
             }, 300);
         }
 
-        function showCustomConfirm(message) {
+        function showCustomConfirm(message, showCancel = true) {
             return new Promise(resolve => {
             const modal = document.getElementById('customConfirm');
             const msg = document.getElementById('customConfirmMessage');
             const ok = document.getElementById('confirmOk');
             const cancel = document.getElementById('confirmCancel');
+
+            if (!showCancel) {
+                cancel.style.display = 'none';
+            } else {
+                cancel.style.display = 'inline-block';
+            }
 
             msg.textContent = message;
             modal.style.display = 'flex';
@@ -916,24 +935,72 @@ Continue?
                     body: JSON.stringify(updatedData),
                 });
                 if (!response.ok) throw new Error(`Failed to save config: ${response.statusText}`);
-                alert('Configuration saved successfully!');
+                await showCustomConfirm('Configuration saved successfully!', false);
             } catch (error) {
                 console.error('Error saving config:', error);
-                alert('Failed to save configuration. Please try again later.');
+                await showCustomConfirm('Failed to save configuration. Please try again later.', false);
+            }
+        }
+
+        async function uploadFirmware() {
+            const fileInput = document.getElementById('otaFile');
+            const status = document.getElementById('otaStatus');
+
+            if (fileInput.files.length === 0) {
+                await showCustomConfirm("Please select a .bin file first.", false);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const confirmed = await showCustomConfirm(`Are you sure you want to update the firmware with ${file.name}? \n\nThe device will reboot automatically.`);
+
+            if (!confirmed)
+                return;
+
+            status.textContent = "Uploading... please wait.";
+            status.style.color = "#007BFF";
+
+            try {
+                // Disable buttons to prevent double-clicks during reboot
+                document.getElementById('updateBtn').disabled = true;
+
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                    },
+                    body: file // This sends the raw binary data
+                });
+
+                if (response.ok) {
+                    status.textContent = "Upload successful! Rebooting...";
+                    status.style.color = "green";
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Upload failed");
+                }
+            }
+            catch (error) {
+                console.error('OTA Error:', error);
+                status.textContent = "Error: " + error.message;
+                status.style.color = "red";
+            }
+            finally
+            {
+                document.getElementById('updateBtn').disabled = false;
             }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            setInterval(async () =>
-                {
-                    const response = await fetch(apiEndpoint + "time", { method: 'GET' })
-                    if (!response.ok) {
-                        console.error('Error getting time:', response.statusText);
-                    }
-                    else {
+            async function updateTime() {
+                try {
+                    const response = await fetch(apiEndpoint + "time", { method: 'GET' });
+
+                    if (response.ok) {
                         const responeJson = await response.json();
                         const datetimeOutput = document.getElementById('rtc-time-value');
                         const fwVersionOutput = document.getElementById('firmware-version-value');
+
                         if (datetimeOutput) {
                             datetimeOutput.textContent = responeJson.year + "-" +
                                 String(responeJson.month).padStart(2, '0') + "-" +
@@ -945,9 +1012,19 @@ Continue?
                         if (fwVersionOutput) {
                             fwVersionOutput.textContent = responeJson.firmware_version;
                         }
+                    } else {
+                        console.error('Error getting time:', response.statusText);
                     }
-                }, 1000
-            );
+                } catch (error) {
+                    console.error('Fetch failed:', error);
+                } finally {
+                    // Schedule the next call only after this one is fully done.
+                    // This prevents multiple pending requests.
+                    setTimeout(updateTime, 1000);
+                }
+            }
+
+            updateTime();
 
             const formContainer = document.getElementById('form-elements');
 
@@ -969,7 +1046,7 @@ Continue?
                     populateForm(jsonData);
                 } catch (error) {
                     console.error('Error fetching config:', error);
-                    alert('Failed to load configuration. Please try again later.');
+                    await showCustomConfirm('Failed to load configuration. Please try again later.', false);
                 }
             }
 
@@ -1241,6 +1318,11 @@ Continue?
                 saveConfigToDevice();
             });
 
+            const updateBtn = document.getElementById('updateBtn');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', uploadFirmware);
+            }
+
             fetchConfig();
         });
     </script>
@@ -1305,6 +1387,13 @@ Continue?
             <button type="button" id="reboot">Reboot</button>
             <button type="button" id="getVin">Get VIN</button>
         </form>
+        <h3>OTA Update</h3>
+        <div class="form-group">
+            <label for="otaFile">Select firmware (.bin)</label>
+            <input type="file" id="otaFile" accept=".bin">
+            <button type="button" id="updateBtn">Update firmware</button>
+            <p id="otaStatus" style="font-size: 0.8rem; margin-top: 5px; color: #666;"></p>
+        </div>
         <div>
             <p id="rtc-time">RTC time: <span id="rtc-time-value"></span></p>
             <p>Firmware version: <span id="firmware-version-value">v3.0.1</span></p>
