@@ -190,6 +190,10 @@ struct CarState
     //361 AEE2010
     AvailableOptionsStruct_2010 AvailableOptions{};
 
+    //136 AEE2004
+    UInt16 UreaRemaining = 0x3FFF;
+    uint8_t ShowUreaRemaining = 0;
+
     bool DiagConnected = false;
 
     // config
