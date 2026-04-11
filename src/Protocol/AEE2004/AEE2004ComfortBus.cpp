@@ -207,6 +207,11 @@ void AEE2004ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
             SendImmediateMessage(0x15B);
             break;
         }
+        case ImmediateSignal::PopupMessage:
+        {
+            SendImmediateMessage(0x1A1);
+            break;
+        }
         default:
             break;
     }

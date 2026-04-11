@@ -40,6 +40,7 @@ void AEE2001ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
 
     std::get<MessageHandler_9C4>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 
+    _canPopupHandler->SetImmediateSignalCallback(_immediateSignalCallback);
     std::get<MessageHandler_524>(handlers).SetCanDisplayPopupHandler(_canPopupHandler);
 
     std::get<MessageHandler_564>(handlers).SetCanDisplayPopupHandler(_canPopupHandler);

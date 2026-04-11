@@ -9,6 +9,7 @@
 #include "CanDisplayPopupItem.h"
 
 #include "../../../../Helpers/CarState.hpp"
+#include "../../../ImmediateSignal.hpp"
 
 class CanDisplayPopupHandler3
 {
@@ -39,6 +40,8 @@ class CanDisplayPopupHandler3
     bool isDoorMessageVisible = false;
     bool isNonDoorMessageVisible = false;
 
+    ImmediateSignalCallback _immediateSignalCallback = nullptr;
+
     //void ShowDebugMessage(const String msg)
     void ShowDebugMessage(const char* msg)
     {
@@ -48,6 +51,8 @@ class CanDisplayPopupHandler3
     }
 
     public:
+    void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+
     CanDisplayPopupHandler3(CarState* carState)
     {
         _carState = carState;
@@ -207,14 +212,14 @@ class CanDisplayPopupHandler3
         byte3.data.show_popup_on_emf = 1;
         byte3.data.show_popup_on_cmb = 1;
         byte3.data.show_popup_on_vth = 1;
-        byte3.data.priority = 1;
+        byte3.data.priority = 0b0110;
 
         _carState->DisplayMessage.data.Field1 = message.Category;
         _carState->DisplayMessage.data.Field2 = message.MessageType;
         _carState->DisplayMessage.data.Field3 = byte3.asByte;
         _carState->DisplayMessage.data.Field4 = message.DoorStatus1;
         _carState->DisplayMessage.data.Field5 = message.DoorStatus2;
-        _carState->DisplayMessage.data.Field6 = 0xFF;
+        _carState->DisplayMessage.data.Field6 = 0x00;
         _carState->DisplayMessage.data.Field7 = byte7;
         _carState->DisplayMessage.data.Field8 = byte8;
 
@@ -273,6 +278,11 @@ class CanDisplayPopupHandler3
             isPopupVisible = false;
             isNonDoorMessageVisible = false;
             isDoorMessageVisible = false;
+
+            if (_immediateSignalCallback != nullptr)
+            {
+                _immediateSignalCallback(ImmediateSignal::PopupMessage);
+            }
         }
     }
 
