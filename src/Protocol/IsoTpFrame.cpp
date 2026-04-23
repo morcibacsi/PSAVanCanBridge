@@ -18,6 +18,8 @@ IsoTpFrame::IsoTpFrame(ITransportLayer *canInterface, uint16_t txId, uint16_t rx
 
     _txMsg.Buffer = (uint8_t *)calloc(MAX_MSGBUF, sizeof(uint8_t));
     _rxMsg.Buffer = (uint8_t *)calloc(MAX_MSGBUF, sizeof(uint8_t));
+    _txBufferBase = _txMsg.Buffer;
+    _rxBufferBase = _rxMsg.Buffer;
 
     _internalProcessInterval = internalProcessInterval;
 }
@@ -144,6 +146,9 @@ uint8_t IsoTpFrame::Send(uint8_t *byteArray, uint8_t sizeOfByteArray)
     {
         _receiveFinishCalled = false;
 
+        _txMsg.Buffer = _txBufferBase;
+        _rxMsg.Buffer = _rxBufferBase;
+
         _txMsg.tp_state = ISOTP_SEND;
         _txMsg.len = sizeOfByteArray;
         memcpy(_txMsg.Buffer, byteArray, sizeOfByteArray);
@@ -158,33 +163,33 @@ uint8_t IsoTpFrame::rcv_fc()
 {
     uint8_t retval=0;
 
-    if (_rxMsg.tp_state != ISOTP_WAIT_FC && _rxMsg.tp_state != ISOTP_WAIT_FIRST_FC)
+    if (_txMsg.tp_state != ISOTP_WAIT_FC && _txMsg.tp_state != ISOTP_WAIT_FIRST_FC)
         return 0;
 
     /* get communication parameters only from the first FC frame */
-    if (_rxMsg.tp_state == ISOTP_WAIT_FIRST_FC)
+    if (_txMsg.tp_state == ISOTP_WAIT_FIRST_FC)
     {
-        _rxMsg.blocksize = rxBuffer[1];
-        _rxMsg.min_sep_time = rxBuffer[2];
+        _txMsg.blocksize = rxBuffer[1];
+        _txMsg.min_sep_time = rxBuffer[2];
 
         /* fix wrong separation time values according spec */
         if (
-            (_rxMsg.min_sep_time > 0x7F) &&
-            ((_rxMsg.min_sep_time < 0xF1) || (_rxMsg.min_sep_time > 0xF9))
+            (_txMsg.min_sep_time > 0x7F) &&
+            ((_txMsg.min_sep_time < 0xF1) || (_txMsg.min_sep_time > 0xF9))
            )
         {
-            _rxMsg.min_sep_time = 0x7F;
+            _txMsg.min_sep_time = 0x7F;
         }
     }
 
     #ifdef ISO_TP_DEBUG
-    printf("Received FC frame with status: %d BlockSize: %d MinSepTime: %d\n", rxBuffer[0] & 0x0F, _rxMsg.blocksize, _rxMsg.min_sep_time);
+    printf("Received FC frame with status: %d BlockSize: %d MinSepTime: %d\n", rxBuffer[0] & 0x0F, _txMsg.blocksize, _txMsg.min_sep_time);
     #endif
 
     switch (rxBuffer[0] & 0x0F)
     {
         case ISOTP_FC_CTS:
-            _rxMsg.tp_state = ISOTP_SEND_CF;
+            _txMsg.tp_state = ISOTP_SEND_CF;
             break;
 
         case ISOTP_FC_WT:
@@ -195,7 +200,7 @@ uint8_t IsoTpFrame::rcv_fc()
                 printf("FC wait frames exceeded.\n");
                 #endif
                 fc_wait_frames=0;
-                _rxMsg.tp_state = ISOTP_IDLE;
+                _txMsg.tp_state = ISOTP_IDLE;
                 retval = 1;
             }
             #ifdef ISO_TP_DEBUG
@@ -209,7 +214,7 @@ uint8_t IsoTpFrame::rcv_fc()
             #endif
 
         default:
-            _rxMsg.tp_state = ISOTP_IDLE;
+            _txMsg.tp_state = ISOTP_IDLE;
             retval = 1;
     }
     return retval;
@@ -409,11 +414,6 @@ uint8_t IsoTpFrame::Process(unsigned long millis)
 
     //_txMsg.tp_state = ISOTP_SEND;
 
-    if(_txMsg.tp_state == ISOTP_WAIT_FIRST_FC || _txMsg.tp_state == ISOTP_WAIT_FC)
-    {
-        retval = rcv_fc();
-    }
-
     if (_txMsg.tp_state != ISOTP_IDLE && _txMsg.tp_state != ISOTP_ERROR)
     {
         blockBoundary = false;
@@ -443,7 +443,8 @@ uint8_t IsoTpFrame::Process(unsigned long millis)
                     #ifdef ISO_TP_DEBUG
                     printf("Send FF\n");
                     #endif
-                    if(!(retval = send_ff())) // FF complete
+                    retval = send_ff();
+                    if(retval) // FF sent successfully
                     {
                         _txMsg.Buffer += 6;
                         _txMsg.len -= 6;
@@ -482,7 +483,8 @@ uint8_t IsoTpFrame::Process(unsigned long millis)
                 while((_txMsg.len > 7) && !blockBoundary)
                 {
                     fc_delay(_txMsg.min_sep_time);
-                    if(!(retval = send_cf()))
+                    retval = send_cf();
+                    if(retval)
                     {
                         #ifdef ISO_TP_DEBUG
                         printf("Send Seq %d\n", _txMsg.seq_id);
@@ -504,19 +506,15 @@ uint8_t IsoTpFrame::Process(unsigned long millis)
                             else printf(" no\n");
                             #endif
                         }
+                        _txMsg.Buffer += 7;
+                        _txMsg.len -= 7;
+
                         _txMsg.seq_id++;
-                        if (_txMsg.blocksize < 16){
-                            _txMsg.seq_id %= 16;
-                        }
-                        else
-                        {
-                            _txMsg.seq_id %= _txMsg.blocksize;
-                            _txMsg.Buffer += 7;
-                            _txMsg.len -= 7;
-                            #ifdef ISO_TP_DEBUG
-                            printf("Length: %d\n", _txMsg.len);
-                            #endif
-                        }
+                        _txMsg.seq_id %= 16;
+
+                        #ifdef ISO_TP_DEBUG
+                        printf("Length: %d\n", _txMsg.len);
+                        #endif
                     }
                 }
                 if(!blockBoundary)

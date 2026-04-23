@@ -87,6 +87,8 @@ class IsoTpFrame
     protected:
     struct IsoTpMessage_t _rxMsg;
     struct IsoTpMessage_t _txMsg;
+    uint8_t* _txBufferBase = nullptr;
+    uint8_t* _rxBufferBase = nullptr;
 
     ITransportLayer *_canInterface;
     virtual void InternalProcess() {};
