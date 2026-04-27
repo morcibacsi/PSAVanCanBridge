@@ -89,6 +89,14 @@ List of supported functions:
  - Economy mode and seatbelt warnings (if the vehicle speed is above 10km/h)
  - Semi-automatic VIN coding for head unit anti-theft beep suppression
 
+### Telecoding
+
+Since firmware version 3.5.0 telecoding support has been added via the [PyPSADiag][pypsadiag] software which is an open source app for telecoding various PSA ECUs. You can download it from here: [https://github.com/Barracuda09/PyPSADiag](https://github.com/Barracuda09/PyPSADiag)
+
+The firmware creates a Wi-Fi access point as descibed in the Setup section below. When you are connected to the access point you can select the Websocket connection type in PyPSADiag to connect to the V2C Bridge. By opening a Zone file you can telecode the retrofitted ECUs. I have contributed some zone descriptors in the project for some ECUs you might want to use with the V2C Bridge: RD4 (also valid for RD43), RD45, EMF-C, EMF-A, VTH to name a few. The project is very active and has a lot of zone files. I have successfully used it for telecoding NACs and MATTs, VTHs.
+
+![display](./images/PyPSADiag.png)
+
 ### FAQ:
 
 - Does the odometer from XY work?
@@ -221,14 +229,11 @@ When the ESP32 is connected to your PC it is shown as a COM port in the device m
 esptool.exe --chip esp32c6 --port COM10 --baud 921600 --before default_reset --after hard_reset write_flash -z --flash_mode keep --flash_freq keep --flash_size keep 0x0 bootloader.bin 0x8000 partitions.bin 0xe000 ota_data_initial.bin 0x10000 firmware.bin
 ```
 
+Since firmware version 3.5.0 OTA update is supported from the Setup page: after connecting to the device, you just need to browse the firmware.bin from the releases and the update takes place. You don't need to connect the board to a PC.
+
 ## Setup
 
-The device creates a Wi-Fi access point (SSID: PSA VAN-CAN Bridge, password: 123456789) at startup for 120 seconds, or when:
- - The front-left door is open
- - High beams are on
- - Emergency lights are blinking
-
-This combination avoids accidental activation.
+The device creates a Wi-Fi access point (SSID: PSA VAN-CAN Bridge, password: 123456789) at startup for 120 seconds.
 
 After connecting to the access point the setup page is available by opening the following address in a web browser: http://192.168.100.1/ (note that it is **http** and **not https** some browsers like trying to open webpages through https, but this won't work that way)
 
@@ -257,3 +262,4 @@ default_envs = esp32c6_v16
 This version uses the ESP-IDF framework. Arduino compilation is not supported.
 
 [psavancanbridgehw]: https://github.com/morcibacsi/PSAVanCanBridgeHW
+[pypsadiag]: https://github.com/Barracuda09/PyPSADiag
