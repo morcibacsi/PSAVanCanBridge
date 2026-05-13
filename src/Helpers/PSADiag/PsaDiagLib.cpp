@@ -595,7 +595,7 @@ void PsaDiagLib::ProcessUnwrappedMessage(unsigned long currentTime, uint16_t can
 
 void PsaDiagLib::PrintArrayToSerial(uint16_t sizeOfByteArray, uint8_t *byteArray, uint8_t startIndex)
 {
-    char buffer[256];
+    char buffer[1024];
     size_t pos = 0;
 
     for (uint16_t i = startIndex; i < sizeOfByteArray; i++)

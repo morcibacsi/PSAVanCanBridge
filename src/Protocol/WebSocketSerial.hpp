@@ -11,7 +11,7 @@ class WebSocketSerial : public ISerial
 private:
     httpd_handle_t _server = nullptr;
     int _clientFd = -1;
-    uint8_t _txBuffer[256];
+    uint8_t _txBuffer[1024];
 
     RingbufHandle_t _rxRing;
     SemaphoreHandle_t _txMutex;
