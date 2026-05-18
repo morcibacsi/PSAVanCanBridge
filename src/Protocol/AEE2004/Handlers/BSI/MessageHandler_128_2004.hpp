@@ -72,7 +72,12 @@ class MessageHandler_128 : public IMessageHandler<MessageHandler_128>
             field4.data.parking_light_indicator = carState->CarSignalLights.data.parking_light_indicator;
 
             Can2004CombineLightsByte6 field5{};
-            field5.data.cmb_active = carState->OdometerEnabled;
+            field5.data.cmb_active = 1;
+
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            {
+                field5.data.cmb_active = carState->CarSignalLights.data.cmb_active;
+            }
 
             Can2004CombineLightsByte7 field6{};
             field6.data.gear_position_cmb = carState->GearPositionCmb;

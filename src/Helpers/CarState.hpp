@@ -53,7 +53,6 @@ struct CarState
     //217 AEE2010
     OdometerStatesStruct OdometerStates{};
     uint8_t SpeedDisplayedOnCmb = 0;
-    uint8_t OdometerEnabled = 0;
 
     uint8_t CoolantTemperature = 0;
 

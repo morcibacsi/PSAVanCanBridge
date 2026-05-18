@@ -45,7 +45,7 @@ typedef struct {
     uint8_t rear_window_heating_status   : 1; // bit 4
     uint8_t hazard_warning_button_status : 1; // bit 5
     uint8_t tempomat_enabled             : 1; // bit 6
-    uint8_t cluster_enabled              : 1; // bit 7
+    uint8_t cmb_active                   : 1; // bit 7
 } VanInstrumentClusterV2Byte1Struct;
 
 // Read right to left in documentation

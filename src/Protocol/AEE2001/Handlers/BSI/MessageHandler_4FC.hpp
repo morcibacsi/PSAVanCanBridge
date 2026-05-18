@@ -54,8 +54,6 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
             VanInstrumentClusterV2Structs packet;
             std::memcpy(&packet, message.data, packetSize);
 
-            uint8_t clusterEnabled = packet.Field1.cluster_enabled;
-
             //
             /*
             if (!carState->ENABLE_MANUAL_GEARBOX_DISPLAY)
@@ -67,8 +65,7 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
             }
             //*/
 
-            carState->OdometerEnabled = clusterEnabled;
-
+            carState->CarSignalLights.data.cmb_active           = packet.Field1.cmb_active;
             carState->CarSignalLights.data.diesel_pre_heating   = packet.Field1.pre_heating_status;
             carState->CarSignalLights.data.esp_in_progress      = packet.Field1.esp_in_progress;
             carState->CarSignalLights.data.left_turn_indicator  = packet.LightsStatus.left_indicator;

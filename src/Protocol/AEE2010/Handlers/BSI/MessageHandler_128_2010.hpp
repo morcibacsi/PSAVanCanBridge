@@ -119,17 +119,22 @@ class MessageHandler_128_2010 : public IMessageHandler<MessageHandler_128_2010>
             Can2010CombineLightsByte7 field6{};
             field6.data.activate_front_passenger_protection = carState->CarSignalLights.data.activate_front_passenger_protection;
             field6.data.warning_light_active                = carState->CarSignalLights.data.warning_light_active;
-            field6.data.cmb_active                          = carState->CarSignalLights.data.cmb_active;
             field6.data.row1_rr_seatbelt_forgotten_blinking = carState->CarSignalLights.data.row1_rr_seatbelt_forgotten_blinking;
             field6.data.row1_rr_seatbelt_forgotten          = carState->CarSignalLights.data.row1_rr_seatbelt_forgotten;
             field6.data.row1_rc_seatbelt_forgotten_blinking = carState->CarSignalLights.data.row1_rc_seatbelt_forgotten_blinking;
             field6.data.row1_rc_seatbelt_forgotten          = carState->CarSignalLights.data.row1_rc_seatbelt_forgotten;
             field6.data.row1_rl_seatbelt_forgotten_blinking = carState->CarSignalLights.data.row1_rl_seatbelt_forgotten_blinking;
 
+            field6.data.cmb_active = 1;
+
+            if (carState->USE_IGNITION_SIGNAL_FROM_SOURCE_BUS)
+            {
+                field6.data.cmb_active = carState->CarSignalLights.data.cmb_active;
+            }
+
             /*
             field6.data.activate_front_passenger_protection = _dataBroker->ActivatePassengerProtection;
             field6.data.warning_light_active                = _dataBroker->WarningLight;
-            field6.data.cmb_active                          = _dataBroker->OdometerEnabled;
             field6.data.row1_rr_seatbelt_forgotten_blinking = _dataBroker->Row1RRSeatBeltBlinking;
             field6.data.row1_rr_seatbelt_forgotten          = _dataBroker->Row1RRSeatBelt;
             field6.data.row1_rc_seatbelt_forgotten_blinking = _dataBroker->Row1RCSeatBeltBlinking;
