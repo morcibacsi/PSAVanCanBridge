@@ -55,7 +55,7 @@ class MessageHandler_036_2010 : public IMessageHandler<MessageHandler_036_2010>
 
             if (carState->ENABLE_REVERSE_CAMERA_ON_RTX)
             {
-                rearCamField.data.activate_rear_camera = carState->IsReverseEngaged;
+                rearCamField.data.activate_rear_camera = carState->IsReverseCameraOn;
             }
 
             message.data[0] = byte1.asByte;

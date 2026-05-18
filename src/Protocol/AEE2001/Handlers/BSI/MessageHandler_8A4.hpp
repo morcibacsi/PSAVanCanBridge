@@ -97,7 +97,15 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             VanDashboardStructs packet{};
             std::memcpy(&packet, message.data, ExpectedPacketSize);
 
+            carState->LastIgnitionTime = carState->CurrenTime;
+
+            if (carState->IsReverseEngaged && packet.Field1.data.reverse_gear == 0)
+            {
+                carState->ReverseDisengagedTime = carState->CurrenTime;
+            }
+
             //carState->IsReverseEngaged = 1;
+            carState->IsReverseCameraOn   = packet.Field1.data.reverse_gear || carState->CurrenTime - carState->ReverseDisengagedTime < carState->REVERSE_CAMERA_ON_TIMEOUT_MS;
             carState->IsReverseEngaged    = packet.Field1.data.reverse_gear;
             carState->ExternalTemperature = packet.ExternalTemperature;
             carState->CoolantTemperature  = packet.CoolantTemperature;

@@ -52,7 +52,7 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
 
             if (carState->ENABLE_REVERSE_CAMERA_ON_RTX)
             {
-                rearCamField.data.activate_rear_camera = carState->IsReverseEngaged;
+                rearCamField.data.activate_rear_camera = carState->IsReverseCameraOn;
             }
 
             ignitionField.data.ignition_mode = 1;

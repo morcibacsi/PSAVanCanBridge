@@ -75,6 +75,13 @@ class MessageHandler_0F6 : public IMessageHandler<MessageHandler_0F6>
             Can0F6Dash1Struct packet;
             std::memcpy(&packet, message.data, sizeof(packet));
 
+            if (carState->IsReverseEngaged && packet.LightsStatus.data.reverse_gear_light == 0)
+            {
+                carState->ReverseDisengagedTime = carState->CurrenTime;
+            }
+
+            carState->IsReverseCameraOn   = packet.LightsStatus.data.reverse_gear_light || carState->CurrenTime - carState->ReverseDisengagedTime < carState->REVERSE_CAMERA_ON_TIMEOUT_MS;
+
             carState->IsReverseEngaged    = packet.LightsStatus.data.reverse_gear_light;
             carState->ExternalTemperature = packet.ExternalTemperature;
             carState->CoolantTemperature  = packet.CoolantTemperature;

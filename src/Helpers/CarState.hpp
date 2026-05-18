@@ -20,6 +20,7 @@ struct CarState
 {
     char* Version = (char*)"v3.5.2";
     uint64_t CurrenTime = 0;
+    uint64_t ReverseDisengagedTime = 0;
 
     uint8_t Ignition = 0;
     uint8_t EngineRunning = 0;
@@ -28,6 +29,7 @@ struct CarState
     // 0 - stop, 1 - contact, 2 - starter, 3 - free
     uint8_t KeyPosition = 0;
     uint8_t IsReverseEngaged = 0;
+    uint8_t IsReverseCameraOn = 0;
     //uint8_t TrailerPresent = 0;
     uint8_t WiperStatus = 0;
     //0 - off, 1 - on, 2 - standby soon
@@ -247,6 +249,7 @@ struct CarState
     // 5: RTx
     uint8_t RADIO_TYPE = 1;
 uint8_t SPEED_SIGN_SPEED_TOLERANCE_PERCENT = 0;
+    uint64_t REVERSE_CAMERA_ON_TIMEOUT_MS = 3000;
 
 #if BOARD_PROTOCOL_TYPES == 1
     #define BOARD_SUPPORTED_SOURCE_PROTOCOLS      { static_cast<uint8_t>(ProtocolType::AEE2001) }
