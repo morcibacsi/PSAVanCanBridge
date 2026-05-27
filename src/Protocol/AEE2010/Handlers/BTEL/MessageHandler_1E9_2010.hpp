@@ -4,9 +4,10 @@
     #define _MessageHandler_1E9_2010_h
 
 #include <cstdint>
+#include <cstring>
 
 #include "../../../IMessageHandler.hpp"
-//#include "../../Structs/CAN_1E9_2010.h"
+#include "../../Structs/CAN_1E9_2010.h"
 #include "../../../FeedbackSignal.hpp"
 
 class MessageHandler_1E9_2010 : public IMessageHandler<MessageHandler_1E9_2010>
@@ -38,13 +39,24 @@ class MessageHandler_1E9_2010 : public IMessageHandler<MessageHandler_1E9_2010>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
-            if (message.data[0] != 0xFF)
+            if (message.dataLength < 3)
             {
-                carState->SpeedLimitFromNacInKmh = message.data[0];
+                carState->SpeedLimitFromNacAuthorized = false;
+                carState->AdvisedSpeedFromNacInKmh = 0xFF;
                 return;
             }
 
-            carState->SpeedLimitFromNacInKmh = message.data[1];
+            CAN_1E9_2010_Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
+
+            carState->SpeedLimitFromNacAuthorized = packet.SpeedLimitStatus.data.speed_display_authorization == 1;
+            if (carState->SpeedLimitFromNacAuthorized)
+            {
+                carState->AdvisedSpeedFromNacInKmh = packet.AdvisedSpeed;
+                return;
+            }
+
+            carState->AdvisedSpeedFromNacInKmh = 0xFF;
         }
 };
 #endif

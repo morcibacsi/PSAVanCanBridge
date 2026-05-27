@@ -45,7 +45,8 @@ struct CarState
     uint8_t AirbagDisabled = 0;
     uint8_t DistanceUnit = 0;
     uint8_t SpeedInKmh = 0;
-    uint8_t SpeedLimitFromNacInKmh = 0xFF;
+    uint8_t AdvisedSpeedFromNacInKmh = 0xFF;
+bool SpeedLimitFromNacAuthorized = false;
 
     //State helpers
     uint8_t State_AutoLockEnabled = 0xFF;
@@ -223,6 +224,7 @@ struct CarState
     bool REPLACE_REMOTE_MODE_BTN_WITH_SRC = false;
     bool MODIFY_217_WITH_CURRENT_SPEED = false;
     bool SEND_TIME = false;
+bool CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = false;
 
     bool ENABLE_PARKING_AID_SOUND_FROM_SPEAKER = 0;
     bool ENABLE_REVERSE_CAMERA_ON_RTX = false;

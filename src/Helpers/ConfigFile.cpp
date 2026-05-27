@@ -73,6 +73,7 @@ bool ConfigFile::Read()
             _carState->TIME_FORMAT_24H = getJsonInt(aee2010, "TIME_FORMAT_24H", 1);
             _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC = getJsonBool(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", false);
             _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT = getJsonInt(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", 0);
+            _carState->CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = getJsonBool(aee2010, "CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC", false);
         }
 
         printf("Reading config file 4\n");
@@ -268,6 +269,7 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddNumberToObject(aee2010, "TIME_FORMAT_24H", _carState->TIME_FORMAT_24H);
     cJSON_AddNumberToObject(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT);
     cJSON_AddBoolToObject(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC);
+    cJSON_AddBoolToObject(aee2010, "CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC", _carState->CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC);
 
     return std::unique_ptr<cJSON, cJSONDeleter>(root);
 }
