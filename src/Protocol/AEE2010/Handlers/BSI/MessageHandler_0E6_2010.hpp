@@ -57,8 +57,8 @@ class MessageHandler_0E6_2010 : public IMessageHandler<MessageHandler_0E6_2010>
             message.data[2] = carState->RearLeftWheelCounter.data.rightByte;
             message.data[3] = carState->RearRightWheelCounter.data.leftByte;
             message.data[4] = carState->RearRightWheelCounter.data.rightByte;
-            message.data[5] = 0x83;
-            message.data[6] = 0x8C;
+            message.data[5] = 0x8E;
+            message.data[6] = 0x80;
             message.data[7] = chk_esp(message.data);
 
             return message;
