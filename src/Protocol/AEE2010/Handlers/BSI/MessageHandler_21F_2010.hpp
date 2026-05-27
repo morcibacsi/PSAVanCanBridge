@@ -26,11 +26,13 @@ class MessageHandler_21F_2010 : public IMessageHandler<MessageHandler_21F_2010>
 
         BusMessage Generate(CarState* carState)
         {
+            bool emulateSteeringWheelControls = carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK;
+
             CAN_21F_2010_Byte1Struct field1{};
             field1.data.list                   = carState->RadioRemote.data.list;
             field1.data.mode_phone             = carState->RadioRemote.data.mode_phone;
-            field1.data.owerflow_scan_negative = carState->RadioRemote.data.owerflow_scan_negative;
-            field1.data.owerflow_scan_positive = carState->RadioRemote.data.owerflow_scan_positive;
+            field1.data.owerflow_scan_negative = emulateSteeringWheelControls ? 0 : carState->RadioRemote.data.owerflow_scan_negative;
+            field1.data.owerflow_scan_positive = emulateSteeringWheelControls ? 0 : carState->RadioRemote.data.owerflow_scan_positive;
             field1.data.seek_down              = carState->RadioRemote.data.seek_down;
             field1.data.seek_up                = carState->RadioRemote.data.seek_up;
             field1.data.volume_minus           = carState->RadioRemote.data.volume_minus;
@@ -50,7 +52,7 @@ class MessageHandler_21F_2010 : public IMessageHandler<MessageHandler_21F_2010>
             }
 
             message.data[0] = field1.asByte;
-            message.data[1] = carState->RadioRemote.data.scroll_position;
+            message.data[1] = emulateSteeringWheelControls ? 0x00 : carState->RadioRemote.data.scroll_position;
             message.data[2] = field3.asByte;
 
             return message;

@@ -8,6 +8,7 @@
 #include "DoorStatus.h"
 #include "OdometerStates.h"
 #include "CarRadioRemote.h"
+#include "CarSteeringWheelRemote.h"
 #include "AirConditionerState.h"
 #include "DisplayMessage.h"
 #include "ParkingAidStatus.h"
@@ -20,6 +21,7 @@ struct CarState
 {
     char* Version = (char*)"v3.5.2";
     uint64_t CurrenTime = 0;
+    uint64_t LastIgnitionTime = 0;
     uint64_t ReverseDisengagedTime = 0;
 
     uint8_t Ignition = 0;
@@ -46,7 +48,7 @@ struct CarState
     uint8_t DistanceUnit = 0;
     uint8_t SpeedInKmh = 0;
     uint8_t AdvisedSpeedFromNacInKmh = 0xFF;
-bool SpeedLimitFromNacAuthorized = false;
+    bool SpeedLimitFromNacAuthorized = false;
 
     //State helpers
     uint8_t State_AutoLockEnabled = 0xFF;
@@ -138,6 +140,9 @@ bool SpeedLimitFromNacAuthorized = false;
     //21F
     CarRadioRemoteStruct RadioRemote{};
 
+    //0A2
+    CarSteeringWheelRemoteStruct SteeringWheelRemote{};
+
     //15B, 260, 1DB AEE2004
     CarSettings_Struct CarSettings{};
 
@@ -222,9 +227,10 @@ bool SpeedLimitFromNacAuthorized = false;
     bool USE_IGNITION_SIGNAL_FROM_SOURCE_BUS = true;
     bool HAS_RTC = false;
     bool REPLACE_REMOTE_MODE_BTN_WITH_SRC = false;
+    bool EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK = false;
     bool MODIFY_217_WITH_CURRENT_SPEED = false;
     bool SEND_TIME = false;
-bool CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = false;
+    bool CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = false;
 
     bool ENABLE_PARKING_AID_SOUND_FROM_SPEAKER = 0;
     bool ENABLE_REVERSE_CAMERA_ON_RTX = false;
@@ -250,7 +256,7 @@ bool CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = false;
     // 4: RD3
     // 5: RTx
     uint8_t RADIO_TYPE = 1;
-uint8_t SPEED_SIGN_SPEED_TOLERANCE_PERCENT = 0;
+    uint8_t SPEED_SIGN_SPEED_TOLERANCE_PERCENT = 0;
     uint64_t REVERSE_CAMERA_ON_TIMEOUT_MS = 3000;
 
 #if BOARD_PROTOCOL_TYPES == 1

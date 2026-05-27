@@ -175,6 +175,10 @@ void AEE2004ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
         case ImmediateSignal::RadioRemote:
         {
             SendImmediateMessage(0x21F);
+            if (_carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK)
+            {
+                SendImmediateMessage(0x0A2);
+            }
             break;
         }
         case ImmediateSignal::TripButtonPressed:

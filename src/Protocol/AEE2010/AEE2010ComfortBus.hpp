@@ -19,6 +19,7 @@
 #include "Handlers/BSI/MessageHandler_0B6_2010.hpp"
 #include "Handlers/BSI/MessageHandler_0E6_2010.hpp"
 #include "Handlers/BSI/MessageHandler_0F6_2010.hpp"
+#include "Handlers/BSI/MessageHandler_0A2_2010.hpp"
 #include "Handlers/BSI/MessageHandler_1A1_2010.hpp"
 #include "Handlers/BSI/MessageHandler_1A8_2010.hpp"
 #include "Handlers/BSI/MessageHandler_2B6_2010.hpp"
@@ -83,6 +84,7 @@ class AEE2010ComfortBus : public IProtocolHandler
         MessageHandler_0E1_2010,
         MessageHandler_0E6_2010,
         MessageHandler_0F6_2010,
+        MessageHandler_0A2_2010,
         MessageHandler_1A1_2010,
         MessageHandler_1A8_2010,
         MessageHandler_1E9_2010,

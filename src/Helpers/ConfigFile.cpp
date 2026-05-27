@@ -91,6 +91,7 @@ bool ConfigFile::Read()
         _carState->SEND_AC_FAN_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_FAN_CHANGES_TO_DISPLAY", false);
         _carState->SEND_AC_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_CHANGES_TO_DISPLAY", 1);
         _carState->QUERY_AC_STATUS = getJsonBool(jsonHandle.get(), "QUERY_AC_STATUS", false);
+        _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK = getJsonBool(aee2010, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", false);
 
         _carState->PARKING_AID_TYPE = getJsonInt(jsonHandle.get(), "PARKING_AID_TYPE", 0);
         _carState->RADIO_TYPE = getJsonInt(jsonHandle.get(), "RADIO_TYPE", 0);
@@ -235,6 +236,7 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddBoolToObject(root, "QUERY_AC_STATUS", _carState->QUERY_AC_STATUS);
     cJSON_AddBoolToObject(root, "HAS_RTC", _carState->HAS_RTC);
     cJSON_AddBoolToObject(root, "SEND_TIME", _carState->SEND_TIME);
+    cJSON_AddBoolToObject(root, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK);
 
     cJSON_AddNumberToObject(root, "PARKING_AID_TYPE", _carState->PARKING_AID_TYPE);
     cJSON_AddNumberToObject(root, "RADIO_TYPE", _carState->RADIO_TYPE);

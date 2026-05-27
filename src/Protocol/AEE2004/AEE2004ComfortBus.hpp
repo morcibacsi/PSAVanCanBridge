@@ -12,6 +12,7 @@
 
 #include "Handlers/AAS/MessageHandler_0E1_2004.hpp"
 
+#include "Handlers/BSI/MessageHandler_0A2_2004.hpp"
 #include "Handlers/BSI/MessageHandler_0B6_2004.hpp"
 #include "Handlers/BSI/MessageHandler_0E6_2004.hpp"
 #include "Handlers/BSI/MessageHandler_0E8_2004.hpp"
@@ -73,6 +74,7 @@ class AEE2004ComfortBus : public IProtocolHandler
     public:
     std::tuple<
         MessageHandler_0E1,
+        MessageHandler_0A2_2004,
         MessageHandler_0B6,
         MessageHandler_0E6,
         MessageHandler_0E8,

@@ -36,8 +36,7 @@ AEE2010ComfortBus::AEE2010ComfortBus(
     };
     _messagesToForward = std::vector<uint32_t>() = {
         0x0E1, 0x1E1, 0x1E7, 0x1E8, 0x297,
-        0x3E0, 0x3E1, 0x120, 0x2A0, 0x0A2,
-        0x018
+        0x3E0, 0x3E1, 0x120, 0x2A0, 0x018
     };
 }
 
@@ -179,6 +178,10 @@ void AEE2010ComfortBus::ProcessImmediateSignal(ImmediateSignal signal)
         case ImmediateSignal::RadioRemote:
         {
             SendImmediateMessage(0x21F);
+            if (_carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK)
+            {
+                SendImmediateMessage(0x0A2);
+            }
             break;
         }
         case ImmediateSignal::TripButtonPressed:
