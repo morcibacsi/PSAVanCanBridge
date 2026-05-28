@@ -111,8 +111,8 @@ uint8_t IsoTpFrame::send_cf()
     //return _canInterface->SendMessage(_txMsg.tx_id, len + 1, TxBuf); // Last frame is probably shorter than 8 -> Signals last CF Frame
     BusMessage msg{};
     msg.id = _txMsg.tx_id;
-    msg.dataLength = 8;
-    memcpy(msg.data, TxBuf, 8);
+    msg.dataLength = len + 1;
+    memcpy(msg.data, TxBuf, len + 1);
     return _canInterface->SendMessage(msg);
 }
 
@@ -144,8 +144,6 @@ uint8_t IsoTpFrame::Send(uint8_t *byteArray, uint8_t sizeOfByteArray)
 {
     if (_txMsg.tp_state == ISOTP_IDLE || _txMsg.tp_state == ISOTP_ERROR)
     {
-        _receiveFinishCalled = false;
-
         _txMsg.Buffer = _txBufferBase;
         _rxMsg.Buffer = _rxBufferBase;
 
@@ -384,9 +382,12 @@ uint8_t IsoTpFrame::Receive(unsigned long millis, uint16_t canId, uint8_t len, c
         // reset rxBuffer
         memset(rxBuffer, 0, sizeof(rxBuffer));
 
-        if (_rxMsg.tp_state == ISOTP_FINISHED && !_receiveFinishCalled)
+        #ifdef ISO_TP_DEBUG
+        printf("_rxMsg.tp_state: %d\n", _rxMsg.tp_state);
+        #endif
+
+        if (_rxMsg.tp_state == ISOTP_FINISHED && _txMsg.tp_state == ISOTP_IDLE)
         {
-            _receiveFinishCalled = true;
             ReceiveFinished(millis);
         }
 
@@ -563,5 +564,4 @@ void IsoTpFrame::SetIds(uint16_t txId, uint16_t rxId)
 
     _txMsg.tp_state = ISOTP_IDLE;
     _rxMsg.tp_state = ISOTP_IDLE;
-    _receiveFinishCalled = false;
 }

@@ -60,7 +60,6 @@ class IsoTpFrame
     unsigned long _previousInternalProcessTime;
 
     uint16_t _internalProcessInterval;
-    bool _receiveFinishCalled = false;
 
     uint8_t  fc_wait_frames = 0;
     uint8_t  rxBuffer[8];
