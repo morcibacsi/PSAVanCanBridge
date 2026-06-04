@@ -2,6 +2,8 @@
 #include <string>
 #include <cstring>
 
+#define _PSADIAGLIB_DISABLE_KEEP_ALIVES
+
 int hexCharToValue(char c) {
     if (c >= '0' && c <= '9') {
         return c - '0';
@@ -194,6 +196,12 @@ void PsaDiagLib::PrintError()
 
 void PsaDiagLib::SendKeepAlive()
 {
+    #ifdef _PSADIAGLIB_DISABLE_KEEP_ALIVES
+    {
+        return;
+    }
+    #endif
+
     if (sendKeepAlives)
     {
         if (sendKeepAliveType == 'K')
