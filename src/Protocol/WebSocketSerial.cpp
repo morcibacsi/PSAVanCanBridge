@@ -54,6 +54,8 @@ void WebSocketSerial::OnClientDisconnected(int sockfd)
         _clientFd = -1;
         printf("WebSocket disconnected: %d\n", sockfd);
         _carState->DiagConnected = false;
+        _carState->LogNetwork = 0;
+        _carState->LogDirection = 0;
     }
 }
 
@@ -111,7 +113,6 @@ int WebSocketSerial::write(const uint8_t* data, size_t length)
 
     if (_clientFd < 0)
     {
-        printf("No client connected\n");
         return -1;
     }
 

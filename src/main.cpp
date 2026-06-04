@@ -132,6 +132,25 @@ void PrintMessage(const BusMessage& message)
     }
 }
 
+void PrintMessageToWebSocket(const uint8_t network, const uint8_t direction, const BusMessage& message)
+{
+    if (network == 0 || direction == 0 || network != carState->LogNetwork || direction != carState->LogDirection)
+    {
+        return;
+    }
+
+    char buffer[256];
+    //int offset = sprintf(buffer, "<< Id: %03X ", (unsigned int)(message.id));
+    int offset = sprintf(buffer, "%03X ", (unsigned int)(message.id));
+    for (size_t i = 0; i < message.dataLength; i++)
+    {
+        offset += sprintf(buffer + offset, "%02X ", message.data[i]);
+    }
+    //offset += sprintf(buffer + offset, "%04X", (unsigned int)(message.crc));
+    offset += sprintf(buffer + offset, "\n");
+    webSocketSerial->write((const uint8_t*)buffer, offset);
+}
+
 void ReadSourceFunction(void * parameter)
 {
     BusMessage message{};
@@ -145,6 +164,8 @@ void ReadSourceFunction(void * parameter)
             {
                 continue;
             }
+
+            PrintMessageToWebSocket(1, 1, message);
 
             bool destinationCanAcceptMessage = destinationProtocolHandler->CanAcceptMessage(message);
             if (destinationCanAcceptMessage)
@@ -185,6 +206,7 @@ void ReadDestinationFunction(void * parameter)
                 continue;
             }
 
+            PrintMessageToWebSocket(2, 1, message);
             bool sourceCanAcceptMessage = sourceProtocolHandler->CanAcceptMessage(message);
             if (sourceCanAcceptMessage)
             {
@@ -375,6 +397,8 @@ extern "C" void app_main(void)
         printf("Error: sourceProtocolHandler or destinationProtocolHandler is null\n");
         return;
     }
+
+    destinationTransportLayer->SetLoggerFunction(2, PrintMessageToWebSocket);
 
     psaDiagLib = new PsaDiagLib(destinationTransportLayer, webSocketSerial);
     webServer->SetPsaDiagLib(psaDiagLib);

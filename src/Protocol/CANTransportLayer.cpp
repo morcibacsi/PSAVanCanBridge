@@ -17,6 +17,12 @@ CANTransportLayer::CANTransportLayer(ICanMessageSender* canMessageSender)
 uint8_t CANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
 {
     PrintToSerial(message.id, 0, message.dataLength, message.data);
+
+    if (_loggerFunction)
+    {
+        _loggerFunction(_network, 2, message); // 2 for outgoing message
+    }
+
     return _canMessageSender->SendMessage(message.id, 0, message.dataLength, message.data);
 }
 
@@ -34,6 +40,10 @@ bool CANTransportLayer::ReceiveMessage(BusMessage& message)
     }
 
     PrintToSerial(canMessageId, 0, canMessageLength, canMessage);
+    if (_loggerFunction)
+    {
+        _loggerFunction(_network, 1, message); // 1 for incoming message
+    }
 
     message.id = canMessageId;
     std::memcpy(message.data, canMessage, canMessageLength);

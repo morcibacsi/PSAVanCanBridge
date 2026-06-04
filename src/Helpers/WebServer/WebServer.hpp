@@ -67,7 +67,7 @@ class WebServer {
     void Process();
 
     static void OnClose(httpd_handle_t hd, int sockfd);
-    static esp_err_t get_index_handler(httpd_req_t *req);
+    static esp_err_t get_html_page_handler(httpd_req_t *req);
     static esp_err_t get_time_handler(httpd_req_t *req);
     static esp_err_t get_reboot_handler(httpd_req_t *req);
     static esp_err_t get_vin_handler(httpd_req_t *req);
@@ -75,6 +75,8 @@ class WebServer {
     static esp_err_t post_config_handler(httpd_req_t *req);
     static esp_err_t post_time_handler(httpd_req_t *req);
     static esp_err_t post_ota_update_handler(httpd_req_t *req);
+    static esp_err_t post_network_monitor_handler(httpd_req_t *req);
+    static esp_err_t options_handler(httpd_req_t *req);
     static esp_err_t ws_handler(httpd_req_t *req);
     static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
     static void ip_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);

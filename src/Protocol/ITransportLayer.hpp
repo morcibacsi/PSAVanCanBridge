@@ -18,4 +18,6 @@ public:
 
     // Indicates if the bus is available for communication.
     virtual bool IsBusAvailable() = 0;
+
+    virtual void SetLoggerFunction(const uint8_t network, void (*loggerFunction)(const uint8_t network, const uint8_t direction, const BusMessage& message)) = 0;
 };

@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSA VAN-CAN Bridge - Network Monitor</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: monospace;
+    background: #111;
+    color: #ddd;
+}
+
+/* ================= HEADER ================= */
+
+header {
+    padding: 10px;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+input, button, select {
+    background: #222;
+    color: #ddd;
+    border: 1px solid #444;
+    padding: 6px 10px;
+    font-family: monospace;
+}
+
+button:hover {
+    background: #333;
+    cursor: pointer;
+}
+
+#status {
+    margin-left: auto;
+}
+
+/* ================= CONTAINER ================= */
+
+#container {
+    height: calc(100vh - 60px);
+    overflow: auto;
+}
+
+/* ================= DESKTOP ================= */
+
+.desktop {
+    display: block;
+}
+
+/* GRID-BASED ROWS */
+
+.desktop-row {
+    display: grid;
+
+    grid-template-columns:
+        105px  /* time */
+        70px   /* count */
+        90px   /* id */
+        50px   /* dlc */
+        auto   /* bytes */
+        260px; /* ascii */
+
+    align-items: center;
+
+    border-bottom: 1px solid #222;
+
+    min-height: 32px;
+}
+
+.desktop-header {
+    position: sticky;
+    top: 0;
+    background: #181818;
+    z-index: 5;
+    font-weight: bold;
+}
+
+.desktop-cell {
+    padding: 4px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ================= COLORS ================= */
+
+.timestamp {
+    color: #888;
+}
+
+.counter {
+    color: #81c784;
+}
+
+.id-cell {
+    color: #4fc3f7;
+    font-weight: bold;
+}
+
+.ascii {
+    color: #ffb74d;
+    padding-left: 12px;
+}
+
+/* ================= BYTE DISPLAY ================= */
+
+.byte-container {
+    display: flex;
+    align-items: center;
+    overflow-x: hidden;
+    gap: 2px;
+}
+
+.byte-group {
+    display: flex;
+    gap: 2px;
+    margin-right: 8px;
+}
+
+.byte {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+/* ================= CHANGE HIGHLIGHT ================= */
+
+.changed {
+    animation: flash 0.35s;
+}
+
+@keyframes flash {
+
+    from {
+        background: #7a5c00;
+        color: white;
+    }
+
+    to {
+        background: transparent;
+    }
+}
+
+/* ================= MOBILE ================= */
+
+.mobile {
+    display: none;
+}
+
+.card {
+    border-bottom: 1px solid #222;
+    padding: 10px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    color: #4fc3f7;
+    font-weight: bold;
+}
+
+.card-meta {
+    margin-top: 4px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.byte-row {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.card-byte-group {
+    display: flex;
+    gap: 2px;
+}
+
+.card .byte {
+    border: 1px solid #333;
+    padding: 2px 0;
+}
+
+.ascii-row {
+    margin-top: 8px;
+    color: #ffb74d;
+    word-break: break-all;
+}
+
+/* ================= MOBILE LAYOUT ================= */
+
+@media (max-width: 768px) {
+
+    .desktop {
+        display: none;
+    }
+
+    .mobile {
+        display: block;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #status {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <input
+        id="wsUrl"
+        size="40"
+        value="ws://192.168.100.1/ws"
+    >
+
+    <select id="networkSelect" onchange="changeNetworkAndDirection()">
+        <option value="0">None</option>
+        <option value="1">Source</option>
+        <option value="2">Destination</option>
+    </select>
+
+    <select id="directionSelect" onchange="changeNetworkAndDirection()">
+        <option value="0">None</option>
+        <option value="1">Incoming</option>
+        <option value="2">Outgoing</option>
+    </select>
+
+    <button onclick="connectWs()">
+        Connect
+    </button>
+
+    <button onclick="disconnectWs()">
+        Disconnect
+    </button>
+
+    <button onclick="clearData()">
+        Clear
+    </button>
+
+    <button onclick="saveLog()">
+        Save
+    </button>
+
+    <div id="status">
+        Disconnected
+    </div>
+
+</header>
+
+<div id="container">
+
+    <!-- DESKTOP -->
+
+    <div class="desktop">
+
+        <div
+            class="desktop-row desktop-header"
+        >
+
+            <div class="desktop-cell">
+                Time
+            </div>
+
+            <div class="desktop-cell">
+                Count
+            </div>
+
+            <div class="desktop-cell">
+                ID
+            </div>
+
+            <div class="desktop-cell">
+                DLC
+            </div>
+
+            <div class="desktop-cell">
+                Data
+            </div>
+
+            <div class="desktop-cell">
+                ASCII
+            </div>
+
+        </div>
+
+        <div id="desktopRows"></div>
+
+    </div>
+
+    <!-- MOBILE -->
+
+    <div
+        class="mobile"
+        id="cardContainer"
+    ></div>
+
+</div>
+
+<script>
+
+/* ================= CONFIG ================= */
+
+const CONFIG = {
+    byteGroupSize: 4,
+    maxLogLines: 50000,
+    frameTimeoutMs: 30000,
+    maxFramesPerRender: 500
+};
+
+/* ================= STATE ================= */
+
+let ws = null;
+
+const frames = new Map();
+
+const log = [];
+
+const pendingFrames = [];
+
+const desktopRows =
+    document.getElementById("desktopRows");
+
+const cardContainer =
+    document.getElementById("cardContainer");
+
+/* ================= WEBSOCKET ================= */
+
+async function changeNetworkAndDirection() {
+
+    const networkSelect =
+        document.getElementById("networkSelect");
+
+    const directionSelect =
+        document.getElementById("directionSelect");
+
+    const network =
+        parseInt(networkSelect.value);
+
+    const direction =
+        parseInt(directionSelect.value);
+
+    const wsUrl = document.getElementById("wsUrl").value
+        .replace("ws://", "http://")
+        .replace("/ws", "/api/setmonitor");
+
+    const response = await fetch(
+        wsUrl,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                network,
+                direction
+            })
+        }
+    );
+}
+
+function connectWs() {
+
+    disconnectWs();
+
+    ws = new WebSocket(
+        document.getElementById("wsUrl").value
+    );
+
+    ws.onopen = () => {
+        setStatus(
+            "Connected",
+            "#4caf50"
+        );
+    };
+
+    ws.onclose = () => {
+        setStatus(
+            "Disconnected",
+            "#f44336"
+        );
+    };
+
+    ws.onerror = () => {
+        setStatus(
+            "Error",
+            "#ff9800"
+        );
+    };
+
+    ws.onmessage = (e) => {
+        pendingFrames.push(
+            e.data
+        );
+    };
+}
+
+function disconnectWs() {
+    document.getElementById("networkSelect").value = "0";
+    document.getElementById("directionSelect").value = "0";
+    changeNetworkAndDirection();
+
+    if (ws)
+        ws.close();
+
+    ws = null;
+}
+
+function setStatus(text, color) {
+    const el =
+        document.getElementById("status");
+
+    el.textContent = text;
+    el.style.color = color;
+}
+
+/* ================= FRAME QUEUE ================= */
+
+function processPendingFrames() {
+    let processed = 0;
+
+    while (
+        pendingFrames.length &&
+        processed < CONFIG.maxFramesPerRender
+    ) {
+        handleFrame(
+            pendingFrames.shift()
+        );
+        processed++;
+    }
+
+    requestAnimationFrame(
+        processPendingFrames
+    );
+}
+
+requestAnimationFrame(
+    processPendingFrames
+);
+
+/* ================= PARSE ================= */
+
+function parse(raw) {
+    try {
+
+        return JSON.parse(raw);
+    }
+    catch {
+        const p =
+            raw.trim().split(/\s+/);
+
+        return {
+            id: p[0],
+            data: p.slice(1)
+        };
+    }
+}
+
+/* ================= ASCII ================= */
+
+function buildAscii(data) {
+
+    let ascii = "";
+
+    for (const v of data) {
+
+        const b =
+            parseInt(v, 16);
+
+        ascii += (
+            b >= 32 &&
+            b <= 126
+        )
+            ? String.fromCharCode(b)
+            : ".";
+    }
+
+    return ascii;
+}
+
+/* ================= HANDLE FRAME ================= */
+
+function handleFrame(raw) {
+
+    const frame = parse(raw);
+
+    if (!frame?.id)
+        return;
+
+    const id =
+        frame.id.toUpperCase();
+
+    const data =
+        frame.data || [];
+
+    const d = new Date();
+
+    const ts =
+        d.getHours().toString().padStart(2, '0')
+        + ":" +
+        d.getMinutes().toString().padStart(2, '0')
+        + ":" +
+        d.getSeconds().toString().padStart(2, '0')
+        + "." +
+        d.getMilliseconds().toString().padStart(3, '0');
+
+    /* ===== LOG ===== */
+
+    log.push(
+        `[${ts}] ${id} ${data.join(" ")}`
+    );
+
+    if (
+        log.length >
+        CONFIG.maxLogLines
+    ) {
+
+        log.splice(0, 1000);
+    }
+
+    /* ===== STATE ===== */
+
+    let state =
+        frames.get(id);
+
+    if (!state) {
+
+        state = {
+
+            count: 0,
+
+            last: [],
+
+            lastSeen: Date.now()
+        };
+
+        frames.set(id, state);
+
+        createDesktopRow(id);
+
+        createMobileCard(id);
+    }
+
+    state.count++;
+
+    state.lastSeen = Date.now();
+
+    updateDesktopRow(
+        id,
+        ts,
+        state.count,
+        data,
+        state.last
+    );
+
+    updateMobileCard(
+        id,
+        ts,
+        state.count,
+        data,
+        state.last
+    );
+
+    state.last = [...data];
+}
+
+/* ================= DESKTOP ================= */
+
+function createDesktopRow(id) {
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "desktop-row";
+
+    row.id =
+        "row-" + id;
+
+    row.innerHTML = `
+        <div class="desktop-cell timestamp"></div>
+
+        <div class="desktop-cell counter"></div>
+
+        <div class="desktop-cell id-cell">
+            ${id}
+        </div>
+
+        <div class="desktop-cell dlc"></div>
+
+        <div class="desktop-cell">
+            <div class="byte-container"></div>
+        </div>
+
+        <div class="desktop-cell ascii"></div>
+    `;
+
+    desktopRows.appendChild(row);
+}
+
+function updateDesktopRow(
+    id,
+    ts,
+    count,
+    data,
+    old
+) {
+
+    const row =
+        document.getElementById("row-" + id);
+
+    if (!row)
+        return;
+
+    const cells =
+        row.children;
+
+    cells[0].textContent = ts;
+    cells[1].textContent = count;
+    cells[3].textContent = data.length;
+
+    const byteContainer =
+        row.querySelector(".byte-container");
+
+    /* ===== CREATE GROUPS DYNAMICALLY ===== */
+
+    while (
+        byteContainer.children.length <
+        Math.ceil(
+            data.length /
+            CONFIG.byteGroupSize
+        )
+    ) {
+
+        const group =
+            document.createElement("div");
+
+        group.className =
+            "byte-group";
+
+        for (
+            let i = 0;
+            i < CONFIG.byteGroupSize;
+            i++
+        ) {
+
+            const b =
+                document.createElement("div");
+
+            b.className =
+                "byte";
+
+            b.textContent = "--";
+
+            group.appendChild(b);
+        }
+
+        byteContainer.appendChild(group);
+    }
+
+    /* ===== UPDATE BYTES ===== */
+
+    const byteEls =
+        row.querySelectorAll(".byte");
+
+    for (
+        let i = 0;
+        i < data.length;
+        i++
+    ) {
+
+        const el =
+            byteEls[i];
+
+        const v =
+            data[i];
+
+        if (
+            el.textContent !== v
+        ) {
+
+            el.textContent = v;
+
+            if (
+                old[i] !== undefined &&
+                old[i] !== v
+            ) {
+
+                el.classList.remove(
+                    "changed"
+                );
+
+                void el.offsetWidth;
+
+                el.classList.add(
+                    "changed"
+                );
+            }
+        }
+    }
+
+    /* ===== CLEAR UNUSED BYTES ===== */
+
+    for (
+        let i = data.length;
+        i < byteEls.length;
+        i++
+    ) {
+
+        byteEls[i].textContent = "--";
+    }
+
+    cells[5].textContent =
+        buildAscii(data);
+}
+
+/* ================= MOBILE ================= */
+
+function createMobileCard(id) {
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "card";
+
+    card.id =
+        "card-" + id;
+
+    card.innerHTML = `
+        <div class="card-header">
+            <span>${id}</span>
+            <div class="card-meta"></div>
+            <span class="card-count">
+                0
+            </span>
+        </div>
+        <div class="byte-row"></div>
+        <div class="ascii-row"></div>
+    `;
+
+    cardContainer.appendChild(card);
+}
+
+function updateMobileCard(
+    id,
+    ts,
+    count,
+    data,
+    old
+) {
+
+    const card =
+        document.getElementById("card-" + id);
+
+    if (!card)
+        return;
+
+    card.querySelector(
+        ".card-count"
+    ).textContent = count;
+
+    card.querySelector(
+        ".card-meta"
+    ).textContent =
+        `${ts} | LEN ${data.length}`;
+
+    const byteRow =
+        card.querySelector(".byte-row");
+
+    /* ===== CREATE GROUPS ===== */
+
+    while (
+        byteRow.children.length <
+        Math.ceil(
+            data.length /
+            CONFIG.byteGroupSize
+        )
+    ) {
+
+        const group =
+            document.createElement("div");
+
+        group.className =
+            "card-byte-group";
+
+        for (
+            let i = 0;
+            i < CONFIG.byteGroupSize;
+            i++
+        ) {
+
+            const b =
+                document.createElement("div");
+
+            b.className =
+                "byte";
+
+            b.textContent = "--";
+
+            group.appendChild(b);
+        }
+
+        byteRow.appendChild(group);
+    }
+
+    const byteEls =
+        byteRow.querySelectorAll(".byte");
+
+    for (
+        let i = 0;
+        i < data.length;
+        i++
+    ) {
+
+        const el =
+            byteEls[i];
+
+        const v =
+            data[i];
+
+        if (
+            el.textContent !== v
+        ) {
+
+            el.textContent = v;
+
+            if (
+                old[i] !== undefined &&
+                old[i] !== v
+            ) {
+
+                el.classList.remove(
+                    "changed"
+                );
+
+                void el.offsetWidth;
+
+                el.classList.add(
+                    "changed"
+                );
+            }
+        }
+    }
+
+    for (
+        let i = data.length;
+        i < byteEls.length;
+        i++
+    ) {
+
+        byteEls[i].textContent = "--";
+    }
+
+    card.querySelector(
+        ".ascii-row"
+    ).textContent =
+        buildAscii(data);
+}
+
+/* ================= CLEANUP ================= */
+
+setInterval(() => {
+    const now =
+        Date.now();
+
+    for (
+        const [id, state]
+        of frames
+    ) {
+        if (
+            now - state.lastSeen >
+            CONFIG.frameTimeoutMs
+        ) {
+            document
+                .getElementById("row-" + id)
+                ?.remove();
+            document
+                .getElementById("card-" + id)
+                ?.remove();
+            frames.delete(id);
+        }
+    }
+
+}, 5000);
+
+/* ================= UTIL ================= */
+
+function clearData() {
+    frames.clear();
+    desktopRows.innerHTML = "";
+    cardContainer.innerHTML = "";
+    log.length = 0;
+    pendingFrames.length = 0;
+}
+
+function saveLog() {
+
+    const blob =
+        new Blob(
+            [log.join("\n")],
+            {
+                type:
+                    "text/plain"
+            }
+        );
+
+    const a =
+        document.createElement("a");
+
+    a.href =
+        URL.createObjectURL(blob);
+
+    a.download =
+        "protocol_log.txt";
+
+    a.click();
+
+    URL.revokeObjectURL(a.href);
+}
+
+</script>
+
+</body>
+</html>

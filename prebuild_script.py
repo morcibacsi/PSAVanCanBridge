@@ -26,7 +26,8 @@ def clean_and_open(path):
 
 def generate_cpp_variable(file_path, file_id, file_buffer):
     """Generate the C++ variable for the given file."""
-    variable_name = f"ESP_REACT_DATA_{file_id}"
+    file_name = os.path.basename(file_path).replace(".", "_")
+    variable_name = f"{file_name}"
     compressed_data = gzip.compress(file_buffer)
     hex_array = ", ".join(
         f"0x{byte:02X}" for byte in compressed_data

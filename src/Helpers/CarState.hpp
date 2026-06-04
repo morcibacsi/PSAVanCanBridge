@@ -203,6 +203,11 @@ struct CarState
 
     bool DiagConnected = false;
 
+    //0: none, 1: source, 2: destination
+    uint8_t LogNetwork = 0;
+    //0: none, 1: incoming, 2: outgoing
+    uint8_t LogDirection = 0;
+
     // config
     bool SAVE_CONFIG = true;
     uint8_t VIN_FOR_HEADUNIT[17];

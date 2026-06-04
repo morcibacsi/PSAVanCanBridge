@@ -135,8 +135,11 @@ void WebServer::RegisterHandler(const char* uri, httpd_method_t method, my_httpd
 void WebServer::RegisterEndpoints()
 {
     RegisterHandler("/ws", HTTP_GET, &WebServer::ws_handler, true);
-    RegisterHandler("/", HTTP_GET, &WebServer::get_index_handler, false);
-    RegisterHandler("/index.html", HTTP_GET, &WebServer::get_index_handler, false);
+    RegisterHandler("/", HTTP_GET, &WebServer::get_html_page_handler, false);
+    RegisterHandler("/*", HTTP_OPTIONS, &WebServer::options_handler, false);
+    RegisterHandler("/index.html", HTTP_GET, &WebServer::get_html_page_handler, false);
+    RegisterHandler("/monitor.html", HTTP_GET, &WebServer::get_html_page_handler, false);
+    RegisterHandler("/telecoding.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler, false);
     RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler, false);
     RegisterHandler("/api/getVin", HTTP_GET, &WebServer::get_vin_handler, false);
@@ -144,13 +147,17 @@ void WebServer::RegisterEndpoints()
     RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler, false);
     RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler, false);
     RegisterHandler("/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false);
+    RegisterHandler("/api/setmonitor", HTTP_POST, &WebServer::post_network_monitor_handler, false);
 }
 
 void WebServer::UnRegisterEndpoints()
 {
     // Unregister all endpoints
     httpd_unregister_uri_handler(server, "/", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/*", HTTP_OPTIONS);
     httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/monitor.html", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/telecoding.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/getVin", HTTP_GET);
@@ -158,6 +165,7 @@ void WebServer::UnRegisterEndpoints()
     httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
     httpd_unregister_uri_handler(server, "/api/time", HTTP_POST);
     httpd_unregister_uri_handler(server, "/api/update", HTTP_POST);
+    httpd_unregister_uri_handler(server, "/api/setmonitor", HTTP_POST);
     httpd_unregister_uri_handler(server, "/ws", HTTP_GET);
 }
 
@@ -167,7 +175,7 @@ esp_err_t WebServer::StartWebServer()
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 8192;
-    config.max_uri_handlers = 10;
+    config.max_uri_handlers = 14;
     config.global_user_ctx = this;
     config.close_fn = WebServer::OnClose;
 
@@ -228,6 +236,7 @@ void WebServer::Process()
     if (_isRunning && server != nullptr)
     {
         if (
+            startInApMode == true &&
             _carState->DiagConnected == false &&
             (_carState->CurrenTime - _lastRequestTime) > _inactivityTimeout * 1000)
         {
@@ -249,7 +258,7 @@ void WebServer::OnClose(httpd_handle_t hd, int sockfd)
     }
 }
 
-esp_err_t WebServer::get_index_handler(httpd_req_t *req)
+esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
 {
     // Set the appropriate headers for gzipped content
     auto *instance = static_cast<WebServer *>(req->user_ctx);
@@ -259,9 +268,31 @@ esp_err_t WebServer::get_index_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
 
-    // Send the data from PROGMEM
-    size_t data_size = sizeof(ESP_REACT_DATA_0);
-    httpd_resp_send(req, (const char*)ESP_REACT_DATA_0, data_size);
+    const uint8_t* page_data = nullptr;
+    size_t data_size = 0;
+
+    if (strcmp(req->uri, "/") == 0 || strcmp(req->uri, "/index.html") == 0)
+    {
+        page_data = index_html;
+        data_size = sizeof(index_html);
+    }
+    else if (strcmp(req->uri, "/monitor.html") == 0)
+    {
+        page_data = monitor_html;
+        data_size = sizeof(monitor_html);
+    }
+    else if (strcmp(req->uri, "/telecoding.html") == 0)
+    {
+        page_data = telecoding_html;
+        data_size = sizeof(telecoding_html);
+    }
+    else
+    {
+        httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Page not found");
+        return ESP_FAIL;
+    }
+
+    httpd_resp_send(req, (const char*)page_data, data_size);
     return ESP_OK;
 }
 
@@ -534,6 +565,66 @@ esp_err_t WebServer::post_ota_update_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "Update successful, rebooting...");
     vTaskDelay(pdMS_TO_TICKS(2000));
     esp_restart();
+    return ESP_OK;
+}
+
+esp_err_t WebServer::options_handler(httpd_req_t *req)
+{
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
+{
+    char content[100];
+    int ret, remaining = req->content_len;
+    if (remaining > sizeof(content))
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
+        return ESP_FAIL;
+    }
+    while (remaining > 0)
+    {
+        ret = httpd_req_recv(req, content, sizeof(content));
+        if (ret <= 0)
+        {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                httpd_resp_send_408(req);
+            }
+            return ESP_FAIL;
+        }
+        remaining -= ret;
+    }
+    cJSON *root = cJSON_Parse(content);
+    if (!root)
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+        return ESP_FAIL;
+    }
+
+    cJSON *jsonObj = cJSON_GetObjectItem(root, "network");
+    double network = cJSON_GetNumberValue(jsonObj);
+
+    jsonObj = cJSON_GetObjectItem(root, "direction");
+    double direction = cJSON_GetNumberValue(jsonObj);
+
+    printf("network: %d\n", (int)network);
+    printf("direction: %d\n", (int)direction);
+
+    cJSON_Delete(root);
+
+    auto *instance = static_cast<WebServer *>(req->user_ctx);
+    instance->_carState->LogNetwork = (int)network;
+    instance->_carState->LogDirection = (int)direction;
+
+    httpd_resp_set_status(req, "200 OK");
+    httpd_resp_sendstr(req, "Monitor set");
+    httpd_resp_set_type(req, "application/json");
+
     return ESP_OK;
 }
 

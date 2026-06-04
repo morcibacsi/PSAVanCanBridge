@@ -16,6 +16,9 @@ private:
     VanCrcCalculator* _crcCalculator = nullptr;
     IVanMessageSender* _vanMessageSender = nullptr;
 
+    uint8_t _network = 0;
+    void (*_loggerFunction)(const uint8_t network, const uint8_t direction, const BusMessage& message) = nullptr;
+
     static constexpr size_t TX_QUEUE_LENGTH = 15;
     static constexpr size_t TX_QUEUE_ITEM_SIZE = sizeof(BusMessage);
     static constexpr uint8_t MAX_RETRY_COUNT = 5;
@@ -34,4 +37,10 @@ public:
     bool ReceiveMessage(BusMessage& message) override;
 
     bool IsBusAvailable() override;
+
+    void SetLoggerFunction(const uint8_t network, void (*loggerFunction)(const uint8_t network, const uint8_t direction, const BusMessage& message)) override
+    {
+        _network = network;
+        _loggerFunction = loggerFunction;
+    }
 };

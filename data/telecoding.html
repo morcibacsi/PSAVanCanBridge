@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSA VAN-CAN Bridge - Telecoding</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.container-fluid {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.p-3 {
+    padding: 1rem;
+}
+
+.card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header,
+.card-body {
+    padding: 1rem;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+    margin-bottom: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.me-2 {
+    margin-right: 0.5rem;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.align-items-end {
+    align-items: flex-end;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+.row > [class*="col-"] {
+    width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.g-2 {
+    row-gap: 0.5rem;
+}
+
+.col-md-3,
+.col-md-6,
+.col-lg-2,
+.col-lg-3,
+.col-lg-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-lg-2 {
+        flex: 0 0 16.666667%;
+        max-width: 16.666667%;
+    }
+
+    .col-lg-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+.form-control,
+.form-select,
+textarea {
+    width: 100%;
+    border: 1px solid #555;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    line-height: 1.4;
+}
+
+.form-control-sm,
+.form-select-sm {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-check-input {
+    appearance: auto;
+}
+
+.form-label {
+    display: inline-block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+}
+
+.font-monospace {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-success {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+.btn-warning {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #111;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    filter: brightness(1.08);
+}
+
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #444;
+}
+
+.tab-content {
+    width: 100%;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.fade {
+    opacity: 0;
+    transition: opacity 0.18s ease-in-out;
+}
+
+.fade.show {
+    opacity: 1;
+}
+
+.badge {
+    display: inline-block;
+    border-radius: 0.375rem;
+    padding: 0.2rem 0.45rem;
+    font-weight: 600;
+}
+
+.bg-success {
+    background: #198754;
+    color: #fff;
+}
+
+.bg-warning {
+    background: #ffc107;
+    color: #111;
+}
+
+.card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.form-control,
+.form-select,
+textarea {
+    background-color: #2b2b2b !important;
+    color: #f5f5f5 !important;
+    border-color: #555 !important;
+}
+
+.form-control::placeholder {
+    color: #b0b0b0 !important;
+}
+
+.form-label,
+.card-header,
+.card-body,
+small,
+strong,
+label,
+.nav-link {
+    color: #f0f0f0 !important;
+}
+
+.btn-secondary {
+    color: white;
+}
+
+input[type=\"checkbox\"] {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #2b2b2b;
+    color: white;
+}
+
+.zone-raw {
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.zone-modified {
+    border-left: 4px solid #ffc107;
+}
+
+.zone-clean {
+    border-left: 4px solid #198754;
+}
+
+.log-console {
+    height: 250px;
+    resize: vertical;
+    font-family: monospace;
+}
+
+.badge-status {
+    font-size: 0.75rem;
+}
+
+.zone-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.nav-tabs .nav-link {
+    color: #ccc;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #2b2b2b;
+    color: white;
+    border-color: #444;
+}
+
+@media (max-width: 768px) {
+    .zone-buttons .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+.zone-card-body {
+    padding: 0.5rem 0.75rem;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.3rem 1rem;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.control-row label {
+    flex: 1;
+    font-size: 0.78rem !important;
+    margin: 0;
+    color: #ccc !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+}
+
+.control-row .form-select,
+.control-row .form-control {
+    flex: 0 0 auto;
+    width: 160px;
+    font-size: 0.78rem !important;
+    padding: 0.15rem 0.4rem;
+    height: auto;
+}
+
+.control-row input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    cursor: pointer;
+}
+
+.zone-raw {
+    font-size: 0.78rem !important;
+}
+
+.zone-meta {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+@media (max-width: 767.98px) {
+    #ecuInfoCard .row > div:first-child {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    #ecuInfoCard .row > div:not(:first-child) {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+
+    #ecuInfoCard strong,
+    #ecuInfoCard #ecuName,
+    #ecuInfoCard #ecuProtocol,
+    #ecuInfoCard #ecuTx,
+    #ecuInfoCard #ecuRx {
+        font-size: 0.82rem;
+        line-height: 1.25;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container-fluid p-3">
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">WebSocket URL</label>
+                    <input id="wsUrl" class="form-control" value="ws://192.168.100.1/ws">
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <button id="connectBtn" class="btn btn-success w-100">
+                        Connect
+                    </button>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">ECU JSON</label>
+                    <input id="jsonFile" type="file" class="form-control" accept=".json">
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">ECU Key</label>
+                    <select id="ecuKey" class="form-select"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3" id="ecuInfoCard">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>ECU:</strong>
+                    <div id="ecuName">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Protocol:</strong>
+                    <div id="ecuProtocol">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>TX ID:</strong>
+                    <div id="ecuTx">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>RX ID:</strong>
+                    <div id="ecuRx">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <button id="readAllBtn" class="btn btn-primary me-2">
+            Read All Zones
+        </button>
+
+        <button id="writeModifiedBtn" class="btn btn-warning">
+            Write Modified Zones
+        </button>
+    </div>
+
+    <ul class="nav nav-tabs" id="tabBar"></ul>
+
+    <div id="tabContent" class="tab-content mt-3"></div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            Live Log
+        </div>
+
+        <div class="card-body">
+            <textarea id="logConsole" class="form-control log-console" readonly></textarea>
+        </div>
+    </div>
+
+</div>
+
+<script>
+class Logger {
+    static log(text) {
+        const consoleElement = document.getElementById("logConsole");
+        consoleElement.value += text + "\n";
+        consoleElement.scrollTop = consoleElement.scrollHeight;
+    }
+}
+
+class WebSocketTransport {
+    constructor() {
+        this.ws = null;
+        this.pendingResolve = null;
+        this.pendingReject = null;
+        this.timeoutHandle = null;
+    }
+
+    connect(url) {
+        return new Promise((resolve, reject) => {
+            this.ws = new WebSocket(url);
+
+            this.ws.onopen = () => {
+                Logger.log("Connected to WebSocket");
+                resolve();
+            };
+
+            this.ws.onerror = (err) => {
+                Logger.log("WebSocket Error");
+                reject(err);
+            };
+
+            this.ws.onclose = () => {
+                Logger.log("WebSocket Disconnected");
+            };
+
+            this.ws.onmessage = (event) => {
+                const data = event.data;
+
+                Logger.log("< " + data);
+
+                if (this.pendingResolve) {
+                    clearTimeout(this.timeoutHandle);
+                    this.pendingResolve(data);
+                    this.pendingResolve = null;
+                    this.pendingReject = null;
+                }
+            };
+        });
+    }
+
+    async send(command, timeout = 5000) {
+
+        const responsePromise = new Promise((resolve, reject) => {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                    reject("WebSocket not connected");
+                    return;
+                }
+
+                Logger.log("> " + command);
+
+                this.pendingResolve = resolve;
+                this.pendingReject = reject;
+
+                this.timeoutHandle = setTimeout(() => {
+                    this.pendingResolve = null;
+                    this.pendingReject = null;
+                    reject("Timeout");
+                }, timeout);
+
+                this.ws.send(command);
+            });
+
+        var response = await responsePromise;
+
+        let replacedText = response.replace(/[\r\n]+/g, "");
+        return replacedText;
+    }
+}
+
+class DiagnosticClient {
+    constructor(transport, ecuDefinition) {
+        this.transport = transport;
+        this.ecuDefinition = ecuDefinition;
+        this.keepAliveInterval = null;
+        this.unlockKey = null;
+
+        this.protocolMap = {
+            uds: {
+                name: "UDS",
+                keepAlive: "KU",
+                stopKeepAlive: "S",
+                startDiag: "1003",
+                stopDiag: "1001",
+                readZoneTag: "22",
+                writeZoneTag: "2E",
+                unlockServiceConfig: "2703",
+                unlockResponseConfig: "2704",
+                unlockServiceConfigSuccess: "6703",
+                unlockResponseConfigSuccess: "6704",
+                secureTraceability: "2E2901FD000000010101"
+            },
+            kwp_hab: {
+                name: "KWP-HAB",
+                keepAlive: "KK",
+                stopKeepAlive: "S",
+                startDiag: "10C0",
+                stopDiag: "1081",
+                readZoneTag: "21",
+                writeZoneTag: "3B",
+                responsePrefix: "67",
+                unlockServiceConfig: "2783",
+                unlockResponseConfig: "2784",
+                unlockServiceConfigSuccess: "6783",
+                unlockResponseConfigSuccess: "6784",
+                secureTraceability: ""
+            }
+        };
+    }
+
+    setUnlockKey(key) {
+        this.unlockKey = key;
+    }
+
+    get protocol() {
+        return this.protocolMap[this.ecuDefinition.protocol];
+    }
+
+    async selectECU() {
+        const cmd = ">" + this.ecuDefinition.tx_id + ":" + this.ecuDefinition.rx_id;
+        const response = await this.transport.send(cmd);
+
+        if (response !== "OK") {
+            throw new Error("ECU selection failed");
+        }
+    }
+
+    async startSession() {
+        //await this.transport.send(this.protocol.keepAlive);
+
+        const response = await this.transport.send(this.protocol.startDiag);
+
+        if (!response.startsWith("50")) {
+            await this.stopSession();
+            throw new Error("Failed to start diagnostic session");
+        }
+        else {
+            Logger.log("Diagnostic session started");
+            const stopKeepAliveResponse = await this.transport.send(this.protocol.stopKeepAlive);
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+
+/*
+        this.keepAliveInterval = setInterval(async () => {
+            try {
+                await this.transport.send(this.protocol.keepAlive);
+            }
+            catch {}
+        }, 2000);
+*/
+    }
+
+    async stopSession() {
+        clearInterval(this.keepAliveInterval);
+
+        try {
+            await this.transport.send(this.protocol.stopKeepAlive);
+        }
+        catch {}
+
+        await this.transport.send(this.protocol.stopDiag);
+    }
+
+    transform(data_msb, data_lsb, sec) {
+        let data = (data_msb << 8) | data_lsb;
+        let neg = false;
+
+        if (data & 0x8000) {
+            data -= 0x10000;
+            data *= -1;
+            neg = true;
+        }
+
+        let rem = data % sec[0];
+        let num = Math.trunc(data / sec[0]);
+
+        if (neg) {
+            rem *= -1;
+            num *= -1;
+        }
+
+        const rem16 = (((rem & 0xFFFF) << 16) >> 16);
+        const num16 = (((num & 0xFFFF) << 16) >> 16);
+
+        let dom1 = (rem16 * sec[2]) | 0;
+        let dom2 = (num16 * sec[1]) | 0;
+        let result = (dom1 - dom2) | 0;
+
+        if (result < 0) {
+            result += sec[0] * sec[2] + sec[1];
+        }
+
+        return result & 0xFFFF;
+    }
+
+    computeResponse(key, seed) {
+        const sec1 = [0xB2, 0x3F, 0xAA];
+        const sec2 = [0xB1, 0x02, 0xAB];
+
+        const res_msb = this.transform((key >>> 8) & 0xFF, key & 0xFF, sec1) |
+                        this.transform((seed >>> 24) & 0xFF, seed & 0xFF, sec2);
+        const res_lsb = this.transform((seed >>> 16) & 0xFF, (seed >>> 8) & 0xFF, sec1) |
+                        this.transform((res_msb >>> 8) & 0xFF, res_msb & 0xFF, sec2);
+
+        return (((res_msb & 0xFFFF) << 16) | (res_lsb & 0xFFFF)) >>> 0;
+    }
+
+    async unlock() {
+        if (!this.unlockKey) {
+            return;
+        }
+
+        let tryCnt = 8
+        let seedResponse = null;
+
+        while (tryCnt > 0) {
+            try {
+                seedResponse = await this.transport.send(this.protocol.unlockServiceConfig);
+
+                if (!seedResponse.startsWith(this.protocol.unlockServiceConfigSuccess)) {
+                    if (tryCnt === 1) {
+                        throw new Error("Unlock request failed");
+                    }
+                    else {
+                        Logger.log("Unlock request failed, retrying...");
+                        tryCnt--;
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        continue;
+                    }
+                }
+                else {
+                    Logger.log("Unlock request successful");
+                    break;
+                }
+            }
+            catch (err) {
+                Logger.log("Unlock attempt failed: " + err);
+                tryCnt--;
+            }
+        }
+
+        if (!seedResponse || !seedResponse.startsWith(this.protocol.unlockServiceConfigSuccess)) {
+            throw new Error("Failed to get seed for unlocking");
+        }
+
+        const seedHex = seedResponse.substring(4);
+        Logger.log("Seed received: " + seedHex);
+
+        const keyInt = parseInt(this.unlockKey, 16);
+        const seedInt = parseInt(seedHex, 16);
+        const responseInt = this.computeResponse(keyInt, seedInt);
+        const responseHex = responseInt.toString(16).padStart(8, "0").toUpperCase();
+
+        Logger.log("Computed unlock response: " + responseHex);
+
+        const unlockResponse = await this.transport.send(
+            this.protocol.unlockResponseConfig + responseHex
+        );
+
+        if (!unlockResponse.startsWith(this.protocol.unlockResponseConfigSuccess)) {
+            throw new Error("Unlock failed");
+        }
+    }
+
+    async readZone(zoneId) {
+        const response = await this.transport.send(
+            this.protocol.readZoneTag + zoneId
+        );
+
+        if (!response.startsWith("62") && !response.startsWith("61")) {
+            throw new Error("Read failed: " + response);
+        }
+
+        if (this.protocol.name === "UDS") {
+            return response.substring(6);
+        } else if (this.protocol.name === "KWP-HAB") {
+            return response.substring(4);
+        }
+    }
+
+    async writeZone(zoneId, hexData) {
+        const response = await this.transport.send(
+            this.protocol.writeZoneTag + zoneId + hexData
+        );
+
+        if (this.protocol.name === "UDS") {
+            if (response.length != 6 ||
+                !response.startsWith("6E") && response.substring(2, 6) !== zoneId) {
+                    throw new Error("Write failed: " + response);
+            }
+        }
+        else if (this.protocol.name === "KWP-HAB") {
+            if (response.length != 4 ||
+                !response.startsWith("7B") && response.substring(2, 4) !== zoneId) {
+                    throw new Error("Write failed: " + response);
+            }
+
+        }
+    }
+
+    async writeSecureTraceability() {
+        if (this.protocol.name === "UDS") {
+            const traceabilityResponse = await this.transport.send(this.protocol.secureTraceability);
+            if (traceabilityResponse.length != 6 && !traceabilityResponse.startsWith("6E")) {
+                throw new Error("Secure traceability failed: " + traceabilityResponse);
+            }
+        }
+    }
+}
+
+class ZoneState {
+    constructor(zoneId, zoneDef) {
+        this.zoneId = zoneId;
+
+        const requiredLength = calculateZoneLength(zoneDef);
+
+        this.originalBytes = new Uint8Array(requiredLength);
+        this.modifiedBytes = new Uint8Array(requiredLength);
+    }
+
+    setHex(hex) {
+        this.originalBytes = hexToBytes(hex);
+        this.modifiedBytes = hexToBytes(hex);
+    }
+
+    get originalHex() {
+        return bytesToHex(this.originalBytes);
+    }
+
+    get modifiedHex() {
+        return bytesToHex(this.modifiedBytes);
+    }
+
+    get dirty() {
+        return this.originalHex !== this.modifiedHex;
+    }
+
+    reset() {
+        this.modifiedBytes = new Uint8Array(this.originalBytes);
+    }
+}
+
+const app = {
+    transport: new WebSocketTransport(),
+    diagnosticClient: null,
+    ecuDefinition: null,
+    zoneStates: {}
+};
+
+function hexToBytes(hex) {
+    const bytes = [];
+
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes.push(parseInt(hex.substr(i, 2), 16));
+    }
+
+    return new Uint8Array(bytes);
+}
+
+function calculateZoneLength(zoneDef) {
+    let maxByte = 0;
+
+    if (Array.isArray(zoneDef.params)) {
+        for (const param of zoneDef.params) {
+            if (param.byte !== undefined) {
+                const end = param.byte + (param.byte_range || 1) - 1;
+                if (end > maxByte) maxByte = end;
+            }
+        }
+    } else {
+        for (const key in zoneDef) {
+            const item = zoneDef[key];
+            if (typeof item === "object" && item !== null && item.byte !== undefined) {
+                if (item.byte > maxByte) maxByte = item.byte;
+            }
+        }
+    }
+
+    return maxByte + 1;
+}
+
+function bytesToHex(bytes) {
+    return Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+}
+
+function bytesToAscii(bytes) {
+    return Array.from(bytes)
+        .map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : ".")
+        .join("");
+}
+
+function asciiToBytes(str) {
+    const bytes = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) {
+        bytes[i] = str.charCodeAt(i) & 0xFF;
+    }
+    return bytes;
+}
+
+function formatHex(hex) {
+    return hex.match(/.{1,2}/g)?.join(" ") || "";
+}
+
+function maskToInt(maskString) {
+    return parseInt(maskString, 2);
+}
+
+function extractMaskedValue(byte, maskString) {
+    const mask = maskToInt(maskString);
+
+    let shift = 0;
+
+    while (((mask >> shift) & 1) === 0) {
+        shift++;
+    }
+
+    return (byte & mask) >> shift;
+}
+
+function applyMaskedValue(byte, maskString, value) {
+    const mask = maskToInt(maskString);
+
+    let shift = 0;
+
+    while (((mask >> shift) & 1) === 0) {
+        shift++;
+    }
+
+    byte &= ~mask;
+    byte |= (value << shift) & mask;
+
+    return byte;
+}
+
+function updateZoneCard(zoneId) {
+    const zoneState = app.zoneStates[zoneId];
+
+    const originalElement = document.getElementById(`original-${zoneId}`);
+    const modifiedElement = document.getElementById(`modified-${zoneId}`);
+    const card = document.getElementById(`card-${zoneId}`);
+    const status = document.getElementById(`status-${zoneId}`);
+
+    originalElement.innerText = formatHex(zoneState.originalHex);
+    modifiedElement.innerText = formatHex(zoneState.modifiedHex);
+
+    const rawEditor = document.querySelector(`#card-${zoneId} input.form-control.mb-2`);
+
+    if (rawEditor) {
+        rawEditor.value = formatHex(zoneState.modifiedHex);
+    }
+
+    if (zoneState.dirty) {
+        card.classList.remove("zone-clean");
+        card.classList.add("zone-modified");
+
+        status.className = "badge bg-warning badge-status";
+        status.innerText = "MODIFIED";
+    }
+    else {
+        card.classList.remove("zone-modified");
+        card.classList.add("zone-clean");
+
+        status.className = "badge bg-success badge-status";
+        status.innerText = "SYNCED";
+    }
+}
+
+function createControl(zoneId, controlKey, controlDef) {
+    const zoneState = app.zoneStates[zoneId];
+
+    if (controlDef.zoneLength) {
+        if (Array.isArray(controlDef.zoneLength)) {
+            if (controlDef.zoneLength.includes(zoneState.modifiedBytes.length)) {
+                // valid
+            }
+            else {
+                console.warn(`Control ${controlDef.name} has zoneLength ${controlDef.zoneLength}, but zone has length ${zoneState.modifiedBytes.length}`);
+                return;
+            }
+        }
+        else if (controlDef.zoneLength !== zoneState.modifiedBytes.length) {
+            console.warn(`Control ${controlDef.name} has zoneLength ${controlDef.zoneLength}, but zone has length ${zoneState.modifiedBytes.length}`);
+            return;
+        }
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "control-row";
+
+    const label = document.createElement("label");
+    label.innerText = controlDef.name;
+    label.title = controlDef.name;
+
+    const byteIndex = controlDef.byte;
+    const mask = controlDef.mask;
+
+    if (controlDef.form_type === "checkbox") {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "form-check-input";
+        checkbox.id = `chk-${zoneId}-${controlKey}`;
+        label.htmlFor = checkbox.id;
+
+        const maskValue = maskToInt(mask);
+
+        if (controlDef.available_logic && controlDef.available_logic === "active_high") {
+            checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
+        }
+        else {
+            checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) === 0;
+        }
+
+        //checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
+
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                zoneState.modifiedBytes[byteIndex] |= maskValue;
+            }
+            else {
+                zoneState.modifiedBytes[byteIndex] &= ~maskValue;
+            }
+
+            updateZoneCard(zoneId);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(checkbox);
+    }
+
+    else if (controlDef.form_type === "combobox") {
+        const select = document.createElement("select");
+        select.className = "form-select form-select-sm";
+
+        const currentValue = extractMaskedValue(
+            zoneState.modifiedBytes[byteIndex],
+            mask
+        );
+
+        controlDef.params.forEach((param) => {
+            const option = document.createElement("option");
+
+            option.innerText = param.name;
+            option.value = parseInt(param.mask, 2);
+
+            const optionValue = extractMaskedValue(
+                parseInt(param.mask, 2),
+                mask
+            );
+
+            if (optionValue === currentValue) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        });
+
+        select.addEventListener("change", () => {
+            zoneState.modifiedBytes[byteIndex] = applyMaskedValue(
+                zoneState.modifiedBytes[byteIndex],
+                mask,
+                extractMaskedValue(parseInt(select.value), mask)
+            );
+
+            updateZoneCard(zoneId);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(select);
+    }
+
+    else if (controlDef.form_type === "string") {
+        const byteIndex = controlDef.byte;
+        const isAscii = controlDef.type === "string_ascii";
+        const byteRange = controlDef.byte_range !== undefined
+            ? controlDef.byte_range
+            : (isAscii ? zoneState.modifiedBytes.length - byteIndex : 1);
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control form-control-sm font-monospace";
+        const bytes = zoneState.modifiedBytes.slice(byteIndex, byteIndex + byteRange);
+
+        if (isAscii) {
+            input.value = bytesToAscii(bytes);
+            input.addEventListener("change", () => {
+                const newBytes = asciiToBytes(input.value);
+                const newBuffer = new Uint8Array(byteIndex + newBytes.length);
+                newBuffer.set(zoneState.modifiedBytes.slice(0, byteIndex));
+                newBuffer.set(newBytes, byteIndex);
+                zoneState.modifiedBytes = newBuffer;
+                updateZoneCard(zoneId);
+            });
+        } else {
+            input.value = bytesToHex(bytes);
+            input.addEventListener("change", () => {
+                const cleanHex = input.value.replace(/\s/g, "").toUpperCase()
+                    .padEnd(byteRange * 2, "0").substring(0, byteRange * 2);
+                const newBytes = hexToBytes(cleanHex);
+                for (let i = 0; i < newBytes.length && (byteIndex + i) < zoneState.modifiedBytes.length; i++) {
+                    zoneState.modifiedBytes[byteIndex + i] = newBytes[i];
+                }
+                updateZoneCard(zoneId);
+            });
+        }
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+    }
+
+    return wrapper;
+}
+
+function createZoneCard(zoneId, zoneDef) {
+    const zoneState = app.zoneStates[zoneId];
+    const card = document.createElement("div");
+    card.className = "card mb-2 zone-clean";
+    card.id = `card-${zoneId}`;
+
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body zone-card-body";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "d-flex justify-content-between align-items-center mb-1";
+
+    titleRow.innerHTML = `
+        <div>
+            <div class="zone-title">${zoneDef.name}</div>
+            <small class="zone-meta">Zone ${zoneId}</small>
+        </div>
+
+        <span id="status-${zoneId}" class="badge bg-success badge-status">
+            SYNCED
+        </span>
+    `;
+
+    cardBody.appendChild(titleRow);
+
+    cardBody.innerHTML += `
+        <div class="zone-meta mb-1">
+            <div><strong>ECU:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong> <span id="original-${zoneId}" class="zone-raw">--</span></div>
+            <div><strong>Modified:</strong> <span id="modified-${zoneId}" class="zone-raw">--</span></div>
+        </div>
+    `;
+
+    const controlsGrid = document.createElement("div");
+    controlsGrid.className = "controls-grid mb-2";
+
+    if (Array.isArray(zoneDef.params)) {
+        for (const param of zoneDef.params) {
+            if (param.form_type && param.form_type !== "multi") {
+                const control = createControl(zoneId, param.id || param.name, param);
+                if (control) {
+                    controlsGrid.appendChild(control);
+                }
+            }
+        }
+    } else if (zoneDef.form_type) {
+        const control = createControl(zoneId, zoneDef.id || zoneId, zoneDef);
+        if (control) {
+            controlsGrid.appendChild(control);
+        }
+    } else {
+        for (const key in zoneDef) {
+            const item = zoneDef[key];
+            if (typeof item === "object" && item !== null && item.form_type) {
+                const control = createControl(zoneId, key, item);
+                if (control) {
+                    controlsGrid.appendChild(control);
+                }
+            }
+        }
+    }
+
+    cardBody.appendChild(controlsGrid);
+
+    const rawEditorLabel = document.createElement("label");
+    rawEditorLabel.className = "form-label mb-1";
+    rawEditorLabel.style.fontSize = "0.75rem";
+    rawEditorLabel.innerText = "Raw Hex";
+
+    cardBody.appendChild(rawEditorLabel);
+
+    const rawEditor = document.createElement("input");
+    rawEditor.className = "form-control form-control-sm font-monospace mb-2";
+    rawEditor.value = formatHex(zoneState.modifiedHex);
+
+    rawEditor.addEventListener("change", () => {
+        const cleanHex = rawEditor.value
+            .replace(/\s/g, "")
+            .toUpperCase();
+
+        zoneState.modifiedBytes = hexToBytes(cleanHex);
+
+        refreshControls(zoneId, zoneDef);
+        updateZoneCard(zoneId);
+    });
+
+    cardBody.appendChild(rawEditor);
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.className = "zone-buttons";
+
+    const readButton = document.createElement("button");
+    readButton.className = "btn btn-primary me-2";
+    readButton.innerText = "Read";
+
+    readButton.addEventListener("click", async () => {
+        try {
+            if (!app.transport){
+                Logger.log("Not connected");
+                console.error("Not connected");
+                return;
+            }
+
+            await app.diagnosticClient.selectECU();
+            await app.diagnosticClient.startSession();
+
+            const data = await app.diagnosticClient.readZone(zoneId);
+
+            app.zoneStates[zoneId].setHex(data);
+
+            await app.diagnosticClient.stopSession();
+
+            refreshControls(zoneId, zoneDef);
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed reading zone " + zoneId + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+    });
+
+    buttonContainer.appendChild(readButton);
+
+    const writeButton = document.createElement("button");
+    writeButton.className = "btn btn-warning me-2";
+    writeButton.innerText = "Write";
+
+    writeButton.addEventListener("click", async () => {
+        try {
+            await app.diagnosticClient.selectECU();
+            await app.diagnosticClient.startSession();
+
+            await app.diagnosticClient.unlock();
+
+            await app.diagnosticClient.readZone(zoneId);
+            await app.diagnosticClient.writeZone(
+                zoneId,
+                app.zoneStates[zoneId].modifiedHex
+            );
+
+            try {
+                await app.diagnosticClient.writeSecureTraceability();
+            }
+            catch (err) {
+                Logger.log("Secure traceability failed: " + err);
+            }
+
+            await app.diagnosticClient.stopSession();
+
+            app.zoneStates[zoneId].originalBytes =
+                new Uint8Array(app.zoneStates[zoneId].modifiedBytes);
+
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed writing zone " + zoneId + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+    });
+
+    buttonContainer.appendChild(writeButton);
+
+    const resetButton = document.createElement("button");
+    resetButton.className = "btn btn-secondary";
+    resetButton.innerText = "Reset";
+
+    resetButton.addEventListener("click", () => {
+        app.zoneStates[zoneId].reset();
+
+        refreshControls(zoneId, zoneDef);
+        updateZoneCard(zoneId);
+    });
+
+    buttonContainer.appendChild(resetButton);
+
+    cardBody.appendChild(buttonContainer);
+
+    card.appendChild(cardBody);
+
+    return card;
+}
+
+function refreshControls(zoneId, zoneDef) {
+    const oldCard = document.getElementById(`card-${zoneId}`);
+    const parent = oldCard.parentElement;
+
+    const newCard = createZoneCard(zoneId, zoneDef);
+
+    parent.replaceChild(newCard, oldCard);
+
+    updateZoneCard(zoneId);
+}
+
+function renderTabs() {
+    const tabBar = document.getElementById("tabBar");
+    const tabContent = document.getElementById("tabContent");
+
+    tabBar.innerHTML = "";
+    tabContent.innerHTML = "";
+
+    const tabs = app.ecuDefinition.tabs;
+
+    let first = true;
+
+    for (const tabId in tabs) {
+        const tabButton = document.createElement("li");
+        tabButton.className = "nav-item";
+
+        tabButton.innerHTML = `
+            <button class="nav-link ${first ? 'active' : ''}"
+                    data-bs-toggle="tab"
+                    data-bs-target="#tab-${tabId}">
+                ${tabs[tabId]}
+            </button>
+        `;
+
+        tabBar.appendChild(tabButton);
+
+        const tabPane = document.createElement("div");
+        tabPane.className = `tab-pane fade ${first ? 'show active' : ''}`;
+        tabPane.id = `tab-${tabId}`;
+
+        for (const zoneId in app.ecuDefinition.zones) {
+            const zoneDef = app.ecuDefinition.zones[zoneId];
+
+            if (zoneDef.tab === tabId) {
+                app.zoneStates[zoneId] = new ZoneState(zoneId, zoneDef);
+
+                tabPane.appendChild(
+                    createZoneCard(zoneId, zoneDef)
+                );
+            }
+        }
+
+        tabContent.appendChild(tabPane);
+
+        first = false;
+    }
+}
+
+function setupTabs() {
+    const tabBar = document.getElementById("tabBar");
+    const tabContent = document.getElementById("tabContent");
+
+    tabBar.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-bs-toggle='tab']");
+        if (!button) {
+            return;
+        }
+
+        const targetSelector = button.getAttribute("data-bs-target");
+        if (!targetSelector) {
+            return;
+        }
+
+        const targetPane = tabContent.querySelector(targetSelector);
+        if (!targetPane) {
+            return;
+        }
+
+        tabBar.querySelectorAll(".nav-link").forEach((navButton) => {
+            navButton.classList.remove("active");
+        });
+
+        tabContent.querySelectorAll(".tab-pane").forEach((pane) => {
+            pane.classList.remove("show", "active");
+        });
+
+        button.classList.add("active");
+        targetPane.classList.add("active", "show");
+    });
+}
+
+async function readAllZones() {
+    await app.diagnosticClient.selectECU();
+    await app.diagnosticClient.startSession();
+
+    for (const zoneId in app.ecuDefinition.zones) {
+        const zoneDef = app.ecuDefinition.zones[zoneId];
+
+        try {
+            const data = await app.diagnosticClient.readZone(zoneId);
+
+            app.zoneStates[zoneId].setHex(data);
+
+            refreshControls(zoneId, zoneDef);
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed reading zone " + zoneId + ": " + err);
+        }
+    }
+
+    await app.diagnosticClient.stopSession();
+}
+
+async function writeModifiedZones() {
+    await app.diagnosticClient.selectECU();
+    await app.diagnosticClient.startSession();
+
+    await app.diagnosticClient.unlock();
+
+    let anyModified = false;
+    for (const zoneId in app.zoneStates) {
+        const zoneState = app.zoneStates[zoneId];
+
+        if (!zoneState.dirty) {
+            continue;
+        }
+
+        try {
+
+            await app.diagnosticClient.readZone(zoneId);
+            await app.diagnosticClient.writeZone(
+                zoneId,
+                zoneState.modifiedHex
+            );
+
+            zoneState.originalBytes =
+                new Uint8Array(zoneState.modifiedBytes);
+
+            updateZoneCard(zoneId);
+            anyModified = true;
+        }
+        catch (err) {
+            Logger.log("Failed writing zone " + zoneId + ": " + err);
+        }
+    }
+
+    if (anyModified) {
+        try {
+            await app.diagnosticClient.writeSecureTraceability();
+        }
+        catch (err) {
+            Logger.log("Secure traceability failed: " + err);
+        }
+    }
+
+    await app.diagnosticClient.stopSession();
+}
+
+async function loadECU(json) {
+    app.ecuDefinition = json;
+
+    document.getElementById("ecuName").innerText = json.name;
+    document.getElementById("ecuProtocol").innerText = json.protocol;
+    document.getElementById("ecuTx").innerText = json.tx_id;
+    document.getElementById("ecuRx").innerText = json.rx_id;
+
+    const keySelect = document.getElementById("ecuKey");
+    keySelect.innerHTML = "";
+
+    if (json.keys) {
+        if (typeof json.keys === "string") {
+            const option = document.createElement("option");
+            option.innerText = json.keys;
+            option.value = json.keys;
+            keySelect.appendChild(option);
+        } else if (Array.isArray(json.keys)) {
+            for (const key of json.keys) {
+                const option = document.createElement("option");
+                option.innerText = key;
+                option.value = key;
+                keySelect.appendChild(option);
+            }
+        } else {
+            for (const [keyName, keyValue] of Object.entries(json.keys)) {
+                const option = document.createElement("option");
+                option.innerText = keyName;
+                option.value = keyValue;
+                keySelect.appendChild(option);
+            }
+        }
+    }
+
+
+    renderTabs();
+
+    app.diagnosticClient = new DiagnosticClient(
+        app.transport,
+        app.ecuDefinition
+    );
+
+    const selectedKey = keySelect.value;
+    if (selectedKey) {
+        app.diagnosticClient.setUnlockKey(selectedKey);
+    }
+}
+
+async function connectWebSocket() {
+    const url = document.getElementById("wsUrl").value;
+
+    await app.transport.connect(url);
+}
+
+document.getElementById("ecuKey").addEventListener("change", async (event) => {
+    const key = event.target.value;
+
+    if (app.diagnosticClient) {
+        try {
+            app.diagnosticClient.setUnlockKey(key);
+            //await app.diagnosticClient.unlock(key);
+            Logger.log("Set ECU unlock key: " + key);
+        }
+        catch (err) {
+            Logger.log("Failed to set ECU unlock key " + key + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+    }
+});
+
+document.getElementById("connectBtn").addEventListener("click", async () => {
+    try {
+        await connectWebSocket();
+
+        console.log("Connected");
+        Logger.log("Connected");
+        //alert("Connected");
+    }
+    catch (err) {
+        Logger.log("Connection failed: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+document.getElementById("jsonFile").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const json = JSON.parse(reader.result);
+        loadECU(json);
+    };
+
+    reader.readAsText(file);
+});
+
+document.getElementById("readAllBtn").addEventListener("click", async () => {
+    try {
+        await readAllZones();
+    }
+    catch (err) {
+        Logger.log("Failed reading all zones: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+document.getElementById("writeModifiedBtn").addEventListener("click", async () => {
+    if (!confirm("Write all modified zones?")) {
+        return;
+    }
+
+    try {
+        await writeModifiedZones();
+    }
+    catch (err) {
+        Logger.log("Failed writing modified zones: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+setupTabs();
+</script>
+
+</body>
+</html>
