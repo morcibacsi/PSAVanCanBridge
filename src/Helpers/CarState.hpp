@@ -116,8 +116,8 @@ struct CarState
     UInt16 CruiseControlSpeed = 0;
     UInt16 Speed = 0;
     UInt16 Rpm = 0;
-    UInt16 RearLeftWheelCounter = 0;
-    UInt16 RearRightWheelCounter = 0;
+    UInt16 RearLeftWheelCounter = 0xFFFF;
+    UInt16 RearRightWheelCounter = 0xFFFF;
     UInt24 Odometer = 0;
     UInt24 TripOnCMB = 0;
     uint8_t ConsumptionForCMB = 0;
