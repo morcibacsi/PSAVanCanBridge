@@ -27,6 +27,8 @@
 
 #include "Handlers/CLIM/MessageHandler_464.hpp"
 
+#include "Handlers/CMB/MessageHandler_664.hpp"
+
 #include "Handlers/EMF/MessageHandler_5E4.hpp"
 #include "Handlers/EMF/TripComputerResetHelper.hpp"
 
@@ -67,7 +69,8 @@ class AEE2001ComfortBus : public IProtocolHandler
         MessageHandler_AE8,
         MessageHandler_A5C,
         MessageHandler_ADC,
-        MessageHandler_464
+        MessageHandler_464,
+        MessageHandler_664
     > handlers;
 
     constexpr static auto SupportedMessageIds = ExtractMessageIds<decltype(handlers)>();

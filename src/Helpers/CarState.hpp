@@ -89,7 +89,7 @@ struct CarState
     //161 AEE2010
     uint8_t OilLevelRestart = 0;
     uint8_t EngineOilTemperature = 0;
-    uint8_t FuelLevel = 0;
+    uint8_t FuelLevel = 0xFF;
     uint8_t FuelTankCapacity = 0;
     uint8_t EngineOilLevel = 0;
 

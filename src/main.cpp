@@ -318,6 +318,7 @@ extern "C" void app_main(void)
             {0x8A4},
             {0x524},
             {0x564},
+            {0x664},
             {0x744},
             {0x5E4},
             {0x4D4},
