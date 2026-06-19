@@ -15,7 +15,7 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
         {
             .id = 0x168,
             .data = {0},
-            .dataLength = 7,
+            .dataLength = 8,
             .protocol = ProtocolType::AEE2010,
             .periodicityMs = 200,
             .offsetMs = 10,
@@ -27,14 +27,14 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
         BusMessage Generate(CarState* carState)
         {
             CanDash3Byte1_2010_Struct field1{};
-            field1.data.coolant_temp_max = carState->CarIndicatorLights.data.coolant_temp_max;
-            field1.data.number_of_gears = carState->CarIndicatorLights.data.number_of_gears;
+            field1.data.coolant_temp_max    = carState->CarIndicatorLights.data.coolant_temp_max;
+            field1.data.number_of_gears     = carState->CarIndicatorLights.data.number_of_gears;
             field1.data.coolant_level_alert = carState->CarIndicatorLights.data.coolant_level_alert;
-            field1.data.oil_level_alert = carState->CarIndicatorLights.data.oil_level_alert;
-            field1.data.oil_pressure_alert = carState->CarIndicatorLights.data.oil_pressure_alert;
-            field1.data.break_fluid_alert = carState->CarIndicatorLights.data.break_fluid_alert;
-            field1.data.engine_cold = carState->CarIndicatorLights.data.engine_cold;
-            field1.data.dsg_fault = carState->CarIndicatorLights.data.dsg_fault;
+            field1.data.oil_level_alert     = carState->CarIndicatorLights.data.oil_level_alert;
+            field1.data.oil_pressure_alert  = carState->CarIndicatorLights.data.oil_pressure_alert;
+            field1.data.break_fluid_alert   = carState->CarIndicatorLights.data.break_fluid_alert;
+            field1.data.engine_cold         = carState->CarIndicatorLights.data.engine_cold;
+            field1.data.dsg_fault           = carState->CarIndicatorLights.data.dsg_fault;
 
             CanDash3Byte2_2010_Struct field2{};
             field2.data.antipollution_fault   = carState->CarIndicatorLights.data.antipollution_fault;
@@ -106,6 +106,9 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
             field7.data.authorize_vth    = _dataBroker->EnableVTH;
             */
 
+            CanDash3Byte8_2010_Struct field8{};
+            field8.data.farc_lamp_status = 0;
+
             message.data[0] = field1.asByte;
             message.data[1] = field2.asByte;
             message.data[2] = field3.asByte;
@@ -113,6 +116,7 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
             message.data[4] = field5.asByte;
             message.data[5] = 0x00;
             message.data[6] = field7.asByte;
+            message.data[7] = field8.asByte;
 
             return message;
         }
