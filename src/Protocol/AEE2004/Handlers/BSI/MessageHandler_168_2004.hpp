@@ -50,6 +50,7 @@ class MessageHandler_168 : public IMessageHandler<MessageHandler_168>
             CanDash3Byte2Struct field2{};
             //TODO
             //field2.data.diesel_additive_alert    = state->CarIndicatorLights.data.diesel_additive_alert;
+            field2.data.auto_wiping_active       = carState->CarIndicatorLights.data.auto_wiping_active || (carState->Ignition && carState->AutoWipingActive);
             field2.data.fap_clogged              = carState->CarIndicatorLights.data.fap_clogged;
             field2.data.tyre_punctured           = carState->CarIndicatorLights.data.tyre_punctured;
             field2.data.tyre_pressure_low        = carState->CarIndicatorLights.data.tyre_pressure_low;

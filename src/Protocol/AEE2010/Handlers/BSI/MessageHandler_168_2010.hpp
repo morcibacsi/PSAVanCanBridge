@@ -38,7 +38,7 @@ class MessageHandler_168_2010 : public IMessageHandler<MessageHandler_168_2010>
 
             CanDash3Byte2_2010_Struct field2{};
             field2.data.antipollution_fault   = carState->CarIndicatorLights.data.antipollution_fault;
-            field2.data.auto_wiping_active    = carState->CarIndicatorLights.data.auto_wiping_active;
+            field2.data.auto_wiping_active    = carState->CarIndicatorLights.data.auto_wiping_active || (carState->Ignition && carState->AutoWipingActive);
             field2.data.max_rpm_1             = carState->CarIndicatorLights.data.max_rpm_1;
             field2.data.max_rpm_2             = carState->CarIndicatorLights.data.max_rpm_2;
             field2.data.tyre_punctured        = carState->CarIndicatorLights.data.tyre_punctured;
