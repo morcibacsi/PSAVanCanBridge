@@ -72,11 +72,11 @@ struct CarState
 
     //128 AEE2010
     CarSignalLightsStruct CarSignalLights{};
-    uint8_t GearPositionCmb = 0;
+    uint8_t GearPositionCmb = 0b1011; //No gear to display
     uint8_t GearPositionInDriving = 0;
     uint8_t GearBlinking = 0;
     uint8_t GearBoxMode = 0;
-    uint8_t GearBoxSelection = 0;
+    uint8_t GearBoxSelection = 0b01; //Mode BVM
     uint8_t RecommendedGearBlinking = 0;
     uint8_t RecommendedGearDirection = 0;
 

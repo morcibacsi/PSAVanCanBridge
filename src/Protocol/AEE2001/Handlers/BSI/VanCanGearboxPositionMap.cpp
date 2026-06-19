@@ -6,7 +6,7 @@
 
 void VanCanGearboxPositionMap::SetGearboxMapping()
 {
-    memset(_gearBoxMap, CAN_DASH_GEAR_INVALID, 15);
+    memset(_gearBoxMap, CAN_DASH_GEAR_INVALID, sizeof(_gearBoxMap));
     _gearBoxMap[VAN_GEAR_V2_P] = CAN_DASH_GEAR_P;
     _gearBoxMap[VAN_GEAR_V2_R] = CAN_DASH_GEAR_R;
     _gearBoxMap[VAN_GEAR_V2_N] = CAN_DASH_GEAR_N;
@@ -19,7 +19,7 @@ void VanCanGearboxPositionMap::SetGearboxMapping()
 
 void VanCanGearboxPositionMap::SetGearboxModeMapping()
 {
-    memset(_gearBoxModeMap, CAN_DASH_GEAR_MODE_AUTO, 8);
+    memset(_gearBoxModeMap, CAN_DASH_GEAR_MODE_AUTO, sizeof(_gearBoxModeMap));
     _gearBoxModeMap[VAN_GEAR_MODE_V2_NORMAL]              = CAN_DASH_GEAR_MODE_AUTO;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_AUTO_ECO]            = CAN_DASH_GEAR_MODE_AUTO;
     _gearBoxModeMap[VAN_GEAR_MODE_V2_SPORT]               = CAN_DASH_GEAR_MODE_AUTO_SPORT;
@@ -32,7 +32,7 @@ void VanCanGearboxPositionMap::SetGearboxModeMapping()
 
 void VanCanGearboxPositionMap::SetGearboxSelectionMapping()
 {
-    memset(_gearBoxSelectionMap, CAN_DASH_GEAR_MODE_AUTO, 2);
+    memset(_gearBoxSelectionMap, CAN_DASH_GEAR_SELECTION_BVA, sizeof(_gearBoxSelectionMap));
     _gearBoxSelectionMap[VAN_GEAR_V2_SELECTION_BVA] = CAN_DASH_GEAR_SELECTION_BVA;
     _gearBoxSelectionMap[VAN_GEAR_V2_SELECTION_BVM] = CAN_DASH_GEAR_SELECTION_BVM;
 }
@@ -46,15 +46,30 @@ VanCanGearboxPositionMap::VanCanGearboxPositionMap()
 
 uint8_t VanCanGearboxPositionMap::GetGearboxPositionFromVanPosition(uint8_t gearboxPosition)
 {
+    if (gearboxPosition >= sizeof(_gearBoxMap))
+    {
+        return CAN_DASH_GEAR_INVALID;
+    }
+
     return _gearBoxMap[gearboxPosition];
 }
 
 uint8_t VanCanGearboxPositionMap::GetGearboxModeFromVanMode(uint8_t gearboxMode)
 {
+    if (gearboxMode >= sizeof(_gearBoxModeMap))
+    {
+        return CAN_DASH_GEAR_MODE_AUTO;
+    }
+
     return _gearBoxModeMap[gearboxMode];
 }
 
 uint8_t VanCanGearboxPositionMap::GetGearboxSelectionFromVanSelection(uint8_t gearboxSelection)
 {
+    if (gearboxSelection >= sizeof(_gearBoxSelectionMap))
+    {
+        return CAN_DASH_GEAR_SELECTION_BVA;
+    }
+
     return _gearBoxSelectionMap[gearboxSelection];
 }
