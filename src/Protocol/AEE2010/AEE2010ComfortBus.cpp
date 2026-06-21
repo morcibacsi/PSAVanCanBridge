@@ -48,6 +48,7 @@ void AEE2010ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
     std::get<MessageHandler_15B_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
     std::get<MessageHandler_15B_2010>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 
+    std::get<MessageHandler_217_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
     std::get<MessageHandler_39B_2010>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
 }
 

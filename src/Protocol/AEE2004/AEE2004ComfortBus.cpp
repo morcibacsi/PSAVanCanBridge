@@ -10,13 +10,15 @@ AEE2004ComfortBus* AEE2004ComfortBus::_instance = nullptr;
 AEE2004ComfortBus::AEE2004ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
-        MessageScheduler* scheduler
+        MessageScheduler* scheduler,
+        ConfigFile* configFile
         )
 {
     _instance = this;
     _carState = carState;
     _transportLayer = transport;
     _scheduler = scheduler;
+    _configFile = configFile;
     _feedbackSignalCallback = &FeedbackSignalTrampoline;
     _immediateSignalCallback = nullptr;
 }
@@ -32,7 +34,10 @@ void AEE2004ComfortBus::RegisterMessageHandlers(ImmediateSignalCallback immediat
     std::get<MessageHandler_168>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
     std::get<MessageHandler_220>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
     std::get<MessageHandler_221>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+
     std::get<MessageHandler_217>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
+    std::get<MessageHandler_217>(handlers).SetFeedbackSignalCallback(_feedbackSignalCallback);
+
     std::get<MessageHandler_15B_2004>(handlers).SetImmediateSignalCallback(_immediateSignalCallback);
 }
 
@@ -108,6 +113,16 @@ void AEE2004ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
             */
 
             //_canPopupHandler->SetIgnition(_carState->CurrenTime, _carState->Ignition);
+            break;
+        }
+        case FeedbackSignal::CarSettingsChanged:
+        {
+            // Settings have changed, save to config file if needed.
+            if (_carState->SAVE_CONFIG)
+            {
+                _configFile->Write();
+                _carState->SAVE_CONFIG = false;
+            }
             break;
         }
         default:

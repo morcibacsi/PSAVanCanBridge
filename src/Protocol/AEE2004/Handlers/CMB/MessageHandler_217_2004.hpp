@@ -9,6 +9,7 @@
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_217_2004.h"
 #include "../../../ImmediateSignal.hpp"
+#include "../../../FeedbackSignal.hpp"
 
 class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
 {
@@ -26,6 +27,7 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
         };
 
         ImmediateSignalCallback _immediateSignalCallback = nullptr;
+        FeedbackSignalCallback _feedbackSignalCallback = nullptr;
 
     public:
         static constexpr uint32_t MessageId = 0x217;
@@ -35,6 +37,7 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
         }
 
         void SetImmediateSignalCallback(ImmediateSignalCallback immediateSignalCallback) { _immediateSignalCallback = immediateSignalCallback; }
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
         BusMessage Generate(CarState* carState)
         {
@@ -137,6 +140,17 @@ class MessageHandler_217 : public IMessageHandler<MessageHandler_217>
             if (_immediateSignalCallback != nullptr)
             {
                 _immediateSignalCallback(ImmediateSignal::CmbStatusChanged);
+            }
+
+            if (packet.Field2.data.reset_trip)
+            {
+                carState->MILEAGE_AT_CMB_TRIP_RESET = carState->Odometer.asUint24;
+
+                if (_feedbackSignalCallback != nullptr)
+                {
+                    carState->SAVE_CONFIG = true;
+                    _feedbackSignalCallback(FeedbackSignal::CarSettingsChanged);
+                }
             }
         }
 };

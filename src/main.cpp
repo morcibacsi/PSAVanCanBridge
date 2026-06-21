@@ -361,7 +361,8 @@ extern "C" void app_main(void)
         sourceProtocolHandler = new AEE2004ComfortBus(
             carState,
             sourceTransportLayer,
-            new MessageScheduler()
+            new MessageScheduler(),
+            configFile
         );
     }
 
@@ -374,7 +375,8 @@ extern "C" void app_main(void)
         destinationProtocolHandler = new AEE2004ComfortBus(
             carState,
             destinationTransportLayer,
-            new MessageScheduler()
+            new MessageScheduler(),
+            configFile
         );
     }
 

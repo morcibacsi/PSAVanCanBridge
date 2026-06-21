@@ -7,10 +7,13 @@
 
 #include "../../../IMessageHandler.hpp"
 #include "../../Structs/CAN_217_2010.h"
+#include "../../../FeedbackSignal.hpp"
 
 class MessageHandler_217_2010 : public IMessageHandler<MessageHandler_217_2010>
 {
     private:
+        FeedbackSignalCallback _feedbackSignalCallback = nullptr;
+
         BusMessage message
         {
             .id = 0x217,
@@ -23,6 +26,8 @@ class MessageHandler_217_2010 : public IMessageHandler<MessageHandler_217_2010>
         };
     public:
         static constexpr uint32_t MessageId = 0x217;
+
+        void SetFeedbackSignalCallback(FeedbackSignalCallback feedbackSignalCallback) { _feedbackSignalCallback = feedbackSignalCallback; }
 
         BusMessage Generate(CarState* carState)
         {
@@ -77,7 +82,19 @@ class MessageHandler_217_2010 : public IMessageHandler<MessageHandler_217_2010>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
+            CAN_217_2010Struct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
+            if (packet.Field2.data.reset_trip)
+            {
+                carState->MILEAGE_AT_CMB_TRIP_RESET = carState->Odometer.asUint24;
+
+                if (_feedbackSignalCallback != nullptr)
+                {
+                    carState->SAVE_CONFIG = true;
+                    _feedbackSignalCallback(FeedbackSignal::CarSettingsChanged);
+                }
+            }
         }
 };
 #endif

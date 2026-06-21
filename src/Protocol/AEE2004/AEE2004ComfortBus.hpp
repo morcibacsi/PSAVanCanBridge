@@ -9,6 +9,7 @@
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
+#include "../../Helpers/ConfigFile.hpp"
 
 #include "Handlers/AAS/MessageHandler_0E1_2004.hpp"
 
@@ -59,6 +60,8 @@ class AEE2004ComfortBus : public IProtocolHandler
     CarState* _carState;  // Car state.
     ITransportLayer* _transportLayer;  // Transport layer (CAN, LIN, etc.)
     MessageScheduler* _scheduler;  // Message scheduler injected via constructor.
+
+    ConfigFile* _configFile;
 
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;
@@ -116,7 +119,8 @@ class AEE2004ComfortBus : public IProtocolHandler
     AEE2004ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
-        MessageScheduler* scheduler
+        MessageScheduler* scheduler,
+        ConfigFile* configFile
     );
 
     void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;
