@@ -140,6 +140,7 @@ void WebServer::RegisterEndpoints()
     RegisterHandler("/index.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/monitor.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/telecoding.html", HTTP_GET, &WebServer::get_html_page_handler, false);
+    RegisterHandler("/styles.css", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler, false);
     RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler, false);
     RegisterHandler("/api/getVin", HTTP_GET, &WebServer::get_vin_handler, false);
@@ -158,6 +159,7 @@ void WebServer::UnRegisterEndpoints()
     httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/monitor.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/telecoding.html", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/styles.css", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/getVin", HTTP_GET);
@@ -175,7 +177,7 @@ esp_err_t WebServer::StartWebServer()
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 8192;
-    config.max_uri_handlers = 14;
+    config.max_uri_handlers = 15;
     config.global_user_ctx = this;
     config.close_fn = WebServer::OnClose;
 
@@ -285,6 +287,12 @@ esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
     {
         page_data = telecoding_html;
         data_size = sizeof(telecoding_html);
+    }
+    else if (strcmp(req->uri, "/styles.css") == 0)
+    {
+        httpd_resp_set_type(req, "text/css");
+        page_data = styles_css;
+        data_size = sizeof(styles_css);
     }
     else
     {

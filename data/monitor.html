@@ -4,265 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PSA VAN-CAN Bridge - Network Monitor</title>
-
-<style>
-
-body {
-    margin: 0;
-    font-family: monospace;
-    background: #111;
-    color: #ddd;
-}
-
-/* ================= HEADER ================= */
-
-header {
-    padding: 10px;
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-input, button, select {
-    background: #222;
-    color: #ddd;
-    border: 1px solid #444;
-    padding: 6px 10px;
-    font-family: monospace;
-}
-
-button:hover {
-    background: #333;
-    cursor: pointer;
-}
-
-#status {
-    margin-left: auto;
-}
-
-/* ================= CONTAINER ================= */
-
-#container {
-    height: calc(100vh - 60px);
-    overflow: auto;
-}
-
-/* ================= DESKTOP ================= */
-
-.desktop {
-    display: block;
-}
-
-/* GRID-BASED ROWS */
-
-.desktop-row {
-    display: grid;
-
-    grid-template-columns:
-        105px  /* time */
-        70px   /* count */
-        90px   /* id */
-        50px   /* dlc */
-        auto   /* bytes */
-        260px; /* ascii */
-
-    align-items: center;
-
-    border-bottom: 1px solid #222;
-
-    min-height: 32px;
-}
-
-.desktop-header {
-    position: sticky;
-    top: 0;
-    background: #181818;
-    z-index: 5;
-    font-weight: bold;
-}
-
-.desktop-cell {
-    padding: 4px 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ================= COLORS ================= */
-
-.timestamp {
-    color: #888;
-}
-
-.counter {
-    color: #81c784;
-}
-
-.id-cell {
-    color: #4fc3f7;
-    font-weight: bold;
-}
-
-.ascii {
-    color: #ffb74d;
-    padding-left: 12px;
-}
-
-/* ================= BYTE DISPLAY ================= */
-
-.byte-container {
-    display: flex;
-    align-items: center;
-    overflow-x: hidden;
-    gap: 2px;
-}
-
-.byte-group {
-    display: flex;
-    gap: 2px;
-    margin-right: 8px;
-}
-
-.byte {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-
-    text-align: center;
-
-    box-sizing: border-box;
-}
-
-/* ================= CHANGE HIGHLIGHT ================= */
-
-.changed {
-    animation: flash 0.35s;
-}
-
-@keyframes flash {
-
-    from {
-        background: #7a5c00;
-        color: white;
-    }
-
-    to {
-        background: transparent;
-    }
-}
-
-/* ================= MOBILE ================= */
-
-.mobile {
-    display: none;
-}
-
-.card {
-    border-bottom: 1px solid #222;
-    padding: 10px;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    color: #4fc3f7;
-    font-weight: bold;
-}
-
-.card-meta {
-    margin-top: 4px;
-    color: #aaa;
-    font-size: 12px;
-}
-
-.byte-row {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.card-byte-group {
-    display: flex;
-    gap: 2px;
-}
-
-.card .byte {
-    border: 1px solid #333;
-    padding: 2px 0;
-}
-
-.ascii-row {
-    margin-top: 8px;
-    color: #ffb74d;
-    word-break: break-all;
-}
-
-/* ================= MOBILE LAYOUT ================= */
-
-@media (max-width: 768px) {
-
-    .desktop {
-        display: none;
-    }
-
-    .mobile {
-        display: block;
-    }
-
-    header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    #status {
-        margin-left: 0;
-        width: 100%;
-        text-align: center;
-    }
-}
-
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<body class="monitor-page">
 
 <header>
 
     <input
         id="wsUrl"
+        class="form-control font-monospace monitor-control monitor-input"
         size="40"
         value="ws://192.168.100.1/ws"
     >
 
-    <select id="networkSelect" onchange="changeNetworkAndDirection()">
+    <select
+        id="networkSelect"
+        class="form-select monitor-control monitor-select"
+        onchange="changeNetworkAndDirection()"
+    >
         <option value="0">None</option>
         <option value="1">Source</option>
         <option value="2">Destination</option>
     </select>
 
-    <select id="directionSelect" onchange="changeNetworkAndDirection()">
+    <select
+        id="directionSelect"
+        class="form-select monitor-control monitor-select"
+        onchange="changeNetworkAndDirection()"
+    >
         <option value="0">None</option>
         <option value="1">Incoming</option>
         <option value="2">Outgoing</option>
     </select>
 
-    <button onclick="connectWs()">
+    <button class="btn btn-success monitor-button" onclick="connectWs()">
         Connect
     </button>
 
-    <button onclick="disconnectWs()">
+    <button class="btn btn-secondary monitor-button" onclick="disconnectWs()">
         Disconnect
     </button>
 
-    <button onclick="clearData()">
+    <button class="btn btn-primary monitor-button" onclick="clearData()">
         Clear
     </button>
 
-    <button onclick="saveLog()">
+    <button class="btn btn-warning monitor-button" onclick="saveLog()">
         Save
     </button>
 
