@@ -1,6 +1,7 @@
 #include "WebServer.hpp"
 #include "esp_ota_ops.h"
 #include "esp_image_format.h"
+#include "mdns.h"
 
 static bool webServerCanBeStarted = false;
 static const char* STA_WIFI_SSID = "ssid";
@@ -99,7 +100,13 @@ void WebServer::StartApMode()
 
 void WebServer::StartStationMode()
 {
-    esp_netif_create_default_wifi_sta();
+    esp_netif_t *netif = esp_netif_create_default_wifi_sta();
+    esp_netif_set_hostname(netif, "psavancanbridge");
+
+    mdns_init();
+    mdns_hostname_set("psavancanbridge");
+    mdns_instance_name_set("PSA VAN-CAN Bridge");
+    mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
 
     // Initialize Wi-Fi
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
