@@ -118,6 +118,27 @@ class MessageHandler_564 : public IMessageHandler<MessageHandler_564>
             carState->Trip2Consumption.data.leftByte  = packet.Trip2FuelConsumption1;
             carState->Trip2Consumption.data.rightByte = packet.Trip2FuelConsumption2;
 
+            carState->AlertHistory2.data.e_rear_left_hand_door_open             = packet.Doors.RearLeft;
+            carState->AlertHistory2.data.e_rear_right_hand_door_open            = packet.Doors.RearRight;
+            carState->AlertHistory2.data.e_front_left_hand_door_open            = packet.Doors.FrontLeft;
+            carState->AlertHistory2.data.e_front_right_hand_door_open           = packet.Doors.FrontRight;
+            carState->AlertHistory3.data.e_boot_open                            = packet.Doors.BootLid;
+            carState->AlertHistory3.data.e_bonnet_open                          = packet.Doors.Hood;
+            carState->AlertHistory3.data.e_fuel_tank_access_not_properly_locked = packet.Doors.FuelFlap;
+
+            carState->AlertHistory2.data.e_main_beam_bulbs_faulty1   = packet.Field1.data.left_high_beam_fault;
+            carState->AlertHistory2.data.e_main_beam_bulbs_faulty2   = packet.Field1.data.right_high_beam_fault;
+            carState->AlertHistory2.data.e_dipped_beam_bulbs_faulty1 = packet.Field1.data.left_low_beam_fault;
+            carState->AlertHistory2.data.e_dipped_beam_bulbs_faulty2 = packet.Field1.data.right_low_beam_fault;
+
+            carState->AlertHistory2.data.e_rear_left_hand_brake_light_bulb_faulty  = packet.Field2.data.left_brake_light_bulb_fault;
+            carState->AlertHistory2.data.e_rear_right_hand_brake_light_bulb_faulty = packet.Field2.data.right_brake_light_bulb_fault;
+            carState->AlertHistory2.data.e_foglamp_bulbs_faulty1                   = packet.Field2.data.front_left_fog_light_bulb_fault;
+            carState->AlertHistory2.data.e_foglamp_bulbs_faulty2                   = packet.Field2.data.front_right_fog_light_bulb_fault;
+            carState->AlertHistory2.data.e_foglamp_bulbs_faulty3                   = packet.Field2.data.rear_left_fog_light_bulb_fault;
+            carState->AlertHistory2.data.e_foglamp_bulbs_faulty4                   = packet.Field2.data.rear_right_fog_light_bulb_fault;
+
+
             if (_immediateSignalCallback != nullptr)
             {
                 //printf("MessageHandler_564::Parse - ImmediateSignal::TripButtonPressed\n");

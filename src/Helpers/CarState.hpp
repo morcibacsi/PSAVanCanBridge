@@ -14,6 +14,9 @@
 #include "ParkingAidStatus.h"
 #include "CarSettings.h"
 #include "AvailableOptions_2010.h"
+#include "AlertHistory1.h"
+#include "AlertHistory2.h"
+#include "AlertHistory3.h"
 #include "../Protocol/ProtocolType.hpp"
 #include "../BoardConfig.h"
 
@@ -200,6 +203,11 @@ struct CarState
     //136 AEE2004
     UInt16 UreaRemaining = 0x3FFF;
     uint8_t ShowUreaRemaining = 0;
+
+    //120 AEE2004 / AEE2010
+    AlertHistory1Struct AlertHistory1{};
+    AlertHistory2Struct AlertHistory2{};
+    AlertHistory3Struct AlertHistory3{};
 
     bool DiagConnected = false;
 

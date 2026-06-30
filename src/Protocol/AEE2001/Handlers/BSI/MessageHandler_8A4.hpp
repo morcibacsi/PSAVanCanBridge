@@ -175,6 +175,8 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
             if (carState->Ignition && carState->CurrenTime > 10000 && carState->ExternalTemperature >= 0x4A && carState->ExternalTemperature <= 0x56)
             {
                 //show "Ice alert"
+                carState->AlertHistory2.data.i_risk_of_ice = 1;
+
                 if (!_canPopupHandler->IsPopupVisible())
                 {
                     CanDisplayPopupItem item{};

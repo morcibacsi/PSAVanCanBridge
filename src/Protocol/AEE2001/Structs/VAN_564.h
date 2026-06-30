@@ -13,6 +13,47 @@ typedef struct {
     unsigned short data : 16;
 } VanTripDistanceStruct;
 
+
+union VAN_564_Byte2Struct {
+    struct {
+        uint8_t left_high_beam_fault   : 1; // bit 0
+        uint8_t right_high_beam_fault  : 1; // bit 1
+        uint8_t left_low_beam_fault    : 1; // bit 2
+        uint8_t right_low_beam_fault   : 1; // bit 3
+        uint8_t rear_left_lamp_fault   : 1; // bit 4
+        uint8_t front_left_lamp_fault  : 1; // bit 5
+        uint8_t rear_right_lamp_fault  : 1; // bit 6
+        uint8_t front_right_lamp_fault : 1; // bit 7
+    } data;
+    uint8_t asByte;
+};
+
+union VAN_564_Byte3Struct {
+    struct {
+        uint8_t front_right_xenon_bulb_fault     : 1; // bit 0
+        uint8_t front_left_xenon_bulb_fault      : 1; // bit 1
+        uint8_t rear_right_fog_light_bulb_fault  : 1; // bit 2
+        uint8_t rear_left_fog_light_bulb_fault   : 1; // bit 3
+        uint8_t front_right_fog_light_bulb_fault : 1; // bit 4
+        uint8_t front_left_fog_light_bulb_fault  : 1; // bit 5
+        uint8_t left_brake_light_bulb_fault      : 1; // bit 6
+        uint8_t right_brake_light_bulb_fault     : 1; // bit 7
+    } data;
+    uint8_t asByte;
+};
+
+union VAN_564_Byte4Struct {
+    struct {
+        uint8_t                                        : 3; // bit 0-2
+        uint8_t brake_light_fault                      : 1; // bit 3
+        uint8_t rear_left_turn_indicator_light_fault   : 1; // bit 4
+        uint8_t front_left_turn_indicator_light_fault  : 1; // bit 5
+        uint8_t rear_right_turn_indicator_light_fault  : 1; // bit 6
+        uint8_t front_right_turn_indicator_light_fault : 1; // bit 7
+    } data;
+    uint8_t asByte;
+};
+
 typedef struct {
     uint8_t FuelFlap    : 1; // bit 0
     uint8_t Sunroof     : 1; // bit 1
@@ -38,9 +79,9 @@ typedef struct {
 // Read left to right in documentation
 struct VanCarStatusWithTripComputerStruct {
     uint8_t Header;
-    uint8_t Field1;
-    uint8_t Field2;
-    uint8_t Field3;
+    VAN_564_Byte2Struct Field1;
+    VAN_564_Byte3Struct Field2;
+    VAN_564_Byte4Struct Field3;
     uint8_t Field4;
     uint8_t Field5;
     uint8_t Field6;

@@ -326,6 +326,32 @@ class MessageHandler_524 : public IMessageHandler<MessageHandler_524>
 
             carState->LeftStickButtonPushed = packet.Field6.left_stick_button;
 
+            carState->AlertHistory1.data.s_engine_temperature_fault_stop_the_vehicle = packet.Field0.engine_oil_temperature_too_high || packet.Field0.engine_overheating;
+            carState->AlertHistory3.data.e_tyre_pressures_too_low                    = packet.Field0.tyre_pressure_low;
+
+            carState->AlertHistory1.data.e_particle_filter_additive_level_too_low_repair_needed = packet.Field1.diesel_additive_too_low;
+            carState->AlertHistory1.data.e_top_up_coolant_level                                 = packet.Field1.coolant_level_low;
+            carState->AlertHistory1.data.e_top_up_engine_oil_level                              = packet.Field1.oil_level_too_low;
+            carState->AlertHistory1.data.s_engine_oil_pressure_fault_stop_the_vehicle           = packet.Field1.oil_pressure_too_low;
+            carState->AlertHistory1.data.e_risk_of_particle_filter_clogging_see_handbook        = packet.Field1.unblock_diesel_filter;
+
+            carState->AlertHistory1.data.e_abs_braking_system_faulty   = packet.Field2.abs;
+            carState->AlertHistory1.data.e_brake_pads_worn             = packet.Field2.brake_pads_worn;
+            carState->AlertHistory1.data.e_esp_asr_system_faulty       = packet.Field2.esp;
+            carState->AlertHistory3.data.e_gearbox_fault_repair_needed = packet.Field2.automatic_gearbox_faulty;
+            carState->AlertHistory1.data.e_engine_fault_repair_needed  = packet.Field2.mil || packet.Field4.catalytic_converter_fault;
+            carState->AlertHistory1.data.e_suspension_faulty           = packet.Field2.suspension_or_steering_fault;
+            carState->AlertHistory1.data.s_braking_system_faulty       = packet.Field2.braking_system_faulty;
+
+            carState->AlertHistory1.data.e_presence_of_water_in_diesel_filter_repair_needed = packet.Field3.water_in_diesel_fuel_filter;
+            carState->AlertHistory1.data.e_airbags_or_pretensioner_seat_belts_faulty        = packet.Field3.airbags_faulty || packet.Field3.side_airbag_faulty;
+
+            carState->AlertHistory1.data.e_battery_charge_or_electrical_supply_faulty = packet.Field4.battery_charge_fault;
+
+            carState->AlertHistory1.data.i_handbrake = packet.Field5.handbrake;
+
+            carState->AlertHistory1.data.i_fuel_level_too_low                         = packet.Field6.fuel_level_low;
+
             ParsePopupMessage(carState, packet);
         }
 };
