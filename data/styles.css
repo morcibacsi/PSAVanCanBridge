@@ -16,6 +16,10 @@ body.monitor-page {
     color: #ddd;
 }
 
+body.setup-page {
+    min-height: 100vh;
+}
+
 .container-fluid {
     width: 100%;
     margin: 0 auto;
@@ -322,6 +326,7 @@ input[type="checkbox"] {
     height: 250px;
     resize: vertical;
     font-family: monospace;
+    overflow: auto;
 }
 
 .badge-status {
@@ -375,6 +380,81 @@ input[type="checkbox"] {
     width: 1rem;
     height: 1rem;
     margin: 0;
+    cursor: pointer;
+}
+
+/* CarState page compact layout */
+body.carstate-page #editor {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.5rem;
+}
+
+body.carstate-page .carstate-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #1e1e1e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+body.carstate-page .carstate-bitfield-card {
+    grid-column: 1 / -1;
+}
+
+body.carstate-page .carstate-scalar-card .zone-card-body {
+    padding: 0.45rem 0.6rem;
+}
+
+body.carstate-page .carstate-scalar-card .form-label {
+    font-size: 0.78rem;
+    margin-bottom: 0.2rem;
+}
+
+body.carstate-page .carstate-scalar-card .control-row {
+    gap: 0.4rem;
+}
+
+body.carstate-page .carstate-scalar-card .control-row .form-control {
+    width: 5.6rem;
+    min-width: 5.6rem;
+    padding: 0.12rem 0.32rem;
+    font-size: 0.76rem !important;
+}
+
+body.carstate-page .carstate-scalar-card .setup-tip {
+    font-size: 0.7rem;
+    line-height: 1.15;
+}
+
+body.carstate-page .carstate-bitfield-card .controls-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.25rem 0.65rem;
+}
+
+body.carstate-page .carstate-bitfield-bytes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+body.carstate-page .carstate-byte-row {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.25rem 0.65rem;
+}
+
+body.carstate-page .carstate-bitfield-card .control-row .form-control,
+body.carstate-page .carstate-bitfield-card .control-row .form-select {
+    width: 4.8rem;
+    min-width: 4.8rem;
+}
+
+body.carstate-page .carstate-bitfield-card .control-row label {
+    font-size: 0.74rem !important;
+}
+
+body.carstate-page .carstate-bitfield-label {
     cursor: pointer;
 }
 
@@ -538,8 +618,288 @@ body.monitor-page .ascii-row {
     word-break: break-all;
 }
 
+/* Setup page */
+.setup-container {
+    max-width: 1180px;
+}
+
+.setup-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0 0.5rem;
+}
+
+.setup-header h1 {
+    margin: 0;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.setup-header p {
+    margin: 0.2rem 0 0;
+    color: #b8b8b8;
+}
+
+.setup-links,
+.setup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.setup-card .card-header {
+    background: #202020;
+    border-bottom: 1px solid #333;
+}
+
+.setup-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.setup-section-description {
+    margin-top: 0.2rem;
+    color: #b8b8b8;
+    font-size: 0.86rem;
+}
+
+.setup-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.85rem 1rem;
+}
+
+.setup-field {
+    min-width: 0;
+}
+
+.setup-label-row,
+.setup-switch-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.setup-label-row {
+    display: block;
+    margin-bottom: 0.35rem;
+    min-height: 2.6rem;
+}
+
+.setup-switch-field {
+    min-height: 48px;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #333;
+    border-radius: 0.5rem;
+    background: #242424;
+}
+
+.setup-switch-copy {
+    min-width: 0;
+}
+
+.setup-switch-copy .form-label {
+    margin-bottom: 0.15rem;
+}
+
+.setup-tip {
+    display: -webkit-box;
+    color: #a7a7a7;
+    font-size: 0.76rem;
+    line-height: 1.25;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.setup-label-row .setup-tip {
+    max-width: none;
+    text-align: left;
+}
+
+body.setup-page input.setup-switch[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 2.6rem;
+    height: 1.35rem;
+    appearance: none;
+    border: 1px solid #555;
+    border-radius: 999px;
+    background: #3a3a3a;
+    cursor: pointer;
+    position: relative;
+}
+
+body.setup-page input.setup-switch[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    top: 0.12rem;
+    left: 0.12rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #e8e8e8;
+    transition: transform 0.16s ease;
+}
+
+body.setup-page input.setup-switch[type="checkbox"]:checked {
+    background: #0d6efd;
+    border-color: #0d6efd;
+}
+
+body.setup-page input.setup-switch[type="checkbox"]:checked::before {
+    transform: translateX(1.22rem);
+}
+
+.setup-inline {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.setup-inline .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.setup-inline-button {
+    flex: 0 0 8.5rem;
+    width: 8.5rem;
+    white-space: nowrap;
+}
+
+.setup-input-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 0.5rem;
+}
+
+.setup-input-row input {
+    text-align: center;
+}
+
+.setup-actions-card {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.setup-actions {
+    justify-content: flex-end;
+}
+
+.setup-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+    gap: 1rem;
+}
+
+.setup-status {
+    min-height: 1.2rem;
+    margin: 0.5rem 0 0;
+    color: #b8b8b8;
+    font-size: 0.82rem;
+}
+
+.setup-status-grid {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.setup-status-grid span,
+.setup-status-grid strong {
+    display: block;
+}
+
+.setup-status-grid span {
+    color: #b8b8b8;
+    font-size: 0.82rem;
+}
+
+.setup-status-grid strong {
+    margin-top: 0.2rem;
+    font-size: 1rem;
+    color: #fff;
+}
+
+body.setup-page #customConfirm {
+    background-color: rgba(0, 0, 0, 0.68);
+}
+
+body.setup-page #customConfirmBox {
+    max-width: 440px;
+    margin: 1rem;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 0.5rem;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+body.setup-page #customConfirmBox p {
+    color: #f0f0f0;
+}
+
+body.setup-page #confirmButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+body.setup-page #confirmButtons .btn {
+    min-width: 84px;
+    margin: 0;
+}
+
+body.setup-page #confirmButtons .btn-primary {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+body.setup-page #confirmButtons .btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
 /* Telecoding responsive tweaks */
 @media (max-width: 768px) {
+    .setup-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .setup-links .btn,
+    .setup-actions .btn {
+        width: 100%;
+    }
+
+    .setup-fields,
+    .setup-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .setup-label-row {
+        display: block;
+    }
+
+    .setup-label-row .setup-tip {
+        max-width: none;
+        text-align: left;
+    }
+
+    .setup-inline {
+        flex-direction: column;
+    }
+
+    .setup-actions-card {
+        position: static;
+    }
+
     .zone-buttons .btn {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -580,6 +940,29 @@ body.monitor-page .ascii-row {
         margin-left: 0;
         width: 100%;
         text-align: center;
+    }
+
+    body.carstate-page #editor {
+        grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    }
+
+    body.carstate-page .carstate-scalar-card .control-row .form-control {
+        width: 4.8rem;
+        min-width: 4.8rem;
+    }
+
+    body.carstate-page .carstate-bitfield-card .controls-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    body.carstate-page .carstate-byte-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    body.carstate-page .carstate-bitfield-card .control-row .form-control,
+    body.carstate-page .carstate-bitfield-card .control-row .form-select {
+        width: 4.2rem;
+        min-width: 4.2rem;
     }
 }
 

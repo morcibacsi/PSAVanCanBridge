@@ -24,8 +24,6 @@ class WebServer {
     static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 30;
     static constexpr bool startInApMode = true;
 
-    CarState* _carState = nullptr;
-    ConfigFile* _configFile = nullptr;
     TimeProvider* _timeProvider = nullptr;
     ImmediateSignalCallback _immediateSignalCallback = nullptr;
     WebSocketSerial* _webSocketSerial = nullptr;
@@ -39,6 +37,9 @@ class WebServer {
     const char* TAG = "WebServer";
 
   public:
+    CarState* _carState = nullptr;
+    ConfigFile* _configFile = nullptr;
+
     WebServer(
         CarState* carState,
         ConfigFile* configFile,
@@ -72,10 +73,14 @@ class WebServer {
     static esp_err_t get_reboot_handler(httpd_req_t *req);
     static esp_err_t get_vin_handler(httpd_req_t *req);
     static esp_err_t get_config_handler(httpd_req_t *req);
+    static esp_err_t get_carstate_handler(httpd_req_t *req);
+
     static esp_err_t post_config_handler(httpd_req_t *req);
     static esp_err_t post_time_handler(httpd_req_t *req);
     static esp_err_t post_ota_update_handler(httpd_req_t *req);
     static esp_err_t post_network_monitor_handler(httpd_req_t *req);
+    static esp_err_t post_carstate_handler(httpd_req_t *req);
+
     static esp_err_t options_handler(httpd_req_t *req);
     static esp_err_t ws_handler(httpd_req_t *req);
     static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);

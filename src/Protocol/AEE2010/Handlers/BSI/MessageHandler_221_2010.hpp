@@ -11,6 +11,14 @@
 class MessageHandler_221_2010 : public IMessageHandler<MessageHandler_221_2010>
 {
     private:
+        enum class TripButtonEmulationState {
+            None,
+            Emulating
+        };
+
+        uint64_t _tripEmulationStartedAt = 0;
+        TripButtonEmulationState _tripButtonEmulationState = TripButtonEmulationState::None;
+
         BusMessage message
         {
             .id = 0x221,
@@ -31,6 +39,29 @@ class MessageHandler_221_2010 : public IMessageHandler<MessageHandler_221_2010>
             byte1.data.remaining_range_invalid   = carState->InvalidRemainingRange;
             byte1.data.left_stick_button_pushed  = carState->LeftStickButtonPushed;
             byte1.data.right_stick_button_pushed = carState->RightStickButtonPushed;
+
+            if (_tripEmulationStartedAt == 0 && carState->EmulateTripButtonPress)
+            {
+                _tripEmulationStartedAt = carState->CurrenTime;
+                carState->EmulateTripButtonPress = 0;
+                _tripButtonEmulationState = TripButtonEmulationState::Emulating;
+            }
+
+            if (_tripEmulationStartedAt != 0 && carState->CurrenTime - _tripEmulationStartedAt > message.periodicityMs)
+            {
+                _tripEmulationStartedAt = 0;
+                _tripButtonEmulationState = TripButtonEmulationState::None;
+            }
+
+            switch (_tripButtonEmulationState)
+            {
+                case TripButtonEmulationState::None:
+                    // Do nothing
+                    break;
+                case TripButtonEmulationState::Emulating:
+                    byte1.data.right_stick_button_pushed = 1;
+                    break;
+            }
 
             message.data[0] = byte1.asByte;
             message.data[1] = carState->InstantConsumption.data.leftByte;

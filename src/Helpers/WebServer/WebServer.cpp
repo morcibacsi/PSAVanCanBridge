@@ -147,6 +147,7 @@ void WebServer::RegisterEndpoints()
     RegisterHandler("/index.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/monitor.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/telecoding.html", HTTP_GET, &WebServer::get_html_page_handler, false);
+    RegisterHandler("/carstate.html", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/styles.css", HTTP_GET, &WebServer::get_html_page_handler, false);
     RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler, false);
     RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler, false);
@@ -156,6 +157,8 @@ void WebServer::RegisterEndpoints()
     RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler, false);
     RegisterHandler("/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false);
     RegisterHandler("/api/setmonitor", HTTP_POST, &WebServer::post_network_monitor_handler, false);
+    RegisterHandler("/api/carstate.json", HTTP_GET, &WebServer::get_carstate_handler, false);
+    RegisterHandler("/api/carstate", HTTP_POST, &WebServer::post_carstate_handler, false);
 }
 
 void WebServer::UnRegisterEndpoints()
@@ -166,6 +169,7 @@ void WebServer::UnRegisterEndpoints()
     httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/monitor.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/telecoding.html", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/carstate.html", HTTP_GET);
     httpd_unregister_uri_handler(server, "/styles.css", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
     httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
@@ -176,6 +180,8 @@ void WebServer::UnRegisterEndpoints()
     httpd_unregister_uri_handler(server, "/api/update", HTTP_POST);
     httpd_unregister_uri_handler(server, "/api/setmonitor", HTTP_POST);
     httpd_unregister_uri_handler(server, "/ws", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/api/carstate.json", HTTP_GET);
+    httpd_unregister_uri_handler(server, "/api/carstate", HTTP_POST);
 }
 
 // Start web server
@@ -184,7 +190,7 @@ esp_err_t WebServer::StartWebServer()
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 8192;
-    config.max_uri_handlers = 15;
+    config.max_uri_handlers = 18;
     config.global_user_ctx = this;
     config.close_fn = WebServer::OnClose;
 
@@ -294,6 +300,11 @@ esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
     {
         page_data = telecoding_html;
         data_size = sizeof(telecoding_html);
+    }
+    else if (strcmp(req->uri, "/carstate.html") == 0)
+    {
+        page_data = carstate_html;
+        data_size = sizeof(carstate_html);
     }
     else if (strcmp(req->uri, "/styles.css") == 0)
     {
@@ -640,6 +651,160 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "Monitor set");
     httpd_resp_set_type(req, "application/json");
 
+    return ESP_OK;
+}
+
+esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
+{
+        printf("GET /api/carstate\n");
+
+        auto *instance = static_cast<WebServer *>(req->user_ctx);
+        auto _carState = instance->_carState;
+        auto _configFile = instance->_configFile;
+
+        if (!_carState)
+        {
+            printf("Car state is null\n");
+            return ESP_FAIL;
+        }
+        else
+        {
+            printf("Car state is not null\n");
+        }
+
+        httpd_resp_set_type(req, "application/json");
+
+        cJSON* json = cJSON_CreateObject();
+
+        cJSON_AddNumberToObject(json, "Ignition", _carState->Ignition);
+        cJSON_AddNumberToObject(json, "IgnitionMode", _carState->IgnitionMode);
+        cJSON_AddNumberToObject(json, "KeyPosition", _carState->KeyPosition);
+        cJSON_AddNumberToObject(json, "IsReverseEngaged", _carState->IsReverseEngaged);
+        cJSON_AddNumberToObject(json, "ExternalTemperature", _carState->ExternalTemperature);
+        cJSON_AddNumberToObject(json, "NightMode", _carState->NightMode);
+        cJSON_AddNumberToObject(json, "DashboardBrightness", _carState->DashboardBrightness);
+        cJSON_AddNumberToObject(json, "EngineOilTemperature", _carState->EngineOilTemperature);
+        cJSON_AddNumberToObject(json, "FuelLevel", _carState->FuelLevel);
+        cJSON_AddNumberToObject(json, "EngineOilLevel", _carState->EngineOilLevel);
+        cJSON_AddNumberToObject(json, "CruiseControlActivateFunction", _carState->CruiseControlActivateFunction);
+        cJSON_AddNumberToObject(json, "CruiseControlStatusOfSelectedFunction", _carState->CruiseControlStatusOfSelectedFunction);
+        cJSON_AddNumberToObject(json, "CruiseControlSelectedFunction", _carState->CruiseControlSelectedFunction);
+        cJSON_AddNumberToObject(json, "CruiseControlSpeed", _carState->CruiseControlSpeed.asUint16);
+        cJSON_AddNumberToObject(json, "Speed", _carState->Speed.asUint16);
+        cJSON_AddNumberToObject(json, "Rpm", _carState->Rpm.asUint16);
+        cJSON_AddNumberToObject(json, "Odometer", _carState->Odometer.asUint24);
+        cJSON_AddNumberToObject(json, "DoorStatus", _carState->DoorStatus.asByte);
+        _configFile->cJSON_AddUInt64Smart(json, "RadioRemote", _carState->RadioRemote.asUint64);
+        cJSON_AddNumberToObject(json, "RightStickButtonPushed", _carState->RightStickButtonPushed);
+        cJSON_AddNumberToObject(json, "InstantConsumption", _carState->InstantConsumption.asUint16);
+        cJSON_AddNumberToObject(json, "RemainingRange", _carState->RemainingRange.asUint16);
+        cJSON_AddNumberToObject(json, "TotalRange", _carState->TotalRange.asUint16);
+        cJSON_AddNumberToObject(json, "Trip1Speed", _carState->Trip1Speed);
+        cJSON_AddNumberToObject(json, "Trip1Distance", _carState->Trip1Distance.asUint16);
+        cJSON_AddNumberToObject(json, "Trip1Consumption", _carState->Trip1Consumption.asUint16);
+        cJSON_AddNumberToObject(json, "Trip2Speed", _carState->Trip2Speed);
+        cJSON_AddNumberToObject(json, "Trip2Distance", _carState->Trip2Distance.asUint16);
+        cJSON_AddNumberToObject(json, "Trip2Consumption", _carState->Trip2Consumption.asUint16);
+        _configFile->cJSON_AddUInt64Smart(json, "ParkingAidStatus", _carState->ParkingAidStatus.asNumeric);
+        cJSON_AddNumberToObject(json, "CoolantTemperature", _carState->CoolantTemperature);
+        _configFile->cJSON_AddUInt64Smart(json, "CarSignalLights", _carState->CarSignalLights.asUint64);
+        _configFile->cJSON_AddUInt64Smart(json, "CarIndicatorLights", _carState->CarIndicatorLights.asUint64);
+        cJSON_AddNumberToObject(json, "KeepWebServerAlive", _carState->DiagConnected ? 1 : 0);
+        cJSON_AddNumberToObject(json, "EmulateTripButtonPress", _carState->EmulateTripButtonPress);
+        _configFile->cJSON_AddUInt64Smart(json, "AlertHistory1", _carState->AlertHistory1.asUint64);
+        _configFile->cJSON_AddUInt64Smart(json, "AlertHistory2", _carState->AlertHistory2.asUint64);
+        _configFile->cJSON_AddUInt64Smart(json, "AlertHistory3", _carState->AlertHistory3.asUint64);
+
+        const char *jsonString = cJSON_Print(json);
+        httpd_resp_sendstr(req, jsonString);
+        free((void *)jsonString);
+        cJSON_Delete(json);
+
+        return ESP_OK;
+}
+
+esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
+{
+        printf("POST /api/carstate\n");
+        char *content = (char *)malloc(req->content_len + 1);
+        int ret, remaining = req->content_len;
+        printf("Content length: %d\n", remaining);
+
+        if (!content) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+            return ESP_FAIL;
+        }
+        while (remaining > 0) {
+            ret = httpd_req_recv(req, content, remaining);
+            if (ret <= 0) {
+                if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                    httpd_resp_send_408(req);
+                }
+                free(content);
+                return ESP_FAIL;
+            }
+            remaining -= ret;
+        }
+        content[req->content_len] = '\0'; // Null-terminate the received data
+
+        printf("Received carstate: %s\n", content);
+        // Here you can parse the JSON and update the CarState accordingly
+
+        auto *instance = static_cast<WebServer *>(req->user_ctx);
+        auto _carState = instance->_carState;
+        auto _configFile = instance->_configFile;
+
+        cJSON *root = cJSON_Parse(content);
+        if (!root) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+            free(content);
+            return ESP_FAIL;
+        }
+
+        _carState->Ignition = _configFile->getJsonInt(root, "Ignition", 0);
+        _carState->IgnitionMode = _configFile->getJsonInt(root, "IgnitionMode", 0);
+        _carState->KeyPosition = _configFile->getJsonInt(root, "KeyPosition", 0);
+        _carState->IsReverseEngaged = _configFile->getJsonInt(root, "IsReverseEngaged", 0);
+        _carState->ExternalTemperature = _configFile->getJsonInt(root, "ExternalTemperature", 0);
+        _carState->NightMode = _configFile->getJsonInt(root, "NightMode", 0);
+        _carState->DashboardBrightness = _configFile->getJsonInt(root, "DashboardBrightness", 0);
+        _carState->EngineOilTemperature = _configFile->getJsonInt(root, "EngineOilTemperature", 0);
+        _carState->FuelLevel = _configFile->getJsonInt(root, "FuelLevel", 0);
+        _carState->EngineOilLevel = _configFile->getJsonInt(root, "EngineOilLevel", 0);
+        _carState->CruiseControlActivateFunction = _configFile->getJsonInt(root, "CruiseControlActivateFunction", 0);
+        _carState->CruiseControlStatusOfSelectedFunction = _configFile->getJsonInt(root, "CruiseControlStatusOfSelectedFunction", 0);
+        _carState->CruiseControlSelectedFunction = _configFile->getJsonInt(root, "CruiseControlSelectedFunction", 0);
+        _carState->CruiseControlSpeed.asUint16 = _configFile->getJsonInt(root, "CruiseControlSpeed", 0);
+        _carState->Speed.asUint16 = _configFile->getJsonInt(root, "Speed", 0);
+        _carState->Rpm.asUint16 = _configFile->getJsonInt(root, "Rpm", 0);
+        _carState->Odometer.asUint24 = _configFile->getJsonInt(root, "Odometer", 0);
+        _carState->DoorStatus.asByte = _configFile->getJsonInt(root, "DoorStatus", 0);
+        _carState->RadioRemote.asUint64 = _configFile->getJsonInt(root, "RadioRemote", 0);
+        _carState->RightStickButtonPushed = _configFile->getJsonInt(root, "RightStickButtonPushed", 0);
+        _carState->InstantConsumption.asUint16 = _configFile->getJsonInt(root, "InstantConsumption", 0);
+        _carState->RemainingRange.asUint16 = _configFile->getJsonInt(root, "RemainingRange", 0);
+        _carState->TotalRange.asUint16 = _configFile->getJsonInt(root, "TotalRange", 0);
+        _carState->Trip1Speed = _configFile->getJsonInt(root, "Trip1Speed", 0);
+        _carState->Trip1Distance.asUint16 = _configFile->getJsonInt(root, "Trip1Distance", 0);
+        _carState->Trip1Consumption.asUint16 = _configFile->getJsonInt(root, "Trip1Consumption", 0);
+        _carState->Trip2Speed = _configFile->getJsonInt(root, "Trip2Speed", 0);
+        _carState->Trip2Distance.asUint16 = _configFile->getJsonInt(root, "Trip2Distance", 0);
+        _carState->Trip2Consumption.asUint16 = _configFile->getJsonInt(root, "Trip2Consumption", 0);
+        _carState->ParkingAidStatus.asNumeric = _configFile->getJsonInt(root, "ParkingAidStatus", 0);
+        _carState->CoolantTemperature = _configFile->getJsonInt(root, "CoolantTemperature", 0);
+        _carState->CarSignalLights.asUint64 = _configFile->getJsonInt(root, "CarSignalLights", 0);
+        _carState->CarIndicatorLights.asUint64 = _configFile->getJsonInt(root, "CarIndicatorLights", 0);
+        _carState->DiagConnected = _configFile->getJsonInt(root, "KeepWebServerAlive", 0) == 1;
+        _carState->EmulateTripButtonPress = _configFile->getJsonInt(root, "EmulateTripButtonPress", 0);
+        _carState->AlertHistory1.asUint64 = _configFile->getJsonInt(root, "AlertHistory1", 0);
+        _carState->AlertHistory2.asUint64 = _configFile->getJsonInt(root, "AlertHistory2", 0);
+        _carState->AlertHistory3.asUint64 = _configFile->getJsonInt(root, "AlertHistory3", 0);
+        cJSON_Delete(root);
+
+        httpd_resp_set_status(req, "200 OK");
+        httpd_resp_sendstr(req, "CarState received");
+
+        free(content);
     return ESP_OK;
 }
 

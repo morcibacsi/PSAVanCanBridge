@@ -70,6 +70,8 @@ def generate_byte_arrays_for_webpage():
 
         # Process each file in the static directory
         for i, file_path in enumerate(get_files_recursive(STATIC_DIR)):
+            if (not file_path.endswith((".html", ".css", ".js"))):
+                continue  # Skip non-webpage files
             relative_path = os.path.relpath(file_path, STATIC_DIR).replace(os.sep, "/")
             mime_type = mimetypes.guess_type(relative_path)[0] or "application/octet-stream"
 

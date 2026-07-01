@@ -210,6 +210,7 @@ struct CarState
     AlertHistory3Struct AlertHistory3{};
 
     bool DiagConnected = false;
+    uint8_t EmulateTripButtonPress = false;
 
     //0: none, 1: source, 2: destination
     uint8_t LogNetwork = 0;

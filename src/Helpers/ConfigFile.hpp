@@ -18,7 +18,6 @@ class ConfigFile {
     private:
 
         CarState* _carState;
-        int getJsonInt(cJSON *json, const char *key, int defaultValue);
         bool getJsonBool(cJSON *json, const char *key, bool defaultValue);
         std::unique_ptr<cJSON, cJSONDeleter> LoadFromFile();
     public:
@@ -29,4 +28,6 @@ class ConfigFile {
         void Remove();
         void SaveJson(const char *json_str);
         std::unique_ptr<cJSON, cJSONDeleter> GetAsJson();
+        uint64_t getJsonInt(cJSON *json, const char *key, uint64_t defaultValue);
+        void cJSON_AddUInt64Smart(cJSON *json, const char *key, uint64_t value);
 };

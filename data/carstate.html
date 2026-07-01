@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSA VAN-CAN Bridge - CarState</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="telecoding-page carstate-page">
+
+<div class="container-fluid p-3">
+  <div class="card mb-3 carstate-toolbar">
+    <div class="card-body">
+      <div class="setup-header">
+        <div>
+          <h1>CarState Editor</h1>
+          <p>This UI converts raw values to user-friendly values on display and converts back on save. BigInt 64-bit fields are preserved as decimal strings.</p>
+        </div>
+      </div>
+
+      <div class="setup-actions">
+        <button id="saveBtn" class="btn btn-warning">Save JSON to API</button>
+        <button id="refreshBtn" class="btn btn-primary">Refresh from API</button>
+        <button id="rightStickPulseBtn" class="btn btn-success">Trip button press</button>
+        <button id="showPreviewBtn" class="btn btn-secondary">Show JSON Preview</button>
+      </div>
+
+      <div class="setup-status" id="status"></div>
+    </div>
+  </div>
+
+  <div id="editor"></div>
+
+  <div class="card mt-4">
+    <div class="card-header">API request/response preview</div>
+    <div class="card-body">
+      <pre id="preview" class="log-console"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+// --------------- CONFIG ------------------
+// change this to your API endpoint
+const API_ENDPOINT = "api/";
+
+// bitfield definitions (RadioRemote, DoorStatus, CarSignalLights, CarIndicatorLights, etc.)
+// Keep the fields & isBigInt flags as before.
+const bitfields = {
+  DoorStatus: {
+    size: 8,
+    isBigInt: false,
+    fields: [
+      ["fuel_flap_open",1],["rear_window_open",1],["hood_open",1],["trunk_open",1],
+      ["rear_right_door_open",1],["rear_left_door_open",1],["front_right_door_open",1],["front_left_door_open",1]
+    ]
+  },
+
+  RadioRemote: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      ["list",1],["mode_phone",1],["volume_minus",1],["volume_plus",1],
+      ["overflow_scan_negative",1],["overflow_scan_positive",1],["seek_down",1],["seek_up",1],
+      ["scroll_position",8],
+      ["reserved",2],["unused2",1],["list_minus",1],["list_plus",1],["unused5",1],["source",1],["command_valid",1]
+    ]
+  },
+
+  CarSignalLights: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      // byte1
+      ["drl",1],["left_turn_indicator",1],["right_turn_indicator",1],["rear_foglight",1],
+      ["front_foglight",1],["high_beam_on",1],["low_beam_on",1],["parking_light_indicator",1],
+      // byte4
+      ["fse_inhibited",1],["handbrake_signal",1],["foot_on_break_indicator",2],["passenger_airbag_activated",1],
+      ["child_security_active",1],["stop_light",1],["service_indicator_exclamation",1],
+      // byte5
+      ["suspension_status",1],["esp_in_progress",1],["esp_inactivated",1],["cafr_indicator",1],
+      ["operation_indicator_light_blinking",1],["operation_indicator_light_on",1],["door_open",1],["diesel_pre_heating",1],
+      // byte6
+      ["row1_rl_seatbelt_forgotten",1],["scr_indicator",2],["passenger_seatbelt_warning_blinking",1],
+      ["passenger_seatbelt_warning",1],["driver_seatbelt_warning_blinking",1],["driver_seatbelt_warning",1],
+      ["fuel_level_low",1],
+      // byte7
+      ["activate_front_passenger_protection",1],["warning_light_active",1],["cmb_active",1],
+      ["row1_rr_seatbelt_forgotten_blinking",1],["row1_rr_seatbelt_forgotten",1],
+      ["row1_rc_seatbelt_forgotten_blinking",1],["row1_rc_seatbelt_forgotten",1],
+      ["row1_rl_seatbelt_forgotten_blinking",1],
+      // byte8
+      ["change_personalization",1],["change_color",1],["ready_lamp",1],["minc_blinking",1],
+      ["foot_on_clutch",2],["engine_indicator",2]
+    ]
+  },
+
+  CarIndicatorLights: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      // byte1
+      ["dsg_fault",1],["engine_cold",1],["break_fluid_alert",1],["oil_pressure_alert",1],
+      ["oil_level_alert",1],["coolant_level_alert",1],["number_of_gears",1],["coolant_temp_max",1],
+      // byte2
+      ["command_plus_start",1],["max_rpm_2",1],["max_rpm_1",1],["auto_wiping_active",1],
+      ["fap_clogged",1],["antipollution_fault",1],["tyre_punctured",1],["tyre_pressure_low",1],
+      // byte3
+      ["generator_fault",1],["battery_charge_fault",1],["serious_suspension_fault",1],["serious_ref_ehb_fault",1],
+      ["row2_rr_seatbelt_blink",1],["row2_rr_seatbelt_forgot",1],["row2_rl_seatbelt_blink",1],["row2_rl_seatbelt_forgot",1],
+      // byte4
+      ["mil_update_bit",1],["mil",1],["brake_pad_fault",1],["gearbox_fault",1],
+      ["esp_fault",1],["abs_fault",1],["fse_tightening_fault",1],["fse_system_fault",1],
+      // byte5
+      ["stt_lamp_status",2],["power_steering_fault",1],["caar_lamp_status",2],["passive_safety_fault",1],
+      ["curve_code_fault",1],["water_in_diesel",1],
+      // byte7
+      ["brake_assist_lamp",1],["gearbox_position",4],["ack_emf_presence",1],["authorize_ambience",1],["authorize_vth",1],
+      // byte8
+      ["hdc_warning_lamp_status",2],["afil_lamp_status",2],["vth_right_warning",1],["vth_left_warning",1],["farc_lamp_status",2]
+    ]
+  },
+
+  AlertHistory1: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      // byte1
+      ["byte1_reserved",2],["byte1_menu_available",2],["byte1_total_number_of_blocks",2],["byte1_block_number",2],
+      // byte2
+      ["unknown_2_0",1],
+      ["e_top_up_coolant_level",1],
+      ["s_power_steering_faulty",1],
+      ["unknown_2_3",1],
+      ["s_braking_system_faulty",1],
+      ["unknown_2_5",1],
+      ["s_engine_temperature_fault_stop_the_vehicle",1],
+      ["s_engine_oil_pressure_fault_stop_the_vehicle",1],
+      // byte3
+      ["s_boot_open",1],
+      ["s_fuel_tank_access_not_properly_locked",1],
+      ["s_rear_right_hand_door_open",1],
+      ["s_rear_left_hand_door_open",1],
+      ["s_front_right_hand_door_open",1],
+      ["s_front_left_hand_door_open",1],
+      ["i_handbrake",1],
+      ["e_top_up_engine_oil_level",1],
+      // byte4
+      ["e_airbags_or_pretensioner_seat_belts_faulty",1],
+      ["i_fuel_level_too_low",1],
+      ["e_brake_pads_worn",1],
+      ["e_presence_of_water_in_diesel_filter_repair_needed",1],
+      ["unknown_4_4",1],
+      ["e_battery_charge_or_electrical_supply_faulty",1],
+      ["e_esp_asr_system_faulty",1],
+      ["s_rear_screen_open",1],
+      // byte5
+      ["e_suspension_faulty",1],
+      ["unknown_5_1",1],
+      ["e_particle_filter_additive_level_too_low_repair_needed",1],
+      ["unknown_5_3",1],
+      ["e_risk_of_particle_filter_clogging_see_handbook",1],
+      ["e_abs_braking_system_faulty",1],
+      ["e_engine_fault_repair_needed",1],
+      ["unknown_5_7",1],
+      // byte6
+      ["roof_manoeuvre_impossible_system_temperature_too_high",1],
+      ["unknown_6_1",1],
+      ["e_electronic_anti_theft_faulty",1],
+      ["steering_lock_fault_have_the_vehicle_repaired",1],
+      ["retractable_roof_mechanism_fault",1],
+      ["check_the_central_stop_lamp",1],
+      ["e_cruise_control_system_faulty",1],
+      ["pre_heating_pre_ventilation_deactivated_battery_charge_low",1],
+      // byte7
+      ["i_remote_control_battery_flat",1],
+      ["i_screen_wash_fluid_level_too_low",1],
+      ["hybrid_system_fault_speed_restricted_repair_needed",1],
+      ["hybrid_system_fault_repair_needed",1],
+      ["i_automatic_headlamp_adjustment_faulty",1],
+      ["hybrid_system_fault_stop_the_vehicle_see_handbook",1],
+      ["roof_manoeuvre_impossible_apply_handbrake",1],
+      ["roof_manoeuvre_impossible_start_the_engine",1],
+      // byte8
+      ["unknown_8_0",1],
+      ["unknown_8_1",1],
+      ["unknown_8_2",1],
+      ["e_tyre_pressures_not_monitored",1],
+      ["unknown_8_4",1],
+      ["e_ambient_brightness_sensor_faulty",1],
+      ["pre_heating_pre_ventilation_deactivated_set_the_clock",1],
+      ["unknown_8_7",1]
+    ]
+  },
+
+  AlertHistory2: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      // byte1
+      ["byte1_reserved",2],["byte1_menu_available",2],["byte1_total_number_of_blocks",2],["byte1_block_number",2],
+      // byte2
+      ["e_sidelamp_bulbs_faulty",1],
+      ["s_rear_lh_tyre_punctured",1],
+      ["s_rear_rh_tyre_punctured",1],
+      ["s_front_rh_tyre_punctured",1],
+      ["s_front_lh_tyre_punctured",1],
+      ["unknown_2_5",1],
+      ["unknown_2_6",1],
+      ["unknown_2_7",1],
+      // byte3
+      ["e_rear_right_hand_brake_light_bulb_faulty",1],
+      ["e_main_beam_bulbs_faulty1",1],
+      ["e_main_beam_bulbs_faulty2",1],
+      ["e_dipped_beam_bulbs_faulty1",1],
+      ["e_dipped_beam_bulbs_faulty2",1],
+      ["e_sidelamp_bulbs_faulty1",1],
+      ["e_sidelamp_bulbs_faulty2",1],
+      ["e_sidelamp_bulbs_faulty3",1],
+      // byte4
+      ["e_direction_indicators_faulty1",1],
+      ["e_direction_indicators_faulty2",1],
+      ["e_direction_indicators_faulty3",1],
+      ["e_foglamp_bulbs_faulty1",1],
+      ["e_foglamp_bulbs_faulty2",1],
+      ["e_foglamp_bulbs_faulty3",1],
+      ["e_foglamp_bulbs_faulty4",1],
+      ["e_rear_left_hand_brake_light_bulb_faulty",1],
+      // byte5
+      ["unknown_5_0",1],
+      ["unknown_5_1",1],
+      ["unknown_5_2",1],
+      ["unknown_5_3",1],
+      ["unknown_5_4",1],
+      ["e_left_hand_reversing_lamp_bulb_faulty",1],
+      ["e_right_hand_reversing_lamp_bulb_faulty",1],
+      ["e_direction_indicators_faulty",1],
+      // byte6
+      ["e_tyre_pressures_too_low1",1],
+      ["e_tyre_pressures_too_low2",1],
+      ["unknown_6_2",1],
+      ["unknown_6_3",1],
+      ["e_parking_assistance_system_faulty",1],
+      ["unknown_6_5",1],
+      ["unknown_6_6",1],
+      ["unknown_6_7",1],
+      // byte7
+      ["unknown_7_0",1],
+      ["emissions_fault",1],
+      ["emissions_fault_starting_prevented",1],
+      ["unknown_7_3",1],
+      ["unknown_7_4",1],
+      ["switch_off_the_lamps",1],
+      ["e_tyre_pressures_too_low3",1],
+      ["e_tyre_pressures_too_low4",1],
+      // byte8
+      ["e_rear_left_hand_door_open",1],
+      ["e_rear_right_hand_door_open",1],
+      ["e_front_left_hand_door_open",1],
+      ["e_front_right_hand_door_open",1],
+      ["i_risk_of_ice",1],
+      ["i_place_automatic_gearbox_in_position_p",1],
+      ["unknown_8_6",1],
+      ["unknown_8_7",1]
+    ]
+  },
+
+  AlertHistory3: {
+    size: 64,
+    isBigInt: true,
+    fields: [
+      // byte1
+      ["byte1_reserved",2],["byte1_menu_available",2],["byte1_total_number_of_blocks",2],["byte1_block_number",2],
+      // byte2
+      ["unknown_2_0",1],
+      ["e_high_speed_check_tyre_pressures_correct",1],
+      ["unknown_2_2",1],
+      ["unknown_2_3",1],
+      ["e_fuel_tank_access_not_properly_locked",1],
+      ["e_rear_screen_open",1],
+      ["e_bonnet_open",1],
+      ["e_boot_open",1],
+      // byte3
+      ["unknown_3_0",1],
+      ["e_directional_headlamps_faulty",1],
+      ["s_bonnet_open",1],
+      ["e_adjustable_wing_fault_speed_restricted_see_handbook",1],
+      ["e_parking_brake_faulty",1],
+      ["unknown_3_5",1],
+      ["unknown_3_6",1],
+      ["unknown_3_7",1],
+      // byte4
+      ["unknown_4_0",1],
+      ["unknown_4_1",1],
+      ["e_gearbox_fault_repair_needed",1],
+      ["unknown_4_3",1],
+      ["unknown_4_4",1],
+      ["unknown_4_5",1],
+      ["unknown_4_6",1],
+      ["unknown_4_7",1],
+      // byte5
+      ["unknown_5_0",1],
+      ["unknown_5_1",1],
+      ["e_engine_fault_repair_needed",1],
+      ["unknown_5_3",1],
+      ["e_tyre_pressures_too_low",1],
+      ["unknown_5_5",1],
+      ["e_anti_wander_system_lane_crossing_warning_device_faulty",1],
+      ["unknown_5_7",1],
+      // byte6
+      ["i_rear_lh_tyre_not_monitored",1],
+      ["i_rear_rh_tyre_not_monitored",1],
+      ["i_front_rh_tyre_not_monitored",1],
+      ["i_front_lh_tyre_not_monitored",1],
+      ["unknown_6_4",1],
+      ["unknown_6_5",1],
+      ["unknown_6_6",1],
+      ["unknown_6_7",1],
+      // byte7
+      ["unknown_7_0",1],
+      ["unknown_7_1",1],
+      ["e_engine_fault_stop_the_vehicle",1],
+      ["inter_vehicles_time_measuring_fault",1],
+      ["unknown_7_4",1],
+      ["unknown_7_5",1],
+      ["e_power_steering_faulty",1],
+      ["e_suspension_faulty",1],
+      // byte8
+      ["refill_emissions_additive_starting_prevented",1],
+      ["refill_emissions_additive1",1],
+      ["refill_emissions_additive2",1],
+      ["unknown_8_3",1],
+      ["left_hand_front_tyre_under_inflated_adjust_tyre_pressures_then_reinitialise",1],
+      ["right_hand_front_tyre_under_inflated_adjust_tyre_pressures_then_reinitialise",1],
+      ["left_hand_rear_tyre_under_inflated_adjust_tyre_pressures_then_reinitialise",1],
+      ["right_hand_rear_tyre_under_inflated_adjust_tyre_pressures_then_reinitialise",1]
+    ]
+  },
+};
+
+ // --------------- VALUE MAPPINGS (UI-only) ------------------
+// Format: display = raw * scale + offset
+// raw = (display - offset) / scale
+// integer: true -> round raw to integer before sending
+// decimals: number of decimals to show in display UI
+const valueMaps = {
+  ExternalTemperature: { scale: 0.5, offset: -40, integer: true, decimals: 0 }, // raw 254 -> 87
+  Speed: { scale: 0.01, offset: 0, integer: true, decimals: 0 },
+  Rpm: { scale: 0.125, offset: 0, integer: true, decimals: 0 },
+  Odometer: { scale: 0.1, offset: 0, integer: true, decimals: 0 },
+  CoolantTemperature: { scale: 1, offset: -40, integer: true, decimals: 0 },
+  // example: a voltage stored as raw=units of 0.1V -> display = raw * 0.1
+  // BatteryVoltage: { scale: 0.1, offset: 0, integer: false, decimals: 1 },
+  // Add other mappings here...
+};
+
+// --------------- HELPERS ------------------
+const B1 = BigInt(1);
+function maskFor(length, bitpos, useBigInt) {
+  if (useBigInt) {
+    return ((B1 << BigInt(length)) - B1) << BigInt(bitpos);
+  } else {
+    return (((1 << length) - 1) << bitpos) >>> 0;
+  }
+}
+function toBigIntSafe(v) {
+  if (typeof v === "bigint") return v;
+  if (typeof v === "number") return BigInt(v);
+  if (typeof v === "string" && v !== "") return BigInt(v);
+  return BigInt(0);
+}
+function roundTo(n, decimals) {
+  if (decimals == null) return n;
+  const f = Math.pow(10, decimals);
+  return Math.round(n * f) / f;
+}
+function formatDisplayValue(raw, map) {
+  if (!map) return raw;
+  const display = (Number(raw) * map.scale) + map.offset;
+  return (map.decimals != null) ? roundTo(display, map.decimals) : display;
+}
+function computeRawFromDisplay(display, map) {
+  if (!map) return display;
+  const raw = (Number(display) - map.offset) / map.scale;
+  if (map.integer) return Math.round(raw);
+  return raw;
+}
+
+// --------------- FETCH + RENDER ------------------
+async function fetchJson() {
+  try {
+    setStatus("Fetching...");
+    const res = await fetch(API_ENDPOINT + "carstate.json");
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const json = await res.json();
+    setStatus("Fetched");
+    document.getElementById("preview").textContent = JSON.stringify(json, null, 2);
+    return json;
+  } catch (err) {
+    setStatus("Fetch error: " + err.message);
+    console.error(err);
+    return null;
+  }
+}
+
+function clearEditor(){ document.getElementById("editor").innerHTML = ""; }
+
+function renderEditor(json) {
+  clearEditor();
+  const container = document.getElementById("editor");
+
+  Object.entries(json).forEach(([key, value]) => {
+    const isBitfield = !!bitfields[key];
+    const div = document.createElement("div");
+    div.className = isBitfield ? "card mb-2 carstate-bitfield-card" : "card mb-2 carstate-scalar-card";
+
+    const body = document.createElement("div");
+    body.className = "card-body zone-card-body";
+
+    const label = document.createElement("label");
+    label.className = "form-label";
+    label.textContent = key;
+    label.title = key;
+    body.appendChild(label);
+
+    if (isBitfield) {
+      // bitfield editor (keeps BigInt handling)
+      body.appendChild(renderBitfield(key, value, bitfields[key]));
+    } else {
+      // numeric or mapped field
+      const map = valueMaps[key];
+      const displayValue = map ? formatDisplayValue(value, map) : value;
+
+      const inputRow = document.createElement("div");
+      inputRow.className = "control-row";
+
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.className = "form-control form-control-sm";
+      inp.id = key;
+      // show display-friendly value
+      inp.value = (displayValue === null || displayValue === undefined) ? "" : displayValue;
+      if (map && map.decimals != null) inp.step = (1 / Math.pow(10, map.decimals)).toString();
+      inp.dataset.mapped = map ? "1" : "0";
+      inputRow.appendChild(inp);
+
+      // show the raw value small note for reference (optional)
+      const rawNote = document.createElement("span");
+      rawNote.className = "setup-tip";
+      rawNote.textContent = "(raw: " + String(value) + ")";
+      inputRow.appendChild(rawNote);
+
+      body.appendChild(inputRow);
+    }
+
+    div.appendChild(body);
+    container.appendChild(div);
+  });
+}
+
+// --------------- Bitfield render & compute (same BigInt-aware implementation) ------------------
+function renderBitfield(name, incomingValue, def) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "carstate-bitfield-bytes mb-2";
+
+  let valueIsBigInt = !!def.isBigInt;
+  let value;
+  try {
+    if (valueIsBigInt) value = toBigIntSafe(incomingValue || 0);
+    else value = Number(incomingValue) || 0;
+  } catch (e) {
+    value = valueIsBigInt ? BigInt(0) : 0;
+  }
+
+  let bitPos = 0;
+  let bitsInCurrentByte = 0;
+  let currentByteRow = document.createElement("div");
+  currentByteRow.className = "carstate-byte-row";
+
+  const flushCurrentByteRow = () => {
+    if (currentByteRow.children.length > 0) {
+      wrapper.appendChild(currentByteRow);
+      currentByteRow = document.createElement("div");
+      currentByteRow.className = "carstate-byte-row";
+    }
+  };
+
+  def.fields.forEach(([fieldName, length]) => {
+    // Safety for malformed definitions: if a field would cross byte boundary,
+    // start it on a new row so each visual row still represents one byte.
+    if (bitsInCurrentByte > 0 && bitsInCurrentByte + length > 8) {
+      flushCurrentByteRow();
+      bitsInCurrentByte = 0;
+    }
+
+    const bitDiv = document.createElement("div");
+    bitDiv.className = "control-row";
+    bitDiv.style.gridColumn = `span ${length}`;
+
+    const label = document.createElement("label");
+    label.textContent = `${fieldName} (${length} bit${length>1 ? "s":""})`;
+    label.title = fieldName;
+    label.className = "carstate-bitfield-label";
+    bitDiv.appendChild(label);
+
+    if (length === 1) {
+      let checked = false;
+      if (valueIsBigInt) {
+        const m = maskFor(1, bitPos, true);
+        checked = (value & m) !== BigInt(0);
+      } else {
+        const m = maskFor(1, bitPos, false);
+        checked = (value & m) !== 0;
+      }
+      const cb = document.createElement("input");
+      cb.id = `bf-${name}-${fieldName}-${bitPos}`;
+      cb.type = "checkbox";
+      cb.className = "form-check-input";
+      cb.checked = !!checked;
+      cb.dataset.bf = name;
+      cb.dataset.field = fieldName;
+      cb.dataset.length = "1";
+      cb.dataset.bitpos = String(bitPos);
+      if (valueIsBigInt) cb.dataset.bigint = "1";
+      label.htmlFor = cb.id;
+      bitDiv.appendChild(cb);
+    } else {
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.className = "form-control form-control-sm";
+      inp.min = 0;
+      inp.max = (1 << length) - 1;
+      let fieldValue;
+      if (valueIsBigInt) {
+        const m = maskFor(length, bitPos, true);
+        fieldValue = Number((value & m) >> BigInt(bitPos));
+      } else {
+        const m = maskFor(length, bitPos, false);
+        fieldValue = (value & m) >>> bitPos;
+      }
+      inp.value = fieldValue;
+      inp.dataset.bf = name;
+      inp.dataset.field = fieldName;
+      inp.dataset.length = String(length);
+      inp.dataset.bitpos = String(bitPos);
+      if (valueIsBigInt) inp.dataset.bigint = "1";
+      bitDiv.appendChild(inp);
+    }
+
+    currentByteRow.appendChild(bitDiv);
+    bitPos += length;
+    bitsInCurrentByte += length;
+
+    if (bitsInCurrentByte === 8) {
+      flushCurrentByteRow();
+      bitsInCurrentByte = 0;
+    }
+  });
+
+  flushCurrentByteRow();
+
+  const totalLine = document.createElement("div");
+  totalLine.className = "setup-status";
+  totalLine.textContent = "Value: " + (def.isBigInt ? (value.toString() + " (decimal)") : String(value));
+  wrapper.appendChild(totalLine);
+
+  wrapper.addEventListener("input", () => {
+    const newVal = computeBitfieldValue(name, def);
+    totalLine.textContent = "Value: " + (def.isBigInt ? (newVal.toString() + " (decimal)") : String(newVal));
+  });
+
+  return wrapper;
+}
+
+function computeBitfieldValue(bfName, def) {
+  let useBigInt = !!def.isBigInt;
+  let value = useBigInt ? BigInt(0) : 0;
+  const elems = document.querySelectorAll(`*[data-bf="${bfName}"]`);
+  elems.forEach(el => {
+    const length = Number(el.dataset.length);
+    const bitpos = Number(el.dataset.bitpos);
+    if (length === 1) {
+      const v = el.checked ? 1 : 0;
+      if (useBigInt) value |= (BigInt(v) << BigInt(bitpos));
+      else value |= (v << bitpos);
+    } else {
+      const raw = el.value === "" ? 0 : Number(el.value);
+      const v = raw >>> 0;
+      if (useBigInt) value |= (BigInt(v) << BigInt(bitpos));
+      else value |= (v << bitpos);
+    }
+  });
+  return value;
+}
+
+// --------------- Collect JSON (DISPLAY->RAW conversion here) ------------------
+function collectJSON() {
+  const result = {};
+
+  // simple numeric fields (inputs with id)
+  document.querySelectorAll("input[type=number]").forEach(inp => {
+    const key = inp.id;
+    if (!key) return; // skip bitfield internal numeric inputs (they have no id)
+
+    // If mapped, convert from display -> raw
+    const isMapped = inp.dataset.mapped === "1";
+    if (isMapped) {
+      const map = valueMaps[key];
+      const displayVal = inp.value === "" ? 0 : Number(inp.value);
+      const rawVal = computeRawFromDisplay(displayVal, map);
+      // If map.integer true, round
+      result[key] = map && map.integer ? Math.round(rawVal) : rawVal;
+    } else {
+      // not mapped: send numeric raw directly
+      result[key] = inp.value === "" ? 0 : Number(inp.value);
+    }
+  });
+
+  // bitfields: reconstruct values; if BigInt -> string decimal
+  for (const bfName in bitfields) {
+    const def = bitfields[bfName];
+    const val = computeBitfieldValue(bfName, def);
+    if (def.isBigInt)
+    {
+        result[bfName] = val.toString(); // decimal string (preserve full 64-bit)
+    }
+    else
+    {
+        result[bfName] = Number(val);
+    }
+  }
+
+  return result;
+}
+
+function updatePreviewFromEditor() {
+  const obj = collectJSON();
+  document.getElementById("preview").textContent = JSON.stringify(obj, null, 2);
+}
+
+// --------------- POST ------------------
+async function postJson(obj, options = {}) {
+  const showAlert = options.showAlert !== false;
+  const updatePreview = options.updatePreview !== false;
+  const statusPrefix = options.statusPrefix || "Saving...";
+  const loadingButtonId = options.loadingButtonId;
+  const loadingText = options.loadingText || "Saving...";
+  const timeoutMs = Number.isFinite(options.timeoutMs) ? options.timeoutMs : 1000;
+
+  let loadingButton = null;
+  let originalButtonText = "";
+  const abortController = new AbortController();
+  const timeoutHandle = setTimeout(() => {
+    abortController.abort();
+  }, timeoutMs);
+
+  if (loadingButtonId) {
+    loadingButton = document.getElementById(loadingButtonId);
+    if (loadingButton) {
+      originalButtonText = loadingButton.textContent;
+      loadingButton.disabled = true;
+      loadingButton.textContent = loadingText;
+    }
+  }
+
+  try {
+    setStatus(statusPrefix);
+    const res = await fetch(API_ENDPOINT + "carstate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(obj),
+      signal: abortController.signal
+    });
+    const text = await res.text();
+    setStatus("Saved: " + (res.ok ? `${res.status}` : `Error ${res.status}`));
+    if (updatePreview) {
+      document.getElementById("preview").textContent = `Request body:\n${JSON.stringify(obj, null, 2)}\n\nServer response:\n${text}`;
+    }
+    if (showAlert) {
+      alert("Server responded: " + (text || res.statusText));
+    }
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      setStatus("Save timeout after " + timeoutMs + " ms");
+    } else {
+      setStatus("Save error: " + err.message);
+    }
+    console.error(err);
+    if (showAlert) {
+      if (err && err.name === "AbortError") {
+        alert("Save timed out after " + timeoutMs + " ms");
+      } else {
+        alert("Save failed: " + err.message);
+      }
+    }
+  } finally {
+    clearTimeout(timeoutHandle);
+    if (loadingButton) {
+      loadingButton.disabled = false;
+      loadingButton.textContent = originalButtonText;
+    }
+  }
+}
+
+async function sendRightStickPulse() {
+  const baseState = collectJSON();
+  const lowState = { ...baseState, RightStickButtonPushed: 0 };
+  const highState = { ...baseState, EmulateTripButtonPress: 1 };
+
+  await postJson(highState, {
+    showAlert: false,
+    updatePreview: true,
+    statusPrefix: "Sending Right Stick pulse low"
+  });
+/*
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  await postJson(highState, {
+      showAlert: false,
+      updatePreview: true,
+      statusPrefix: "Sending Right Stick pulse high"
+    });
+
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  await postJson(lowState, {
+    showAlert: false,
+    updatePreview: true,
+    statusPrefix: "Sending Right Stick pulse low"
+  });
+*/
+  setStatus("Right Stick pulse sent");
+}
+
+// --------------- UI helpers ------------------
+function setStatus(s) { document.getElementById("status").textContent = s; }
+
+// --------------- Buttons ------------------
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const obj = collectJSON();
+  postJson(obj, {
+    showAlert: false,
+    loadingButtonId: "saveBtn",
+    loadingText: "Saving..."
+  });
+});
+
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  const json = await fetchJson();
+  if (json) renderEditor(json);
+});
+
+document.getElementById("rightStickPulseBtn").addEventListener("click", async () => {
+  await sendRightStickPulse();
+});
+
+document.getElementById("showPreviewBtn").addEventListener("click", () => {
+  const previewElement = document.getElementById("preview");
+  previewElement.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.getElementById("editor").addEventListener("input", () => {
+  updatePreviewFromEditor();
+});
+
+document.getElementById("editor").addEventListener("change", () => {
+  updatePreviewFromEditor();
+});
+
+// --------------- init ------------------
+(async function init(){
+  const json = await fetchJson();
+  if (json) {
+    renderEditor(json);
+    updatePreviewFromEditor();
+  }
+})();
+</script>
+</body>
+</html>

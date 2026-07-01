@@ -74,7 +74,6 @@ bool ConfigFile::Read()
             _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC = getJsonBool(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", false);
             _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT = getJsonInt(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", 0);
             _carState->CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC = getJsonBool(aee2010, "CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC", false);
-            _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK = getJsonBool(aee2010, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", false);
         }
 
         printf("Reading config file 4\n");
@@ -98,6 +97,7 @@ bool ConfigFile::Read()
 
         _carState->HAS_RTC = getJsonBool(jsonHandle.get(), "HAS_RTC", false);
         _carState->SEND_TIME = getJsonBool(jsonHandle.get(), "SEND_TIME", false);
+        _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK = getJsonBool(jsonHandle.get(), "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", false);
 
         _carState->MILEAGE_AT_CMB_TRIP_RESET = getJsonInt(jsonHandle.get(), "MILEAGE_AT_CMB_TRIP_RESET", 0);
 
@@ -236,6 +236,8 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddBoolToObject(root, "QUERY_AC_STATUS", _carState->QUERY_AC_STATUS);
     cJSON_AddBoolToObject(root, "HAS_RTC", _carState->HAS_RTC);
     cJSON_AddBoolToObject(root, "SEND_TIME", _carState->SEND_TIME);
+    cJSON_AddBoolToObject(root, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK);
+    cJSON_AddStringToObject(root, "DATETIME", "");
 
     cJSON_AddNumberToObject(root, "PARKING_AID_TYPE", _carState->PARKING_AID_TYPE);
     cJSON_AddNumberToObject(root, "RADIO_TYPE", _carState->RADIO_TYPE);
@@ -271,20 +273,24 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddNumberToObject(aee2010, "SPEED_SIGN_SPEED_TOLERANCE_PERCENT", _carState->SPEED_SIGN_SPEED_TOLERANCE_PERCENT);
     cJSON_AddBoolToObject(aee2010, "REPLACE_REMOTE_MODE_BTN_WITH_SRC", _carState->REPLACE_REMOTE_MODE_BTN_WITH_SRC);
     cJSON_AddBoolToObject(aee2010, "CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC", _carState->CONVERT_SPEED_SIGN_FOR_CMB_FROM_NAC);
-    cJSON_AddBoolToObject(aee2010, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK);
 
     return std::unique_ptr<cJSON, cJSONDeleter>(root);
 }
 
-int ConfigFile::getJsonInt(cJSON *json, const char *key, int defaultValue)
+uint64_t ConfigFile::getJsonInt(cJSON *json, const char *key, uint64_t defaultValue)
 {
     cJSON *item = cJSON_GetObjectItem(json, key);
-    if (item != NULL && cJSON_IsNumber(item))
+    if (item == NULL)
     {
-        //printf("Key: %s, Value: %d\n", key, item->valueint);
-        return item->valueint;
+        return defaultValue;
     }
-    //printf("Key: %s not found, returning default value: %d\n", key, defaultValue);
+    if (item->valuestring != NULL) {
+        return strtoull(item->valuestring, NULL, 10);
+    }
+    if (cJSON_IsNumber(item)) {
+        return (uint64_t)item->valuedouble;
+    }
+
     return defaultValue;
 }
 
@@ -298,4 +304,25 @@ bool ConfigFile::getJsonBool(cJSON *json, const char *key, bool defaultValue)
     }
     //printf("Key: %s not found, returning default value: %d\n", key, defaultValue);
     return defaultValue;
+}
+
+// Helper: add any integer to cJSON correctly for Web UI
+// - small values (<= 2^53) -> JSON number
+// - large values (> 2^53) -> JSON string (decimal)
+void ConfigFile::cJSON_AddUInt64Smart(cJSON *json, const char *key, uint64_t value)
+{
+    const uint64_t MAX_SAFE_JS_INT = 9007199254740992ULL; // 2^53
+
+    if (value <= MAX_SAFE_JS_INT)
+    {
+        // safe to store as normal JSON number
+        cJSON_AddNumberToObject(json, key, (double)value);
+    }
+    else
+    {
+        // too large, store as string so Web UI can parse as BigInt
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%llu", (unsigned long long)value);
+        cJSON_AddStringToObject(json, key, buf);
+    }
 }

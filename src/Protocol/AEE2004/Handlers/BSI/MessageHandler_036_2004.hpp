@@ -93,6 +93,8 @@ class MessageHandler_036 : public IMessageHandler<MessageHandler_036>
             CanIgnitionStruct packet;
             std::memcpy(&packet, message.data, sizeof(packet));
 
+            carState->LastIgnitionTime = carState->CurrenTime;
+
             //TODO think about the OdometerStates as they are actually set in the 0x217 message
             carState->EconomyMode         = packet.LoadShedding.data.economy_mode_active;
             carState->DashboardBrightness = packet.Brightness.data.dashboard_brightness;

@@ -13,6 +13,14 @@
 class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
 {
     private:
+        enum class TripButtonEmulationState {
+            None,
+            Emulating
+        };
+
+        uint64_t _tripEmulationStartedAt = 0;
+        TripButtonEmulationState _tripButtonEmulationState = TripButtonEmulationState::None;
+
         BusMessage message
         {
             .id = 0x221,
@@ -38,14 +46,37 @@ class MessageHandler_221 : public IMessageHandler<MessageHandler_221>
 
         BusMessage Generate(CarState* carState)
         {
-            CAN_221_2004_Byte1Struct field1{};
-            field1.data.left_stick_button_pushed  = carState->LeftStickButtonPushed;
-            field1.data.right_stick_button_pushed = carState->RightStickButtonPushed;
+            CAN_221_2004_Byte1Struct byte1{};
+            byte1.data.left_stick_button_pushed  = carState->LeftStickButtonPushed;
+            byte1.data.right_stick_button_pushed = carState->RightStickButtonPushed;
             //printf("MessageHandler_221::Generate - RightStickButtonPushed: %d\n", carState->RightStickButtonPushed);
-            field1.data.remaining_range_invalid   = carState->InvalidRemainingRange;
-            field1.data.consumption_invalid       = carState->InvalidConsumption;
+            byte1.data.remaining_range_invalid   = carState->InvalidRemainingRange;
+            byte1.data.consumption_invalid       = carState->InvalidConsumption;
 
-            message.data[0] = field1.asByte;
+            if (_tripEmulationStartedAt == 0 && carState->EmulateTripButtonPress)
+            {
+                _tripEmulationStartedAt = carState->CurrenTime;
+                carState->EmulateTripButtonPress = 0;
+                _tripButtonEmulationState = TripButtonEmulationState::Emulating;
+            }
+
+            if (_tripEmulationStartedAt != 0 && carState->CurrenTime - _tripEmulationStartedAt > message.periodicityMs)
+            {
+                _tripEmulationStartedAt = 0;
+                _tripButtonEmulationState = TripButtonEmulationState::None;
+            }
+
+            switch (_tripButtonEmulationState)
+            {
+                case TripButtonEmulationState::None:
+                    // Do nothing
+                    break;
+                case TripButtonEmulationState::Emulating:
+                    byte1.data.right_stick_button_pushed = 1;
+                    break;
+            }
+
+            message.data[0] = byte1.asByte;
 
             message.data[1] = carState->InstantConsumption.data.leftByte;
             message.data[2] = carState->InstantConsumption.data.rightByte;
