@@ -1020,6 +1020,29 @@ Continue?
             }
         }
 
+        function getSettingsExportFileName() {
+            const now = new Date();
+            const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+            const timePart = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+            return `psa-van-can-settings-${datePart}-${timePart}.json`;
+        }
+
+        function triggerJsonDownload(fileName, content) {
+            const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = blobUrl;
+            downloadLink.download = fileName;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 0);
+        }
+
         const setupSections = [
             {
                 key: "protocol",
@@ -1601,6 +1624,66 @@ Continue?
                 updateBtn.addEventListener('click', uploadFirmware);
             }
 
+            const exportSettingsBtn = document.getElementById('exportSettings');
+            if (exportSettingsBtn) {
+                exportSettingsBtn.addEventListener('click', async () => {
+                    try {
+                        gatherFormData(jsonData);
+                        const content = JSON.stringify(jsonData, null, 2);
+                        triggerJsonDownload(getSettingsExportFileName(), content);
+                    } catch (error) {
+                        console.error('Export failed:', error);
+                        await showCustomConfirm('Failed to export settings JSON.', false);
+                    }
+                });
+            }
+
+            const importSettingsBtn = document.getElementById('importSettings');
+            const importSettingsFile = document.getElementById('importSettingsFile');
+            if (importSettingsBtn && importSettingsFile) {
+                importSettingsBtn.addEventListener('click', () => {
+                    importSettingsFile.value = '';
+                    importSettingsFile.click();
+                });
+
+                importSettingsFile.addEventListener('change', async (event) => {
+                    const selectedFile = event.target.files && event.target.files[0];
+                    if (!selectedFile) {
+                        return;
+                    }
+
+                    try {
+                        const fileContent = await selectedFile.text();
+                        const importedJson = JSON.parse(fileContent);
+
+                        if (!importedJson || typeof importedJson !== 'object' || Array.isArray(importedJson)) {
+                            throw new Error('Invalid JSON root object');
+                        }
+
+                        const supportedSourceProtocols = jsonData.SUPPORTED_SOURCE_PROTOCOLS;
+                        const supportedDestinationProtocols = jsonData.SUPPORTED_DESTINATION_PROTOCOLS;
+
+                        jsonData = importedJson;
+
+                        if (!Array.isArray(jsonData.SUPPORTED_SOURCE_PROTOCOLS) && Array.isArray(supportedSourceProtocols)) {
+                            jsonData.SUPPORTED_SOURCE_PROTOCOLS = supportedSourceProtocols;
+                        }
+
+                        if (!Array.isArray(jsonData.SUPPORTED_DESTINATION_PROTOCOLS) && Array.isArray(supportedDestinationProtocols)) {
+                            jsonData.SUPPORTED_DESTINATION_PROTOCOLS = supportedDestinationProtocols;
+                        }
+
+                        formContainer.innerHTML = '';
+                        populateForm(jsonData);
+
+                        await showCustomConfirm('Settings loaded from file. Click Save configuration to write them to device.', false);
+                    } catch (error) {
+                        console.error('Import failed:', error);
+                        await showCustomConfirm('Failed to import settings JSON. Please select a valid file.', false);
+                    }
+                });
+            }
+
             fetchConfig();
         });
     </script>
@@ -1691,6 +1774,9 @@ Continue?
             <div class="card setup-actions-card mb-3">
                 <div class="card-body setup-actions">
                     <button class="btn btn-primary" type="submit" id="saveConfig">Save configuration</button>
+                    <button class="btn btn-secondary" type="button" id="exportSettings">Export settings</button>
+                    <button class="btn btn-secondary" type="button" id="importSettings">Import settings</button>
+                    <input type="file" id="importSettingsFile" accept=".json,application/json" style="display:none">
                     <button class="btn btn-warning" type="button" id="reboot">Reboot</button>
                     <button class="btn btn-secondary" type="button" id="getVin">Get VIN</button>
                 </div>
