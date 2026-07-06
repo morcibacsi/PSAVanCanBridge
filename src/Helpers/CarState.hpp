@@ -22,7 +22,7 @@
 
 struct CarState
 {
-    char* Version = (char*)"v3.5.2";
+    char* Version = (char*)"v3.6.2";
     uint64_t CurrenTime = 0;
     uint64_t LastIgnitionTime = 0;
     uint64_t ReverseDisengagedTime = 0;
