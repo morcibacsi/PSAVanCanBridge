@@ -97,6 +97,20 @@ The firmware creates a Wi-Fi access point as descibed in the Setup section below
 
 ![display](./images/PyPSADiag.png)
 
+Since firmware version 3.6.2, the device includes a built-in telecoding function, which can be accessed from the setup page.
+
+It works with JSON files from PyPSADiag. These JSON files contain the zone information to be telecoded. I have not included any of these files, as they are maintained and frequently updated in the PyPSADiag repository.
+
+![telecoding](./images/telecoding.png)
+
+### Network monitor
+
+Since firmware version 3.6.2, the device includes a built-in network monitoring function, which can be accessed from the setup page.
+
+You can monitor both the source and destination networks, as well as both incoming and outgoing messages. Network captures can also be saved for further analysis and debugging.
+
+![telecoding](./images/monitor.png)
+
 ### FAQ:
 
 - Does the odometer from XY work?
