@@ -731,6 +731,14 @@ function saveLog() {
     URL.revokeObjectURL(a.href);
 }
 
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        var wsUrlInput = document.getElementById("wsUrl");
+        wsUrlInput.value = "ws://" + window.location.host + "/ws";
+    }
+);
+
 </script>
 
 </body>

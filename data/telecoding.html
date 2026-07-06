@@ -1184,6 +1184,14 @@ document.getElementById("writeModifiedBtn").addEventListener("click", async () =
     }
 });
 
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        var wsUrlInput = document.getElementById("wsUrl");
+        wsUrlInput.value = "ws://" + window.location.host + "/ws";
+    }
+);
+
 setupTabs();
 </script>
 
