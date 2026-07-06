@@ -21,8 +21,8 @@ class WebServer {
   private:
 
     static constexpr int WIFI_INITIAL_TIMEOUT = 120;
-    static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 30;
-    static constexpr bool startInApMode = true;
+    static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 40;
+    static constexpr int STA_CONNECT_TIMEOUT_MS = 10000;
 
     TimeProvider* _timeProvider = nullptr;
     ImmediateSignalCallback _immediateSignalCallback = nullptr;
@@ -35,6 +35,10 @@ class WebServer {
 
     httpd_handle_t server;
     const char* TAG = "WebServer";
+
+    bool HasSavedStaCredentials() const;
+    bool ScanForConfiguredStaNetwork();
+    bool ConnectToStationWithTimeout(int timeoutMs);
 
   public:
     CarState* _carState = nullptr;

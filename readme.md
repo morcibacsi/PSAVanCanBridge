@@ -239,6 +239,8 @@ After connecting to the access point the setup page is available by opening the 
 
 After setting up the board, a reboot is needed (there is a button on the setup page).
 
+It is possible to configure an SSID and password that the device will attempt to connect to at startup. If the connection is successful, the device can be accessed at http://psavancanbridge.local/. If the stored Wi-Fi network is not found, the device will fall back to AP mode.
+
 ## Building the project
 
 ### From PlatformIO

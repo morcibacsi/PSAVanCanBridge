@@ -254,6 +254,9 @@ struct CarState
     // if true the AC status is queried with a diagnostic message (only works with rev 1.4)
     bool QUERY_AC_STATUS = false;
 
+    uint8_t STA_WIFI_SSID[32] = "";
+    uint8_t STA_WIFI_PASSWORD[64] = "";
+
     //0: none / PSA CAN
     //1: PSA VAN - the distance data from the parking aid is queried with a diagnostic message (only works with rev 1.4)
     //2: Chinese

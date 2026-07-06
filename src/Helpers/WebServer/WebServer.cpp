@@ -2,14 +2,103 @@
 #include "esp_ota_ops.h"
 #include "esp_image_format.h"
 #include "mdns.h"
+#include <cstring>
 
 static bool webServerCanBeStarted = false;
-static const char* STA_WIFI_SSID = "ssid";
-static const char* STA_WIFI_PASSWORD = "password";
+static bool stationIpAcquired = false;
+static bool stationConnectionFailed = false;
 
 #ifndef MIN
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
+
+bool WebServer::HasSavedStaCredentials() const
+{
+    if (_carState == nullptr)
+    {
+        return false;
+    }
+
+    const auto ssidLen = strnlen(reinterpret_cast<const char*>(_carState->STA_WIFI_SSID), sizeof(_carState->STA_WIFI_SSID));
+    const auto passwordLen = strnlen(reinterpret_cast<const char*>(_carState->STA_WIFI_PASSWORD), sizeof(_carState->STA_WIFI_PASSWORD));
+    return ssidLen > 0 && passwordLen > 0;
+}
+
+bool WebServer::ScanForConfiguredStaNetwork()
+{
+    wifi_scan_config_t scanConfig = {};
+
+    printf("Scanning nearby Wi-Fi networks...\n");
+    esp_err_t scanErr = esp_wifi_scan_start(&scanConfig, true);
+    if (scanErr != ESP_OK)
+    {
+        printf("Wi-Fi scan failed: %s\n", esp_err_to_name(scanErr));
+        return false;
+    }
+
+    uint16_t accessPointCount = 0;
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&accessPointCount));
+    if (accessPointCount == 0)
+    {
+        printf("No nearby Wi-Fi networks found\n");
+        return false;
+    }
+
+    constexpr uint16_t maxRecords = 20;
+    wifi_ap_record_t records[maxRecords] = {};
+    uint16_t recordsToRead = MIN(accessPointCount, maxRecords);
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&recordsToRead, records));
+
+    for (uint16_t i = 0; i < recordsToRead; i++)
+    {
+        if (strcmp(reinterpret_cast<const char*>(records[i].ssid), reinterpret_cast<const char*>(_carState->STA_WIFI_SSID)) == 0)
+        {
+            printf("Configured SSID found: %s\n", reinterpret_cast<const char*>(_carState->STA_WIFI_SSID));
+            return true;
+        }
+    }
+
+    printf("Configured SSID not found: %s\n", reinterpret_cast<const char*>(_carState->STA_WIFI_SSID));
+    return false;
+}
+
+bool WebServer::ConnectToStationWithTimeout(int timeoutMs)
+{
+    stationIpAcquired = false;
+    stationConnectionFailed = false;
+
+    printf("Connecting to SSID: %s\n", reinterpret_cast<const char*>(_carState->STA_WIFI_SSID));
+    esp_err_t connectErr = esp_wifi_connect();
+    if (connectErr != ESP_OK)
+    {
+        printf("esp_wifi_connect failed: %s\n", esp_err_to_name(connectErr));
+        return false;
+    }
+
+    int elapsedMs = 0;
+    constexpr int stepMs = 200;
+
+    while (elapsedMs < timeoutMs)
+    {
+        if (stationIpAcquired)
+        {
+            printf("STA connected and got IP\n");
+            return true;
+        }
+
+        if (stationConnectionFailed)
+        {
+            printf("STA connection failed\n");
+            return false;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(stepMs));
+        elapsedMs += stepMs;
+    }
+
+    printf("STA connection timed out after %d ms\n", timeoutMs);
+    return false;
+}
 
 // Initialize NVS and Wi-Fi
 void WebServer::CreateWebServer()
@@ -27,36 +116,63 @@ void WebServer::CreateWebServer()
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    if (startInApMode)
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                        WIFI_EVENT,
+                        ESP_EVENT_ANY_ID,
+                        &wifi_event_handler,
+                        NULL,
+                        NULL));
+
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                        IP_EVENT,
+                        IP_EVENT_STA_GOT_IP,
+                        &ip_event_handler,
+                        NULL,
+                        NULL));
+
+    bool shouldUseApMode = true;
+
+    if (!shouldUseApMode)
+    {
+        if (!HasSavedStaCredentials())
+        {
+            printf("STA credentials are empty, starting in AP mode\n");
+            shouldUseApMode = true;
+        }
+        else
+        {
+            StartStationMode();
+            ESP_ERROR_CHECK(esp_wifi_start());
+            ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(8));
+
+            const bool ssidFound = ScanForConfiguredStaNetwork();
+            const bool connected = ssidFound && ConnectToStationWithTimeout(STA_CONNECT_TIMEOUT_MS);
+
+            if (connected)
+            {
+                StartWebServer();
+                webServerCanBeStarted = false;
+                return;
+            }
+
+            printf("STA startup failed, switching to AP mode\n");
+            StopWifi();
+            shouldUseApMode = true;
+        }
+    }
+
+    if (shouldUseApMode)
     {
         StartApMode();
+        ESP_ERROR_CHECK(esp_wifi_start());
+        ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(8));
         StartWebServer();
     }
-    else
-    {
-        StartStationMode();
-
-        ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                            WIFI_EVENT,
-                            ESP_EVENT_ANY_ID,
-                            &wifi_event_handler,
-                            NULL,
-                            NULL));
-
-        ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                            IP_EVENT,
-                            IP_EVENT_STA_GOT_IP,
-                            &ip_event_handler,
-                            NULL,
-                            NULL));
-    }
-
-    ESP_ERROR_CHECK(esp_wifi_start());
-    ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(8));
 }
 
 void WebServer::StartApMode()
 {
+    printf("Starting Wi-Fi in AP mode\n");
     esp_netif_t *netif = esp_netif_create_default_wifi_ap();
 
     //Set the IP address of the AP
@@ -100,6 +216,7 @@ void WebServer::StartApMode()
 
 void WebServer::StartStationMode()
 {
+    printf("Starting Wi-Fi in STA mode\n");
     esp_netif_t *netif = esp_netif_create_default_wifi_sta();
     esp_netif_set_hostname(netif, "psavancanbridge");
 
@@ -118,8 +235,8 @@ void WebServer::StartStationMode()
 
     // Configure the Wi-Fi connection
     wifi_config_t wifi_config = {};
-    strncpy((char*)wifi_config.sta.ssid, STA_WIFI_SSID, sizeof(wifi_config.sta.ssid) - 1);
-    strncpy((char*)wifi_config.sta.password, STA_WIFI_PASSWORD, sizeof(wifi_config.sta.password) - 1);
+    strncpy((char*)wifi_config.sta.ssid, reinterpret_cast<const char*>(_carState->STA_WIFI_SSID), sizeof(wifi_config.sta.ssid) - 1);
+    strncpy((char*)wifi_config.sta.password, reinterpret_cast<const char*>(_carState->STA_WIFI_PASSWORD), sizeof(wifi_config.sta.password) - 1);
 
     // Set Wi-Fi configuration and start Wi-Fi
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
@@ -252,7 +369,6 @@ void WebServer::Process()
     if (_isRunning && server != nullptr)
     {
         if (
-            startInApMode == true &&
             _carState->DiagConnected == false &&
             (_carState->CurrenTime - _lastRequestTime) > _inactivityTimeout * 1000)
         {
@@ -660,6 +776,7 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     instance->_carState->LogNetwork = (int)network;
     instance->_carState->LogDirection = (int)direction;
+    instance->_lastRequestTime = instance->_carState->CurrenTime;
 
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_sendstr(req, "Monitor set");
@@ -676,6 +793,7 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
         auto *instance = static_cast<WebServer *>(req->user_ctx);
         auto _carState = instance->_carState;
         auto _configFile = instance->_configFile;
+        instance->_lastRequestTime = instance->_carState->CurrenTime;
 
         if (!_carState)
         {
@@ -767,6 +885,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
         auto *instance = static_cast<WebServer *>(req->user_ctx);
         auto _carState = instance->_carState;
         auto _configFile = instance->_configFile;
+        instance->_lastRequestTime = instance->_carState->CurrenTime;
 
         cJSON *root = cJSON_Parse(content);
         if (!root) {
@@ -820,7 +939,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
         httpd_resp_set_hdr(req, "Connection", "close");
 
         free(content);
-    return ESP_OK;
+        return ESP_OK;
 }
 
 esp_err_t WebServer::ws_handler(httpd_req_t *req)
@@ -880,9 +999,15 @@ esp_err_t WebServer::ws_handler(httpd_req_t *req)
 
 void WebServer::wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
-        esp_wifi_connect();
+        stationConnectionFailed = true;
+
+        auto *event = static_cast<wifi_event_sta_disconnected_t*>(event_data);
+        if (event)
+        {
+            printf("STA disconnected, reason=%d\n", event->reason);
+        }
     }
 }
 
@@ -892,6 +1017,7 @@ void WebServer::ip_event_handler(void* arg, esp_event_base_t event_base, int32_t
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
 
         printf("Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
+        stationIpAcquired = true;
         webServerCanBeStarted = true;
     }
 }

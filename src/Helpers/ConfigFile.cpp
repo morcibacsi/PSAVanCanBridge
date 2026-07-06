@@ -1,5 +1,6 @@
 #include "ConfigFile.hpp"
 #include <stdio.h>
+#include <cstring>
 #include "esp_littlefs.h"
 
 ConfigFile::ConfigFile(CarState* carState)
@@ -91,6 +92,15 @@ bool ConfigFile::Read()
         _carState->SEND_AC_FAN_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_FAN_CHANGES_TO_DISPLAY", false);
         _carState->SEND_AC_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_CHANGES_TO_DISPLAY", 1);
         _carState->QUERY_AC_STATUS = getJsonBool(jsonHandle.get(), "QUERY_AC_STATUS", false);
+
+        const cJSON* staWifiSsidJson = cJSON_GetObjectItem(jsonHandle.get(), "STA_WIFI_SSID");
+        const cJSON* staWifiPasswordJson = cJSON_GetObjectItem(jsonHandle.get(), "STA_WIFI_PASSWORD");
+        const char* staWifiSsid = cJSON_IsString(staWifiSsidJson) ? staWifiSsidJson->valuestring : "";
+        const char* staWifiPassword = cJSON_IsString(staWifiPasswordJson) ? staWifiPasswordJson->valuestring : "";
+        strncpy(reinterpret_cast<char*>(_carState->STA_WIFI_SSID), staWifiSsid, sizeof(_carState->STA_WIFI_SSID) - 1);
+        _carState->STA_WIFI_SSID[sizeof(_carState->STA_WIFI_SSID) - 1] = '\0';
+        strncpy(reinterpret_cast<char*>(_carState->STA_WIFI_PASSWORD), staWifiPassword, sizeof(_carState->STA_WIFI_PASSWORD) - 1);
+        _carState->STA_WIFI_PASSWORD[sizeof(_carState->STA_WIFI_PASSWORD) - 1] = '\0';
 
         _carState->PARKING_AID_TYPE = getJsonInt(jsonHandle.get(), "PARKING_AID_TYPE", 0);
         _carState->RADIO_TYPE = getJsonInt(jsonHandle.get(), "RADIO_TYPE", 0);
@@ -234,6 +244,8 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddBoolToObject(root, "SEND_AC_FAN_CHANGES_TO_DISPLAY", _carState->SEND_AC_FAN_CHANGES_TO_DISPLAY);
     cJSON_AddBoolToObject(root, "SEND_AC_CHANGES_TO_DISPLAY", _carState->SEND_AC_CHANGES_TO_DISPLAY);
     cJSON_AddBoolToObject(root, "QUERY_AC_STATUS", _carState->QUERY_AC_STATUS);
+    cJSON_AddStringToObject(root, "STA_WIFI_SSID", reinterpret_cast<const char*>(_carState->STA_WIFI_SSID));
+    cJSON_AddStringToObject(root, "STA_WIFI_PASSWORD", reinterpret_cast<const char*>(_carState->STA_WIFI_PASSWORD));
     cJSON_AddBoolToObject(root, "HAS_RTC", _carState->HAS_RTC);
     cJSON_AddBoolToObject(root, "SEND_TIME", _carState->SEND_TIME);
     cJSON_AddBoolToObject(root, "EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK", _carState->EMULATE_STEERING_WHEEL_CONTROLS_WITH_STALK);

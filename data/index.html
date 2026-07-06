@@ -1560,7 +1560,13 @@ Continue?
                     .replace(/Enter placeholder text/g, value);
                 appendFieldHtml(formGroupHTML);
                 markLatestField(path);
-                document.getElementById(path).value = value;
+                let inputElement = document.getElementById(path);
+                inputElement.value = value;
+                if (path.indexOf('PASSWORD') !== -1) {
+                    inputElement.type = 'password';
+                } else if (path.indexOf('FUEL_TANK_CAPACITY_IN_LITERS') !== -1) {
+                    inputElement.type = 'number';
+                }
             }
 
             function addFormGroupRow(labelText, path, values) {
