@@ -188,6 +188,7 @@ void WebServer::UnRegisterEndpoints()
 esp_err_t WebServer::StartWebServer()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.lru_purge_enable = true;
     config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 8192;
     config.max_uri_handlers = 18;
@@ -271,6 +272,7 @@ void WebServer::OnClose(httpd_handle_t hd, int sockfd)
     {
         instance->_webSocketSerial->OnClientDisconnected(sockfd);
     }
+    close(sockfd);
 }
 
 esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
@@ -282,6 +284,7 @@ esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
 
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     const uint8_t* page_data = nullptr;
     size_t data_size = 0;
@@ -309,6 +312,7 @@ esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
     else if (strcmp(req->uri, "/styles.css") == 0)
     {
         httpd_resp_set_type(req, "text/css");
+        httpd_resp_set_hdr(req, "Connection", "close");
         page_data = styles_css;
         data_size = sizeof(styles_css);
     }
@@ -329,6 +333,7 @@ esp_err_t WebServer::get_time_handler(httpd_req_t *req)
     instance->_lastRequestTime = instance->_carState->CurrenTime;
 
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     cJSON *json = cJSON_CreateObject();
     cJSON_AddNumberToObject(json, "hour", instance->_carState->Hour);
@@ -338,9 +343,13 @@ esp_err_t WebServer::get_time_handler(httpd_req_t *req)
     cJSON_AddNumberToObject(json, "month", instance->_carState->Month);
     cJSON_AddNumberToObject(json, "year", instance->_carState->Year);
     cJSON_AddStringToObject(json, "firmware_version", instance->_carState->Version);
+
     const char *jsonResponse = cJSON_Print(json);
-    cJSON_Delete(json);
+
     httpd_resp_sendstr(req, jsonResponse);
+
+    cJSON_free((void *)jsonResponse);
+    cJSON_Delete(json);
 
     return ESP_OK;
 }
@@ -388,6 +397,7 @@ esp_err_t WebServer::get_config_handler(httpd_req_t *req)
     }
 
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     printf("Reading config file\n");
     auto jsonHandle = _configFile->GetAsJson();
@@ -395,9 +405,9 @@ esp_err_t WebServer::get_config_handler(httpd_req_t *req)
     if (jsonHandle)
     {
         cJSON *json = jsonHandle.get();
-        const char *jsonString = cJSON_Print(json);
-        httpd_resp_sendstr(req, jsonString);
-        free((void *)jsonString);
+        const char *jsonResponse = cJSON_Print(json);
+        httpd_resp_sendstr(req, jsonResponse);
+        free((void *)jsonResponse);
     }
     else
     {
@@ -437,6 +447,8 @@ esp_err_t WebServer::post_config_handler(httpd_req_t *req)
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     instance->_configFile->SaveJson(content);
     instance->_configFile->Read();
+
+    httpd_resp_set_hdr(req, "Connection", "close");
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_sendstr(req, "Config saved");
 
@@ -502,6 +514,7 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_sendstr(req, "Time saved");
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     return ESP_OK;
 }
@@ -599,6 +612,7 @@ esp_err_t WebServer::options_handler(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+    httpd_resp_set_hdr(req, "Connection", "close");
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
 }
@@ -650,6 +664,7 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_sendstr(req, "Monitor set");
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     return ESP_OK;
 }
@@ -715,10 +730,9 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
         _configFile->cJSON_AddUInt64Smart(json, "AlertHistory2", _carState->AlertHistory2.asUint64);
         _configFile->cJSON_AddUInt64Smart(json, "AlertHistory3", _carState->AlertHistory3.asUint64);
 
-        const char *jsonString = cJSON_Print(json);
-        httpd_resp_sendstr(req, jsonString);
-        free((void *)jsonString);
-        cJSON_Delete(json);
+        const char *jsonResponse = cJSON_Print(json);
+        httpd_resp_sendstr(req, jsonResponse);
+        free((void *)jsonResponse);
 
         return ESP_OK;
 }
@@ -803,6 +817,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
 
         httpd_resp_set_status(req, "200 OK");
         httpd_resp_sendstr(req, "CarState received");
+        httpd_resp_set_hdr(req, "Connection", "close");
 
         free(content);
     return ESP_OK;
