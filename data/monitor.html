@@ -38,6 +38,14 @@
         <option value="2">Outgoing</option>
     </select>
 
+    <input
+        id="idFilter"
+        class="form-control font-monospace"
+        placeholder="ID filter: 0B6 0E6 0F6 ..."
+        style="flex: 0 1 200px; min-width: 130px;"
+        title="Space or comma-separated hex IDs to show. Empty = show all."
+    >
+
     <button class="btn btn-success monitor-button" onclick="connectWs()">
         Connect
     </button>
@@ -250,6 +258,16 @@ requestAnimationFrame(
     processPendingFrames
 );
 
+/* ================= ID FILTER ================= */
+
+function getFilterIds() {
+    const raw = document.getElementById("idFilter").value.trim();
+    if (!raw) return new Set();
+    return new Set(
+        raw.split(/[\s,]+/).filter(Boolean).map(s => s.toUpperCase())
+    );
+}
+
 /* ================= PARSE ================= */
 
 function parse(raw) {
@@ -301,6 +319,10 @@ function handleFrame(raw) {
 
     const id =
         frame.id.toUpperCase();
+
+    const filter = getFilterIds();
+    if (filter.size > 0 && !filter.has(id))
+        return;
 
     const data =
         frame.data || [];
@@ -736,6 +758,12 @@ document.addEventListener(
     () => {
         var wsUrlInput = document.getElementById("wsUrl");
         wsUrlInput.value = "ws://" + window.location.host + "/ws";
+
+        let filterDebounce = null;
+        document.getElementById("idFilter").addEventListener("input", () => {
+            clearTimeout(filterDebounce);
+            filterDebounce = setTimeout(clearData, 400);
+        });
     }
 );
 
