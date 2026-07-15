@@ -479,6 +479,11 @@ body.monitor-page header .form-select {
     min-width: 140px;
 }
 
+body.monitor-page header .monitor-filter {
+    flex: 0 1 200px;
+    min-width: 130px;
+}
+
 body.monitor-page header .btn {
     flex: 0 0 auto;
 }

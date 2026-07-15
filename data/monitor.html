@@ -40,9 +40,8 @@
 
     <input
         id="idFilter"
-        class="form-control font-monospace"
+        class="form-control font-monospace monitor-control monitor-input monitor-filter"
         placeholder="ID filter: 0B6 0E6 0F6 ..."
-        style="flex: 0 1 200px; min-width: 130px;"
         title="Space or comma-separated hex IDs to show. Empty = show all."
     >
 
@@ -146,20 +145,27 @@ const cardContainer =
 
 /* ================= WEBSOCKET ================= */
 
-async function changeNetworkAndDirection() {
-
+function getSelectedNetwork() {
     const networkSelect =
         document.getElementById("networkSelect");
+    return parseInt(networkSelect.value);
+}
 
+function getSelectedDirection() {
     const directionSelect =
         document.getElementById("directionSelect");
+    return parseInt(directionSelect.value);
+}
 
-    const network =
-        parseInt(networkSelect.value);
+async function changeNetworkAndDirection() {
 
-    const direction =
-        parseInt(directionSelect.value);
+    const network = getSelectedNetwork();
+    const direction = getSelectedDirection();
 
+    await setNetworkAndDirection(network, direction);
+}
+
+async function setNetworkAndDirection(network, direction) {
     const wsUrl = document.getElementById("wsUrl").value
         .replace("ws://", "http://")
         .replace("/ws", "/api/setmonitor");
@@ -180,6 +186,8 @@ async function changeNetworkAndDirection() {
 }
 
 function connectWs() {
+    const network = getSelectedNetwork();
+    const direction = getSelectedDirection();
 
     disconnectWs();
 
@@ -187,11 +195,14 @@ function connectWs() {
         document.getElementById("wsUrl").value
     );
 
-    ws.onopen = () => {
+    ws.onopen = async () => {
         setStatus(
             "Connected",
             "#4caf50"
         );
+        if (network !== 0 && direction !== 0) {
+            await setNetworkAndDirection(network, direction);
+        }
     };
 
     ws.onclose = () => {
@@ -216,9 +227,7 @@ function connectWs() {
 }
 
 function disconnectWs() {
-    document.getElementById("networkSelect").value = "0";
-    document.getElementById("directionSelect").value = "0";
-    changeNetworkAndDirection();
+    setNetworkAndDirection(0, 0);
 
     if (ws)
         ws.close();
