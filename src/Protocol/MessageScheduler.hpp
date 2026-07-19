@@ -26,6 +26,51 @@ public:
         mutex = xSemaphoreCreateRecursiveMutex();
     }
 
+    bool HasScheduledMessages()
+    {
+        bool hasMessages = false;
+        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        {
+            hasMessages = !scheduledMessages.empty();
+            xSemaphoreGiveRecursive(mutex);
+        }
+        return hasMessages;
+    }
+
+    bool HasDueMessages(uint64_t currentTime)
+    {
+        bool hasDueMessages = false;
+        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        {
+            for (const auto& [id, scheduled] : scheduledMessages)
+            {
+                (void)id;
+                if (scheduled.message.isActive && (currentTime - scheduled.lastSentTime) >= scheduled.periodicityMs)
+                {
+                    hasDueMessages = true;
+                    break;
+                }
+            }
+            xSemaphoreGiveRecursive(mutex);
+        }
+        return hasDueMessages;
+    }
+
+    bool ShouldGenerateMessage(uint32_t id, uint64_t currentTime)
+    {
+        bool shouldGenerate = true;
+        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        {
+            auto it = scheduledMessages.find(id);
+            if (it != scheduledMessages.end())
+            {
+                shouldGenerate = (it->second.message.isActive && (currentTime - it->second.lastSentTime) >= it->second.periodicityMs);
+            }
+            xSemaphoreGiveRecursive(mutex);
+        }
+        return shouldGenerate;
+    }
+
     void AddOrUpdateMessage(const BusMessage& message, uint64_t currentTime)
     {
         if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))

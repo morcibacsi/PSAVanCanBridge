@@ -11,7 +11,6 @@
 class MessageHandler_120_2010 : public IMessageHandler<MessageHandler_120_2010>
 {
     private:
-        uint64_t lastMessageTime = 0;
         uint8_t blockNumber = 1;
 
         BusMessage message
@@ -34,11 +33,7 @@ class MessageHandler_120_2010 : public IMessageHandler<MessageHandler_120_2010>
             field1.data.total_number_of_blocks = 3;
             field1.data.block_number = blockNumber;
 
-            if (carState->CurrenTime - lastMessageTime >= message.periodicityMs)
-            {
-                lastMessageTime = carState->CurrenTime;
-                blockNumber = blockNumber < field1.data.total_number_of_blocks ? blockNumber + 1 : 1;
-            }
+            blockNumber = blockNumber < field1.data.total_number_of_blocks ? blockNumber + 1 : 1;
 
             switch (field1.data.block_number)
             {

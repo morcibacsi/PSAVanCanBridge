@@ -3,6 +3,7 @@
 #include <array>
 #include <tuple>
 #include <cstdint>
+#include <type_traits>
 #include "CarState.hpp"
 #include "../Protocol/BusMessage.hpp"
 #include "../Protocol/MessageScheduler.hpp"
@@ -51,6 +52,21 @@ inline void processHandlersTuple(Tuple &t, CarState *carState, const BusMessage 
 template <typename HandlerT>
 inline void processGenerator(HandlerT &h, CarState *carState, MessageScheduler *_scheduler)
 {
+    bool shouldGenerate = false;
+    if constexpr (std::is_integral_v<decltype(HandlerT::MessageId)>)
+    {
+        shouldGenerate = _scheduler->ShouldGenerateMessage((uint32_t)HandlerT::MessageId, carState->CurrenTime);
+    }
+    else
+    {
+        shouldGenerate = _scheduler->ShouldGenerateMessage((uint32_t)std::remove_reference_t<decltype(h)>::MessageId, carState->CurrenTime);
+    }
+
+    if (!shouldGenerate)
+    {
+        return;
+    }
+
     BusMessage msg = h.Generate(carState);
     _scheduler->AddOrUpdateMessage(msg, carState->CurrenTime);
 }
