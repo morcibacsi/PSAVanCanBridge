@@ -21,7 +21,7 @@ jobs:
       environments: ${{ steps.release.outputs.environments }}
       version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: release
         shell: bash
         env:
@@ -56,14 +56,14 @@ jobs:
       PLATFORMIO_CORE_DIR: ${{ github.workspace }}/.platformio
       PLATFORMIO_BUILD_FLAGS: -D FIRMWARE_VERSION=\"${{ needs.prepare.outputs.version }}\"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install PlatformIO
         run: python -m pip install platformio==6.1.19
       - name: Cache PlatformIO packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .platformio/.cache
@@ -80,7 +80,7 @@ jobs:
             --commit-sha "${{ github.sha }}" \
             --output-dir dist
       - name: Upload firmware package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: firmware-${{ matrix.environment }}-v${{ needs.prepare.outputs.version }}
           path: dist/*.zip
@@ -94,7 +94,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: firmware-*
           path: dist
