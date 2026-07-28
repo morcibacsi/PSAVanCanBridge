@@ -20,9 +20,13 @@
 #include "../Protocol/ProtocolType.hpp"
 #include "../BoardConfig.h"
 
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "3.6.3"
+#endif
+
 struct CarState
 {
-    char* Version = (char*)"v3.6.3";
+    const char* Version = FIRMWARE_VERSION;
     uint64_t CurrenTime = 0;
     uint64_t LastIgnitionTime = 0;
     uint64_t ReverseDisengagedTime = 0;

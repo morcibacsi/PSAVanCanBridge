@@ -274,6 +274,62 @@ Examples:
 default_envs = esp32c6_v16
 ```
 
+The release builds use PlatformIO Core 6.1.19 and the platform/framework versions
+already pinned in `platformio.ini`. To reproduce one CI build locally:
+
+```bash
+python -m pip install platformio==6.1.19
+PLATFORMIO_BUILD_FLAGS='-D FIRMWARE_VERSION=\"1.2.3\"' pio run -e esp32c6_v16
+python scripts/package_firmware.py --environment esp32c6_v16 --version 1.2.3
+```
+
+On Windows, `build.esp32c6_v16.bat v1.2.3` performs the same build and calls the
+shared packaging script. The other target-specific batch files work the same way,
+and `build.all.bat v1.2.3` builds every release target. The batch files are thin
+compatibility wrappers around the cross-platform Python builder:
+
+```bash
+python scripts/build_firmware.py esp32c6_v16 1.2.3
+python scripts/build_firmware.py --all 1.2.3
+```
+
+Running `python scripts/build_firmware.py` without arguments starts an interactive
+target and version selection. The builder owns the supported-target list, invokes
+PlatformIO with the version build flag, and then calls the shared packager.
+
+The packaging script supports these release targets:
+
+- `esp32_v13_can`
+- `esp32_v14_can`
+- `esp32_v15_can`
+- `esp32_v15_van_ulp`
+- `esp32c6_v16`
+
+It reads the required binary names and flash offsets from each environment's
+`upload_command`, validates the PlatformIO outputs, and writes the target ZIP to
+`firmware/`. Run `python scripts/package_firmware.py --help` for all options.
+
+### Creating a release
+
+Pushing a semantic-version tag builds all five targets independently and publishes
+their ZIP files plus `SHA256SUMS.txt` on the GitHub Releases page:
+
+```bash
+git tag -a v1.2.3 -m "Release v1.2.3"
+git push origin v1.2.3
+```
+
+The tag must be `vMAJOR.MINOR.PATCH`. The workflow also accepts prerelease tags
+such as `v1.2.3-alpha.1`, `v1.2.3-beta.1`, or `v1.2.3-rc.1` and marks their
+GitHub Releases as prereleases. The version compiled into the firmware omits the
+leading `v`.
+
+The workflow can be run manually with an explicit version to produce downloadable
+GitHub Actions artifacts for testing; manual runs never publish a GitHub Release.
+Artifacts are retained for 14 days. Tag runs refuse to overwrite an existing
+release for the same tag. Deleting or moving an already published release tag
+should generally be avoided.
+
 ### From Arduino
 This version uses the ESP-IDF framework. Arduino compilation is not supported.
 

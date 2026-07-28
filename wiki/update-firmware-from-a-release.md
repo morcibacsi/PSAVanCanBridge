@@ -14,14 +14,15 @@ In the releases section there are binaries which can be installed with the Flash
 
 6. Extract the archive you downloaded from the releases section
 
-7. Browse the extracted firmware file, tick the checkbox, and set the address to: 0x10000
-Set the application like shown below. (don't forget to select the COM port as well)
-    When you try to upload to an ESP32 which was never programmed from Arduino then you need to upload these files as well:
-    * [boot_app0.bin](../bin/boot_app0.bin)
-    * [bootloader.bin](../bin/bootloader.bin)
-    * [partitions2.bin](../bin/partitions2.bin)
+7. Open `FLASHING.txt` from the extracted archive. It lists the exact files and
+addresses for that hardware target. Select all four supplied binaries in the
+download tool using those addresses. In particular, the bootloader address is
+`0x1000` on the ESP32 v1.3/v1.5 targets and `0x0` on the ESP32-C3/C6 targets.
+The remaining addresses are `0x8000` for `partitions.bin`, `0xe000` for
+`ota_data_initial.bin`, and `0x10000` for `firmware.bin`.
 
-    Otherwise it is enough to just upload the firmware @0x10000
+For an OTA update of a device that is already running compatible firmware, upload
+only `firmware.bin` from the device setup page.
 
 ![components](../images/wiki/fw_install_03.png)
 
