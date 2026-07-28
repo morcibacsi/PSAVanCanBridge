@@ -7,3 +7,5 @@
 build
 out
 firmware
+__pycache__/
+*.pyc

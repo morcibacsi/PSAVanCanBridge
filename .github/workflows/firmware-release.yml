@@ -1,0 +1,122 @@
+name: Build firmware release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Firmware version to build (for example 1.2.3 or 1.2.3-rc.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.release.outputs.environments }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: release
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_NAME: ${{ github.ref_name }}
+          MANUAL_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ ! "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)([.-]?[0-9A-Za-z.-]+)?)?)$ ]]; then
+              echo "::error::Tag '$TAG_NAME' must match v1.2.3 or a supported prerelease such as v1.2.3-rc.1"
+              exit 1
+            fi
+            version="${TAG_NAME#v}"
+          else
+            version="${MANUAL_VERSION#v}"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)([.-]?[0-9A-Za-z.-]+)?)?$ ]]; then
+              echo "::error::Version '$MANUAL_VERSION' must match 1.2.3 or a supported prerelease such as 1.2.3-rc.1"
+              exit 1
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "environments=$(python scripts/package_firmware.py --list-environments)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJSON(needs.prepare.outputs.environments) }}
+    env:
+      PLATFORMIO_CORE_DIR: ${{ github.workspace }}/.platformio
+      PLATFORMIO_BUILD_FLAGS: -D FIRMWARE_VERSION=\"${{ needs.prepare.outputs.version }}\"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            .platformio/.cache
+            .platformio/packages
+            .platformio/platforms
+          key: platformio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'dependencies.lock') }}
+      - name: Build firmware
+        run: pio run --environment "${{ matrix.environment }}"
+      - name: Package firmware
+        run: |
+          python scripts/package_firmware.py \
+            --environment "${{ matrix.environment }}" \
+            --version "${{ needs.prepare.outputs.version }}" \
+            --commit-sha "${{ github.sha }}" \
+            --output-dir dist
+      - name: Upload firmware package
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.environment }}-v${{ needs.prepare.outputs.version }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: github.event_name == 'push'
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: dist
+          merge-multiple: true
+      - name: Generate SHA-256 checksums
+        working-directory: dist
+        run: sha256sum *.zip | sort --key=2 > SHA256SUMS.txt
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::A GitHub Release already exists for $TAG_NAME; refusing to overwrite it."
+            exit 1
+          fi
+          prerelease=()
+          if [[ "$TAG_NAME" =~ -(alpha|beta|rc) ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "$TAG_NAME" dist/*.zip dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG_NAME" \
+            --generate-notes \
+            "${prerelease[@]}"
