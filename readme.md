@@ -53,7 +53,7 @@ I've started selling pre-assembled and pre-programmed boards on [Tindie](https:/
 
 You can find the board here: [https://www.tindie.com/products/39807/](https://www.tindie.com/products/39807/)
 
-[![I sell on Tindie](https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png)](https://www.tindie.com/stores/morcibacsi/?ref=offsite_badges&utm_source=sellers_morcibacsi&utm_medium=badges&utm_campaign=badge_large)
+[![I sell on Tindie](./images/tindie-larges.png)](https://www.tindie.com/stores/morcibacsi/?ref=offsite_badges&utm_source=sellers_morcibacsi&utm_medium=badges&utm_campaign=badge_large)
 
 ## VAN-CAN (AEE2001 ⇒ AEE2004)
 ### Components
