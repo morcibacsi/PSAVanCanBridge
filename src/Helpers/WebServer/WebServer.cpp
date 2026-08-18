@@ -327,7 +327,10 @@ esp_err_t WebServer::StartWebServer()
         _lastRequestTime = _carState->CurrenTime;
         _inactivityTimeout = WIFI_INITIAL_TIMEOUT;
 
+        if (_webSocketSerial)
+        {
         _webSocketSerial->OnWebServerStarted(server);
+        }
         return ESP_OK;
     }
     ESP_LOGE(TAG, "Failed to start the web server");
@@ -339,6 +342,10 @@ void WebServer::StopWebServer()
 {
     if (server)
     {
+        if (_webSocketSerial)
+        {
+            _webSocketSerial->OnWebServerStopped();
+        }
         UnRegisterEndpoints();
         httpd_stop(server);
         server = nullptr;

@@ -68,8 +68,18 @@ void WebSocketSerial::OnFrameReceived(const uint8_t* data, size_t len)
 
 void WebSocketSerial::OnWebServerStarted(httpd_handle_t server)
 {
+    xSemaphoreTake(_txMutex, portMAX_DELAY);
     printf("WebSocketSerial: Web server started, server handle: %p\n", server);
     _server = server;
+    xSemaphoreGive(_txMutex);
+}
+
+void WebSocketSerial::OnWebServerStopped()
+{
+    xSemaphoreTake(_txMutex, portMAX_DELAY);
+    _server = nullptr;
+    _clientFd = -1;
+    xSemaphoreGive(_txMutex);
 }
 
 int WebSocketSerial::available()
@@ -105,17 +115,6 @@ int WebSocketSerial::readByte(uint8_t* byte, TickType_t timeout)
 
 int WebSocketSerial::write(const uint8_t* data, size_t length)
 {
-    if (_server == nullptr)
-    {
-        printf("Server is null\n");
-        return -1;
-    }
-
-    if (_clientFd < 0)
-    {
-        return -1;
-    }
-
     if (data == nullptr || length == 0)
     {
         printf("Data is null or length is 0\n");
@@ -123,6 +122,18 @@ int WebSocketSerial::write(const uint8_t* data, size_t length)
     }
 
     xSemaphoreTake(_txMutex, portMAX_DELAY);
+
+    if (_server == nullptr || _clientFd < 0)
+    {
+        xSemaphoreGive(_txMutex);
+        return -1;
+    }
+
+    if (length > sizeof(_txBuffer))
+    {
+        printf("WebSocketSerial::write: length %u exceeds buffer size, truncating\n", (unsigned)length);
+        length = sizeof(_txBuffer);
+    }
 
     memcpy(_txBuffer, data, length);
 

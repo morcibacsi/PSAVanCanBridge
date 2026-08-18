@@ -38,4 +38,5 @@ public:
     void OnClientDisconnected(int sockfd);
     void OnFrameReceived(const uint8_t* data, size_t len);
     void OnWebServerStarted(httpd_handle_t server);
+    void OnWebServerStopped();
 };
