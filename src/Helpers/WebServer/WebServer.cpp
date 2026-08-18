@@ -312,6 +312,10 @@ esp_err_t WebServer::StartWebServer()
     config.stack_size = 8192;
     config.max_uri_handlers = 19;
     config.global_user_ctx = this;
+    // WebServer is owned by the application and must survive httpd_stop() so it
+    // can be started again. Without a callback, ESP-IDF calls free() on the
+    // global user context while stopping the HTTP server.
+    config.global_user_ctx_free_fn = [](void*) {};
     config.close_fn = WebServer::OnClose;
 
     if (httpd_start(&server, &config) == ESP_OK)
