@@ -548,6 +548,7 @@ esp_err_t WebServer::post_config_handler(httpd_req_t *req)
     printf("POST /api/config\n");
     char *content = (char *)malloc(req->content_len + 1);
     int ret, remaining = req->content_len;
+    size_t received = 0;
     printf("Content length: %d\n", remaining);
 
     if (!content) {
@@ -556,7 +557,7 @@ esp_err_t WebServer::post_config_handler(httpd_req_t *req)
     }
     while (remaining > 0)
     {
-        ret = httpd_req_recv(req, content, remaining);
+        ret = httpd_req_recv(req, content + received, remaining);
         if (ret <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
@@ -566,9 +567,10 @@ esp_err_t WebServer::post_config_handler(httpd_req_t *req)
             free(content);
             return ESP_FAIL;
         }
+        received += ret;
         remaining -= ret;
     }
-    content[req->content_len] = '\0'; // Null-terminate the received data
+    content[received] = '\0';
 
     //printf("Received config: %s\n", content);
     auto *instance = static_cast<WebServer *>(req->user_ctx);
@@ -585,16 +587,17 @@ esp_err_t WebServer::post_config_handler(httpd_req_t *req)
 
 esp_err_t WebServer::post_time_handler(httpd_req_t *req)
 {
-    char content[100];
+    char content[101] = {};
     int ret, remaining = req->content_len;
-    if (remaining > sizeof(content))
+    size_t received = 0;
+    if (remaining >= sizeof(content))
     {
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
         return ESP_FAIL;
     }
     while (remaining > 0)
     {
-        ret = httpd_req_recv(req, content, sizeof(content));
+        ret = httpd_req_recv(req, content + received, remaining);
         if (ret <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
@@ -603,8 +606,10 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
             }
             return ESP_FAIL;
         }
+        received += ret;
         remaining -= ret;
     }
+    content[received] = '\0';
     cJSON *root = cJSON_Parse(content);
     if (!root)
     {
@@ -746,16 +751,17 @@ esp_err_t WebServer::options_handler(httpd_req_t *req)
 
 esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
 {
-    char content[100];
+    char content[101] = {};
     int ret, remaining = req->content_len;
-    if (remaining > sizeof(content))
+    size_t received = 0;
+    if (remaining >= sizeof(content))
     {
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
         return ESP_FAIL;
     }
     while (remaining > 0)
     {
-        ret = httpd_req_recv(req, content, sizeof(content));
+        ret = httpd_req_recv(req, content + received, remaining);
         if (ret <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
@@ -764,8 +770,10 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
             }
             return ESP_FAIL;
         }
+        received += ret;
         remaining -= ret;
     }
+    content[received] = '\0';
     cJSON *root = cJSON_Parse(content);
     if (!root)
     {
@@ -874,6 +882,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
     printf("POST /api/carstate\n");
     char *content = (char *)malloc(req->content_len + 1);
     int ret, remaining = req->content_len;
+    size_t received = 0;
     printf("Content length: %d\n", remaining);
 
     if (!content) {
@@ -881,7 +890,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
     while (remaining > 0) {
-        ret = httpd_req_recv(req, content, remaining);
+        ret = httpd_req_recv(req, content + received, remaining);
         if (ret <= 0) {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
                 httpd_resp_send_408(req);
@@ -889,9 +898,10 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
             free(content);
             return ESP_FAIL;
         }
+        received += ret;
         remaining -= ret;
     }
-    content[req->content_len] = '\0'; // Null-terminate the received data
+    content[received] = '\0';
 
     printf("Received carstate: %s\n", content);
     // Here you can parse the JSON and update the CarState accordingly
