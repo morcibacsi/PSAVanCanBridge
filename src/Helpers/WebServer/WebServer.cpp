@@ -2,11 +2,12 @@
 #include "esp_ota_ops.h"
 #include "esp_image_format.h"
 #include "mdns.h"
+#include <atomic>
 #include <cstring>
 
-static bool webServerCanBeStarted = false;
-static bool stationIpAcquired = false;
-static bool stationConnectionFailed = false;
+static std::atomic_bool webServerCanBeStarted{false};
+static std::atomic_bool stationIpAcquired{false};
+static std::atomic_bool stationConnectionFailed{false};
 
 #ifndef MIN
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -80,13 +81,13 @@ bool WebServer::ConnectToStationWithTimeout(int timeoutMs)
 
     while (elapsedMs < timeoutMs)
     {
-        if (stationIpAcquired)
+        if (stationIpAcquired.load())
         {
             printf("STA connected and got IP\n");
             return true;
         }
 
-        if (stationConnectionFailed)
+        if (stationConnectionFailed.load())
         {
             printf("STA connection failed\n");
             return false;
@@ -151,7 +152,6 @@ void WebServer::CreateWebServer()
             if (connected)
             {
                 StartWebServer();
-                webServerCanBeStarted = false;
                 return;
             }
 
@@ -331,6 +331,8 @@ esp_err_t WebServer::StartWebServer()
         {
         _webSocketSerial->OnWebServerStarted(server);
         }
+        webServerCanBeStarted = false;
+
         return ESP_OK;
     }
     ESP_LOGE(TAG, "Failed to start the web server");
@@ -373,10 +375,9 @@ void WebServer::SetPsaDiagLib(PsaDiagLib* psaDiag)
 
 void WebServer::Process()
 {
-    if (webServerCanBeStarted)
+    if (webServerCanBeStarted.exchange(false))
     {
         StartWebServer();
-        webServerCanBeStarted = false;
     }
 
     if (_isRunning && server != nullptr)
