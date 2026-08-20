@@ -9,6 +9,42 @@ static std::atomic_bool webServerCanBeStarted{false};
 static std::atomic_bool stationIpAcquired{false};
 static std::atomic_bool stationConnectionFailed{false};
 
+namespace
+{
+    struct Endpoint
+    {
+        const char* uri;
+        httpd_method_t method;
+        my_httpd_handler_t handler;
+        bool isWebSocket;
+    };
+
+    constexpr Endpoint ENDPOINTS[] =
+    {
+        { "/ws", HTTP_GET, &WebServer::ws_handler, true },
+        { "/", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/*", HTTP_OPTIONS, &WebServer::options_handler, false },
+        { "/index.html", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/monitor.html", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/telecoding.html", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/carstate.html", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/dashboard.html", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/styles.css", HTTP_GET, &WebServer::get_html_page_handler, false },
+        { "/api/time", HTTP_GET, &WebServer::get_time_handler, false },
+        { "/api/reboot", HTTP_GET, &WebServer::get_reboot_handler, false },
+        { "/api/getVin", HTTP_GET, &WebServer::get_vin_handler, false },
+        { "/api/config.json", HTTP_GET, &WebServer::get_config_handler, false },
+        { "/api/config", HTTP_POST, &WebServer::post_config_handler, false },
+        { "/api/time", HTTP_POST, &WebServer::post_time_handler, false },
+        { "/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false },
+        { "/api/setmonitor", HTTP_POST, &WebServer::post_network_monitor_handler, false },
+        { "/api/carstate.json", HTTP_GET, &WebServer::get_carstate_handler, false },
+        { "/api/carstate", HTTP_POST, &WebServer::post_carstate_handler, false }
+    };
+
+    constexpr size_t ENDPOINT_COUNT = sizeof(ENDPOINTS) / sizeof(ENDPOINTS[0]);
+}
+
 #ifndef MIN
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
@@ -258,49 +294,18 @@ void WebServer::RegisterHandler(const char* uri, httpd_method_t method, my_httpd
 
 void WebServer::RegisterEndpoints()
 {
-    RegisterHandler("/ws", HTTP_GET, &WebServer::ws_handler, true);
-    RegisterHandler("/", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/*", HTTP_OPTIONS, &WebServer::options_handler, false);
-    RegisterHandler("/index.html", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/monitor.html", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/telecoding.html", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/carstate.html", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/dashboard.html", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/styles.css", HTTP_GET, &WebServer::get_html_page_handler, false);
-    RegisterHandler("/api/time", HTTP_GET, &WebServer::get_time_handler, false);
-    RegisterHandler("/api/reboot", HTTP_GET, &WebServer::get_reboot_handler, false);
-    RegisterHandler("/api/getVin", HTTP_GET, &WebServer::get_vin_handler, false);
-    RegisterHandler("/api/config.json", HTTP_GET, &WebServer::get_config_handler, false);
-    RegisterHandler("/api/config", HTTP_POST, &WebServer::post_config_handler, false);
-    RegisterHandler("/api/time", HTTP_POST, &WebServer::post_time_handler, false);
-    RegisterHandler("/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false);
-    RegisterHandler("/api/setmonitor", HTTP_POST, &WebServer::post_network_monitor_handler, false);
-    RegisterHandler("/api/carstate.json", HTTP_GET, &WebServer::get_carstate_handler, false);
-    RegisterHandler("/api/carstate", HTTP_POST, &WebServer::post_carstate_handler, false);
+    for (const auto& endpoint : ENDPOINTS)
+    {
+        RegisterHandler(endpoint.uri, endpoint.method, endpoint.handler, endpoint.isWebSocket);
+    }
 }
 
 void WebServer::UnRegisterEndpoints()
 {
-    // Unregister all endpoints
-    httpd_unregister_uri_handler(server, "/", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/*", HTTP_OPTIONS);
-    httpd_unregister_uri_handler(server, "/index.html", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/monitor.html", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/telecoding.html", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/carstate.html", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/dashboard.html", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/styles.css", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/time", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/reboot", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/getVin", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/config.json", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/config", HTTP_POST);
-    httpd_unregister_uri_handler(server, "/api/time", HTTP_POST);
-    httpd_unregister_uri_handler(server, "/api/update", HTTP_POST);
-    httpd_unregister_uri_handler(server, "/api/setmonitor", HTTP_POST);
-    httpd_unregister_uri_handler(server, "/ws", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/carstate.json", HTTP_GET);
-    httpd_unregister_uri_handler(server, "/api/carstate", HTTP_POST);
+    for (const auto& endpoint : ENDPOINTS)
+    {
+    httpd_unregister_uri_handler(server, endpoint.uri, endpoint.method);
+    }
 }
 
 // Start web server
@@ -310,7 +315,7 @@ esp_err_t WebServer::StartWebServer()
     config.lru_purge_enable = true;
     config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 8192;
-    config.max_uri_handlers = 19;
+    config.max_uri_handlers = ENDPOINT_COUNT;
     config.global_user_ctx = this;
     // WebServer is owned by the application and must survive httpd_stop() so it
     // can be started again. Without a callback, ESP-IDF calls free() on the
