@@ -110,15 +110,16 @@ void EmptyImmediateSignalCaller(ImmediateSignal signal) { }
 
 void PrintMessage(const BusMessage& message)
 {
+    const size_t safeDataLength = (message.dataLength > sizeof(message.data)) ? sizeof(message.data) : message.dataLength;
     //if (message.id == 0x8C4 || message.id == 0x564)
     //if (message.id == 0x9C4)
     //if (message.id == 0x0F6 || message.id == 0x036)
     {
         //printf("printing message \n");
         printf("<< Id: %03X ", (unsigned int)(message.id));
-        for (size_t i = 0; i < message.dataLength; i++)
+        for (size_t i = 0; i < safeDataLength; i++)
         {
-            if (i != message.dataLength - 1)
+            if (i != safeDataLength - 1)
             {
                 printf("%02X ", message.data[i]);
             }
@@ -139,10 +140,11 @@ void PrintMessageToWebSocket(const uint8_t network, const uint8_t direction, con
         return;
     }
 
+    const size_t safeDataLength = (message.dataLength > sizeof(message.data)) ? sizeof(message.data) : message.dataLength;
     char buffer[256];
     //int offset = sprintf(buffer, "<< Id: %03X ", (unsigned int)(message.id));
     int offset = sprintf(buffer, "%03X ", (unsigned int)(message.id));
-    for (size_t i = 0; i < message.dataLength; i++)
+    for (size_t i = 0; i < safeDataLength; i++)
     {
         offset += sprintf(buffer + offset, "%02X ", message.data[i]);
     }
@@ -181,6 +183,7 @@ void ReadSourceFunction(void * parameter)
                 PrintMessage(message);
                 sourceProtocolHandler->ParseMessage(message);
             }
+
             taskYIELD();
         }
         else
