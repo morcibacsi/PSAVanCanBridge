@@ -342,6 +342,8 @@ esp_err_t WebServer::StartWebServer()
 // Stop web server
 void WebServer::StopWebServer()
 {
+    _isRunning = false;
+
     if (server)
     {
         if (_webSocketSerial)
@@ -358,8 +360,18 @@ void WebServer::StopWebServer()
 // Stop Wi-Fi
 void WebServer::StopWifi()
 {
-    ESP_ERROR_CHECK(esp_wifi_stop());
-    ESP_ERROR_CHECK(esp_wifi_deinit());
+    const esp_err_t stopResult = esp_wifi_stop();
+    if (stopResult != ESP_OK && stopResult != ESP_ERR_WIFI_NOT_INIT && stopResult != ESP_ERR_WIFI_NOT_STARTED)
+    {
+        ESP_LOGW(TAG, "esp_wifi_stop failed: %s", esp_err_to_name(stopResult));
+    }
+
+    const esp_err_t deinitResult = esp_wifi_deinit();
+    if (deinitResult != ESP_OK && deinitResult != ESP_ERR_WIFI_NOT_INIT)
+    {
+        ESP_LOGW(TAG, "esp_wifi_deinit failed: %s", esp_err_to_name(deinitResult));
+    }
+
     ESP_LOGI(TAG, "Wi-Fi stopped");
 }
 
