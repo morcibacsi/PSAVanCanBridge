@@ -608,10 +608,22 @@ void PsaDiagLib::PrintArrayToSerial(uint16_t sizeOfByteArray, uint8_t *byteArray
 
     for (uint16_t i = startIndex; i < sizeOfByteArray; i++)
     {
-        pos += snprintf(buffer + pos,
-                        sizeof(buffer) - pos,
-                        "%02X",
-                        byteArray[i]);
+        if (pos + 2 >= sizeof(buffer))
+        {
+            break;
+        }
+
+        int written = snprintf(buffer + pos, sizeof(buffer) - pos, "%02X", byteArray[i]);
+        if (written < 0)
+        {
+            break;
+        }
+        pos += written;
+    }
+
+    if (pos + 2 > sizeof(buffer))
+    {
+        pos = sizeof(buffer) - 2;
     }
 
     buffer[pos++] = '\r';
