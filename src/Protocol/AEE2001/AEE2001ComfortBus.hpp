@@ -30,6 +30,7 @@
 #include "Handlers/CMB/MessageHandler_664.hpp"
 
 #include "Handlers/EMF/MessageHandler_5E4.hpp"
+#include "Handlers/EMF/MessageHandler_984.hpp"
 #include "Handlers/EMF/TripComputerResetHelper.hpp"
 
 class AEE2001ComfortBus : public IProtocolHandler
@@ -62,6 +63,7 @@ class AEE2001ComfortBus : public IProtocolHandler
         MessageHandler_9C4,
         MessageHandler_524,
         MessageHandler_5E4,
+        MessageHandler_984,
         MessageHandler_564,
         MessageHandler_744,
         MessageHandler_824,

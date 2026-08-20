@@ -107,6 +107,9 @@ void AEE2001ComfortBus::GenerateMessagesForSource()
 
     BusMessage emfMessage = std::get<MessageHandler_5E4>(handlers).Generate(_carState);
     _schedulerForSourceNetwork->AddOrUpdateMessage(emfMessage, _carState->CurrenTime);
+
+    BusMessage emfMessage2 = std::get<MessageHandler_984>(handlers).Generate(_carState);
+    _schedulerForSourceNetwork->AddOrUpdateMessage(emfMessage2, _carState->CurrenTime);
 }
 
 void AEE2001ComfortBus::HandleFeedbackSignal(FeedbackSignal signal)
