@@ -43,6 +43,67 @@ namespace
     };
 
     constexpr size_t ENDPOINT_COUNT = sizeof(ENDPOINTS) / sizeof(ENDPOINTS[0]);
+    constexpr size_t MAX_SMALL_JSON_BODY_LENGTH = 100;
+
+    char* ReceiveRequestBody(httpd_req_t* req, size_t maxContentLength)
+    {
+        if (req->content_len > maxContentLength)
+        {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
+            return nullptr;
+        }
+
+        char* content = static_cast<char*>(malloc(req->content_len + 1));
+        if (content == nullptr)
+        {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+            return nullptr;
+        }
+
+        size_t received = 0;
+        while (received < req->content_len)
+        {
+            const int ret = httpd_req_recv(req, content + received, req->content_len - received);
+            if (ret <= 0)
+            {
+                if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+                {
+                    httpd_resp_send_408(req);
+                }
+                free(content);
+                return nullptr;
+            }
+            received += ret;
+        }
+
+        content[received] = '\0';
+        return content;
+    }
+
+    cJSON* ReceiveJsonBody(httpd_req_t* req, size_t maxContentLength)
+    {
+        char* content = ReceiveRequestBody(req, maxContentLength);
+        if (content == nullptr)
+        {
+            return nullptr;
+        }
+
+        cJSON* root = cJSON_Parse(content);
+        free(content);
+
+        if (root == nullptr)
+        {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+        }
+        return root;
+    }
+
+    esp_err_t SendOkResponse(httpd_req_t* req, const char* message)
+    {
+        httpd_resp_set_hdr(req, "Connection", "close");
+        httpd_resp_set_status(req, "200 OK");
+        return httpd_resp_sendstr(req, message);
+    }
 }
 
 #ifndef MIN
@@ -571,75 +632,29 @@ esp_err_t WebServer::get_config_handler(httpd_req_t *req)
 esp_err_t WebServer::post_config_handler(httpd_req_t *req)
 {
     printf("POST /api/config\n");
-    char *content = (char *)malloc(req->content_len + 1);
-    int ret, remaining = req->content_len;
-    size_t received = 0;
-    printf("Content length: %d\n", remaining);
+        printf("Content length: %d\n", req->content_len);
 
-    if (!content) {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
-        return ESP_FAIL;
-    }
-    while (remaining > 0)
+    char* content = ReceiveRequestBody(req, req->content_len);
+    if (content == nullptr)
     {
-        ret = httpd_req_recv(req, content + received, remaining);
-        if (ret <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                httpd_resp_send_408(req);
-            }
-            free(content);
             return ESP_FAIL;
         }
-        received += ret;
-        remaining -= ret;
-    }
-    content[received] = '\0';
-
+        
     //printf("Received config: %s\n", content);
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     instance->_configFile->SaveJson(content);
     instance->_configFile->Read();
 
-    httpd_resp_set_hdr(req, "Connection", "close");
-    httpd_resp_set_status(req, "200 OK");
-    httpd_resp_sendstr(req, "Config saved");
-
     free(content);
-    return ESP_OK;
+    return SendOkResponse(req, "Config saved");
 }
 
 esp_err_t WebServer::post_time_handler(httpd_req_t *req)
 {
-    char content[101] = {};
-    int ret, remaining = req->content_len;
-    size_t received = 0;
-    if (remaining >= sizeof(content))
+    cJSON* root = ReceiveJsonBody(req, MAX_SMALL_JSON_BODY_LENGTH);
+    if (root == nullptr)
     {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
-        return ESP_FAIL;
-    }
-    while (remaining > 0)
-    {
-        ret = httpd_req_recv(req, content + received, remaining);
-        if (ret <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                httpd_resp_send_408(req);
-            }
-            return ESP_FAIL;
-        }
-        received += ret;
-        remaining -= ret;
-    }
-    content[received] = '\0';
-    cJSON *root = cJSON_Parse(content);
-    if (!root)
-    {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-        return ESP_FAIL;
+                return ESP_FAIL;
     }
 
     cJSON *jsonObj = cJSON_GetObjectItem(root, "year");
@@ -668,12 +683,7 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     instance->_timeProvider->SetDateTime((int)year, (int)month, (int)day, (int)hour, (int)minute, 0);
 
-    httpd_resp_set_status(req, "200 OK");
-    httpd_resp_sendstr(req, "Time saved");
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Connection", "close");
-
-    return ESP_OK;
+    return SendOkResponse(req, "Time saved");
 }
 
 esp_err_t WebServer::post_ota_update_handler(httpd_req_t *req)
@@ -776,34 +786,10 @@ esp_err_t WebServer::options_handler(httpd_req_t *req)
 
 esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
 {
-    char content[101] = {};
-    int ret, remaining = req->content_len;
-    size_t received = 0;
-    if (remaining >= sizeof(content))
+    cJSON* root = ReceiveJsonBody(req, MAX_SMALL_JSON_BODY_LENGTH);
+    if (root == nullptr)
     {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content too large");
-        return ESP_FAIL;
-    }
-    while (remaining > 0)
-    {
-        ret = httpd_req_recv(req, content + received, remaining);
-        if (ret <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                httpd_resp_send_408(req);
-            }
-            return ESP_FAIL;
-        }
-        received += ret;
-        remaining -= ret;
-    }
-    content[received] = '\0';
-    cJSON *root = cJSON_Parse(content);
-    if (!root)
-    {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-        return ESP_FAIL;
+                return ESP_FAIL;
     }
 
     cJSON *jsonObj = cJSON_GetObjectItem(root, "network");
@@ -822,13 +808,8 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     instance->_carState->LogDirection = (int)direction;
     instance->_lastRequestTime = instance->_carState->CurrenTime;
 
-    httpd_resp_set_status(req, "200 OK");
-    httpd_resp_sendstr(req, "Monitor set");
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Connection", "close");
-
-    return ESP_OK;
-}
+    return SendOkResponse(req, "Monitor set");
+    }
 
 esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
 {
@@ -905,41 +886,16 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
 esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
 {
     printf("POST /api/carstate\n");
-    char *content = (char *)malloc(req->content_len + 1);
-    int ret, remaining = req->content_len;
-    size_t received = 0;
-    printf("Content length: %d\n", remaining);
-
-    if (!content) {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
-        return ESP_FAIL;
-    }
-    while (remaining > 0) {
-        ret = httpd_req_recv(req, content + received, remaining);
-        if (ret <= 0) {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-                httpd_resp_send_408(req);
-            }
-            free(content);
-            return ESP_FAIL;
-        }
-        received += ret;
-        remaining -= ret;
-    }
-    content[received] = '\0';
-
-    printf("Received carstate: %s\n", content);
-    // Here you can parse the JSON and update the CarState accordingly
+        printf("Content length: %d\n", req->content_len);
 
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     auto _carState = instance->_carState;
     auto _configFile = instance->_configFile;
     instance->_lastRequestTime = instance->_carState->CurrenTime;
 
-    cJSON *root = cJSON_Parse(content);
-    if (!root) {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-        free(content);
+    cJSON* root = ReceiveJsonBody(req, req->content_len);
+    if (root == nullptr)
+    {
         return ESP_FAIL;
     }
 
@@ -983,13 +939,8 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
     _carState->AlertHistory3.asUint64 = _configFile->getJsonInt(root, "AlertHistory3", 0);
     cJSON_Delete(root);
 
-    httpd_resp_set_status(req, "200 OK");
-    httpd_resp_sendstr(req, "CarState received");
-    httpd_resp_set_hdr(req, "Connection", "close");
-
-    free(content);
-    return ESP_OK;
-}
+    return SendOkResponse(req, "CarState received");
+    }
 
 esp_err_t WebServer::ws_handler(httpd_req_t *req)
 {
