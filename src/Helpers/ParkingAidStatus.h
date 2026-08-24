@@ -69,7 +69,13 @@ union ParkingAidStatusStruct {
         uint8_t BeepLocation       : 1;
         uint8_t BeepDelay          : 8; //0-62
         uint8_t VanParsingCanStart : 1;
-        uint32_t unused            : 23;
+        uint8_t Show               : 1;
+        uint8_t MeasurementSide    : 2;
+        uint8_t WhichSideWasMeasured  : 1;
+        uint8_t ShowMeasuredSpaceOnDisplay  : 1;
+        uint8_t MeasuredFreeSpace  : 2;
+        uint8_t MeasurementStatus  : 3;
+        uint32_t unused            : 13;
     } data;
     uint64_t asNumeric;
 };

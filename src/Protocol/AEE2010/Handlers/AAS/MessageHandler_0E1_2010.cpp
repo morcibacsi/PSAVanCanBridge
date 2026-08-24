@@ -9,6 +9,7 @@ BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
     CanParkingAidByte1_2010Struct status{};
     status.data.rear_status  = carState->ParkingAidStatus.data.RearStatus;
     status.data.front_status = carState->ParkingAidStatus.data.FrontStatus;
+    status.data.measurement_side = carState->ParkingAidStatus.data.MeasurementSide;
 
     CanParkingAidByte2_2010Struct soundOptions{};
     soundOptions.data.sound_enabled = carState->ParkingAidStatus.data.SoundEnabled;
@@ -28,9 +29,15 @@ BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
     frontLeftAndRearRight.data.front_left_distance = carState->ParkingAidStatus.data.FrontLeftDistance;
 
     CanParkingAidByte6_2010Struct field6{};
-    field6.data.show                 = carState->ParkingAidStatus.data.RearStatus == static_cast<uint8_t>(ParkingAidStatus::Active);
+    field6.data.show                 = carState->ParkingAidStatus.data.Show;
     field6.data.front_right_distance = carState->ParkingAidStatus.data.FrontRightDistance;
     field6.data.front_distance       = carState->ParkingAidStatus.data.FrontDistance;
+
+    CanParkingAidByte7_2010Struct field7{};
+    field7.data.which_side_was_measured        = carState->ParkingAidStatus.data.WhichSideWasMeasured;
+    field7.data.show_measured_space_on_display = carState->ParkingAidStatus.data.ShowMeasuredSpaceOnDisplay;
+    field7.data.measured_free_space            = carState->ParkingAidStatus.data.MeasuredFreeSpace;
+    field7.data.measurement_status             = carState->ParkingAidStatus.data.MeasurementStatus;
 
     message.data[0] = status.asByte;
     message.data[1] = soundOptions.asByte;
@@ -38,9 +45,9 @@ BusMessage MessageHandler_0E1_2010::Generate(CarState* carState)
     message.data[3] = rearAndRearLeft.asByte;
     message.data[4] = frontLeftAndRearRight.asByte;
     message.data[5] = field6.asByte;
-    message.data[6] = 0x00;
+    message.data[6] = field7.asByte;
 
-    message.isActive = carState->SOURCE_PROTOCOL != static_cast<uint8_t>(ProtocolType::AEE2004);
+    message.isActive = true;
 
     return message;
 }

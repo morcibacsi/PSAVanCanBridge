@@ -35,6 +35,7 @@ class MessageHandler_8A4 : public IMessageHandler<MessageHandler_8A4>
         carState->ParkingAidStatus.data.RearLeftDistance   = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
         carState->ParkingAidStatus.data.RearRightDistance  = static_cast<uint8_t>(ParkingAidBarCount::Zone8Far);
         carState->ParkingAidStatus.data.VanParsingCanStart = 0;
+        carState->ParkingAidStatus.data.Show = 0;
     }
 
     public:

@@ -309,6 +309,7 @@ class MessageHandler_AE8 : public IMessageHandler<MessageHandler_AE8>
                         ? static_cast<uint8_t>(ParkingAidStatus::Active)
                         : static_cast<uint8_t>(ParkingAidStatus::Wait);
                 carState->ParkingAidStatus.data.SoundEnabled = carState->IsReverseEngaged && enableSoundFromSpeaker && minDistance < 0xFF;
+                carState->ParkingAidStatus.data.Show = carState->ParkingAidStatus.data.RearStatus == static_cast<uint8_t>(ParkingAidStatus::Active);
             }
         }
 };
