@@ -54,9 +54,8 @@ class MessageHandler_4FC : public IMessageHandler<MessageHandler_4FC>
             VanInstrumentClusterV2Structs packet;
             std::memcpy(&packet, message.data, packetSize);
 
-            //
-            /*
-            if (!carState->ENABLE_MANUAL_GEARBOX_DISPLAY)
+            ///*
+            //if (!carState->ENABLE_MANUAL_GEARBOX_DISPLAY)
             {
                 carState->GearBoxMode      = _vanCanGearboxPositionMap->GetGearboxModeFromVanMode(packet.AutomaticGearbox.gearbox_selection_mode);
                 carState->GearBoxSelection = _vanCanGearboxPositionMap->GetGearboxSelectionFromVanSelection(packet.AutomaticGearbox.bva_bvmp_selection);
