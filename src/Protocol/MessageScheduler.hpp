@@ -12,6 +12,7 @@
 struct MessageMetadata {
     BusMessage message;       // The actual bus message.
     uint32_t periodicityMs;   // Periodicity in milliseconds.
+    uint64_t nextDueTime;     // Timestamp of the next generation/send slot.
     uint64_t lastSentTime;    // Timestamp of the last send (e.g., milliseconds since epoch).
 };
 
@@ -45,7 +46,7 @@ public:
             for (const auto& [id, scheduled] : scheduledMessages)
             {
                 (void)id;
-                if (scheduled.message.isActive && (currentTime - scheduled.lastSentTime) >= scheduled.periodicityMs)
+                if (currentTime >= scheduled.nextDueTime)
                 {
                     hasDueMessages = true;
                     break;
@@ -64,7 +65,7 @@ public:
             auto it = scheduledMessages.find(id);
             if (it != scheduledMessages.end())
             {
-                shouldGenerate = (it->second.message.isActive && (currentTime - it->second.lastSentTime) >= it->second.periodicityMs);
+                shouldGenerate = currentTime >= it->second.nextDueTime;
             }
             xSemaphoreGiveRecursive(mutex);
         }
@@ -94,7 +95,12 @@ public:
             else
             {
                 // Add a new scheduled message
-                MessageMetadata newMessage{message, message.periodicityMs, (uint64_t)currentTime + message.offsetMs};
+                MessageMetadata newMessage{
+                    message,
+                    message.periodicityMs,
+                    (uint64_t)currentTime + message.offsetMs,
+                    0
+                };
                 scheduledMessages[message.id] = newMessage;
             }
             xSemaphoreGiveRecursive(mutex);
@@ -110,15 +116,29 @@ public:
             for (auto& [id, scheduled] : scheduledMessages)
             {
                 /*
-                printf("Message ID: %03X | Current Time: %llu | Next Send At: %llu | Periodicity: %u\n",
-                    id, currentTime, scheduled.lastSentTime, scheduled.periodicityMs);
+                printf("Message ID: %03X | Current Time: %llu | Next Due At: %llu | Periodicity: %u\n",
+                    id, currentTime, scheduled.nextDueTime, scheduled.periodicityMs);
                 */
                 //printf("Scheduled message ID: %03X\n", id);
-                if (scheduled.message.isActive && (currentTime - scheduled.lastSentTime) >= scheduled.periodicityMs)
+                if (currentTime >= scheduled.nextDueTime)
                 {
-                    //printf("%s: %03X\n", transportLayer.Name().c_str(), (unsigned int) scheduled.message.id);
-                    transportLayer.SendMessage(scheduled.message);
-                    scheduled.lastSentTime = currentTime;
+                    if (scheduled.message.isActive)
+                    {
+                        //printf("%s: %03X\n", transportLayer.Name().c_str(), (unsigned int) scheduled.message.id);
+                        transportLayer.SendMessage(scheduled.message);
+                        scheduled.lastSentTime = currentTime;
+                    }
+
+                    if (scheduled.periodicityMs > 0)
+                    {
+                        const uint64_t elapsedPeriods =
+                            (currentTime - scheduled.nextDueTime) / scheduled.periodicityMs;
+                        scheduled.nextDueTime += (elapsedPeriods + 1) * scheduled.periodicityMs;
+                    }
+                    else
+                    {
+                        scheduled.nextDueTime = currentTime;
+                    }
                 }
             }
             xSemaphoreGiveRecursive(mutex);
