@@ -39,6 +39,8 @@ namespace
         { "/api/update", HTTP_POST, &WebServer::post_ota_update_handler, false },
         { "/api/setmonitor", HTTP_POST, &WebServer::post_network_monitor_handler, false },
         { "/api/carstate.json", HTTP_GET, &WebServer::get_carstate_handler, false },
+        { "/api/fuel_tracker.json", HTTP_GET, &WebServer::get_fuel_tracker_handler, false },
+        { "/api/fuel_tracker.json", HTTP_DELETE, &WebServer::delete_fuel_tracker_handler, false },
         { "/api/carstate", HTTP_POST, &WebServer::post_carstate_handler, false }
     };
 
@@ -995,6 +997,68 @@ esp_err_t WebServer::ws_handler(httpd_req_t *req)
 
     free(frame.payload);
     return ret;
+}
+
+esp_err_t WebServer::get_fuel_tracker_handler(httpd_req_t *req)
+{
+    printf("GET /api/fuel_tracker.json\n");
+
+    auto* instance = static_cast<WebServer*>(req->user_ctx);
+    instance->_lastRequestTime = instance->_carState->CurrenTime;
+
+    if (instance->_fuelRefillTracker == nullptr)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fuel tracker is not available");
+        return ESP_OK;
+    }
+
+    std::string data;
+    FuelRefillTracker::PersistenceFileResult result = instance->_fuelRefillTracker->GetPersistedData(data);
+    if (result == FuelRefillTracker::PersistenceFileResult::NotFound)
+    {
+        httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Fuel tracker data is not available");
+        return ESP_OK;
+    }
+    if (result != FuelRefillTracker::PersistenceFileResult::Success)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to read fuel tracker data");
+        return ESP_OK;
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    return httpd_resp_send(req, data.data(), data.size());
+}
+
+esp_err_t WebServer::delete_fuel_tracker_handler(httpd_req_t *req)
+{
+    printf("DELETE /api/fuel_tracker.json\n");
+
+    auto* instance = static_cast<WebServer*>(req->user_ctx);
+    instance->_lastRequestTime = instance->_carState->CurrenTime;
+
+    if (instance->_fuelRefillTracker == nullptr)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fuel tracker is not available");
+        return ESP_OK;
+    }
+
+    FuelRefillTracker::PersistenceFileResult result = instance->_fuelRefillTracker->DeletePersistedData();
+    if (result == FuelRefillTracker::PersistenceFileResult::NotFound)
+    {
+        httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Fuel tracker data is not available");
+        return ESP_OK;
+    }
+    if (result != FuelRefillTracker::PersistenceFileResult::Success)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to delete fuel tracker data");
+        return ESP_OK;
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    httpd_resp_sendstr(req, "{\"deleted\":true}");
+    return ESP_OK;
 }
 
 void WebServer::wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)

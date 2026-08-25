@@ -92,6 +92,7 @@ bool ConfigFile::Read()
         _carState->SEND_AC_FAN_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_FAN_CHANGES_TO_DISPLAY", false);
         _carState->SEND_AC_CHANGES_TO_DISPLAY = getJsonBool(jsonHandle.get(), "SEND_AC_CHANGES_TO_DISPLAY", 1);
         _carState->QUERY_AC_STATUS = getJsonBool(jsonHandle.get(), "QUERY_AC_STATUS", false);
+        _carState->ENABLE_FUEL_REFILL_TRACKING = getJsonBool(jsonHandle.get(), "ENABLE_FUEL_REFILL_TRACKING", false);
 
         const cJSON* staWifiSsidJson = cJSON_GetObjectItem(jsonHandle.get(), "STA_WIFI_SSID");
         const cJSON* staWifiPasswordJson = cJSON_GetObjectItem(jsonHandle.get(), "STA_WIFI_PASSWORD");
@@ -244,6 +245,7 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::GetAsJson()
     cJSON_AddBoolToObject(root, "SEND_AC_FAN_CHANGES_TO_DISPLAY", _carState->SEND_AC_FAN_CHANGES_TO_DISPLAY);
     cJSON_AddBoolToObject(root, "SEND_AC_CHANGES_TO_DISPLAY", _carState->SEND_AC_CHANGES_TO_DISPLAY);
     cJSON_AddBoolToObject(root, "QUERY_AC_STATUS", _carState->QUERY_AC_STATUS);
+    cJSON_AddBoolToObject(root, "ENABLE_FUEL_REFILL_TRACKING", _carState->ENABLE_FUEL_REFILL_TRACKING);
     cJSON_AddStringToObject(root, "STA_WIFI_SSID", reinterpret_cast<const char*>(_carState->STA_WIFI_SSID));
     cJSON_AddStringToObject(root, "STA_WIFI_PASSWORD", reinterpret_cast<const char*>(_carState->STA_WIFI_PASSWORD));
     cJSON_AddBoolToObject(root, "HAS_RTC", _carState->HAS_RTC);

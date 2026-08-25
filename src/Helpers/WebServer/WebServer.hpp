@@ -11,6 +11,7 @@
 #include "../ConfigFile.hpp"
 #include "../TimeProvider.hpp"
 #include "../CarState.hpp"
+#include "../FuelRefillTracker.hpp"
 #include "../PSADiag/PsaDiagLib.h"
 #include "gzipped_webpage_data.h"
 #include "../../Protocol/ImmediateSignal.hpp"
@@ -28,6 +29,7 @@ class WebServer {
     ImmediateSignalCallback _immediateSignalCallback = nullptr;
     WebSocketSerial* _webSocketSerial = nullptr;
     PsaDiagLib* _psaDiag = nullptr;
+    FuelRefillTracker* _fuelRefillTracker = nullptr;
 
     uint64_t _lastRequestTime = 0;
     uint64_t _inactivityTimeout = WIFI_INITIAL_TIMEOUT;
@@ -48,12 +50,14 @@ class WebServer {
         CarState* carState,
         ConfigFile* configFile,
         TimeProvider* timeProvider,
+        FuelRefillTracker* fuelRefillTracker,
         WebSocketSerial* webSocketSerial,
         ImmediateSignalCallback immediateSignalCallback
     ) : server(NULL) {
         _carState = carState;
         _configFile = configFile;
         _timeProvider = timeProvider;
+        _fuelRefillTracker = fuelRefillTracker;
         _webSocketSerial = webSocketSerial;
         _immediateSignalCallback = immediateSignalCallback;
     }
@@ -84,6 +88,9 @@ class WebServer {
     static esp_err_t post_ota_update_handler(httpd_req_t *req);
     static esp_err_t post_network_monitor_handler(httpd_req_t *req);
     static esp_err_t post_carstate_handler(httpd_req_t *req);
+
+    static esp_err_t get_fuel_tracker_handler(httpd_req_t *req);
+    static esp_err_t delete_fuel_tracker_handler(httpd_req_t *req);
 
     static esp_err_t options_handler(httpd_req_t *req);
     static esp_err_t ws_handler(httpd_req_t *req);

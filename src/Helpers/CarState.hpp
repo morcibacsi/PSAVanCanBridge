@@ -257,6 +257,7 @@ struct CarState
     bool SEND_AC_FAN_CHANGES_TO_DISPLAY = false;
     // if true the AC status is queried with a diagnostic message (only works with rev 1.4)
     bool QUERY_AC_STATUS = false;
+    bool ENABLE_FUEL_REFILL_TRACKING = false;
 
     uint8_t STA_WIFI_SSID[32] = "";
     uint8_t STA_WIFI_PASSWORD[64] = "";

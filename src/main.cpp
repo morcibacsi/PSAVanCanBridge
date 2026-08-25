@@ -42,6 +42,7 @@
 #include "Helpers/CpuConfig.h"
 #include "Helpers/WebServer/WebServer.hpp"
 #include "Helpers/PSADiag/PsaDiagLib.h"
+#include "Helpers/FuelRefillTracker.hpp"
 
 IVanMessageSender* sourceVanMessageSender = nullptr;
 ICanMessageSender* sourceCanMessageSender = nullptr;
@@ -71,6 +72,7 @@ RgbLed* led = nullptr;
 TimeProvider* timeProvider = nullptr;
 WebServer* webServer = nullptr;
 WebSocketSerial* webSocketSerial = nullptr;
+FuelRefillTracker* fuelRefillTracker = nullptr;
 
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
@@ -249,6 +251,8 @@ void SendToDestinationFunction(void * parameter)
         carState->CurrenTime =  millis();
         timeProvider->Process(carState->CurrenTime);
         webServer->Process();
+        fuelRefillTracker->Process(carState->CurrenTime);
+
         //printf("Time: %04d.%02d.%02d %02d:%02d:%02d\n",carState->Year, carState->Month, carState->MDay, carState->Hour, carState->Minute, carState->Second);
         destinationProtocolHandler->GenerateMessages(IProtocolHandler::MessageDirection::Destination);
         destinationProtocolHandler->UpdateMessages(carState->CurrenTime);
@@ -296,9 +300,11 @@ extern "C" void app_main(void)
     timeProvider = new TimeProvider(SDA_PIN, SCL_PIN, carState);
     timeProvider->Start();
 
+    fuelRefillTracker = new FuelRefillTracker(carState);
+
     printf("Create webserver\n");
     webSocketSerial = new WebSocketSerial(carState);
-    webServer = new WebServer(carState, configFile, timeProvider, webSocketSerial, SendImmediateSignalToDestination);
+    webServer = new WebServer(carState, configFile, timeProvider, fuelRefillTracker, webSocketSerial, SendImmediateSignalToDestination);
     webServer->CreateWebServer();
     printf("Webserver created\n");
 
