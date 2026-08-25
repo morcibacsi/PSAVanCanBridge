@@ -367,7 +367,7 @@ void WebServer::UnRegisterEndpoints()
 {
     for (const auto& endpoint : ENDPOINTS)
     {
-    httpd_unregister_uri_handler(server, endpoint.uri, endpoint.method);
+        httpd_unregister_uri_handler(server, endpoint.uri, endpoint.method);
     }
 }
 
@@ -397,7 +397,7 @@ esp_err_t WebServer::StartWebServer()
 
         if (_webSocketSerial)
         {
-        _webSocketSerial->OnWebServerStarted(server);
+            _webSocketSerial->OnWebServerStarted(server);
         }
         webServerCanBeStarted = false;
 
@@ -640,14 +640,14 @@ esp_err_t WebServer::get_config_handler(httpd_req_t *req)
 esp_err_t WebServer::post_config_handler(httpd_req_t *req)
 {
     printf("POST /api/config\n");
-        printf("Content length: %d\n", req->content_len);
+    printf("Content length: %d\n", req->content_len);
 
     char* content = ReceiveRequestBody(req, req->content_len);
     if (content == nullptr)
     {
-            return ESP_FAIL;
-        }
-        
+        return ESP_FAIL;
+    }
+
     //printf("Received config: %s\n", content);
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     instance->_configFile->SaveJson(content);
@@ -662,7 +662,7 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
     cJSON* root = ReceiveJsonBody(req, MAX_SMALL_JSON_BODY_LENGTH);
     if (root == nullptr)
     {
-                return ESP_FAIL;
+        return ESP_FAIL;
     }
 
     cJSON *jsonObj = cJSON_GetObjectItem(root, "year");
@@ -797,7 +797,7 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     cJSON* root = ReceiveJsonBody(req, MAX_SMALL_JSON_BODY_LENGTH);
     if (root == nullptr)
     {
-                return ESP_FAIL;
+        return ESP_FAIL;
     }
 
     cJSON *jsonObj = cJSON_GetObjectItem(root, "network");
@@ -817,7 +817,7 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
     instance->_lastRequestTime = instance->_carState->CurrenTime;
 
     return SendOkResponse(req, "Monitor set");
-    }
+}
 
 esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
 {
@@ -896,7 +896,7 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
 esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
 {
     printf("POST /api/carstate\n");
-        printf("Content length: %d\n", req->content_len);
+    printf("Content length: %d\n", req->content_len);
 
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     auto _carState = instance->_carState;
@@ -950,7 +950,7 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
     cJSON_Delete(root);
 
     return SendOkResponse(req, "CarState received");
-    }
+}
 
 esp_err_t WebServer::ws_handler(httpd_req_t *req)
 {
