@@ -211,7 +211,6 @@ void ReadDestinationFunction(void * parameter)
                 continue;
             }
 
-            PrintMessageToWebSocket(2, 1, message);
             bool sourceCanAcceptMessage = sourceProtocolHandler->CanAcceptMessage(message);
             if (sourceCanAcceptMessage)
             {
@@ -239,7 +238,7 @@ void ReadDestinationFunction(void * parameter)
                 psaDiagLib->ProcessIncomingMessage(currentTime, message.id, message.dataLength, message.data);
                 psaDiagLib->Loop(currentTime);
             }
-            taskYIELD();
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     } while (1);
 }
