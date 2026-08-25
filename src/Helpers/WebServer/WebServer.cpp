@@ -460,18 +460,24 @@ void WebServer::Process()
         StartWebServer();
     }
 
+    if (KEEP_SERVER_RUNNING)
+    {
+        return;
+    }
+
+    ///*
     if (_isRunning && server != nullptr)
     {
         if (
             _carState->DiagConnected == false &&
             (_carState->CurrenTime - _lastRequestTime) > _inactivityTimeout * 1000)
         {
-            _isRunning = false;
             printf("Stopping web server due to inactivity\n");
             StopWebServer();
             StopWifi();
         }
     }
+    //*/
 }
 
 void WebServer::OnClose(httpd_handle_t hd, int sockfd)

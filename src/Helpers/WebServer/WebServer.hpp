@@ -24,6 +24,7 @@ class WebServer {
     static constexpr int WIFI_INITIAL_TIMEOUT = 120;
     static constexpr int WIFI_AFTER_CONNECT_TIMEOUT = 40;
     static constexpr int STA_CONNECT_TIMEOUT_MS = 10000;
+    static constexpr bool KEEP_SERVER_RUNNING = true;
 
     TimeProvider* _timeProvider = nullptr;
     ImmediateSignalCallback _immediateSignalCallback = nullptr;
