@@ -6,7 +6,7 @@
 <title>PSA VAN-CAN Bridge - Dashboard</title>
 <link rel="stylesheet" href="styles.css">
 <style>
-/* ── Dashboard layout ─────────────────────────────────────────────── */
+/* --- Dashboard layout ----------------------------------------------- */
 .dash-metrics {
     display: grid;
     grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
@@ -28,7 +28,7 @@
     margin-bottom: 0.75rem;
 }
 
-/* ── Metric cards ─────────────────────────────────────────────────── */
+/* --- Metric cards -------------------------------------------------- */
 .metric-card {
     display: flex;
     flex-direction: column;
@@ -40,11 +40,31 @@
 }
 
 .metric-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #666;
     margin-bottom: 0.25rem;
+}
+
+.dashboard-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.metric-label .dashboard-icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    color: #777;
 }
 
 .metric-value {
@@ -69,7 +89,7 @@
 .color-speed { color: #4fc3f7; }
 .color-rpm   { color: #81c784; }
 
-/* ── Fuel bar ─────────────────────────────────────────────────────── */
+/* --- Fuel bar ------------------------------------------------------ */
 .fuel-bar-wrap {
     width: 75%;
     height: 4px;
@@ -88,7 +108,7 @@
 .fuel-bar.low    { background: #dc3545; }
 .fuel-bar.medium { background: #ffc107; }
 
-/* ── Status bar ───────────────────────────────────────────────────── */
+/* --- Status bar ---------------------------------------------------- */
 .status-bar {
     display: flex;
     flex-wrap: wrap;
@@ -142,19 +162,78 @@
 .conn-dot.ok  { background: #198754; box-shadow: 0 0 6px #19875488; }
 .conn-dot.err { background: #c94040; }
 
-/* ── Door diagram ─────────────────────────────────────────────────── */
+/* --- Door diagram -------------------------------------------------- */
 .door-car {
     display: grid;
     grid-template-areas:
-        ".    hood   ."
-        "fl   body   fr"
-        "rl   body   rr"
-        ".    trunk  ."
-        ".    fuel   .";
-    grid-template-columns: 1fr 1.2fr 1fr;
+        "park-top park-top park-top park-top"
+        ".    hood   hood   ."
+        "fl   body   body   fr"
+        "rl   body   body   rr"
+        ".    body   body   fuel"
+        ".    trunk  trunk  ."
+        "park-bottom park-bottom park-bottom park-bottom";
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 0.2rem;
-    max-width: 195px;
+    max-width: 210px;
     margin: 0 auto;
+}
+
+.door-park {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.25rem;
+    min-height: 26px;
+    font: 700 28px/9px monospace;
+    letter-spacing: -7px;
+    color: #f57912;
+}
+
+.door-park i {
+    display: inline-block;
+    font-style: normal;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.door-park i.on {
+    opacity: 1;
+}
+
+.door-park-top .fl,
+.door-park-bottom .rr {
+    transform: rotate(45deg);
+}
+
+.door-park-top .fr,
+.door-park-bottom .rl
+{
+    transform: rotate(-45deg);
+}
+
+.door-park-top .fc,
+.door-park-bottom .rc {
+    transform: rotate(90deg);
+}
+
+.door-park-top .fc,
+.door-park-bottom .rc,
+.door-park-top .fl,
+.door-park-top .fr,
+.door-park-bottom .rl,
+.door-park-bottom .rr {
+    transform-origin: center;
+}
+
+.door-park-top {
+    grid-area: park-top;
+    padding-bottom: 1.0rem;
+}
+
+.door-park-bottom {
+    grid-area: park-bottom;
+    padding-top: 1.0rem;
 }
 
 .door-cell {
@@ -163,7 +242,9 @@
     justify-content: center;
     padding: 0.2rem;
     border-radius: 0.25rem;
-    font-size: 0.62rem;
+    flex-direction: column;
+    gap: 0.12rem;
+    font-size: 0.58rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -173,6 +254,9 @@
     min-height: 34px;
     transition: background 0.25s, color 0.25s, border-color 0.25s;
 }
+
+.door-cell .dashboard-icon { width: 1.05rem; height: 1.05rem; }
+.door-cell .door-short { display: none; }
 
 .door-cell.closed {
     background: #0d190d;
@@ -191,9 +275,18 @@
     background: #0e150e;
     border: 1px solid #182018;
     border-radius: 0.25rem;
+    position: relative;
 }
 
-/* ── Trip / cruise tables ─────────────────────────────────────────── */
+.door-body::before {
+    content: "";
+    position: absolute;
+    inset: 8px 10px;
+    border: 1px solid #344034;
+    border-radius: 45% 45% 30% 30%;
+}
+
+/* --- Trip / cruise tables ------------------------------------------ */
 .trip-tbl {
     width: 100%;
     font-size: 0.83rem;
@@ -210,26 +303,77 @@
 .trip-tbl .t-key { color: #666; }
 .trip-tbl .t-val { text-align: right; font-weight: 600; color: #e8e8e8; }
 
-/* ── Light badges ─────────────────────────────────────────────────── */
-.lights-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.28rem;
-    min-height: 1.4rem;
+.fuel-tracker-section + .fuel-tracker-section {
+    margin-top: 0.55rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid #242424;
 }
 
-.lbadge {
-    padding: 0.14rem 0.45rem;
-    border-radius: 0.22rem;
-    font-size: 0.71rem;
+.fuel-tracker-title {
+    margin-bottom: 0.2rem;
+    color: #999;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fuel-tracker-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.65rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid #242424;
+}
+
+.fuel-tracker-delete {
+    padding: 0.22rem 0.5rem;
+    border-color: #6f2525;
+    background: #2a1010;
+    color: #e58a8a;
+    font-size: 0.72rem;
+}
+
+/* --- Light badges -------------------------------------------------- */
+.lights-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 0.45rem;
+}
+
+.indicator {
+    min-width: 0;
+    padding: 0.5rem 0.35rem;
+    border: 1px solid #292929;
+    border-radius: 0.35rem;
+    background: #181818;
+    color: #424242;
+    text-align: center;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.indicator .dashboard-icon { width: 1.8rem; height: 1.8rem; }
+.indicator-label {
+    display: block;
+    margin-top: 0.2rem;
+    overflow-wrap: anywhere;
+    font-size: 0.68rem;
     font-weight: 600;
 }
-.lbadge.sig  { background: #0a2018; border: 1px solid #1a6b40; color: #6fcf97; }
-.lbadge.warn { background: #281d00; border: 1px solid #9a7a00; color: #ffc107; }
-.lbadge.dang { background: #280000; border: 1px solid #8a1a1a; color: #ff7070; }
+.indicator[data-state="unknown"] { color: #5d5d5d; border-style: dashed; }
+.indicator.active.severity-green { color: #70d69a; border-color: #1a6b40; background: #0a2018; }
+.indicator.active.severity-blue  { color: #64b5f6; border-color: #245b84; background: #091b2a; }
+.indicator.active.severity-amber { color: #ffc107; border-color: #8c7000; background: #281d00; }
+.indicator.active.severity-red   { color: #ff6b6b; border-color: #8a1a1a; background: #280808; }
 
-/* ── Alert items ──────────────────────────────────────────────────── */
+@keyframes indicator-flash { 50% { opacity: 0.25; } }
+.indicator.active.flashing { animation: indicator-flash 0.8s steps(2, jump-none) infinite; }
+
+/* --- Alert items --------------------------------------------------- */
 .alert-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     padding: 0.28rem 0.65rem;
     margin-bottom: 0.22rem;
     font-size: 0.8rem;
@@ -239,6 +383,18 @@
     border-radius: 0 0.3rem 0.3rem 0;
 }
 
+.alert-item .dashboard-icon { width: 1.35rem; height: 1.35rem; }
+.alert-copy { min-width: 0; }
+.alert-severity {
+    display: block;
+    color: #8c7632;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.alert-item.danger .alert-severity { color: #ff7070; }
+
 .alert-item.danger {
     background: #280a0a;
     border-left-color: #dc3545;
@@ -247,7 +403,7 @@
 
 .no-data { color: #383838; font-size: 0.8rem; font-style: italic; }
 
-/* ── Responsive ───────────────────────────────────────────────────── */
+/* --- Responsive ---------------------------------------------------- */
 @media (max-width: 1100px) {
     .dash-metrics { grid-template-columns: 1fr 1fr 1fr; }
     .dash-detail  { grid-template-columns: 1fr 1fr; }
@@ -262,10 +418,58 @@
 @media (max-width: 440px) {
     .metric-value-lg  { font-size: 2.4rem; }
     .metric-value     { font-size: 1.8rem; }
+    .lights-wrap      { grid-template-columns: repeat(3, 1fr); }
+    .indicator        { padding: 0.4rem 0.2rem; }
+    .indicator-label  { font-size: 0.61rem; }
+    .door-cell .door-long { display: none; }
+    .door-cell .door-short { display: inline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .indicator.active.flashing { animation: none; }
+    .fuel-bar, .door-cell, .indicator { transition: none; }
 }
 </style>
 </head>
 <body class="telecoding-page">
+<!-- Compact, original ISO 2575-style line symbols. No third-party assets. -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="icon-turn-left" viewBox="0 0 24 24"><path d="M20 5v14L7 12zM7 8v8M3 8v8"/></symbol>
+<symbol id="icon-turn-right" viewBox="0 0 24 24"><path d="M4 5v14l13-7zM17 8v8M21 8v8"/></symbol>
+<symbol id="icon-hazard" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 8v6m0 3v.5"/></symbol>
+<symbol id="icon-low-beam" viewBox="0 0 24 24"><path d="M10 6c-4 0-6 2.5-6 6s2 6 6 6zm3 1 7-2m-7 6 7-1m-7 5 7 1m-7 3 7 2"/></symbol>
+<symbol id="icon-high-beam" viewBox="0 0 24 24"><path d="M10 6c-4 0-6 2.5-6 6s2 6 6 6zm3 1h8m-8 5h8m-8 5h8"/></symbol>
+<symbol id="icon-front-fog" viewBox="0 0 24 24"><path d="M10 6c-4 0-6 2.5-6 6s2 6 6 6zm3 2h7m-7 4h4m-4 4h7m-2-7-3 6"/></symbol>
+<symbol id="icon-rear-fog" viewBox="0 0 24 24"><path d="M14 6c4 0 6 2.5 6 6s-2 6-6 6zm-3 2H4m7 4H7m4 4H4m2-7 3 6"/></symbol>
+<symbol id="icon-position-lights" viewBox="0 0 24 24"><path d="M8 7c-3 0-5 2-5 5s2 5 5 5zm8 0c3 0 5 2 5 5s-2 5-5 5zm-5-1v12m2-12v12"/></symbol>
+<symbol id="icon-drl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2m0-14-2 2M7 17l-2 2"/></symbol>
+<symbol id="icon-battery" viewBox="0 0 24 24"><path d="M5 7h14v11H5zM8 4v3m8-3v3M7.5 12h4m-2-2v4m5-2h3"/></symbol>
+<symbol id="icon-engine-warning" viewBox="0 0 24 24"><path d="M5 8h11l3 3v7H5l-2-3V9h2zm3-3h6v3m5 5h2m-18-1H1"/></symbol>
+<symbol id="icon-oil-pressure" viewBox="0 0 24 24"><path d="M3 10h10l3 4h3m-16-4 2-4h6l2 4m-8 0v6h9v-4m5 3c0 2-1 3-2 3s-2-1-2-3l2-3z"/></symbol>
+<symbol id="icon-temperature" viewBox="0 0 24 24"><path d="M10 5a2 2 0 0 1 4 0v8a4 4 0 1 1-4 0zm2 1v9m5 3c1-1 2-1 3 0m-3 3c1-1 2-1 3 0"/></symbol>
+<symbol id="icon-brake" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 8v5m0 3v.2M4 5C1 9 1 15 4 19m16-14c3 4 3 10 0 14"/></symbol>
+<symbol id="icon-abs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M7.5 14V9h2l1 5m-2.5-2h2m2-3h2c1 0 1 2 0 2 1 0 1 3 0 3h-2zm4.5 5h2c1 0 1-2 0-2h-1c-1 0-1-3 0-3h2M4 5C1 9 1 15 4 19m16-14c3 4 3 10 0 14"/></symbol>
+<symbol id="icon-airbag" viewBox="0 0 24 24"><circle cx="7" cy="5" r="2"/><circle cx="18" cy="9" r="3"/><path d="m6 8 3 5h5m-8-5-2 7m5-2-2 7m0-4h7l3 4"/></symbol>
+<symbol id="icon-seat-belt" viewBox="0 0 24 24"><circle cx="8" cy="4" r="2"/><path d="M8 7v6l-3 7m3-7 5 7m-1-13-4 3m4-3 5 10m-8-4 7 4"/></symbol>
+<symbol id="icon-door-open" viewBox="0 0 24 24"><path d="M7 19V5h9l2 3v11m-11 0h11M7 7 3 10v8h4m9-8h.1"/></symbol>
+<symbol id="icon-hood-open" viewBox="0 0 24 24"><path d="M4 17h16l-2-7H6zm2-7 3-4h6l3 4m-9 3h6"/></symbol>
+<symbol id="icon-trunk-open" viewBox="0 0 24 24"><path d="M4 18h16v-7H4zm11-7 4-6m-4 0h4v4"/></symbol>
+<symbol id="icon-low-fuel" viewBox="0 0 24 24"><path d="M5 4h9v16H5zm0 9h9m3-6 3 3v8c0 2-3 2-3 0V8"/></symbol>
+<symbol id="icon-cruise" viewBox="0 0 24 24"><path d="M5 18a8 8 0 1 1 14 0M12 12l5-3m-5 3 2 2"/></symbol>
+<symbol id="icon-glow-plug" viewBox="0 0 24 24"><path d="M2 12c2-6 4-6 6 0s4 6 6 0 4-6 8 0"/></symbol>
+<symbol id="icon-dpf" viewBox="0 0 24 24"><path d="M3 8h12v8H3zm3 0v8m3-8v8m3-8v8m3-6h3m-3 4h5m-2-4 2 2-2 2"/></symbol>
+<symbol id="icon-service" viewBox="0 0 24 24"><path d="m14 6 4-3 3 3-3 4-4-1-7 7 1 2-2 3-3-3 3-2 2 1 7-7z"/></symbol>
+<symbol id="icon-stop" viewBox="0 0 24 24"><path d="m8 2 8 0 6 6v8l-6 6H8l-6-6V8z"/><path d="M7 12h10"/></symbol>
+<symbol id="icon-warning" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 8v6m0 3v.5"/></symbol>
+<symbol id="icon-speed" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1 1 16 0M12 13l5-5"/></symbol>
+<symbol id="icon-rpm" viewBox="0 0 24 24"><path d="M12 4v3m6-1-2 3m5 3h-4m-10 0H3m3-6 2 3m4 3 4 4M5 19h14"/></symbol>
+<symbol id="icon-odometer" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11v2m5-2v2m5-2v2"/></symbol>
+<symbol id="icon-consumption" viewBox="0 0 24 24"><path d="M5 4h8v16H5zm0 8h8m3-6 3 3v8m-3 2h5"/></symbol>
+<symbol id="icon-range" viewBox="0 0 24 24"><circle cx="6" cy="17" r="2"/><circle cx="18" cy="7" r="2"/><path d="M8 17c6 0 2-10 8-10"/></symbol>
+<symbol id="icon-parking-aid" viewBox="0 0 24 24"><path d="M6 5h5a4 4 0 0 1 0 8H6zm3 3v12m7-8c2 1 2 3 0 4m3-6c4 3 4 6 0 9"/></symbol>
+<symbol id="icon-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+<symbol id="icon-gearbox" viewBox="0 0 24 24"><path d="M6 3.5v17M12 3.5v17M18 3.5v17M6 12h12" /></symbol>
+</svg>
 <div class="container-fluid p-3">
 
     <!-- Header -->
@@ -326,35 +530,32 @@
     <!-- Secondary metrics -->
     <div class="dash-secondary">
         <div class="card metric-card">
+            <div class="metric-label">Maintenance Km</div>
+            <div class="metric-value" id="d-maintenance-km">--</div>
+            <div class="metric-unit">km</div>
+        </div>
+        <div class="card metric-card">
+            <div class="metric-label">Coolant Temp</div>
+            <div class="metric-value" id="d-coolant-temp">--</div>
+            <div class="metric-unit">°C</div>
+        </div>
+        <div class="card metric-card">
             <div class="metric-label">Oil Temp</div>
             <div class="metric-value" id="d-oil-temp">--</div>
-            <div class="metric-unit">raw</div>
+            <div class="metric-unit">°C</div>
         </div>
         <div class="card metric-card">
             <div class="metric-label">Oil Level</div>
             <div class="metric-value" id="d-oil-lvl">--</div>
+            <div class="metric-unit">%</div>
+            <div class="fuel-bar-wrap"><div class="fuel-bar" id="oil-bar" style="width:0"></div></div>
+        </div>
+        <div class="card metric-card">
+            <div class="metric-label">Gearbox</div>
+            <div class="metric-value" id="d-gearbox">--</div>
             <div class="metric-unit"></div>
         </div>
-        <div class="card metric-card">
-            <div class="metric-label">Inst. Cons.</div>
-            <div class="metric-value" id="d-inst-cons">--</div>
-            <div class="metric-unit">l/100km</div>
-        </div>
-        <div class="card metric-card">
-            <div class="metric-label">Rem. Range</div>
-            <div class="metric-value" id="d-rem-range">--</div>
-            <div class="metric-unit">km</div>
-        </div>
-        <div class="card metric-card">
-            <div class="metric-label">Total Range</div>
-            <div class="metric-value" id="d-tot-range">--</div>
-            <div class="metric-unit">km</div>
-        </div>
-        <div class="card metric-card">
-            <div class="metric-label">Parking Aid</div>
-            <div class="metric-value" style="font-size:1.5rem" id="d-parking">--</div>
-            <div class="metric-unit"></div>
-        </div>
+
     </div>
 
     <!-- Detail row: doors · trip 1 · trip 2 · cruise -->
@@ -363,15 +564,69 @@
             <div class="card-header">Doors</div>
             <div class="card-body">
                 <div class="door-car">
-                    <div class="door-cell" id="door-hood"  style="grid-area:hood" >Hood</div>
-                    <div class="door-cell" id="door-fl"    style="grid-area:fl"   >FL</div>
+                    <div class="door-park door-park-top">
+                        <i class="fl" data-dir="fl" data-max="3"></i>
+                        <i class="fc" data-dir="fc" data-max="4"></i>
+                        <i class="fr" data-dir="fr" data-max="3"></i>
+                    </div>
+
+                    <div class="door-cell" id="door-hood"  style="grid-area:hood"><span class="door-long">Hood</span><span class="door-short">Hood</span></div>
+                    <div class="door-cell" id="door-fl"    style="grid-area:fl"><span class="door-long">Front left</span><span class="door-short">FL</span></div>
                     <div class="door-body"></div>
-                    <div class="door-cell" id="door-fr"    style="grid-area:fr"   >FR</div>
-                    <div class="door-cell" id="door-rl"    style="grid-area:rl"   >RL</div>
-                    <div class="door-cell" id="door-rr"    style="grid-area:rr"   >RR</div>
-                    <div class="door-cell" id="door-trunk" style="grid-area:trunk">Trunk</div>
-                    <div class="door-cell" id="door-fuel"  style="grid-area:fuel" >Fuel Flap</div>
+                    <div class="door-cell" id="door-fr"    style="grid-area:fr"><span class="door-long">Front right</span><span class="door-short">FR</span></div>
+                    <div class="door-cell" id="door-rl"    style="grid-area:rl"><span class="door-long">Rear left</span><span class="door-short">RL</span></div>
+                    <div class="door-cell" id="door-rr"    style="grid-area:rr"><span class="door-long">Rear right</span><span class="door-short">RR</span></div>
+                    <div class="door-cell" id="door-trunk" style="grid-area:trunk"><span class="door-long">Trunk</span><span class="door-short">Trunk</span></div>
+                    <div class="door-cell" id="door-fuel"  style="grid-area:fuel"><span class="door-long">Fuel flap</span><span class="door-short">Fuel</span></div>
+
+                    <div class="door-park door-park-bottom">
+                        <i class="rl" data-dir="rl" data-max="3"></i>
+                        <i class="rc" data-dir="rc" data-max="4"></i>
+                        <i class="rr" data-dir="rr" data-max="3"></i>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="card" id="fuel-tracker-card">
+            <div class="card-header">Fuel Tracker</div>
+            <div class="card-body">
+                <section class="fuel-tracker-section">
+                    <div class="fuel-tracker-title">Last checkpoint</div>
+                    <span class="no-data" id="fuel-checkpoint-empty">No checkpoint recorded</span>
+                    <table class="trip-tbl" id="fuel-checkpoint-table" hidden>
+                        <tr><td class="t-key">Fuel</td>     <td class="t-val" id="fuel-checkpoint-level">--</td></tr>
+                        <tr><td class="t-key">Odometer</td> <td class="t-val" id="fuel-checkpoint-odometer">--</td></tr>
+                        <tr><td class="t-key">Time</td>     <td class="t-val" id="fuel-checkpoint-time">--</td></tr>
+                    </table>
+                </section>
+                <section class="fuel-tracker-section">
+                    <div class="fuel-tracker-title">Last refill</div>
+                    <span class="no-data" id="fuel-refill-empty">No refill recorded</span>
+                    <table class="trip-tbl" id="fuel-refill-table" hidden>
+                        <tr><td class="t-key">Fuel</td>     <td class="t-val" id="fuel-refill-change">--</td></tr>
+                        <tr><td class="t-key">Increase</td> <td class="t-val" id="fuel-refill-increase">--</td></tr>
+                        <tr><td class="t-key">Odometer</td> <td class="t-val" id="fuel-refill-odometer">--</td></tr>
+                        <tr><td class="t-key">Time</td>     <td class="t-val" id="fuel-refill-time">--</td></tr>
+                    </table>
+                </section>
+                <div class="fuel-tracker-actions">
+                    <button class="btn fuel-tracker-delete" id="fuel-tracker-delete" type="button" disabled>Delete tracker data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-detail">
+        <div class="card">
+            <div class="card-header">Instant consumption</div>
+            <div class="card-body">
+                <table class="trip-tbl">
+                    <tr><td class="t-key">Instant Consumption</td> <td class="t-val" id="d-inst-cons">--</td></tr>
+                    <tr><td class="t-key">Remaining Range</td>   <td class="t-val" id="d-rem-range">--</td></tr>
+                    <tr><td class="t-key">Total Range</td>    <td class="t-val" id="d-tot-range">--</td></tr>
+                    <tr><td class="t-key">Instant Consumption</td>    <td class="t-val" id="d-inst-cons-mm3">--</td></tr>
+                </table>
             </div>
         </div>
 
@@ -379,9 +634,9 @@
             <div class="card-header">Trip 1</div>
             <div class="card-body">
                 <table class="trip-tbl">
+                    <tr><td class="t-key">Consumption</td> <td class="t-val" id="t1-cons">--</td></tr>
                     <tr><td class="t-key">Avg Speed</td>   <td class="t-val" id="t1-spd">--</td></tr>
                     <tr><td class="t-key">Distance</td>    <td class="t-val" id="t1-dist">--</td></tr>
-                    <tr><td class="t-key">Consumption</td> <td class="t-val" id="t1-cons">--</td></tr>
                 </table>
             </div>
         </div>
@@ -390,9 +645,9 @@
             <div class="card-header">Trip 2</div>
             <div class="card-body">
                 <table class="trip-tbl">
+                    <tr><td class="t-key">Consumption</td> <td class="t-val" id="t2-cons">--</td></tr>
                     <tr><td class="t-key">Avg Speed</td>   <td class="t-val" id="t2-spd">--</td></tr>
                     <tr><td class="t-key">Distance</td>    <td class="t-val" id="t2-dist">--</td></tr>
-                    <tr><td class="t-key">Consumption</td> <td class="t-val" id="t2-cons">--</td></tr>
                 </table>
             </div>
         </div>
@@ -413,7 +668,7 @@
     <div class="card mb-3">
         <div class="card-header">Signal Lights</div>
         <div class="card-body">
-            <div class="lights-wrap" id="signal-lights"><span class="no-data">None active</span></div>
+            <div class="lights-wrap" id="signal-lights" aria-live="polite"></div>
         </div>
     </div>
 
@@ -421,7 +676,7 @@
     <div class="card mb-3">
         <div class="card-header">Warning &amp; Indicator Lights</div>
         <div class="card-body">
-            <div class="lights-wrap" id="warning-lights"><span class="no-data">None active</span></div>
+            <div class="lights-wrap" id="warning-lights" aria-live="polite"></div>
         </div>
     </div>
 
@@ -435,16 +690,24 @@
 
 </div>
 <script>
-// ── Config ────────────────────────────────────────────────────────────
+// --- Config -----------------------------------------------
 const API_URL = "api/carstate.json";
+const FUEL_TRACKER_API_URL = "api/fuel_tracker.json";
 const POLL_MS  = 1000;
+let fuelTrackerData = null;
+let fuelTrackerNeedsRender = false;
 
-// ── Value maps (same as carstate.html) ────────────────────────────────
+// --- Value maps (same as carstate.html) -------------------------------
 const VALUE_MAPS = {
     ExternalTemperature: { scale: 0.5,   offset: -40 },
     Speed:               { scale: 0.01,  offset:   0 },
     Rpm:                 { scale: 0.125, offset:   0 },
     Odometer:            { scale: 0.1,   offset:   0 },
+    OilTemperature:      { scale: 1,     offset: -40 },
+    CoolantTemperature:  { scale: 1,     offset: -40 },
+    Consumption:         { scale: 0.1,   offset:   0 },
+    ConsumptionForCMB:   { scale: 80,    offset:   0 },
+    MaintenanceKilometers: { scale: 20,    offset:   0 },
 };
 
 function applyMap(raw, key) {
@@ -452,7 +715,7 @@ function applyMap(raw, key) {
     return m ? raw * m.scale + m.offset : raw;
 }
 
-// ── Generic bitfield parser ───────────────────────────────────────────
+// --- Generic bitfield parser -----------------------------------------
 // Handles both regular numbers (isBigInt=false) and BigInt strings (isBigInt=true).
 function parseBitfield(rawValue, fields, isBigInt) {
     let v;
@@ -474,160 +737,280 @@ function parseBitfield(rawValue, fields, isBigInt) {
     return out;
 }
 
-// ── DoorStatus bitfield (8-bit, not BigInt) ───────────────────────────
+// --- DoorStatus bitfield (8-bit, not BigInt) --------------------------
 const DOOR_FIELDS = [
     ["fuel_flap_open",1],["rear_window_open",1],["hood_open",1],["trunk_open",1],
     ["rear_right_door_open",1],["rear_left_door_open",1],["front_right_door_open",1],["front_left_door_open",1]
 ];
 
-// ── CarSignalLights bitfield (64-bit BigInt) ──────────────────────────
+// --- CarSignalLights bitfield (64-bit BigInt) -------------------------
 // Comments show original protocol byte numbers; bit positions are sequential.
 const SIGNAL_FIELDS = [
-    // byte 1 → bits 0-7
+    // byte 1 -> bits 0-7
     ["drl",1],["left_turn_indicator",1],["right_turn_indicator",1],["rear_foglight",1],
     ["front_foglight",1],["high_beam_on",1],["low_beam_on",1],["parking_light_indicator",1],
-    // byte 4 → bits 8-15
+    // byte 4 -> bits 8-15
     ["fse_inhibited",1],["handbrake_signal",1],["foot_on_brake",2],["passenger_airbag",1],
     ["child_security",1],["stop_light",1],["service_exclamation",1],
-    // byte 5 → bits 16-23
+    // byte 5 -> bits 16-23
     ["suspension_status",1],["esp_in_progress",1],["esp_inactivated",1],["cafr",1],
     ["op_blink",1],["op_on",1],["door_open",1],["diesel_preheat",1],
-    // byte 6 → bits 24-31
+    // byte 6 -> bits 24-31
     ["rl_seatbelt",1],["scr_indicator",2],["pax_belt_blink",1],
     ["pax_belt_warn",1],["drv_belt_blink",1],["drv_belt_warn",1],["fuel_low",1],
-    // byte 7 → bits 32-39
+    // byte 7 -> bits 32-39
     ["pax_protection",1],["warning_active",1],["cmb_active",1],
     ["rr_belt_blink",1],["rr_belt_warn",1],["rc_belt_blink",1],["rc_belt_warn",1],["rl_belt_blink",1],
-    // byte 8 → bits 40-47
+    // byte 8 -> bits 40-47
     ["change_person",1],["change_color",1],["ready_lamp",1],["minc_blink",1],
     ["foot_on_clutch",2],["engine_indicator",2]
 ];
 
-// ── CarIndicatorLights bitfield (64-bit BigInt) ───────────────────────
+// --- CarIndicatorLights bitfield (64-bit BigInt) ----------------------
 const INDICATOR_FIELDS = [
-    // byte 1 → bits 0-7
+    // byte 1 -> bits 0-7
     ["dsg_fault",1],["engine_cold",1],["brake_fluid",1],["oil_pressure",1],
     ["oil_level",1],["coolant_level",1],["num_gears",1],["coolant_max",1],
-    // byte 2 → bits 8-15
+    // byte 2 -> bits 8-15
     ["cmd_start",1],["max_rpm2",1],["max_rpm1",1],["auto_wipe",1],
     ["fap_clogged",1],["antipollution",1],["tyre_punctured",1],["tyre_press_low",1],
-    // byte 3 → bits 16-23
+    // byte 3 -> bits 16-23
     ["generator_fault",1],["battery_fault",1],["susp_serious",1],["ehb_fault",1],
     ["r2rr_belt_blink",1],["r2rr_belt_forgot",1],["r2rl_belt_blink",1],["r2rl_belt_forgot",1],
-    // byte 4 → bits 24-31
+    // byte 4 -> bits 24-31
     ["mil_update",1],["mil",1],["brake_pad",1],["gearbox_fault",1],
     ["esp_fault",1],["abs_fault",1],["fse_tight",1],["fse_sys",1],
-    // byte 5 → bits 32-39
+    // byte 5 -> bits 32-39
     ["stt_status",2],["steering_fault",1],["caar_status",2],["passive_safety",1],
     ["curve_fault",1],["water_diesel",1],
-    // byte 7 → bits 40-47  (byte 6 not present in data)
+    // byte 7 -> bits 40-47  (byte 6 not present in data)
     ["brake_assist",1],["gearbox_pos",4],["ack_emf",1],["authorize_amb",1],["authorize_vth",1],
-    // byte 8 → bits 48-55
+    // byte 8 -> bits 48-55
     ["hdc_status",2],["afil_status",2],["vth_right",1],["vth_left",1],["farc_status",2]
 ];
 
-// ── AlertHistory1 bitfield (64-bit BigInt) ────────────────────────────
+// --- AlertHistory1 bitfield (64-bit BigInt) ---------------------------
 const ALERT1_FIELDS = [
-    // byte 1 → bits 0-7  (meta block: reserved/menu_available/total_blocks/block_number, each 2 bits)
+    // byte 1 -> bits 0-7  (meta block: reserved/menu_available/total_blocks/block_number, each 2 bits)
     ["_meta", 8],
-    // byte 2 → bits 8-15
+    // byte 2 -> bits 8-15
     ["_unk2_0",1],["top_up_coolant",1],["power_steering_stop",1],["_unk2_3",1],
     ["braking_system_stop",1],["_unk2_5",1],["engine_temp_stop",1],["oil_pressure_stop",1],
-    // byte 3 → bits 16-23
+    // byte 3 -> bits 16-23
     ["boot_open",1],["fuel_flap_unlocked",1],["rh_door_open",1],["lh_door_open",1],
     ["fr_door_open",1],["fl_door_open",1],["handbrake_on",1],["top_up_engine_oil",1],
-    // byte 4 → bits 24-31
+    // byte 4 -> bits 24-31
     ["airbag_fault",1],["fuel_too_low",1],["brake_pads_worn",1],["water_in_diesel",1],
     ["_unk4_4",1],["battery_fault",1],["esp_fault",1],["rear_screen_open",1],
-    // byte 5 → bits 32-39
+    // byte 5 -> bits 32-39
     ["suspension_fault",1],["_unk5_1",1],["dpf_additive_low",1],["_unk5_3",1],
     ["dpf_clogging_risk",1],["abs_fault",1],["engine_fault",1],["_unk5_7",1],
-    // byte 6 → bits 40-47
+    // byte 6 -> bits 40-47
     ["_roof1",1],["_unk6_1",1],["anti_theft_fault",1],["steering_lock_fault",1],
     ["roof_mech_fault",1],["stop_lamp_check",1],["cruise_ctrl_fault",1],["preheating_low_bat",1],
-    // byte 7 → bits 48-55
+    // byte 7 -> bits 48-55
     ["remote_bat_flat",1],["washer_low",1],["hybrid_speed_limited",1],["hybrid_fault",1],
     ["headlamp_adj_fault",1],["hybrid_stop",1],["_roof2",1],["_roof3",1],
-    // byte 8 → bits 56-63
+    // byte 8 -> bits 56-63
     ["_unk8_0",1],["_unk8_1",1],["_unk8_2",1],["tyre_not_monitored",1],
     ["_unk8_4",1],["brightness_sensor_fault",1],["preheating_set_clock",1],["_unk8_7",1]
 ];
 
-// ── Signal light display config ───────────────────────────────────────
+const ALERT2_FIELDS = [
+    // byte 1 -> bits 0-7  (meta block: reserved/menu_available/total_blocks/block_number, each 2 bits)
+    ["_meta", 8],
+    // byte 2 -> bits 8-15
+    ["a2_sidelamp_faulty",1],["a2_rear_lh_tyre_punctured",1],["a2_rear_rh_tyre_punctured",1],["a2_front_rh_tyre_punctured",1],
+    ["a2_front_lh_tyre_punctured",1],["_a2_2_5",1],["_a2_2_6",1],["_a2_2_7",1],
+    // byte 3 -> bits 16-23
+    ["a2_rh_brake_light_faulty",1],["a2_main_beam_faulty1",1],["a2_main_beam_faulty2",1],["a2_dipped_beam_faulty1",1],
+    ["a2_dipped_beam_faulty2",1],["a2_sidelamp_faulty1",1],["a2_sidelamp_faulty2",1],["a2_sidelamp_faulty3",1],
+    // byte 4 -> bits 24-31
+    ["a2_direction_ind_faulty1",1],["a2_direction_ind_faulty2",1],["a2_direction_ind_faulty3",1],["a2_front_fog_faulty1",1],
+    ["a2_front_fog_faulty2",1],["a2_rear_fog_faulty1",1],["a2_rear_fog_faulty2",1],["a2_lh_brake_light_faulty",1],
+    // byte 5 -> bits 32-39
+    ["_a2_5_0",1],["_a2_5_1",1],["_a2_5_2",1],["_a2_5_3",1],
+    ["_a2_5_4",1],["a2_lh_reversing_lamp_faulty",1],["a2_rh_reversing_lamp_faulty",1],["a2_direction_ind_faulty",1],
+    // byte 6 -> bits 40-47
+    ["a2_tyre_press_low1",1],["a2_tyre_press_low2",1],["_a2_6_2",1],["_a2_6_3",1],
+    ["a2_parking_assist_faulty",1],["_a2_6_5",1],["_a2_6_6",1],["_a2_6_7",1],
+    // byte 7 -> bits 48-55
+    ["_a2_7_0",1],["a2_emissions_fault",1],["a2_emissions_fault_start_prev",1],["_a2_7_3",1],
+    ["_a2_7_4",1],["a2_switch_off_lamps",1],["a2_tyre_press_low3",1],["a2_tyre_press_low4",1],
+    // byte 8 -> bits 56-63
+    ["a2_rear_lh_door_open",1],["a2_rear_rh_door_open",1],["a2_front_lh_door_open",1],["a2_front_rh_door_open",1],
+    ["a2_risk_of_ice",1],["a2_auto_gearbox_pos_p",1],["_a2_8_6",1],["_a2_8_7",1]
+];
+
+const ALERT3_FIELDS = [
+    // byte 1 -> bits 0-7  (meta block: reserved/menu_available/total_blocks/block_number, each 2 bits)
+    ["_meta", 8],
+    // byte 2 -> bits 8-15
+    ["_a3_2_0",1],["a3_high_speed_check_tyres",1],["_a3_2_2",1],["_a3_2_3",1],
+    ["a3_fuel_flap_not_locked",1],["a3_rear_screen_open",1],["a3_bonnet_open",1],["a3_boot_open",1],
+    // byte 3 -> bits 16-23
+    ["_a3_3_0",1],["a3_directional_headlamps_faulty",1],["a3_s_bonnet_open",1],["a3_adj_wing_fault",1],
+    ["a3_parking_brake_faulty",1],["_a3_3_5",1],["_a3_3_6",1],["_a3_3_7",1],
+    // byte 4 -> bits 24-31
+    ["_a3_4_0",1],["_a3_4_1",1],["a3_gearbox_fault",1],["_a3_4_3",1],
+    ["_a3_4_4",1],["_a3_4_5",1],["_a3_4_6",1],["_a3_4_7",1],
+    // byte 5 -> bits 32-39
+    ["_a3_5_0",1],["_a3_5_1",1],["a3_engine_fault",1],["_a3_5_3",1],
+    ["a3_tyre_press_too_low",1],["_a3_5_5",1],["a3_lane_warning_faulty",1],["_a3_5_7",1],
+    // byte 6 -> bits 40-47
+    ["a3_rear_lh_tyre_not_monitored",1],["a3_rear_rh_tyre_not_monitored",1],["a3_front_rh_tyre_not_monitored",1],["a3_front_lh_tyre_not_monitored",1],
+    ["_a3_6_4",1],["_a3_6_5",1],["_a3_6_6",1],["_a3_6_7",1],
+    // byte 7 -> bits 48-55
+    ["a3_tyre_deflation_fault",1],["_a3_7_1",1],["a3_engine_fault_stop",1],["a3_inter_vehicle_time_fault",1],
+    ["_a3_7_4",1],["_a3_7_5",1],["a3_power_steering_faulty",1],["a3_suspension_faulty",1],
+    // byte 8 -> bits 56-63
+    ["a3_scr_additive_start_prev",1],["a3_scr_additive1",1],["a3_scr_additive2",1],["_a3_8_3",1],
+    ["a3_lh_front_tyre_underinflated",1],["a3_rh_front_tyre_underinflated",1],["a3_lh_rear_tyre_underinflated",1],["a3_rh_rear_tyre_underinflated",1]
+];
+
+// --- Signal light display config --------------------------------------
 // type: "sig" | "warn" | "dang"
 const SIGNAL_DISPLAY = {
-    drl:                    { label: "DRL",          type: "sig"  },
-    left_turn_indicator:    { label: "◄ Left",       type: "sig"  },
-    right_turn_indicator:   { label: "Right ►",      type: "sig"  },
-    rear_foglight:          { label: "Rear Fog",     type: "sig"  },
-    front_foglight:         { label: "Front Fog",    type: "sig"  },
-    high_beam_on:           { label: "High Beam",    type: "sig"  },
-    low_beam_on:            { label: "Low Beam",     type: "sig"  },
-    parking_light_indicator:{ label: "Park Lights",  type: "sig"  },
-    handbrake_signal:       { label: "Handbrake",    type: "warn" },
-    stop_light:             { label: "Stop Light",   type: "sig"  },
-    service_exclamation:    { label: "Service !",    type: "warn" },
-    esp_in_progress:        { label: "ESP Active",   type: "warn" },
-    door_open:              { label: "Door Open",    type: "warn" },
-    diesel_preheat:         { label: "Pre-heat",     type: "sig"  },
-    pax_belt_warn:          { label: "Pax Seatbelt", type: "warn" },
-    drv_belt_warn:          { label: "Drv Seatbelt", type: "dang" },
-    fuel_low:               { label: "Low Fuel",     type: "dang" },
-    ready_lamp:             { label: "Ready",        type: "sig"  },
+    left_turn_indicator:    { label:"Left turn",       icon:"turn-left",       severity:"green", flash:true },
+    right_turn_indicator:   { label:"Right turn",      icon:"turn-right",      severity:"green", flash:true },
+    hazard:                  { label:"Hazard lights",   icon:"hazard",          severity:"amber", flash:true,
+                               derive:b => b.left_turn_indicator && b.right_turn_indicator },
+    drl:                     { label:"Daytime lights",  icon:"drl",             severity:"green" },
+    low_beam_on:             { label:"Low beam",        icon:"low-beam",        severity:"green" },
+    high_beam_on:            { label:"High beam",       icon:"high-beam",       severity:"blue" },
+    front_foglight:          { label:"Front fog",       icon:"front-fog",       severity:"green" },
+    rear_foglight:           { label:"Rear fog",        icon:"rear-fog",        severity:"amber" },
+    parking_light_indicator: { label:"Position lights", icon:"position-lights", severity:"green" }
 };
 
-// ── Warning light display config ──────────────────────────────────────
+// --- Warning light display config -------------------------------------
 const WARNING_DISPLAY = {
-    oil_pressure:    { label: "Oil Pressure!",    type: "dang" },
-    coolant_max:     { label: "Coolant Temp Max", type: "dang" },
-    brake_fluid:     { label: "Brake Fluid",      type: "dang" },
-    coolant_level:   { label: "Coolant Level",    type: "warn" },
-    oil_level:       { label: "Oil Level",        type: "warn" },
-    tyre_punctured:  { label: "Tyre Punctured",   type: "dang" },
-    tyre_press_low:  { label: "Tyre Press. Low",  type: "warn" },
-    battery_fault:   { label: "Battery",          type: "dang" },
-    generator_fault: { label: "Generator",        type: "dang" },
-    mil:             { label: "Check Engine",     type: "warn" },
-    abs_fault:       { label: "ABS Fault",        type: "dang" },
-    esp_fault:       { label: "ESP Fault",        type: "dang" },
-    brake_pad:       { label: "Brake Pads",       type: "warn" },
-    steering_fault:  { label: "Power Steering",   type: "warn" },
-    fap_clogged:     { label: "DPF Clogged",      type: "warn" },
-    antipollution:   { label: "Anti-pollution",   type: "warn" },
-    gearbox_fault:   { label: "Gearbox",          type: "warn" },
-    water_diesel:    { label: "Water in Diesel",  type: "warn" },
-    engine_cold:     { label: "Engine Cold",      type: "sig"  },
+    handbrake_signal:    { source:"signal", label:"Parking brake",   icon:"brake",          severity:"red" },
+    stop_light:          { source:"signal", label:"STOP",            icon:"stop",           severity:"red" },
+    service_exclamation: { source:"signal", label:"Service",         icon:"service",        severity:"amber" },
+    door_open:           { source:"signal", label:"Door open",       icon:"door-open",      severity:"red" },
+    diesel_preheat:      { source:"signal", label:"Diesel preheat",  icon:"glow-plug",      severity:"amber" },
+    pax_belt_warn:       { source:"signal", label:"Passenger belt",  icon:"seat-belt",      severity:"red", flashKey:"pax_belt_blink" },
+    drv_belt_warn:       { source:"signal", label:"Driver belt",     icon:"seat-belt",      severity:"red", flashKey:"drv_belt_blink" },
+    fuel_low:            { source:"signal", label:"Low fuel",        icon:"low-fuel",       severity:"amber" },
+    warning_active:      { source:"signal", label:"General warning", icon:"warning",        severity:"amber" },
+    oil_pressure:        { source:"indicator", label:"Oil pressure", icon:"oil-pressure",   severity:"red" },
+    coolant_max:         { source:"indicator", label:"Coolant temp", icon:"temperature",    severity:"red" },
+    brake_fluid:         { source:"indicator", label:"Brake system", icon:"brake",          severity:"red" },
+    coolant_level:       { source:"indicator", label:"Coolant level",icon:"temperature",    severity:"amber" },
+    oil_level:           { source:"indicator", label:"Oil level",    icon:"oil-pressure",   severity:"amber" },
+    battery_fault:       { source:"indicator", label:"Battery",      icon:"battery",        severity:"red" },
+    generator_fault:     { source:"indicator", label:"Charging",     icon:"battery",        severity:"red" },
+    mil:                 { source:"indicator", label:"Check engine", icon:"engine-warning", severity:"amber" },
+    abs_fault:           { source:"indicator", label:"ABS",          icon:"abs",            severity:"amber" },
+    esp_fault:           { source:"indicator", label:"ESP",          icon:"warning",        severity:"amber" },
+    passive_safety:      { source:"indicator", label:"Airbag",       icon:"airbag",         severity:"red" },
+    brake_pad:           { source:"indicator", label:"Brake pads",   icon:"brake",          severity:"amber" },
+    steering_fault:      { source:"indicator", label:"Steering",     icon:"warning",        severity:"amber" },
+    fap_clogged:         { source:"indicator", label:"DPF",          icon:"dpf",            severity:"amber" },
+    antipollution:       { source:"indicator", label:"Emissions",    icon:"engine-warning", severity:"amber" },
+    gearbox_fault:       { source:"indicator", label:"Gearbox",      icon:"warning",        severity:"amber" },
+    water_diesel:        { source:"indicator", label:"Diesel filter",icon:"warning",        severity:"amber" }
 };
 
-// ── Alert descriptions ────────────────────────────────────────────────
+// --- Alert descriptions -----------------------------------------------
 const ALERT_DISPLAY = {
-    top_up_coolant:      { label: "Top up coolant level",              danger: false },
-    power_steering_stop: { label: "Power steering faulty — STOP",      danger: true  },
-    braking_system_stop: { label: "Braking system faulty — STOP",      danger: true  },
-    engine_temp_stop:    { label: "Engine temperature fault — STOP",   danger: true  },
-    oil_pressure_stop:   { label: "Engine oil pressure fault — STOP",  danger: true  },
-    fuel_too_low:        { label: "Fuel level too low",                danger: false },
-    top_up_engine_oil:   { label: "Top up engine oil level",           danger: false },
-    brake_pads_worn:     { label: "Brake pads worn",                   danger: false },
-    water_in_diesel:     { label: "Water in diesel filter",            danger: false },
-    battery_fault:       { label: "Battery / electrical supply fault", danger: true  },
-    esp_fault:           { label: "ESP/ASR system faulty",             danger: true  },
-    suspension_fault:    { label: "Suspension faulty",                 danger: false },
-    abs_fault:           { label: "ABS braking system faulty",         danger: true  },
-    engine_fault:        { label: "Engine fault — repair needed",      danger: false },
-    dpf_additive_low:    { label: "DPF additive level too low",        danger: false },
-    dpf_clogging_risk:   { label: "Risk of DPF clogging",             danger: false },
-    fuel_flap_unlocked:  { label: "Fuel tank access not locked",       danger: false },
-    anti_theft_fault:    { label: "Electronic anti-theft faulty",      danger: false },
-    steering_lock_fault: { label: "Steering lock fault",               danger: true  },
-    cruise_ctrl_fault:   { label: "Cruise control system faulty",      danger: false },
-    remote_bat_flat:     { label: "Remote control battery flat",       danger: false },
-    washer_low:          { label: "Screen wash fluid level too low",   danger: false },
-    tyre_not_monitored:  { label: "Tyre pressures not monitored",      danger: false },
-    airbag_fault:        { label: "Airbags / pretensioners faulty",    danger: true  },
+    top_up_coolant:      { label:"Top up coolant level",              severity:"warning", icon:"temperature" },
+    power_steering_stop: { label:"Power steering faulty — STOP",      severity:"critical",icon:"stop" },
+    braking_system_stop: { label:"Braking system faulty — STOP",      severity:"critical",icon:"brake" },
+    engine_temp_stop:    { label:"Engine temperature fault — STOP",   severity:"critical",icon:"temperature" },
+    oil_pressure_stop:   { label:"Engine oil pressure fault — STOP",  severity:"critical",icon:"oil-pressure" },
+    fuel_too_low:        { label:"Fuel level too low",                 severity:"warning", icon:"low-fuel" },
+    top_up_engine_oil:   { label:"Top up engine oil level",           severity:"warning", icon:"oil-pressure" },
+    brake_pads_worn:     { label:"Brake pads worn",                   severity:"warning", icon:"brake" },
+    water_in_diesel:     { label:"Water in diesel filter",            severity:"warning", icon:"warning" },
+    battery_fault:       { label:"Battery / electrical supply fault", severity:"critical",icon:"battery" },
+    esp_fault:           { label:"ESP/ASR system faulty",             severity:"critical",icon:"warning" },
+    suspension_fault:    { label:"Suspension faulty",                 severity:"warning", icon:"warning" },
+    abs_fault:           { label:"ABS braking system faulty",         severity:"critical",icon:"abs" },
+    engine_fault:        { label:"Engine fault — repair needed",      severity:"warning", icon:"engine-warning" },
+    dpf_additive_low:    { label:"DPF additive level too low",        severity:"warning", icon:"dpf" },
+    dpf_clogging_risk:   { label:"Risk of DPF clogging",              severity:"warning", icon:"dpf" },
+    fuel_flap_unlocked:  { label:"Fuel tank access not locked",       severity:"warning", icon:"low-fuel" },
+    anti_theft_fault:    { label:"Electronic anti-theft faulty",      severity:"warning", icon:"warning" },
+    steering_lock_fault: { label:"Steering lock fault",               severity:"critical",icon:"stop" },
+    cruise_ctrl_fault:   { label:"Cruise control system faulty",      severity:"warning", icon:"cruise" },
+    remote_bat_flat:     { label:"Remote control battery flat",       severity:"warning", icon:"battery" },
+    washer_low:          { label:"Screen wash fluid level too low",   severity:"warning", icon:"warning" },
+    tyre_not_monitored:  { label:"Tyre pressures not monitored",      severity:"warning", icon:"warning" },
+    airbag_fault:        { label:"Airbags / pretensioners faulty",    severity:"critical",icon:"airbag" },
+    // AlertHistory2
+    a2_sidelamp_faulty:            { label:"Sidelamp bulb faulty",                        severity:"warning", icon:"warning" },
+    a2_rear_lh_tyre_punctured:     { label:"Rear left tyre punctured",                    severity:"critical",icon:"warning" },
+    a2_rear_rh_tyre_punctured:     { label:"Rear right tyre punctured",                   severity:"critical",icon:"warning" },
+    a2_front_rh_tyre_punctured:    { label:"Front right tyre punctured",                  severity:"critical",icon:"warning" },
+    a2_front_lh_tyre_punctured:    { label:"Front left tyre punctured",                   severity:"critical",icon:"warning" },
+    a2_rh_brake_light_faulty:      { label:"Right brake light bulb faulty",               severity:"warning", icon:"warning" },
+    a2_main_beam_faulty1:          { label:"Main beam bulb faulty",                       severity:"warning", icon:"warning" },
+    a2_main_beam_faulty2:          { label:"Main beam bulb faulty (2)",                   severity:"warning", icon:"warning" },
+    a2_dipped_beam_faulty1:        { label:"Dipped beam bulb faulty",                     severity:"warning", icon:"warning" },
+    a2_dipped_beam_faulty2:        { label:"Dipped beam bulb faulty (2)",                 severity:"warning", icon:"warning" },
+    a2_sidelamp_faulty1:           { label:"Sidelamp bulb faulty (1)",                    severity:"warning", icon:"warning" },
+    a2_sidelamp_faulty2:           { label:"Sidelamp bulb faulty (2)",                    severity:"warning", icon:"warning" },
+    a2_sidelamp_faulty3:           { label:"Sidelamp bulb faulty (3)",                    severity:"warning", icon:"warning" },
+    a2_direction_ind_faulty1:      { label:"Direction indicator faulty (1)",              severity:"warning", icon:"warning" },
+    a2_direction_ind_faulty2:      { label:"Direction indicator faulty (2)",              severity:"warning", icon:"warning" },
+    a2_direction_ind_faulty3:      { label:"Direction indicator faulty (3)",              severity:"warning", icon:"warning" },
+    a2_front_fog_faulty1:          { label:"Front fog lamp faulty",                       severity:"warning", icon:"front-fog" },
+    a2_front_fog_faulty2:          { label:"Front fog lamp faulty (2)",                   severity:"warning", icon:"front-fog" },
+    a2_rear_fog_faulty1:           { label:"Rear fog lamp faulty",                        severity:"warning", icon:"rear-fog" },
+    a2_rear_fog_faulty2:           { label:"Rear fog lamp faulty (2)",                    severity:"warning", icon:"rear-fog" },
+    a2_lh_brake_light_faulty:      { label:"Left brake light bulb faulty",                severity:"warning", icon:"warning" },
+    a2_lh_reversing_lamp_faulty:   { label:"Left reversing lamp faulty",                  severity:"warning", icon:"warning" },
+    a2_rh_reversing_lamp_faulty:   { label:"Right reversing lamp faulty",                 severity:"warning", icon:"warning" },
+    a2_direction_ind_faulty:       { label:"Direction indicators faulty",                 severity:"warning", icon:"warning" },
+    a2_tyre_press_low1:            { label:"Tyre pressure too low",                       severity:"warning", icon:"warning" },
+    a2_tyre_press_low2:            { label:"Tyre pressure too low (2)",                   severity:"warning", icon:"warning" },
+    a2_parking_assist_faulty:      { label:"Parking assistance system faulty",            severity:"warning", icon:"parking-aid" },
+    a2_emissions_fault:            { label:"Emissions system fault",                      severity:"warning", icon:"engine-warning" },
+    a2_emissions_fault_start_prev: { label:"Emissions fault — starting prevented",        severity:"critical",icon:"stop" },
+    a2_switch_off_lamps:           { label:"Switch off the lamps",                        severity:"warning", icon:"warning" },
+    a2_tyre_press_low3:            { label:"Tyre pressure too low (3)",                   severity:"warning", icon:"warning" },
+    a2_tyre_press_low4:            { label:"Tyre pressure too low (4)",                   severity:"warning", icon:"warning" },
+    a2_rear_lh_door_open:          { label:"Rear left door open",                         severity:"warning", icon:"door-open" },
+    a2_rear_rh_door_open:          { label:"Rear right door open",                        severity:"warning", icon:"door-open" },
+    a2_front_lh_door_open:         { label:"Front left door open",                        severity:"warning", icon:"door-open" },
+    a2_front_rh_door_open:         { label:"Front right door open",                       severity:"warning", icon:"door-open" },
+    a2_risk_of_ice:                { label:"Risk of ice",                                 severity:"warning", icon:"temperature" },
+    a2_auto_gearbox_pos_p:         { label:"Place automatic gearbox in position P",       severity:"warning", icon:"warning" },
+    // AlertHistory3
+    a3_high_speed_check_tyres:     { label:"Check tyre pressures (high speed)",           severity:"warning", icon:"warning" },
+    a3_fuel_flap_not_locked:       { label:"Fuel tank access not properly locked",        severity:"warning", icon:"low-fuel" },
+    a3_rear_screen_open:           { label:"Rear screen open",                            severity:"warning", icon:"warning" },
+    a3_bonnet_open:                { label:"Bonnet open",                                 severity:"warning", icon:"hood-open" },
+    a3_boot_open:                  { label:"Boot open",                                   severity:"warning", icon:"trunk-open" },
+    a3_directional_headlamps_faulty:{ label:"Directional headlamps faulty",              severity:"warning", icon:"warning" },
+    a3_s_bonnet_open:              { label:"Bonnet open (status)",                        severity:"warning", icon:"hood-open" },
+    a3_adj_wing_fault:             { label:"Adjustable wing fault — speed restricted",    severity:"critical",icon:"stop" },
+    a3_parking_brake_faulty:       { label:"Parking brake faulty",                        severity:"warning", icon:"brake" },
+    a3_gearbox_fault:              { label:"Gearbox fault — repair needed",               severity:"warning", icon:"warning" },
+    a3_engine_fault:               { label:"Engine fault — repair needed",                severity:"warning", icon:"engine-warning" },
+    a3_tyre_press_too_low:         { label:"Tyre pressures too low",                      severity:"warning", icon:"warning" },
+    a3_lane_warning_faulty:        { label:"Lane crossing warning device faulty",         severity:"warning", icon:"warning" },
+    a3_rear_lh_tyre_not_monitored: { label:"Rear left tyre not monitored",               severity:"warning", icon:"warning" },
+    a3_rear_rh_tyre_not_monitored: { label:"Rear right tyre not monitored",              severity:"warning", icon:"warning" },
+    a3_front_rh_tyre_not_monitored:{ label:"Front right tyre not monitored",             severity:"warning", icon:"warning" },
+    a3_front_lh_tyre_not_monitored:{ label:"Front left tyre not monitored",              severity:"warning", icon:"warning" },
+    a3_tyre_deflation_fault:       { label:"Tyre under-inflation detection fault",        severity:"warning", icon:"warning" },
+    a3_engine_fault_stop:          { label:"Engine fault — stop the vehicle",             severity:"critical",icon:"stop" },
+    a3_inter_vehicle_time_fault:   { label:"Inter-vehicle time measuring fault",          severity:"warning", icon:"warning" },
+    a3_power_steering_faulty:      { label:"Power steering faulty",                       severity:"warning", icon:"warning" },
+    a3_suspension_faulty:          { label:"Suspension faulty",                           severity:"warning", icon:"warning" },
+    a3_scr_additive_start_prev:    { label:"Refill SCR additive — starting prevented",    severity:"critical",icon:"stop" },
+    a3_scr_additive1:              { label:"Refill SCR additive",                         severity:"warning", icon:"dpf" },
+    a3_scr_additive2:              { label:"Refill emissions additive",                   severity:"warning", icon:"dpf" },
+    a3_lh_front_tyre_underinflated:{ label:"Left front tyre under-inflated — reinitialise",  severity:"warning", icon:"warning" },
+    a3_rh_front_tyre_underinflated:{ label:"Right front tyre under-inflated — reinitialise", severity:"warning", icon:"warning" },
+    a3_lh_rear_tyre_underinflated: { label:"Left rear tyre under-inflated — reinitialise",   severity:"warning", icon:"warning" },
+    a3_rh_rear_tyre_underinflated: { label:"Right rear tyre under-inflated — reinitialise",  severity:"warning", icon:"warning" },
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────
+// --- Helpers ----------------------------------------------------------
 function setText(id, v) {
     const el = document.getElementById(id);
     if (el) el.textContent = v;
@@ -640,45 +1023,175 @@ function setPill(pillId, textId, text, cls) {
     if (txt)  txt.textContent = text;
 }
 
-// ── Update functions ──────────────────────────────────────────────────
-function updateMetrics(data) {
-    setText('d-speed',     Math.round(applyMap(data.Speed, 'Speed')));
-    setText('d-rpm',       Math.round(applyMap(data.Rpm, 'Rpm')).toLocaleString());
-    setText('d-odo',       applyMap(data.Odometer, 'Odometer').toFixed(1));
-    setText('d-fuel',      data.FuelLevel ?? '--');
-    setText('d-oil-temp',  data.EngineOilTemperature ?? '--');
-    setText('d-oil-lvl',   data.EngineOilLevel ?? '--');
-    setText('d-inst-cons', data.InstantConsumption ?? '--');
-    setText('d-rem-range', data.RemainingRange ?? '--');
-    setText('d-tot-range', data.TotalRange ?? '--');
-    setText('d-parking',   data.ParkingAidStatus ?? '--');
+const SVG_NS = "http://www.w3.org/2000/svg";
+const XLINK_NS = "http://www.w3.org/1999/xlink";
+const indicatorElements = {};
 
-    // External temperature: raw 255 = sensor not available
-    setText('d-temp', data.ExternalTemperature === 255
-        ? '--'
-        : applyMap(data.ExternalTemperature, 'ExternalTemperature').toFixed(1));
+function createIcon(symbol, decorative = true) {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    const use = document.createElementNS(SVG_NS, "use");
+    svg.setAttribute("class", "dashboard-icon");
+    if (decorative) svg.setAttribute("aria-hidden", "true");
+    use.setAttribute("href", "#icon-" + symbol);
+    use.setAttributeNS(XLINK_NS, "xlink:href", "#icon-" + symbol);
+    svg.appendChild(use);
+    return svg;
+}
 
-    // Fuel bar
-    const pct = Math.min(100, Math.max(0, data.FuelLevel || 0));
-    const bar  = document.getElementById('fuel-bar');
-    if (bar) {
-        bar.style.width  = pct + '%';
-        bar.className    = 'fuel-bar' + (pct <= 15 ? ' low' : pct <= 30 ? ' medium' : '');
+function createIndicator(container, key, cfg) {
+    const el = document.createElement("div");
+    const label = document.createElement("span");
+    el.className = "indicator severity-" + cfg.severity;
+    el.dataset.state = "unknown";
+    el.setAttribute("role", "img");
+    label.className = "indicator-label";
+    label.textContent = cfg.label;
+    el.append(createIcon(cfg.icon), label);
+    container.appendChild(el);
+    indicatorElements[key] = el;
+}
+
+function initializeIcons() {
+    const signalContainer = document.getElementById("signal-lights");
+    const warningContainer = document.getElementById("warning-lights");
+    Object.entries(SIGNAL_DISPLAY).forEach(([key, cfg]) => createIndicator(signalContainer, "signal-" + key, cfg));
+    Object.entries(WARNING_DISPLAY).forEach(([key, cfg]) => createIndicator(warningContainer, "warning-" + key, cfg));
+
+    const metricIcons = [
+        ["d-speed","speed"],
+        ["d-rpm","rpm"],
+        ["d-fuel","low-fuel"],
+        ["d-temp","temperature"],
+        ["d-odo","odometer"],
+        ["d-oil-temp","temperature"],
+        ["d-coolant-temp","temperature"],
+        ["d-oil-lvl","oil-pressure"],
+        ["d-inst-cons","consumption"],
+        ["d-rem-range","range"],
+        ["d-tot-range","range"],
+        ["d-maintenance-km","wrench"],
+        ["d-gearbox","gearbox"],
+    ];
+    metricIcons.forEach(([valueId, icon]) => {
+        const label = document.getElementById(valueId)?.parentElement?.querySelector(".metric-label");
+        if (label) label.prepend(createIcon(icon));
+    });
+    const cruiseHeader = document.getElementById("cc-status")?.closest(".card")?.querySelector(".card-header");
+    if (cruiseHeader) {
+        cruiseHeader.style.display = "flex";
+        cruiseHeader.style.alignItems = "center";
+        cruiseHeader.style.gap = "0.4rem";
+        cruiseHeader.prepend(createIcon("cruise"));
+    }
+    const fuelTrackerHeader = document.getElementById("fuel-tracker-card")?.querySelector(".card-header");
+    if (fuelTrackerHeader) {
+        fuelTrackerHeader.style.display = "flex";
+        fuelTrackerHeader.style.alignItems = "center";
+        fuelTrackerHeader.style.gap = "0.4rem";
+        fuelTrackerHeader.prepend(createIcon("low-fuel"));
     }
 
-    // Trip 1 & 2
-    setText('t1-spd',  (data.Trip1Speed       ?? '--') + ' km/h');
-    setText('t1-dist', (data.Trip1Distance     ?? '--') + ' km');
-    setText('t1-cons', (data.Trip1Consumption  ?? '--') + ' l/100');
-    setText('t2-spd',  (data.Trip2Speed        ?? '--') + ' km/h');
-    setText('t2-dist', (data.Trip2Distance     ?? '--') + ' km');
-    setText('t2-cons', (data.Trip2Consumption  ?? '--') + ' l/100');
+    const doorIcons = {
+        "door-hood":"hood-open", "door-trunk":"trunk-open", "door-fuel":"low-fuel",
+        "door-fl":"door-open", "door-fr":"door-open", "door-rl":"door-open", "door-rr":"door-open"
+    };
+    Object.entries(doorIcons).forEach(([id, icon]) => document.getElementById(id)?.prepend(createIcon(icon)));
+}
+
+function setIndicator(key, cfg, active, known = true, flashing = false) {
+    const el = indicatorElements[key];
+    if (!el) return;
+    const state = known ? (active ? "active" : "inactive") : "unknown";
+    if (el.dataset.state === state && el.dataset.flashing === String(flashing)) return;
+    el.dataset.state = state;
+    el.dataset.flashing = String(flashing);
+    el.classList.toggle("active", known && active);
+    el.classList.toggle("flashing", known && active && flashing);
+    el.setAttribute("aria-label", cfg.label + ": " + (known ? (active ? "active" : "inactive") : "unavailable"));
+}
+
+// --- Update functions -----------------------------------------------
+function updateMetrics(data) {
+    setText('d-speed',     getText(data.Speed, 0xFFFF, 'Speed', 0));
+    setText('d-rpm',       getText(data.Rpm, 0xFFFF, 'Rpm', 0).toLocaleString());
+    setText('d-odo',       getText(data.Odometer, 0xFFFFFF, 'Odometer', 1));
+
+    setText('d-fuel',     getText(data.FuelLevel, 0xFF, null, 0));
+
+    const maintenanceSignKm = data.MaintenanceSignKm == 0 ? '' : '-';
+    setText('d-maintenance-km', maintenanceSignKm + ' ' + getText(data.MaintenanceKilometers, data.SOURCE_PROTOCOL == 1 ? 0x7FFE : 0xFFFF, 'MaintenanceKilometers', 0));
+
+    // Engine oil & coolant temperature: raw 255 = sensor not available
+    let oilTempText = data.Ignition ? getText(data.EngineOilTemperature, 0xFF, 'OilTemperature', 0) : '--';
+    let coolantTempText = data.Ignition ? getText(data.CoolantTemperature, 0xFF, 'CoolantTemperature', 0) : '--';
+    setText('d-oil-temp', oilTempText);
+    setText('d-coolant-temp', coolantTempText);
+    setText('d-oil-lvl', getText(data.EngineOilLevel, 0xFF, 'EngineOilLevel', 0));
+
+    // External temperature: raw 255 = sensor not available
+    setText('d-temp', getText(data.ExternalTemperature, 0xFF, 'ExternalTemperature'));
+
+    // Fuel bar
+    const fuelPct = getPercent(data.FuelLevel);
+    setBar('fuel-bar', fuelPct);
+
+    const oilPct = getPercent(data.EngineOilLevel);
+    setBar('oil-bar', oilPct);
+
+    const gearboxSelection = data.GearBoxSelection;
+    const gearboxPosition = data.GearPositionCmb;
+    const gearboxMode = data.GearBoxMode;
+    const gearboxPositionInDriving = data.GearPositionInDriving;
+
+    var gearboxDisplay = "--";
+    var gearboxPositionMap = { 0: "P", 1: "R", 2: "N", 3: "D", 4: "6", 5: "5", 6: "4", 7: "3", 8: "2", 9: "1" };
+    var gearDisplayMap = { 0: "", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "" };
+    var gearboxSelectionMap = { 0: "BVA", 1: "BVM", 2: "BVMP"};
+    var gearboxModeMap = { 0: "", 1: "", 2: "", 3: "", 4: "M", 5: "M", 6: "" };
+    var sportOrSnow = { 0:"", 1:"", 2: "(S)", 3:"", 4:"", 5: "(S)", 6: "(*)", 7: ""};
+    if (data.Ignition && gearboxSelection == 0)
+    {
+        gearboxDisplay = gearboxModeMap[gearboxMode] + gearboxPositionMap[gearboxPosition] + gearDisplayMap[gearboxPositionInDriving] + sportOrSnow[gearboxMode];
+    }
+    setText('d-gearbox', gearboxDisplay);
+    setText('d-gearbox-mode',sportOrSnow[gearboxMode]);
+
+    // Inst. Consumption & Trip 1 & 2
+    setText('d-inst-cons', getText(data.InstantConsumption, 0xFFFF, 'Consumption', 1) + ' l/100');
+    setText('d-rem-range', getText(data.RemainingRange, 0xFFFF, 'RemainingRange') + ' km');
+    setText('d-tot-range', getText(data.TotalRange, 0xFFFF, 'TotalRange') + ' km');
+    setText('d-inst-cons-mm3', getText(data.ConsumptionForCMB, 0, 'ConsumptionForCMB') + ' mm3');
+
+    setText('t1-spd',  getText(data.Trip1Speed, 0xFFFF) + ' km/h');
+    setText('t1-dist', getText(data.Trip1Distance, 0xFFFF) + ' km');
+    setText('t1-cons', getText(data.Trip1Consumption, 0xFFFF, 'Consumption', 1) + ' l/100');
+
+    setText('t2-spd',  getText(data.Trip2Speed, 0xFFFF) + ' km/h');
+    setText('t2-dist', getText(data.Trip2Distance, 0xFFFF) + ' km');
+    setText('t2-cons', getText(data.Trip2Consumption, 0xFFFF, 'Consumption', 1) + ' l/100');
 
     // Cruise control
     const CC_FUNCS = { 0: 'Off', 1: 'Cruise', 2: 'Speed Limiter', 3: 'CC + Limiter' };
-    setText('cc-status', data.CruiseControlActivateFunction ? 'Active' : 'Inactive');
+    setText('cc-status', data.CruiseControlStatusOfSelectedFunction ? 'Active' : 'Inactive');
     setText('cc-func',   CC_FUNCS[data.CruiseControlSelectedFunction] ?? '--');
-    setText('cc-spd',    (data.CruiseControlSpeed ?? '--') + ' km/h');
+    setText('cc-spd',    getText(data.CruiseControlSpeed, 0xFFFF, 'Speed') + ' km/h');
+}
+
+function getText(value, invalidValue, applyMapKey = null, roundTo = 0)
+{
+    return value === invalidValue ? '--' : (applyMapKey ? applyMap(value, applyMapKey).toFixed(roundTo) : value.toFixed(roundTo));
+}
+
+function getPercent(value) {
+    return Math.min(100, Math.max(0, value || 0))
+}
+
+function setBar(barId, value) {
+    const bar  = document.getElementById(barId);
+    if (bar) {
+        bar.style.width  = value + '%';
+        bar.className    = 'fuel-bar' + (value <= 15 ? ' low' : value <= 30 ? ' medium' : '');
+    }
 }
 
 function updatePills(data) {
@@ -700,62 +1213,426 @@ function updatePills(data) {
 }
 
 function updateDoors(doorStatus) {
+    const known = doorStatus !== undefined && doorStatus !== null;
     const bits = parseBitfield(doorStatus, DOOR_FIELDS, false);
-    const setDoor = (id, isOpen) => {
+    const setDoor = (id, isOpen, label) => {
         const el = document.getElementById(id);
-        if (el) el.className = 'door-cell ' + (isOpen ? 'open' : 'closed');
+        if (!el) return;
+        el.className = 'door-cell ' + (known ? (isOpen ? 'open' : 'closed') : '');
+        el.setAttribute("aria-label", label + ": " + (known ? (isOpen ? "open" : "closed") : "unavailable"));
     };
-    setDoor('door-fl',    bits.front_left_door_open);
-    setDoor('door-fr',    bits.front_right_door_open);
-    setDoor('door-rl',    bits.rear_left_door_open);
-    setDoor('door-rr',    bits.rear_right_door_open);
-    setDoor('door-hood',  bits.hood_open);
-    setDoor('door-trunk', bits.trunk_open);
-    setDoor('door-fuel',  bits.fuel_flap_open);
+    setDoor('door-fl', bits.front_left_door_open, "Front-left door");
+    setDoor('door-fr', bits.front_right_door_open, "Front-right door");
+    setDoor('door-rl', bits.rear_left_door_open, "Rear-left door");
+    setDoor('door-rr', bits.rear_right_door_open, "Rear-right door");
+    setDoor('door-hood', bits.hood_open, "Hood");
+    setDoor('door-trunk', bits.trunk_open, "Trunk");
+    setDoor('door-fuel', bits.fuel_flap_open, "Fuel flap");
 }
 
-function updateLights(containerId, rawValue, fields, isBigInt, displayCfg) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    const bits = parseBitfield(rawValue, fields, isBigInt);
-    let html = '';
-    for (const [key, cfg] of Object.entries(displayCfg)) {
-        if (bits[key]) {
-            html += `<span class="lbadge ${cfg.type}">${cfg.label}</span>`;
-        }
-    }
-    el.innerHTML = html || '<span class="no-data">None active</span>';
+function updateIndicators(data) {
+    const signalKnown = data.CarSignalLights !== undefined && data.CarSignalLights !== null;
+    const warningKnown = data.CarIndicatorLights !== undefined && data.CarIndicatorLights !== null;
+    const signals = parseBitfield(data.CarSignalLights, SIGNAL_FIELDS, true);
+    const warnings = parseBitfield(data.CarIndicatorLights, INDICATOR_FIELDS, true);
+
+    Object.entries(SIGNAL_DISPLAY).forEach(([key, cfg]) => {
+        const active = cfg.derive ? cfg.derive(signals) : !!signals[key];
+        setIndicator("signal-" + key, cfg, active, signalKnown, !!cfg.flash);
+    });
+    Object.entries(WARNING_DISPLAY).forEach(([key, cfg]) => {
+        const source = cfg.source === "signal" ? signals : warnings;
+        const known = cfg.source === "signal" ? signalKnown : warningKnown;
+        setIndicator("warning-" + key, cfg, !!source[key], known, !!(cfg.flashKey && source[cfg.flashKey]));
+    });
 }
 
+let lastAlertsSignature = null;
 function updateAlerts(data) {
     const el = document.getElementById('alerts-body');
     if (!el) return;
-    const raw = data.AlertHistory1;
-    if (!raw || raw === '0') {
-        el.innerHTML = '<span class="no-data">No active alerts</span>';
+    const raw1 = data.AlertHistory1;
+    const raw2 = data.AlertHistory2;
+    const raw3 = data.AlertHistory3;
+    const hasData = (raw1 !== undefined && raw1 !== null) ||
+                    (raw2 !== undefined && raw2 !== null) ||
+                    (raw3 !== undefined && raw3 !== null);
+    if (!hasData) {
+        if (lastAlertsSignature !== "unknown") el.innerHTML = '<span class="no-data">Alert data unavailable</span>';
+        lastAlertsSignature = "unknown";
         return;
     }
-    const bits = parseBitfield(raw, ALERT1_FIELDS, true);
-    let html = '';
-    for (const [key, cfg] of Object.entries(ALERT_DISPLAY)) {
-        if (bits[key]) {
-            html += `<div class="alert-item${cfg.danger ? ' danger' : ''}">${cfg.label}</div>`;
-        }
+    const bits1 = parseBitfield(raw1, ALERT1_FIELDS, true);
+    const bits2 = parseBitfield(raw2, ALERT2_FIELDS, true);
+    const bits3 = parseBitfield(raw3, ALERT3_FIELDS, true);
+    const allBits = Object.assign({}, bits1, bits2, bits3);
+    const active = Object.entries(ALERT_DISPLAY)
+        .filter(([key]) => allBits[key])
+        .sort((a, b) => (a[1].severity === "critical" ? 0 : 1) - (b[1].severity === "critical" ? 0 : 1));
+    const signature = active.map(([key]) => key).join("|");
+    if (signature === lastAlertsSignature) return;
+    lastAlertsSignature = signature;
+    el.replaceChildren();
+    if (!active.length) {
+        const empty = document.createElement("span");
+        empty.className = "no-data";
+        empty.textContent = "No active alerts";
+        el.appendChild(empty);
+        return;
     }
-    el.innerHTML = html || '<span class="no-data">No active alerts</span>';
+    active.forEach(([, cfg]) => {
+        const item = document.createElement("div");
+        const copy = document.createElement("span");
+        const severity = document.createElement("span");
+        item.className = "alert-item" + (cfg.severity === "critical" ? " danger" : "");
+        item.setAttribute("role", "alert");
+        copy.className = "alert-copy";
+        severity.className = "alert-severity";
+        severity.textContent = cfg.severity;
+        copy.append(severity, document.createTextNode(cfg.label));
+        item.append(createIcon(cfg.icon), copy);
+        el.appendChild(item);
+    });
 }
 
-// ── Main update ───────────────────────────────────────────────────────
+function decodeBitStruct(value, definition) {
+    const result = {};
+    let offset = 0n;
+
+    for (const [name, field] of Object.entries(definition)) {
+        const width = typeof field === "number" ? field : field.width;
+        const fieldOffset = typeof field === "number" ? offset : BigInt(field.offset);
+        const bits = BigInt(width);
+
+        result[name] =
+            Number((value >> fieldOffset) & ((1n << bits) - 1n));
+
+        offset = fieldOffset + bits;
+    }
+
+    return result;
+}
+
+const PARKING_DIRS = ["fl", "fc", "fr", "rl", "rc", "rr"];
+let manualParkingBars = null;
+
+function toInt(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? Math.trunc(num) : 0;
+}
+
+function decodeParkingBarsFromZone(dir, zone, maxBars) {
+    // CAN 0x0E1 uses sparse zone encodings for front and center sensors.
+    // Keep a fallback to linear scaling for robustness with alternate sources.
+    const z = toInt(zone);
+    if (z < 0 || z > 7) return 0;
+
+    const FRONT_SIDE_ZONE_TO_BARS = {
+        7: 0, 6: 0, 5: 0, 4: 0,
+        3: 1,
+        2: 2, 1: 2,
+        0: 3
+    };
+    const REAR_CENTER_ZONE_TO_BARS = {
+        7: 0,
+        6: 1, 5: 1,
+        4: 2, 3: 2,
+        2: 3, 1: 3,
+        0: 4
+    };
+
+    const FRONT_CENTER_ZONE_TO_BARS = {
+        7: 0,
+        6: 1, 5: 1,
+        4: 2, 3: 2,
+        2: 3, 1: 3,
+        0: 4
+    };
+
+    const REAR_SIDE_ZONE_TO_BARS = {
+        7: 0, 6: 0, 5: 0, 4: 0,
+        3: 1,
+        2: 2, 1: 2,
+        0: 3,
+    };
+
+    let mapped;
+    if (dir === "fl" || dir === "fr") {
+        mapped = FRONT_SIDE_ZONE_TO_BARS[z];
+    } else if (dir === "fc") {
+        mapped = FRONT_CENTER_ZONE_TO_BARS[z];
+    } else if (dir === "rc") {
+        mapped = REAR_CENTER_ZONE_TO_BARS[z];
+    } else {
+        mapped = REAR_SIDE_ZONE_TO_BARS[z];
+    }
+
+    if (mapped === undefined) {
+        mapped = Math.round(((7 - z) / 7) * maxBars);
+    }
+
+    return Math.max(0, Math.min(maxBars, mapped));
+}
+
+function decodeParkingAidStatus(rawStatus) {
+    let v;
+    try { v = BigInt(rawStatus ?? 0); }
+    catch (e) { v = 0n; }
+
+    const bytes = [];
+    for (let i = 0n; i < 8n; i++) {
+        const byte = Number((v >> (i * 8n)) & 0xFFn);
+        bytes.push(byte.toString(16).toUpperCase().padStart(2, "0"));
+    }
+    // ParkingAidStatus.h uses uint8_t bitfields. ESP GCC starts a field in the
+    // next byte when it cannot fit in the current byte, so these are explicit
+    // bit offsets in ParkingAidStatusStruct::asNumeric, not packed JS offsets.
+    const ParkingAidStatusStruct = {
+        RearStatus:                 { offset:  0, width: 3 },
+        FrontStatus:                { offset:  3, width: 3 },
+        SoundEnabled:               { offset:  6, width: 1 },
+        Channel:                    { offset:  8, width: 2 },
+
+        rc:                         { offset: 10, width: 3 }, // RearDistance
+        rl:                         { offset: 13, width: 3 }, // RearLeftDistance
+        rr:                         { offset: 16, width: 3 }, // RearRightDistance
+
+        fc:                         { offset: 19, width: 3 }, // FrontDistance
+        fl:                         { offset: 24, width: 3 }, // FrontLeftDistance
+        fr:                         { offset: 27, width: 3 }, // FrontRightDistance
+
+        BeepDirection:              { offset: 30, width: 2 },
+        BeepDuration:               { offset: 32, width: 2 },
+        BeepLocation:               { offset: 34, width: 1 },
+        BeepDelay:                  { offset: 40, width: 8 },
+
+        VanParsingCanStart:         { offset: 48, width: 1 },
+        Show:                       { offset: 49, width: 1 },
+
+        MeasurementSide:            { offset: 50, width: 2 },
+        WhichSideWasMeasured:       { offset: 52, width: 1 },
+        ShowMeasuredSpaceOnDisplay: { offset: 53, width: 1 },
+        MeasuredFreeSpace:          { offset: 54, width: 2 },
+        MeasurementStatus:          { offset: 56, width: 3 }
+    };
+
+    const parkingAid = decodeBitStruct(v, ParkingAidStatusStruct);
+
+    const zonesByDir = {
+        fl: parkingAid.fl,
+        fc: parkingAid.fc,
+        fr: parkingAid.fr,
+        rl: parkingAid.rl,
+        rc: parkingAid.rc,
+        rr: parkingAid.rr
+    };
+
+    const barsByDir = {};
+    for (const dir of PARKING_DIRS) {
+        const maxBars = toInt(document.querySelector('.door-park i[data-dir="' + dir + '"]')?.dataset.max || 4);
+        barsByDir[dir] = decodeParkingBarsFromZone(dir, parkingAid[dir], maxBars);
+    }
+
+    const isActive = parkingAid.Show === 1;
+
+    return {
+        raw: String(rawStatus ?? 0),
+        numeric: v,
+        bytesLEHex: bytes,
+        isActive,
+        parkingAid,
+        zonesByDir,
+        barsByDir
+    };
+}
+
+function debugParkingAidStatus(rawStatus = null) {
+    const raw = rawStatus ?? window.__latestCarState?.ParkingAidStatus ?? 0;
+    const decoded = decodeParkingAidStatus(raw);
+    if (typeof console !== "undefined") {
+        console.group("ParkingAidStatus debug");
+        console.log("raw:", decoded.raw);
+        console.log("bytes LE:", decoded.bytesLEHex.join(" "));
+        console.table(decoded.parkingAid);
+        console.table(decoded.zonesByDir);
+        console.table(decoded.barsByDir);
+        console.log("isActive:", decoded.isActive);
+        console.groupEnd();
+    }
+    return decoded;
+}
+
+if (typeof window !== "undefined") {
+    window.debugParkingAidStatus = debugParkingAidStatus;
+}
+
+function parseParkingAidBits(rawStatus) {
+    const decoded = decodeParkingAidStatus(rawStatus);
+    if (!decoded.isActive) return null;
+    return decoded.barsByDir;
+}
+
+function renderParkingAidBars(levels) {
+    debugParkingAidStatus();  // Log current status for debugging
+    for (const dir of PARKING_DIRS) {
+        const el = document.querySelector('.door-park i[data-dir="' + dir + '"]');
+        if (!el) continue;
+        const maxBars = toInt(el.dataset.max || 4);
+        const next = Math.max(0, Math.min(maxBars, toInt(levels?.[dir] ?? 0)));
+        el.textContent = "|".repeat(next);
+        el.classList.toggle("on", next > 0);
+        el.setAttribute("aria-label", "Parking " + dir + " bars: " + next + " of " + maxBars);
+    }
+}
+
+// Manual override for testing or custom integrations.
+// Usage: setParkingAidBars({ fl: 1, fc: 2, fr: 1, rl: 3, rc: 4, rr: 3 })
+// Reset to automatic source data: setParkingAidBars(null)
+function setParkingAidBars(levels) {
+    if (levels === null || levels === undefined) {
+        manualParkingBars = null;
+        return;
+    }
+    manualParkingBars = Object.assign({}, levels);
+    renderParkingAidBars(manualParkingBars);
+}
+
+function readParkingAidBarsFromData(data) {
+    if (!data || typeof data !== "object") return null;
+
+    if (data.ParkingAidBars && typeof data.ParkingAidBars === "object") {
+        return data.ParkingAidBars;
+    }
+
+    if (
+        data.ParkingAidFrontLeftBars !== undefined ||
+        data.ParkingAidFrontCenterBars !== undefined ||
+        data.ParkingAidFrontRightBars !== undefined ||
+        data.ParkingAidRearLeftBars !== undefined ||
+        data.ParkingAidRearCenterBars !== undefined ||
+        data.ParkingAidRearRightBars !== undefined
+    ) {
+        return {
+            fl: data.ParkingAidFrontLeftBars,
+            fc: data.ParkingAidFrontCenterBars,
+            fr: data.ParkingAidFrontRightBars,
+            rl: data.ParkingAidRearLeftBars,
+            rc: data.ParkingAidRearCenterBars,
+            rr: data.ParkingAidRearRightBars
+        };
+    }
+
+    if (data.ParkingAidStatus !== undefined && data.ParkingAidStatus !== null) {
+        return parseParkingAidBits(data.ParkingAidStatus);
+    }
+
+    return null;
+}
+
+function updateParkingAid(data)
+{
+    const levels = manualParkingBars || readParkingAidBarsFromData(data);
+    renderParkingAidBars(levels || {});
+}
+
+function isFuelPercent(value) {
+    return Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+function isTrackerOdometer(value) {
+    return Number.isFinite(value) && value >= 0;
+}
+
+function formatTrackerOdometer(odometerRaw) {
+    return isTrackerOdometer(odometerRaw)
+        ? applyMap(odometerRaw, 'Odometer').toFixed(1) + ' km'
+        : '--';
+}
+
+function formatTrackerTimestamp(timestamp) {
+    if (typeof timestamp !== 'string') return '--';
+    const match = timestamp.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    return match ? match[1] + ' ' + match[2] : '--';
+}
+
+function updateFuelTracker(data) {
+    if (!fuelTrackerNeedsRender) return;
+    fuelTrackerNeedsRender = false;
+
+    const checkpoint = data && typeof data.checkpoint === 'object' ? data.checkpoint : null;
+    const hasCheckpoint = checkpoint !== null
+        && isFuelPercent(checkpoint.fuelPercent)
+        && isTrackerOdometer(checkpoint.odometer);
+    document.getElementById('fuel-checkpoint-empty').hidden = hasCheckpoint;
+    document.getElementById('fuel-checkpoint-table').hidden = !hasCheckpoint;
+    if (hasCheckpoint) {
+        setText('fuel-checkpoint-level', checkpoint.fuelPercent + ' %');
+        setText('fuel-checkpoint-odometer', formatTrackerOdometer(checkpoint.odometer));
+        setText('fuel-checkpoint-time', formatTrackerTimestamp(checkpoint.timestamp));
+    }
+
+    let refill = null;
+    if (data && Array.isArray(data.refills)) {
+        for (let index = data.refills.length - 1; index >= 0; index--) {
+            const candidate = data.refills[index];
+            if (candidate && isFuelPercent(candidate.beforePercent)
+                && isFuelPercent(candidate.afterPercent)
+                && isTrackerOdometer(candidate.odometer)) {
+                refill = candidate;
+                break;
+            }
+        }
+    }
+
+    const hasRefill = refill !== null;
+    document.getElementById('fuel-refill-empty').hidden = hasRefill;
+    document.getElementById('fuel-refill-table').hidden = !hasRefill;
+    if (hasRefill) {
+        const increase = refill.afterPercent - refill.beforePercent;
+        setText('fuel-refill-change', refill.beforePercent + '% \u2192 ' + refill.afterPercent + '%');
+        setText('fuel-refill-increase', (increase >= 0 ? '+' : '') + increase + '%');
+        setText('fuel-refill-odometer', formatTrackerOdometer(refill.odometer));
+        setText('fuel-refill-time', formatTrackerTimestamp(refill.timestamp));
+    }
+}
+
+async function deleteFuelTrackerData() {
+    const button = document.getElementById('fuel-tracker-delete');
+    const confirmed = window.confirm(
+        'Delete the persisted fuel tracker data? The active tracker may recreate the file when a new checkpoint or refill is recorded.'
+    );
+    if (!confirmed) return;
+
+    if (button) button.disabled = true;
+    try {
+        const response = await fetch(FUEL_TRACKER_API_URL, { method: 'DELETE', cache: 'no-store' });
+        if (!response.ok && response.status !== 404) {
+            throw new Error(response.status);
+        }
+
+        fuelTrackerData = null;
+        fuelTrackerNeedsRender = true;
+        updateFuelTracker(fuelTrackerData);
+    } catch (error) {
+        if (button) button.disabled = false;
+        window.alert('Failed to delete fuel tracker data.');
+        console.warn('Fuel tracker delete failed:', error);
+    }
+}
+
+// --- Main update -----------------------------------------------
 function applyData(data) {
+    window.__latestCarState = data;
     updateMetrics(data);
     updatePills(data);
     updateDoors(data.DoorStatus);
-    updateLights('signal-lights',  data.CarSignalLights,    SIGNAL_FIELDS,    true, SIGNAL_DISPLAY);
-    updateLights('warning-lights', data.CarIndicatorLights, INDICATOR_FIELDS, true, WARNING_DISPLAY);
+    updateIndicators(data);
     updateAlerts(data);
+    updateParkingAid(data);
+    updateFuelTracker(fuelTrackerData);
 }
 
-// ── Polling ───────────────────────────────────────────────────────────
+// --- Polling ----------------------------------------------------------
 async function poll() {
     const dot  = document.getElementById('conn-dot');
     const time = document.getElementById('conn-time');
@@ -776,6 +1653,36 @@ async function poll() {
 //setInterval(poll, POLL_MS);
 
 document.addEventListener('DOMContentLoaded', function () {
+    initializeIcons();
+    window.setParkingAidBars = setParkingAidBars;
+    renderParkingAidBars({});
+    document.getElementById('fuel-tracker-delete')?.addEventListener('click', deleteFuelTrackerData);
+
+    async function loadFuelTracker() {
+        try {
+            const response = await fetch(FUEL_TRACKER_API_URL, { method: 'GET', cache: 'no-store' });
+            if (response.status === 404) {
+                fuelTrackerData = null;
+            } else if (response.ok) {
+                const data = await response.json();
+                const refills = Array.isArray(data?.refills) ? data.refills : [];
+                fuelTrackerData = {
+                    checkpoint: data?.checkpoint || null,
+                    refills: refills.length > 0 ? [refills[refills.length - 1]] : []
+                };
+                document.getElementById('fuel-tracker-delete').disabled = false;
+            } else {
+                throw new Error(response.status);
+            }
+        } catch (error) {
+            fuelTrackerData = null;
+            console.warn('Fuel tracker load failed:', error);
+        }
+
+        fuelTrackerNeedsRender = true;
+        updateFuelTracker(fuelTrackerData);
+    }
+
     async function updateData() {
         const abortController = new AbortController();
         const timeoutHandle = setTimeout(() => {
@@ -794,19 +1701,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (time) time.textContent = new Date().toLocaleTimeString();
 
             } else {
-                throw new Error(res.status);
+                throw new Error(response.status);
             }
         } catch (error) {
             if (dot)  dot.className    = 'conn-dot err';
             if (time) time.textContent = 'Error';
-            console.warn('Dashboard poll failed:', err);
+            updateIndicators({});
+            updateDoors(null);
+            updateAlerts({});
+            console.warn('Dashboard poll failed:', error);
         } finally {
+            clearTimeout(timeoutHandle);
             // Schedule the next call only after this one is fully done.
             // This prevents multiple pending requests.
             setTimeout(updateData, 1000);
         }
     }
 
+    loadFuelTracker();
     updateData();
 });
 </script>

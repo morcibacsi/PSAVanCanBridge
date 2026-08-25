@@ -492,7 +492,7 @@ esp_err_t WebServer::get_html_page_handler(httpd_req_t *req)
     instance->_lastRequestTime = instance->_carState->CurrenTime;
     instance->_inactivityTimeout = WIFI_AFTER_CONNECT_TIMEOUT;
 
-    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_type(req, "text/html; charset=utf-8");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_set_hdr(req, "Connection", "close");
 
@@ -815,8 +815,6 @@ esp_err_t WebServer::post_network_monitor_handler(httpd_req_t *req)
 
 esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
 {
-    printf("GET /api/carstate\n");
-
     auto *instance = static_cast<WebServer *>(req->user_ctx);
     auto _carState = instance->_carState;
     auto _configFile = instance->_configFile;
@@ -826,10 +824,6 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
     {
         printf("Car state is null\n");
         return ESP_FAIL;
-    }
-    else
-    {
-        printf("Car state is not null\n");
     }
 
     httpd_resp_set_type(req, "application/json");
@@ -865,15 +859,23 @@ esp_err_t WebServer::get_carstate_handler(httpd_req_t *req)
     cJSON_AddNumberToObject(json, "Trip2Speed", _carState->Trip2Speed);
     cJSON_AddNumberToObject(json, "Trip2Distance", _carState->Trip2Distance.asUint16);
     cJSON_AddNumberToObject(json, "Trip2Consumption", _carState->Trip2Consumption.asUint16);
+    cJSON_AddNumberToObject(json, "ConsumptionForCMB", _carState->ConsumptionForCMB);
     _configFile->cJSON_AddUInt64Smart(json, "ParkingAidStatus", _carState->ParkingAidStatus.asNumeric);
     cJSON_AddNumberToObject(json, "CoolantTemperature", _carState->CoolantTemperature);
     _configFile->cJSON_AddUInt64Smart(json, "CarSignalLights", _carState->CarSignalLights.asUint64);
     _configFile->cJSON_AddUInt64Smart(json, "CarIndicatorLights", _carState->CarIndicatorLights.asUint64);
+    cJSON_AddNumberToObject(json, "MaintenanceSignKm", _carState->MaintenanceSignKm);
+    cJSON_AddNumberToObject(json, "MaintenanceKilometers", _carState->MaintenanceKilometers.asUint16);
     cJSON_AddNumberToObject(json, "KeepWebServerAlive", _carState->DiagConnected ? 1 : 0);
     cJSON_AddNumberToObject(json, "EmulateTripButtonPress", _carState->EmulateTripButtonPress);
     _configFile->cJSON_AddUInt64Smart(json, "AlertHistory1", _carState->AlertHistory1.asUint64);
     _configFile->cJSON_AddUInt64Smart(json, "AlertHistory2", _carState->AlertHistory2.asUint64);
     _configFile->cJSON_AddUInt64Smart(json, "AlertHistory3", _carState->AlertHistory3.asUint64);
+    cJSON_AddNumberToObject(json, "SOURCE_PROTOCOL", _carState->SOURCE_PROTOCOL);
+    cJSON_AddNumberToObject(json, "GearBoxMode", _carState->GearBoxMode);
+    cJSON_AddNumberToObject(json, "GearBoxSelection", _carState->GearBoxSelection);
+    cJSON_AddNumberToObject(json, "GearPositionCmb", _carState->GearPositionCmb);
+    cJSON_AddNumberToObject(json, "GearPositionInDriving", _carState->GearPositionInDriving);
 
     const char *jsonResponse = cJSON_Print(json);
 
