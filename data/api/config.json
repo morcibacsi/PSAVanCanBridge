@@ -14,6 +14,7 @@
     "SEND_AC_FAN_CHANGES_TO_DISPLAY": false,
     "SEND_AC_CHANGES_TO_DISPLAY": false,
     "QUERY_AC_STATUS": false,
+    "ENABLE_FUEL_REFILL_TRACKING": false,
     "HAS_RTC": true,
     "SEND_TIME": true,
     "PARKING_AID_TYPE":	0,
