@@ -14,6 +14,12 @@
     margin-bottom: 0.75rem;
 }
 
+@media (min-width: 1101px) {
+    .dash-metrics.has-oil-temp {
+        grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1fr;
+    }
+}
+
 .dash-secondary {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -88,6 +94,84 @@
 
 .color-speed { color: #4fc3f7; }
 .color-rpm   { color: #81c784; }
+
+/* --- Temperature state cards ---------------------------------------- */
+/*
+ * These are discrete states, not a continuous temperature gradient.
+ * Only the browser changes these classes; no additional requests are made.
+ */
+.metric-card.temp-state-enabled {
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Very cold: pale blue-white with a subtle frost/crystal texture. */
+.metric-card.temp-state-ice {
+    background:
+        radial-gradient(circle at 17% 24%, rgba(255,255,255,0.16) 0 1px, transparent 2px),
+        radial-gradient(circle at 74% 68%, rgba(190,230,255,0.15) 0 1px, transparent 2px),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 7px),
+        linear-gradient(135deg, #263945 0%, #182832 55%, #213540 100%);
+    border-color: #b8e3ff;
+    box-shadow:
+        inset 0 0 18px rgba(205,238,255,0.08),
+        0 0 7px rgba(155,215,250,0.08);
+}
+.metric-card.temp-state-ice .metric-value {
+    color: #f3fbff;
+    text-shadow: 0 0 8px rgba(185,226,255,0.35);
+}
+.metric-card.temp-state-ice .metric-label,
+.metric-card.temp-state-ice .metric-unit {
+    color: #b8ddeb;
+}
+
+/* Cold -> warming progression. */
+.metric-card.temp-state-cold {
+    background: #091b2a;
+    border-color: #245b84;
+}
+.metric-card.temp-state-cold .metric-value { color: #64b5f6; }
+
+.metric-card.temp-state-cool {
+    background: #0b2433;
+    border-color: #2d6b8b;
+}
+.metric-card.temp-state-cool .metric-value { color: #77c8f2; }
+
+.metric-card.temp-state-warming {
+    background: #0c2928;
+    border-color: #2b7970;
+}
+.metric-card.temp-state-warming .metric-value { color: #72d3c5; }
+
+/* Warm, but not yet the full operating-temperature state. */
+.metric-card.temp-state-warm {
+    background: #10271b;
+    border-color: #39734e;
+}
+.metric-card.temp-state-warm .metric-value { color: #8fd3a5; }
+
+/* Normal operating range. */
+.metric-card.temp-state-normal {
+    background: #0a2018;
+    border-color: #1a6b40;
+}
+.metric-card.temp-state-normal .metric-value { color: #70d69a; }
+
+/* Elevated and critical temperatures. */
+.metric-card.temp-state-hot {
+    background: #281d00;
+    border-color: #8c7000;
+}
+.metric-card.temp-state-hot .metric-value { color: #ffc107; }
+
+.metric-card.temp-state-critical {
+    background: #280808;
+    border-color: #8a1a1a;
+    box-shadow: inset 0 0 14px rgba(220,53,69,0.08);
+}
+.metric-card.temp-state-critical .metric-value { color: #ff6b6b; }
+
 
 /* --- Fuel bar ------------------------------------------------------ */
 .fuel-bar-wrap {
@@ -411,6 +495,7 @@
 
 @media (max-width: 700px) {
     .dash-metrics     { grid-template-columns: 1fr 1fr; }
+    .dash-metrics:not(.has-oil-temp) .odometer-card { grid-column: 1 / -1; }
     .metric-value-lg  { font-size: 3rem; }
     .dash-detail      { grid-template-columns: 1fr; }
 }
@@ -520,12 +605,12 @@
             <div class="metric-value" id="d-temp">--</div>
             <div class="metric-unit">°C</div>
         </div>
-        <div class="card metric-card">
+        <div class="card metric-card odometer-card">
             <div class="metric-label">Odometer</div>
             <div class="metric-value" style="font-size:1.6rem" id="d-odo">--</div>
             <div class="metric-unit">km</div>
         </div>
-        <div class="card metric-card">
+        <div class="card metric-card" id="oil-temp-card" hidden>
             <div class="metric-label">Oil Temp</div>
             <div class="metric-value" id="d-oil-temp">--</div>
             <div class="metric-unit">°C</div>
@@ -1110,6 +1195,80 @@ function setIndicator(key, cfg, active, known = true, flashing = false) {
     el.setAttribute("aria-label", cfg.label + ": " + (known ? (active ? "active" : "inactive") : "unavailable"));
 }
 
+// --- Temperature card states -----------------------------------------
+// Values on the bus are encoded with a -40 C offset. updateTemperatureCard()
+// applies the dashboard's existing VALUE_MAPS conversion before selecting a band.
+//
+// Each pair is [maximum displayed temperature in C, state name].
+const OIL_TEMPERATURE_BANDS = [
+    [3,        'ice'],
+    [39,       'cold'],
+    [54,       'cool'],
+    [64,       'warming'],
+    [79,       'warm'],
+    [120,      'normal'],
+    [129,      'hot'],
+    [Infinity, 'critical']
+];
+
+const COOLANT_TEMPERATURE_BANDS = [
+    [3,        'ice'],
+    [49,       'cold'],
+    [64,       'cool'],
+    [74,       'warming'],
+    [84,       'warm'],
+    [104,      'normal'],
+    [112,      'hot'],
+    [Infinity, 'critical']
+];
+
+const TEMPERATURE_STATE_CLASSES = [
+    'temp-state-ice',
+    'temp-state-cold',
+    'temp-state-cool',
+    'temp-state-warming',
+    'temp-state-warm',
+    'temp-state-normal',
+    'temp-state-hot',
+    'temp-state-critical'
+];
+
+function updateTemperatureCard(valueElementId, rawValue, mapKey, bands, ignitionOn) {
+    const valueElement = document.getElementById(valueElementId);
+    if (!valueElement) return;
+
+    const card = valueElement.closest('.metric-card');
+    if (!card) return;
+
+    card.classList.add('temp-state-enabled');
+    card.classList.remove(...TEMPERATURE_STATE_CLASSES);
+
+    const rawNumber = Number(rawValue);
+    if (!ignitionOn || !Number.isFinite(rawNumber) || rawNumber === 0xFF) {
+        card.dataset.temperatureState = 'unavailable';
+        return;
+    }
+
+    const temperatureC = applyMap(rawNumber, mapKey);
+    if (!Number.isFinite(temperatureC)) {
+        card.dataset.temperatureState = 'unavailable';
+        return;
+    }
+
+    const band = bands.find(([maximum]) => temperatureC <= maximum);
+    if (!band) {
+        card.dataset.temperatureState = 'unavailable';
+        return;
+    }
+
+    const state = band[1];
+    card.classList.add('temp-state-' + state);
+    card.dataset.temperatureState = state;
+}
+
+
+let oilTempSupported = false;
+
 // --- Update functions -----------------------------------------------
 function updateMetrics(data) {
     setText('d-speed',     getText(data.Speed, 0xFFFF, 'Speed', 0));
@@ -1126,6 +1285,27 @@ function updateMetrics(data) {
     let coolantTempText = data.Ignition ? getText(data.CoolantTemperature, 0xFF, 'CoolantTemperature', 0) : '--';
     setText('d-oil-temp', oilTempText);
     setText('d-coolant-temp', coolantTempText);
+    if (!oilTempSupported && oilTempText !== '--') {
+        oilTempSupported = true;
+        const card = document.getElementById('oil-temp-card');
+        card.hidden = false;
+        card.parentElement.classList.add('has-oil-temp');
+    }
+
+    updateTemperatureCard(
+        'd-oil-temp',
+        data.EngineOilTemperature,
+        'OilTemperature',
+        OIL_TEMPERATURE_BANDS,
+        data.Ignition
+    );
+    updateTemperatureCard(
+        'd-coolant-temp',
+        data.CoolantTemperature,
+        'CoolantTemperature',
+        COOLANT_TEMPERATURE_BANDS,
+        data.Ignition
+    );
     setText('d-oil-lvl', getText(data.EngineOilLevel, 0xFF, 'EngineOilLevel', 0));
 
     // External temperature: raw 255 = sensor not available
