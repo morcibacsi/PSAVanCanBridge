@@ -238,7 +238,8 @@ void ReadDestinationFunction(void * parameter)
                 psaDiagLib->ProcessIncomingMessage(currentTime, message.id, message.dataLength, message.data);
                 psaDiagLib->Loop(currentTime);
             }
-            taskYIELD();        }
+            taskYIELD();  
+        }
     } while (1);
 }
 
