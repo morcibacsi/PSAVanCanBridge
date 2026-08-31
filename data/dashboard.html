@@ -89,6 +89,11 @@
 .color-speed { color: #4fc3f7; }
 .color-rpm   { color: #81c784; }
 
+/* --- Temperature state cards ---------------------------------------- */
+.metric-card.temp-state-enabled {
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 /* --- Fuel bar ------------------------------------------------------ */
 .fuel-bar-wrap {
     width: 75%;
@@ -1111,6 +1116,102 @@ function setIndicator(key, cfg, active, known = true, flashing = false) {
     el.setAttribute("aria-label", cfg.label + ": " + (known ? (active ? "active" : "inactive") : "unavailable"));
 }
 
+// --- Temperature card states -----------------------------------------
+// Values on the bus are encoded with a -40 C offset. updateTemperatureCard()
+// applies the dashboard's existing VALUE_MAPS conversion before selecting a band.
+//
+// Each pair is [maximum displayed temperature in C, state name].
+const OIL_TEMPERATURE_BANDS = [
+    [3,        'ice'],
+    [39,       'cold'],
+    [54,       'cool'],
+    [64,       'warming'],
+    [79,       'warm'],
+    [120,      'normal'],
+    [129,      'hot'],
+    [Infinity, 'critical']
+];
+
+const COOLANT_TEMPERATURE_BANDS = [
+    [3,        'ice'],
+    [49,       'cold'],
+    [64,       'cool'],
+    [74,       'warming'],
+    [84,       'warm'],
+    [104,      'normal'],
+    [112,      'hot'],
+    [Infinity, 'critical']
+];
+
+const TEMPERATURE_STYLES = {
+    ice: {
+        background: [
+            'radial-gradient(circle at 17% 24%, rgba(255,255,255,0.16) 0 1px, transparent 2px)',
+            'radial-gradient(circle at 74% 68%, rgba(190,230,255,0.15) 0 1px, transparent 2px)',
+            'repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 7px)',
+            'linear-gradient(135deg, #263945 0%, #182832 55%, #213540 100%)'
+        ].join(','),
+        borderColor: '#b8e3ff',
+        boxShadow: 'inset 0 0 18px rgba(205,238,255,0.08), 0 0 7px rgba(155,215,250,0.08)',
+        valueColor: '#f3fbff',
+        valueTextShadow: '0 0 8px rgba(185,226,255,0.35)',
+        detailColor: '#b8ddeb'
+    },
+    cold:     { background: '#091b2a', borderColor: '#245b84', valueColor: '#64b5f6' },
+    cool:     { background: '#0b2433', borderColor: '#2d6b8b', valueColor: '#77c8f2' },
+    warming:  { background: '#0c2928', borderColor: '#2b7970', valueColor: '#72d3c5' },
+    warm:     { background: '#10271b', borderColor: '#39734e', valueColor: '#8fd3a5' },
+    normal:   { background: '#0a2018', borderColor: '#1a6b40', valueColor: '#70d69a' },
+    hot:      { background: '#281d00', borderColor: '#8c7000', valueColor: '#ffc107' },
+    critical: {
+        background: '#280808',
+        borderColor: '#8a1a1a',
+        boxShadow: 'inset 0 0 14px rgba(220,53,69,0.08)',
+        valueColor: '#ff6b6b'
+    }
+};
+
+function applyTemperatureStyle(card, style = {}) {
+    const value = card.querySelector('.metric-value');
+    const label = card.querySelector('.metric-label');
+    const unit = card.querySelector('.metric-unit');
+
+    card.style.background = style.background ?? '';
+    card.style.borderColor = style.borderColor ?? '';
+    card.style.boxShadow = style.boxShadow ?? '';
+    if (value) {
+        value.style.color = style.valueColor ?? '';
+        value.style.textShadow = style.valueTextShadow ?? '';
+    }
+    if (label) label.style.color = style.detailColor ?? '';
+    if (unit) unit.style.color = style.detailColor ?? '';
+}
+
+function updateTemperatureCard(valueElementId, rawValue, mapKey, bands, ignitionOn) {
+    const valueElement = document.getElementById(valueElementId);
+    if (!valueElement) return;
+
+    const card = valueElement.closest('.metric-card');
+    if (!card) return;
+
+    if (ignitionOn) {
+        card.classList.add('temp-state-enabled');
+    } else {
+        card.classList.remove('temp-state-enabled');
+    }
+
+    const rawNumber = Number(rawValue);
+    const temperatureC = ignitionOn && Number.isFinite(rawNumber) && rawNumber !== 0xFF
+        ? applyMap(rawNumber, mapKey)
+        : NaN;
+    const state = Number.isFinite(temperatureC)
+        ? bands.find(([maximum]) => temperatureC <= maximum)?.[1]
+        : null;
+
+    applyTemperatureStyle(card, TEMPERATURE_STYLES[state]);
+    card.dataset.temperatureState = state ?? 'unavailable';
+}
+
 // --- Update functions -----------------------------------------------
 function updateMetrics(data) {
     setText('d-speed',     getText(data.Speed, 0xFFFF, 'Speed', 0));
@@ -1127,6 +1228,21 @@ function updateMetrics(data) {
     let coolantTempText = data.Ignition ? getText(data.CoolantTemperature, 0xFF, 'CoolantTemperature', 0) : '--';
     setText('d-oil-temp', oilTempText);
     setText('d-coolant-temp', coolantTempText);
+
+    updateTemperatureCard(
+        'd-oil-temp',
+        data.EngineOilTemperature,
+        'OilTemperature',
+        OIL_TEMPERATURE_BANDS,
+        data.Ignition
+    );
+    updateTemperatureCard(
+        'd-coolant-temp',
+        data.CoolantTemperature,
+        'CoolantTemperature',
+        COOLANT_TEMPERATURE_BANDS,
+        data.Ignition
+    );
     setText('d-oil-lvl', getText(data.EngineOilLevel, 0xFF, 'EngineOilLevel', 0));
 
     // External temperature: raw 255 = sensor not available
