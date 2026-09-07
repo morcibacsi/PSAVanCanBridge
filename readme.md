@@ -192,9 +192,9 @@ Components vary depending on what you’re replacing. Common setups include:
   - MATT2010 matrix display
 - Common
   - PSA CAN protocol bridge hardware
-  - JST XH6 conversion cable (see more info in the wiki)
+  - JST XH6 conversion cable ([see more info in the wiki](wiki/pinouts-and-patch-lead.md))
 
-Regarding the cables for the headunit I recommend to search on Aliexpress or similar sites for "Peugeot RCC NAC MRN adapter cable". You can buy everything in one package, save yourself the hussle to hunt down everything one by one. The connectors are proprietary and building the patch lead would be a pain. Because of this I won't provide a pinout for these.
+Regarding the cables for the headunit I recommend to search on Aliexpress or similar sites for "Peugeot RCC NAC MRN adapter cable". You can buy everything in one package, save yourself the hussle to hunt down everything one by one. Based on the [pinouts in the wiki](wiki/pinouts-and-patch-lead.md) you can also build your own cable if you want to.
 
 ![components](./images/components_aee2004_aee2010.jpg)
 
@@ -234,6 +234,8 @@ Take note that I left out the quadlock socket (only the plug is there) as it has
 ![matt_quadlock_bridge](./images/matt_quadlock_bridge.png)
 
 ![matt_quadlock_bridge_patch_lead](./images/matt_quadlock_bridge_patch.jpg)
+
+![quadlock_nac_adapter](./images/quadlock_nac_adapter.jpg)
 
 ### Uploading the firmware
 
