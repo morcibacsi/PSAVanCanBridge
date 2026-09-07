@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Project Files" />
+    <Filter Include="src" />
+    <Filter Include="src\Application" />
+    <Filter Include="src\Helpers" />
+    <Filter Include="src\Helpers\Ble" />
+    <Filter Include="src\Helpers\PSADiag" />
+    <Filter Include="src\Helpers\WebServer" />
+    <Filter Include="src\lib" />
+    <Filter Include="src\lib\CanMessageSender" />
+    <Filter Include="src\lib\esp32_hulp_van_tx" />
+    <Filter Include="src\lib\esp32_rmt_van_rx" />
+    <Filter Include="src\lib\esp32_ulp_lpc_core_van_tx" />
+    <Filter Include="src\Platform" />
+    <Filter Include="src\Platform\Esp" />
+    <Filter Include="src\Platform\Esp\Helpers" />
+    <Filter Include="src\Platform\Native" />
+    <Filter Include="src\Protocol" />
+    <Filter Include="src\Protocol\AEE2001" />
+    <Filter Include="src\Protocol\AEE2001\Handlers" />
+    <Filter Include="src\Protocol\AEE2001\Handlers\BSI" />
+    <Filter Include="src\Protocol\AEE2001\Handlers\CLIM" />
+    <Filter Include="src\Protocol\AEE2001\Handlers\CMB" />
+    <Filter Include="src\Protocol\AEE2001\Handlers\EMF" />
+    <Filter Include="src\Protocol\AEE2001\Structs" />
+    <Filter Include="src\Protocol\AEE2004" />
+    <Filter Include="src\Protocol\AEE2004\Handlers" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\AAS" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\BSI" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\BTEL" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\CLV" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\CMB" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\DIAG" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\EMF" />
+    <Filter Include="src\Protocol\AEE2004\Handlers\VTH" />
+    <Filter Include="src\Protocol\AEE2004\Structs" />
+    <Filter Include="src\Protocol\AEE2010" />
+    <Filter Include="src\Protocol\AEE2010\Handlers" />
+    <Filter Include="src\Protocol\AEE2010\Handlers\AAS" />
+    <Filter Include="src\Protocol\AEE2010\Handlers\BSI" />
+    <Filter Include="src\Protocol\AEE2010\Handlers\BTEL" />
+    <Filter Include="src\Protocol\AEE2010\Handlers\CMB" />
+    <Filter Include="src\Protocol\AEE2010\Structs" />
+    <Filter Include="src\Protocol\Diagnostics" />
+    <Filter Include="test" />
+    <Filter Include="test\native" />
+    <Filter Include="test\native\captures" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="src\Application\BridgeRuntime.cpp">
+      <Filter>src\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\ConfigFile.cpp">
+      <Filter>src\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\CrcStore.cpp">
+      <Filter>src\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\FuelRefillTracker.cpp">
+      <Filter>src\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\PSADiag\PsaDiagLib.cpp">
+      <Filter>src\Helpers\PSADiag</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\VanCrcCalculator.cpp">
+      <Filter>src\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Native\FileReplayTransport.cpp">
+      <Filter>src\Platform\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Native\main.cpp">
+      <Filter>src\Platform\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2001\AEE2001ComfortBus.cpp">
+      <Filter>src\Protocol\AEE2001</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2001\Handlers\BSI\VanCanDisplayPopupMap.cpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2001\Handlers\BSI\VanCanGearboxPositionMap.cpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2001\Handlers\CLIM\VanCanAirConditionerSpeedMap.cpp">
+      <Filter>src\Protocol\AEE2001\Handlers\CLIM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2004\AEE2004ComfortBus.cpp">
+      <Filter>src\Protocol\AEE2004</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2004\Handlers\AAS\MessageHandler_0E1_2004.cpp">
+      <Filter>src\Protocol\AEE2004\Handlers\AAS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2004\Handlers\DIAG\TpMessageHandler_760.cpp">
+      <Filter>src\Protocol\AEE2004\Handlers\DIAG</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2010\AEE2010ComfortBus.cpp">
+      <Filter>src\Protocol\AEE2010</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\AEE2010\Handlers\AAS\MessageHandler_0E1_2010.cpp">
+      <Filter>src\Protocol\AEE2010\Handlers\AAS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\Diagnostics\DiagnosticsContainer.cpp">
+      <Filter>src\Protocol\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Protocol\IsoTpFrame.cpp">
+      <Filter>src\Protocol</Filter>
+    </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="src\Application\BridgeRuntime.hpp">
+      <Filter>src\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Application\IApplicationClock.hpp">
+      <Filter>src\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Application\IDateTimeProvider.hpp">
+      <Filter>src\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v13_can.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v14_can.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v15_can.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v15_van_ulp.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v16.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig_v18.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoardConfig.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\AirConditionerState.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\AlertHistory1.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\AlertHistory2.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\AlertHistory3.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\AvailableOptions_2010.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\Ble\Ble.hpp">
+      <Filter>src\Helpers\Ble</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\Ble\NimBLE.h">
+      <Filter>src\Helpers\Ble</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\Ble\nimblehelp.hpp">
+      <Filter>src\Helpers\Ble</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CanTransceiverControl.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarIndicatorLights.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarLedStates.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarRadioRemote.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarSettings.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarSignalLights.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarState.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CarSteeringWheelRemote.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\ConfigFile.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CpuConfig.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CrcStore.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\DisplayMessage.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\DoorStatus.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\FileSystem.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\FuelRefillTracker.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\IConfigStore.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\IntUnions.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\MessageHandlerTupleTemplates.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\OdometerStates.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\ParkingAidStatus.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\PSADiag\PsaDiagLib.h">
+      <Filter>src\Helpers\PSADiag</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\SupportedMessageHelperTemplate.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\VanCrcCalculator.hpp">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\WebServer\gzipped_webpage_data.h">
+      <Filter>src\Helpers\WebServer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\WebServer\WebServer.hpp">
+      <Filter>src\Helpers\WebServer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\CanMessageSender\CanMessageSenderEsp32Idf.h">
+      <Filter>src\lib\CanMessageSender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\CanMessageSender\CanMessageSenderMcp2515Idf.h">
+      <Filter>src\lib\CanMessageSender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\CanMessageSender\ICanMessageSender.h">
+      <Filter>src\lib\CanMessageSender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\esp32_hulp_van_tx\HulpVanTx.hpp">
+      <Filter>src\lib\esp32_hulp_van_tx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\esp32_rmt_van_rx\esp32_arduino_rmt_van_rx.h">
+      <Filter>src\lib\esp32_rmt_van_rx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\esp32_rmt_van_rx\Esp32RmtReader.h">
+      <Filter>src\lib\esp32_rmt_van_rx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\esp32_ulp_lpc_core_van_tx\LpCoreVanTx.hpp">
+      <Filter>src\lib\esp32_ulp_lpc_core_van_tx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lib\IVanMessageSender.h">
+      <Filter>src\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Native\FileReplayTransport.hpp">
+      <Filter>src\Platform\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Native\SimulatedClock.hpp">
+      <Filter>src\Platform\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Esp\EspDelayProvider.hpp">
+      <Filter>src\Platform\Esp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Esp\Helpers\TimeProvider.hpp">
+      <Filter>src\Platform\Esp\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\IDelayProvider.hpp">
+      <Filter>src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\PlatformAttributes.hpp">
+      <Filter>src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\PlatformMutex.hpp">
+      <Filter>src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\AEE2001ComfortBus.hpp">
+      <Filter>src\Protocol\AEE2001</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\CanDisplayPopupHandler3.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\CanDisplayPopupItem.h">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_4DC.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_4FC.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_524.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_564.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_744.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_824.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_8A4.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_8C4.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_9C4.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_A5C.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_A68.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_ADC.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\MessageHandler_AE8.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\VanCanDisplayPopupMap.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\BSI\VanCanGearboxPositionMap.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\CLIM\MessageHandler_464.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\CLIM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\CLIM\VanCanAirConditionerSpeedMap.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\CLIM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\CMB\MessageHandler_664.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\CMB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\EMF\MessageHandler_5E4.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\EMF</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\EMF\MessageHandler_984.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\EMF</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Handlers\EMF\TripComputerResetHelper.hpp">
+      <Filter>src\Protocol\AEE2001\Handlers\EMF</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_464.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_4DC.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_4FC.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_524.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_564.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_5E4.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_664.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_744.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_8A4.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_8C4.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_9C4.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2001\Structs\VAN_ADC.h">
+      <Filter>src\Protocol\AEE2001\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\AEE2004ComfortBus.hpp">
+      <Filter>src\Protocol\AEE2004</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\AAS\MessageHandler_0E1_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\AAS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_036_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_0A2_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_0B6_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_0E6_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_0E8_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_0F6_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_10B_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_120_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_126_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_127_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_128_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_136_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_161_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_168_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_1A1_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_1A8_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_21F_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_220_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_221_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_227_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_260_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_261_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_2A1_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_2B6_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_2E1_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_336_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_361_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_3A7_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BSI\MessageHandler_3B6_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\BTEL\MessageHandler_15B_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\BTEL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\CLV\MessageHandler_1E3_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\CLV</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\CMB\MessageHandler_217_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\CMB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\DIAG\TpMessageHandler_760.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\DIAG</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\EMF\MessageHandler_167_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\EMF</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\EMF\MessageHandler_228_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\EMF</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Handlers\VTH\MessageHandler_297_2004.hpp">
+      <Filter>src\Protocol\AEE2004\Handlers\VTH</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_036_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0A2_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0B6_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0E1_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0E6_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0E8_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_0F6_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_10B_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_120_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_126_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_127_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_128_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_136_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_161_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_167_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_168_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_1A8_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_1E3_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_217_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_21F_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_220_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_221_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_227_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_297_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_2E1_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_361_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_3A7_2004.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CAN_760_RD4_RD43.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2004\Structs\CanDisplayStructs.h">
+      <Filter>src\Protocol\AEE2004\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\AEE2010ComfortBus.hpp">
+      <Filter>src\Protocol\AEE2010</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\AAS\MessageHandler_0E1_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\AAS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_036_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_0A2_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_0B6_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_0E6_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_0F6_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_10B_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_120_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_126_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_128_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_161_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_168_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_1A1_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_1A8_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_21F_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_221_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_227_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_228_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_236_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_260_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_261_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_268_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_276_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_2A1_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_2B6_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_2E1_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_321_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_336_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_350_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_361_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_3B6_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BSI\MessageHandler_3E7_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BSI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BTEL\MessageHandler_15B_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BTEL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BTEL\MessageHandler_1E9_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BTEL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\BTEL\MessageHandler_39B_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\BTEL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\CMB\MessageHandler_122_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\CMB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Handlers\CMB\MessageHandler_217_2010.hpp">
+      <Filter>src\Protocol\AEE2010\Handlers\CMB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_036_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_0A2_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_0E1_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_0E6_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_0F6_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_10B_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_120_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_126_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_128_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_15B_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_161_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_168_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_1E9_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_217_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_21F_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_221_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_227_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_228_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_236_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_260_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_268_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_276_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_2E1_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_350_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_361_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_39B_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CAN_3E7_2010.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\AEE2010\Structs\CanDisplayStructs.h">
+      <Filter>src\Protocol\AEE2010\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\BusMessage.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\CANTransportLayer.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\CANTransportLayerOnSerial.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\Diagnostics\DiagnosticsContainer.hpp">
+      <Filter>src\Protocol\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\FeedbackSignal.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\IMessageHandler.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\ImmediateSignal.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\IProtocolHandler.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\ISerial.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\IsoTpFrame.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\ITransportLayer.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\MessageScheduler.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\ProtocolType.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\UartSerial.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\VANTransportLayer.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\VANTransportLayerOnSerial.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Protocol\WebSocketSerial.hpp">
+      <Filter>src\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RgbLed.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="src\lib\esp32_rmt_van_rx\Esp32RmtReader.cpp">
+      <Filter>src\lib\esp32_rmt_van_rx</Filter>
+    </None>
+    <None Include="src\lib\esp32_rmt_van_rx\esp32_arduino_rmt_van_rx.cpp">
+      <Filter>src\lib\esp32_rmt_van_rx</Filter>
+    </None>
+    <None Include="src\lib\esp32_ulp_lpc_core_van_tx\LpCoreVanTx.cpp">
+      <Filter>src\lib\esp32_ulp_lpc_core_van_tx</Filter>
+    </None>
+    <None Include="platformio.ini">
+      <Filter>Project Files</Filter>
+    </None>
+    <None Include="NATIVE_DEBUGGING.md">
+      <Filter>Project Files</Filter>
+    </None>
+    <None Include="test\native\captures\aee2001_dashboard.txt">
+      <Filter>test\native\captures</Filter>
+    </None>
+    <None Include="test\native\captures\AEE2001-in.txt">
+      <Filter>test\native\captures</Filter>
+    </None>
+    <None Include="test\native\settings.json">
+      <Filter>test\native</Filter>
+    </None>
+  </ItemGroup>
+</Project>

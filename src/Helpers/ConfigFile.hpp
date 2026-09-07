@@ -4,6 +4,7 @@
 #include <memory>
 #include "cJSON.h"
 #include "CarState.hpp"
+#include "IConfigStore.hpp"
 
 struct cJSONDeleter {
     void operator()(cJSON* ptr) const {
@@ -11,9 +12,9 @@ struct cJSONDeleter {
     }
 };
 
-class ConfigFile {
+class ConfigFile : public IConfigStore {
     static constexpr uint8_t VIN_LENGTH = 17;
-    const char *_settingsFileName = "/littlefs/settings.json";
+    std::string _settingsFileName;
 
     private:
 
@@ -21,9 +22,9 @@ class ConfigFile {
         bool getJsonBool(cJSON *json, const char *key, bool defaultValue);
         std::unique_ptr<cJSON, cJSONDeleter> LoadFromFile();
     public:
-        ConfigFile(CarState* carState);
+        explicit ConfigFile(CarState* carState, const char* settingsFileName = "/littlefs/settings.json");
         ~ConfigFile() = default;
-        void Write();
+        void Write() override;
         bool Read();
         void Remove();
         void SaveJson(const char *json_str);

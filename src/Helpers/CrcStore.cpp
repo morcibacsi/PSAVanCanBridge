@@ -1,5 +1,5 @@
 #include "CrcStore.hpp"
-#include <esp_attr.h>
+#include "../Platform/PlatformAttributes.hpp"
 
 CrcStore::CrcStore(std::vector<InitItem> initItems, bool automaticallyStoreNewIds)
 {

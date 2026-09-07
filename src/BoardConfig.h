@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef PLATFORM_NATIVE
+    #define BOARD_PROTOCOL_TYPES 3
+#endif
+
 #ifdef PIO_INI_BOARD_ESP32_C6_V16
     #include "BoardConfig_v16.h"
 #endif

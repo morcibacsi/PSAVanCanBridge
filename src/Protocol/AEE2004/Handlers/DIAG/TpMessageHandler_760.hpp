@@ -36,7 +36,8 @@ class TpMessageHandler_760 : public IsoTpFrame
     void InternalProcess() override;
 
     public:
-    TpMessageHandler_760(ITransportLayer* object, CarState* carState) : IsoTpFrame(object, 0x760, 0x660, 2000)
+    TpMessageHandler_760(ITransportLayer* object, CarState* carState, IDelayProvider& delayProvider)
+        : IsoTpFrame(object, 0x760, 0x660, 2000, delayProvider)
     {
          _carState = carState;
     };

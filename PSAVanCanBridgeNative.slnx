@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="PSAVanCanBridgeNative.vcxproj" Id="d1acb307-11a8-4dbb-82c6-784d14496c19" />
+</Solution>

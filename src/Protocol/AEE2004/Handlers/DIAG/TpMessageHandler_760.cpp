@@ -1,5 +1,5 @@
-#include "TpMessageHandler_760.hpp"
-#include "../../Structs/CAN_760_RD4_RD43.h"
+#include "Protocol/AEE2004/Handlers/DIAG/TpMessageHandler_760.hpp"
+#include "Protocol/AEE2004/Structs/CAN_760_RD4_RD43.h"
 #include <string.h>
 
 void TpMessageHandler_760::InternalProcess()

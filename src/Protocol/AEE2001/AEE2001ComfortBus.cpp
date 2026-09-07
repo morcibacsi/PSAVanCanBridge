@@ -1,5 +1,5 @@
 #include <string.h>
-#include <esp_attr.h>
+#include "../../Platform/PlatformAttributes.hpp"
 #include "../../Helpers/MessageHandlerTupleTemplates.hpp"
 
 #include "AEE2001ComfortBus.hpp"

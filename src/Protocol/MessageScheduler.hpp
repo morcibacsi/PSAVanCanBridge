@@ -6,8 +6,7 @@
 
 #include "BusMessage.hpp"
 #include "ITransportLayer.hpp"
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
+#include "../Platform/PlatformMutex.hpp"
 
 struct MessageMetadata {
     BusMessage message;       // The actual bus message.
@@ -19,21 +18,18 @@ struct MessageMetadata {
 class MessageScheduler {
 private:
     std::unordered_map<uint32_t, MessageMetadata> scheduledMessages;
-    SemaphoreHandle_t mutex;
+    PlatformRecursiveMutex mutex;
 
 public:
-    MessageScheduler()
-    {
-        mutex = xSemaphoreCreateRecursiveMutex();
-    }
+    MessageScheduler() = default;
 
     bool HasScheduledMessages()
     {
         bool hasMessages = false;
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             hasMessages = !scheduledMessages.empty();
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
         return hasMessages;
     }
@@ -41,7 +37,7 @@ public:
     bool HasDueMessages(uint64_t currentTime)
     {
         bool hasDueMessages = false;
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             for (const auto& [id, scheduled] : scheduledMessages)
             {
@@ -52,7 +48,7 @@ public:
                     break;
                 }
             }
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
         return hasDueMessages;
     }
@@ -60,21 +56,21 @@ public:
     bool ShouldGenerateMessage(uint32_t id, uint64_t currentTime)
     {
         bool shouldGenerate = true;
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             auto it = scheduledMessages.find(id);
             if (it != scheduledMessages.end())
             {
                 shouldGenerate = currentTime >= it->second.nextDueTime;
             }
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
         return shouldGenerate;
     }
 
     void AddOrUpdateMessage(const BusMessage& message, uint64_t currentTime)
     {
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             auto it = scheduledMessages.find(message.id);
             if (it != scheduledMessages.end())
@@ -103,7 +99,7 @@ public:
                 };
                 scheduledMessages[message.id] = newMessage;
             }
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
     }
 
@@ -111,7 +107,7 @@ public:
     {
         //printf("Update messages start\n");
 
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             for (auto& [id, scheduled] : scheduledMessages)
             {
@@ -141,14 +137,14 @@ public:
                     }
                 }
             }
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
         //printf("Update messages end\n");
     }
 
     void SendImmedateMessage(uint16_t id, uint64_t currentTime, ITransportLayer& transportLayer)
     {
-        if (xSemaphoreTakeRecursive(mutex, pdMS_TO_TICKS(10)))
+        if (mutex.Lock(10))
         {
             auto it = scheduledMessages.find(id);
             if (it != scheduledMessages.end())
@@ -157,7 +153,7 @@ public:
 
                 transportLayer.SendMessage(it->second.message);
             }
-            xSemaphoreGiveRecursive(mutex);
+            mutex.Unlock();
         }
     }
 };

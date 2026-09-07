@@ -9,3 +9,7 @@ out
 firmware
 __pycache__/
 *.pyc
+compile_commands.json
+PSAVanCa.*/
+*.user
+*.zip

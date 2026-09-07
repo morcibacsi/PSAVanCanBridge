@@ -1,4 +1,4 @@
-#include "WebSocketSerial.hpp"
+#include "Protocol/WebSocketSerial.hpp"
 #include <cstring>
 #include <cctype>
 
@@ -165,3 +165,4 @@ void WebSocketSerial::flush()
 {
     // Nothing required
 }
+

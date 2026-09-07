@@ -72,7 +72,8 @@ class PsaDiagLib : public IsoTpFrame
     void InternalProcess() override {};
     void ReceiveFinished(unsigned long currentTime) override;
     public:
-    PsaDiagLib(ITransportLayer* canSender, ISerial* serial): IsoTpFrame(canSender, 0x760, 0x660, 2000)
+    PsaDiagLib(ITransportLayer* canSender, ISerial* serial, IDelayProvider& delayProvider)
+        : IsoTpFrame(canSender, 0x760, 0x660, 2000, delayProvider)
     {
         _canSender = canSender;
         _serial = serial;

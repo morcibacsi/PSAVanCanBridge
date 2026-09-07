@@ -1,7 +1,5 @@
-#include "IsoTpFrame.hpp"
+#include "Protocol/IsoTpFrame.hpp"
 #include <cstring>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
 //#define ISO_TP_DEBUG
 
@@ -9,7 +7,13 @@
 //
 //#endif
 
-IsoTpFrame::IsoTpFrame(ITransportLayer *canInterface, uint16_t txId, uint16_t rxId, uint16_t internalProcessInterval)
+IsoTpFrame::IsoTpFrame(
+    ITransportLayer *canInterface,
+    uint16_t txId,
+    uint16_t rxId,
+    uint16_t internalProcessInterval,
+    IDelayProvider& delayProvider)
+    : _delayProvider(delayProvider)
 {
     _canInterface = canInterface;
 
@@ -127,16 +131,16 @@ void IsoTpFrame::fc_delay(uint8_t sep_time)
     */
     if(sep_time <= 0x7F)
     {
-        vTaskDelay(pdMS_TO_TICKS(sep_time));
+        _delayProvider.DelayMilliseconds(sep_time);
     }
     else if ((sep_time >= 0xF1) && (sep_time <= 0xF9))
     {
         //delayMicroseconds((sep_time-0xF0)*100);
-        vTaskDelay(pdMS_TO_TICKS(sep_time-0xF0));
+        _delayProvider.DelayMilliseconds(sep_time - 0xF0);
     }
     else
     {
-        vTaskDelay(pdMS_TO_TICKS(0x7F));
+        _delayProvider.DelayMilliseconds(0x7F);
     }
 }
 

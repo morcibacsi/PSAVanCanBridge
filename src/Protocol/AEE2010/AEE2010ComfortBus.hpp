@@ -11,8 +11,8 @@
 #include "../ImmediateSignal.hpp"
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
-#include "../../Helpers/TimeProvider.hpp"
-#include "../../Helpers/ConfigFile.hpp"
+#include "../../Application/IDateTimeProvider.hpp"
+#include "../../Helpers/IConfigStore.hpp"
 
 #include "Handlers/AAS/MessageHandler_0E1_2010.hpp"
 
@@ -64,8 +64,8 @@ class AEE2010ComfortBus : public IProtocolHandler
     std::vector<uint32_t> _messagesToSkip;
     std::vector<uint32_t> _messagesToForward;
 
-    TimeProvider* _timeProvider;
-    ConfigFile* _configFile;
+    IDateTimeProvider* _timeProvider;
+    IConfigStore* _configFile;
 
     ImmediateSignalCallback _immediateSignalCallback;
     FeedbackSignalCallback _feedbackSignalCallback;
@@ -124,8 +124,8 @@ class AEE2010ComfortBus : public IProtocolHandler
         CarState* carState,
         ITransportLayer* transport,
         MessageScheduler* scheduler,
-        TimeProvider* timeProvider,
-        ConfigFile* configFile
+        IDateTimeProvider* timeProvider,
+        IConfigStore* configFile
         );
 
     void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;

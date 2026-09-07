@@ -5,10 +5,11 @@
 
 #include <cstdint>
 
-#include "CarState.hpp"
-#include "../../components/esp-idf-ds3231-0.9.10/include/esp-idf-ds3231.h"
+#include "Helpers/CarState.hpp"
+#include "Application/IDateTimeProvider.hpp"
+#include "esp-idf-ds3231.h"
 
-class TimeProvider {
+class TimeProvider : public IDateTimeProvider {
 
 unsigned long _previousTime = 0;
 uint8_t _sdaPin;
@@ -24,9 +25,10 @@ public:
 
     void Start();
     bool Process(unsigned long currentTime);
-    void SetDateTime(uint16_t year,  uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
+    void SetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second) override;
     void Pause() { _paused = true; };
     void Resume() { _paused = false; };
 };
 
 #endif
+

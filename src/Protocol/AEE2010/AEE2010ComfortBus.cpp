@@ -1,6 +1,6 @@
 #include <cstring>
 #include <algorithm>
-#include <esp_attr.h>
+#include "../../Platform/PlatformAttributes.hpp"
 #include "../../Helpers/MessageHandlerTupleTemplates.hpp"
 
 #include "AEE2010ComfortBus.hpp"
@@ -11,8 +11,8 @@ AEE2010ComfortBus::AEE2010ComfortBus(
         CarState* carState,
         ITransportLayer* transport,
         MessageScheduler* scheduler,
-        TimeProvider* timeProvider,
-        ConfigFile* configFile
+        IDateTimeProvider* timeProvider,
+        IConfigStore* configFile
         )
 {
     _instance = this;

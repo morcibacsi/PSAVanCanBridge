@@ -1,11 +1,13 @@
-#include "DiagnosticsContainer.hpp"
+#include "Protocol/Diagnostics/DiagnosticsContainer.hpp"
+#include "Platform/PlatformAttributes.hpp"
 
 DiagnosticsContainer* DiagnosticsContainer::_instance = nullptr;
 
 DiagnosticsContainer::DiagnosticsContainer(
         CarState* carState,
         ITransportLayer* transport,
-        ConfigFile* configFile
+        ConfigFile* configFile,
+        IDelayProvider& delayProvider
         )
 {
     _instance = this;
@@ -15,7 +17,7 @@ DiagnosticsContainer::DiagnosticsContainer(
     _feedbackSignalCallback = &FeedbackSignalTrampoline;
     _immediateSignalCallback = nullptr;
 
-    _tpHandler760 = new TpMessageHandler_760(_transportLayer, _carState);
+    _tpHandler760 = new TpMessageHandler_760(_transportLayer, _carState, delayProvider);
     _tpHandler760->SetFeedbackSignalCallback(_feedbackSignalCallback);
 }
 
@@ -115,4 +117,3 @@ void DiagnosticsContainer::SendImmediateMessage(uint32_t id)
 {
     // No immediate messages to send in diagnostics container.
 }
-

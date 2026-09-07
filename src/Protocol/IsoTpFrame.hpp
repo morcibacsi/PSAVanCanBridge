@@ -5,6 +5,7 @@
 
 #include <inttypes.h>
 #include "ITransportLayer.hpp"
+#include "Platform/IDelayProvider.hpp"
 
 //#define ISO_TP_DEBUG
 
@@ -90,11 +91,17 @@ class IsoTpFrame
     uint8_t* _rxBufferBase = nullptr;
 
     ITransportLayer *_canInterface;
+    IDelayProvider& _delayProvider;
     virtual void InternalProcess() {};
     virtual void ReceiveFinished(unsigned long currentTime) {};
 
     public:
-    IsoTpFrame(ITransportLayer *canInterface, uint16_t txId, uint16_t rxId, uint16_t internalProcessInterval);
+    IsoTpFrame(
+        ITransportLayer *canInterface,
+        uint16_t txId,
+        uint16_t rxId,
+        uint16_t internalProcessInterval,
+        IDelayProvider& delayProvider);
 
     uint8_t Send(uint8_t *byteArray, uint8_t sizeOfByteArray);
     virtual uint8_t Receive(unsigned long millis, uint16_t canId, uint8_t len, const uint8_t buf[]);

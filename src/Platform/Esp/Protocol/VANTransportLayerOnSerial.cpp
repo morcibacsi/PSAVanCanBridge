@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "Protocol/VANTransportLayerOnSerial.hpp"
 #include <cstring>
 #include <stdio.h>
 
@@ -9,10 +10,8 @@
 #include "esp_log.h"
 #include "esp_check.h"
 
-#include "CANTransportLayerOnSerial.hpp"
-#include "../Helpers/IntUnions.h"
 
-CANTransportLayerOnSerial::CANTransportLayerOnSerial()
+VANTransportLayerOnSerial::VANTransportLayerOnSerial()
 {
     usb_serial_jtag_driver_config_t usb_serial_jtag_config = {
         .tx_buffer_size = BUF_SIZE,
@@ -22,7 +21,7 @@ CANTransportLayerOnSerial::CANTransportLayerOnSerial()
     ESP_LOGI("usb_serial_jtag echo", "USB_SERIAL_JTAG init done");
 }
 
-uint8_t CANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool highPriority)
+uint8_t VANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool highPriority)
 {
     printf("VAN >>: %03X ", (unsigned int)(message.id));
     for (size_t i = 0; i < message.dataLength; i++)
@@ -61,7 +60,7 @@ uint8_t CANTransportLayerOnSerial::SendMessage(const BusMessage& message, bool h
     return 1;
 }
 
-bool CANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)
+bool VANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)
 {
     uint8_t vanMessageLength;
     uint8_t vanMessage[32];
@@ -79,7 +78,7 @@ bool CANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)
         return false;
     }
     */
-    if (vanMessage[0] != 'c')
+    if (vanMessage[0] != 'v')
     {
         return false;
     }
@@ -90,20 +89,15 @@ bool CANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)
     }
     printf("\n");
     */
-    message.id = (vanMessage[1] << 8 | vanMessage[2] << 4) >> 4;
-    std::memcpy(message.data, vanMessage + 3, vanMessageLength-3);
-    message.crc =  FastChecksum(message.data, message.dataLength);
-
-    /*
-    UInt16 checksum {};
-    checksum.asUint16 = FastChecksum(message.data.data(), message.data.size());
-    message.crc.assign(reinterpret_cast<uint8_t*>(&checksum), reinterpret_cast<uint8_t*>(&checksum) + sizeof(checksum));
-*/
-    /*
-    printf("CAN <<: %03X ", (unsigned int)message.id);
-    for (size_t i = 0; i < message.data.size(); i++)
+    message.id = (vanMessage[2] << 8 | vanMessage[3]) >> 4;
+    std::memcpy(message.data, vanMessage + 4, vanMessageLength-2); // -2 to remove CRC from the data
+    //message.data.assign(vanMessage + 4, vanMessage + vanMessageLength-2); // -2 to remove CRC from the data
+    message.crc = vanMessage[vanMessageLength - 2] << 8 | vanMessage[vanMessageLength - 1] << 0; // last two bytes of the data
+    //message.crc.assign(vanMessage + vanMessageLength-2, vanMessage + vanMessageLength); // last two bytes of the data
+    printf("VAN <<: %03X ", (unsigned int)message.id);
+    for (size_t i = 0; i < message.dataLength; i++)
     {
-        if (i != message.data.size() - 1)
+        if (i != message.dataLength - 1)
         {
             printf("%02X ", message.data[i]);
         }
@@ -113,24 +107,12 @@ bool CANTransportLayerOnSerial::ReceiveMessage(BusMessage& message)
         }
     }
     printf("\n");
-    */
+
     return true;
 }
 
-bool CANTransportLayerOnSerial::IsBusAvailable()
+bool VANTransportLayerOnSerial::IsBusAvailable()
 {
     return true;
 }
 
-uint16_t CANTransportLayerOnSerial::FastChecksum(const uint8_t *data, uint8_t length)
-{
-    uint16_t sum1 = 0;
-    uint16_t sum2 = 0;
-
-    for (uint8_t i = 0; i < length; ++i) {
-        sum1 = (sum1 + data[i]) % 255;
-        sum2 = (sum2 + sum1) % 255;
-    }
-
-    return (sum2 << 8) | sum1;
-}

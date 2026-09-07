@@ -1,24 +1,28 @@
 #include "ConfigFile.hpp"
 #include <stdio.h>
 #include <cstring>
-#include "esp_littlefs.h"
 
-ConfigFile::ConfigFile(CarState* carState)
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+
+ConfigFile::ConfigFile(CarState* carState, const char* settingsFileName)
+    : _settingsFileName(settingsFileName)
 {
     _carState = carState;
 }
 
 void ConfigFile::SaveJson(const char *json_str)
 {
-    FILE *file = fopen(_settingsFileName, "w");
+    FILE *file = std::fopen(_settingsFileName.c_str(), "w");
     if (file == NULL) {
-        printf("Failed to open file %s for writing\n", _settingsFileName);
+        printf("Failed to open file %s for writing\n", _settingsFileName.c_str());
         return;
     }
 
-    fprintf(file, "%s", json_str);
-    fclose(file);
-    printf("JSON saved to %s successfully.\n", _settingsFileName);
+    std::fprintf(file, "%s", json_str);
+    std::fclose(file);
+    printf("JSON saved to %s successfully.\n", _settingsFileName.c_str());
 }
 
 void ConfigFile::Write()
@@ -144,17 +148,17 @@ bool ConfigFile::Read()
 
 void ConfigFile::Remove()
 {
-    FILE *file = fopen(_settingsFileName, "r");
+    FILE *file = std::fopen(_settingsFileName.c_str(), "r");
 
     if (file) {
-        fclose(file); // Close the file if it exists
-        if (remove(_settingsFileName) == 0) {
-            printf("File '%s' deleted successfully.\n", _settingsFileName);
+        std::fclose(file); // Close the file if it exists
+        if (std::remove(_settingsFileName.c_str()) == 0) {
+            printf("File '%s' deleted successfully.\n", _settingsFileName.c_str());
         } else {
             perror("Error deleting the file");
         }
     } else {
-        printf("File '%s' does not exist.\n", _settingsFileName);
+        printf("File '%s' does not exist.\n", _settingsFileName.c_str());
     }
 }
 
@@ -163,31 +167,31 @@ std::unique_ptr<cJSON, cJSONDeleter> ConfigFile::LoadFromFile()
     // Open the file for reading
     printf("Opening file for reading\n");
 
-    FILE *file = fopen(_settingsFileName, "r");
+    FILE *file = std::fopen(_settingsFileName.c_str(), "r");
     if (file == NULL) {
-        printf("Failed to open file %s for reading\n", _settingsFileName);
+        printf("Failed to open file %s for reading\n", _settingsFileName.c_str());
         return NULL;
     }
 
     // Determine file size
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    rewind(file);
+    std::fseek(file, 0, SEEK_END);
+    long file_size = std::ftell(file);
+    std::rewind(file);
 
     // Allocate memory to read the file
     char *buffer = static_cast<char*>(malloc(file_size + 1));
     if (buffer == NULL) {
         printf("Failed to allocate memory for file content\n");
-        fclose(file);
+        std::fclose(file);
         return NULL;
     }
 
     // Read file content into the buffer
-    fread(buffer, 1, file_size, file);
+    std::fread(buffer, 1, file_size, file);
     buffer[file_size] = '\0'; // Null-terminate the string
 
     // Close the file
-    fclose(file);
+    std::fclose(file);
 
     // Parse the JSON string
     cJSON *json = cJSON_Parse(buffer);

@@ -6,6 +6,7 @@
 #include "../IMessageHandler.hpp"
 #include "../FeedbackSignal.hpp"
 #include "../ImmediateSignal.hpp"
+#include "../../Platform/IDelayProvider.hpp"
 #include "../../Helpers/CarState.hpp"
 #include "../../Helpers/ConfigFile.hpp"
 #include "../../Helpers/SupportedMessageHelperTemplate.hpp"
@@ -38,7 +39,8 @@ class DiagnosticsContainer : public IProtocolHandler
     DiagnosticsContainer(
         CarState* carState,
         ITransportLayer* transport,
-        ConfigFile* configFile
+        ConfigFile* configFile,
+        IDelayProvider& delayProvider
     );
 
     void RegisterMessageHandlers(ImmediateSignalCallback immediateSignalCallback) override;

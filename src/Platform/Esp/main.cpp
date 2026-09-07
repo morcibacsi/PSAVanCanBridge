@@ -33,7 +33,7 @@
 #include "Protocol/WebSocketSerial.hpp"
 
 #include "RgbLed.hpp"
-#include "Helpers/TimeProvider.hpp"
+#include "Platform/Esp/Helpers/TimeProvider.hpp"
 
 #include "Helpers/CarState.hpp"
 #include "Helpers/FileSystem.hpp"
@@ -43,6 +43,8 @@
 #include "Helpers/WebServer/WebServer.hpp"
 #include "Helpers/PSADiag/PsaDiagLib.h"
 #include "Helpers/FuelRefillTracker.hpp"
+#include "Application/BridgeRuntime.hpp"
+#include "Platform/Esp/EspDelayProvider.hpp"
 
 IVanMessageSender* sourceVanMessageSender = nullptr;
 ICanMessageSender* sourceCanMessageSender = nullptr;
@@ -56,6 +58,7 @@ IProtocolHandler* destinationProtocolHandler = nullptr;
 IProtocolHandler* diagnosticsContainer = nullptr;
 
 PsaDiagLib* psaDiagLib = nullptr;
+EspDelayProvider isoTpDelayProvider;
 
 CarState* carState = nullptr;
 CrcStore* crcStore = nullptr;
@@ -73,6 +76,7 @@ TimeProvider* timeProvider = nullptr;
 WebServer* webServer = nullptr;
 WebSocketSerial* webSocketSerial = nullptr;
 FuelRefillTracker* fuelRefillTracker = nullptr;
+BridgeRuntime* bridgeRuntime = nullptr;
 
 std::vector<InitItem> crcStoreItems;
 bool automaticallyStoreNewIds = false;
@@ -96,6 +100,14 @@ bool automaticallyStoreNewIds = false;
 uint64_t IRAM_ATTR millis() {
     return (uint64_t)(esp_timer_get_time() / 1000ULL);
 }
+
+class EspApplicationClock final : public IApplicationClock
+{
+public:
+    uint64_t NowMs() const override { return millis(); }
+};
+
+EspApplicationClock applicationClock;
 
 void SendImmediateSignalToDestination(ImmediateSignal signal) {
     if (destinationProtocolHandler != nullptr)
@@ -157,35 +169,10 @@ void PrintMessageToWebSocket(const uint8_t network, const uint8_t direction, con
 
 void ReadSourceFunction(void * parameter)
 {
-    BusMessage message{};
-    bool processMessage = true;
-
     do
     {
-        if (sourceProtocolHandler->ReceiveMessage(message))
+        if (bridgeRuntime->ProcessSourceOnce())
         {
-            if (message.id == 0)
-            {
-                continue;
-            }
-
-            PrintMessageToWebSocket(1, 1, message);
-
-            bool destinationCanAcceptMessage = destinationProtocolHandler->CanAcceptMessage(message);
-            if (destinationCanAcceptMessage)
-            {
-                destinationProtocolHandler->HandleForwardedMessage(message);
-                continue;
-            }
-
-            //processMessage = !crcStore->IsCrcSameAsPrevious(message.id, message.command, message.crc, carState->CurrenTime);
-            processMessage = sourceProtocolHandler->CanParseMessage(message);
-            if (processMessage)
-            {
-                PrintMessage(message);
-                sourceProtocolHandler->ParseMessage(message);
-            }
-
             taskYIELD();
         }
         else
@@ -197,47 +184,10 @@ void ReadSourceFunction(void * parameter)
 
 void ReadDestinationFunction(void * parameter)
 {
-    BusMessage message{};
-    bool processMessage = true;
-    uint64_t currentTime = 0;
-
     do
     {
-        currentTime = millis();
-        if (destinationProtocolHandler->ReceiveMessage(message))
+        if (bridgeRuntime->ProcessDestinationOnce())
         {
-            if (message.id == 0)
-            {
-                continue;
-            }
-
-            bool sourceCanAcceptMessage = sourceProtocolHandler->CanAcceptMessage(message);
-            if (sourceCanAcceptMessage)
-            {
-                sourceProtocolHandler->HandleForwardedMessage(message);
-                continue;
-            }
-
-            processMessage = destinationProtocolHandler->CanParseMessage(message);
-            if (processMessage)
-            {
-                //PrintMessage(message);
-                destinationProtocolHandler->ParseMessage(message);
-            }
-
-            if (carState->DiagConnected == false)
-            {
-                processMessage = diagnosticsContainer->CanParseMessage(message);
-                if (processMessage)
-                {
-                    diagnosticsContainer->ParseMessage(message);
-                }
-            }
-            else
-            {
-                psaDiagLib->ProcessIncomingMessage(currentTime, message.id, message.dataLength, message.data);
-                psaDiagLib->Loop(currentTime);
-            }
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     } while (1);
@@ -247,14 +197,7 @@ void SendToDestinationFunction(void * parameter)
 {
     do
     {
-        carState->CurrenTime =  millis();
-        timeProvider->Process(carState->CurrenTime);
-        webServer->Process();
-        fuelRefillTracker->Process(carState->CurrenTime);
-
-        //printf("Time: %04d.%02d.%02d %02d:%02d:%02d\n",carState->Year, carState->Month, carState->MDay, carState->Hour, carState->Minute, carState->Second);
-        destinationProtocolHandler->GenerateMessages(IProtocolHandler::MessageDirection::Destination);
-        destinationProtocolHandler->UpdateMessages(carState->CurrenTime);
+        bridgeRuntime->ProcessDestinationOutputOnce();
         vTaskDelay(pdMS_TO_TICKS(10));
     } while (1);
 }
@@ -263,10 +206,35 @@ void SendToSourceFunction(void * parameter)
 {
     do
     {
-        sourceProtocolHandler->GenerateMessages(IProtocolHandler::MessageDirection::Source);
-        sourceProtocolHandler->UpdateMessages(carState->CurrenTime);
+        bridgeRuntime->ProcessSourceOutputOnce();
         vTaskDelay(pdMS_TO_TICKS(10));
     } while (1);
+}
+
+void RuntimePeriodicHook(void*, uint64_t currentTime)
+{
+    timeProvider->Process(currentTime);
+    webServer->Process();
+    fuelRefillTracker->Process(currentTime);
+}
+
+void RuntimeDiagnosticHook(void*, uint64_t currentTime, const BusMessage& message)
+{
+    psaDiagLib->ProcessIncomingMessage(
+        currentTime,
+        message.id,
+        message.dataLength,
+        const_cast<uint8_t*>(message.data));
+    psaDiagLib->Loop(currentTime);
+}
+
+void RuntimeSourceMessageHook(void*, const BusMessage& message)
+{
+    PrintMessageToWebSocket(1, 1, message);
+    if (sourceProtocolHandler->CanParseMessage(message))
+    {
+        PrintMessage(message);
+    }
 }
 
 extern "C" void app_main(void)
@@ -411,25 +379,33 @@ extern "C" void app_main(void)
 
     destinationTransportLayer->SetLoggerFunction(2, PrintMessageToWebSocket);
 
-    psaDiagLib = new PsaDiagLib(destinationTransportLayer, webSocketSerial);
+    psaDiagLib = new PsaDiagLib(destinationTransportLayer, webSocketSerial, isoTpDelayProvider);
     webServer->SetPsaDiagLib(psaDiagLib);
 
     diagnosticsContainer = new DiagnosticsContainer(
         carState,
         destinationTransportLayer,
-        configFile
+        configFile,
+        isoTpDelayProvider
     );
-    diagnosticsContainer->RegisterMessageHandlers(SendImmediateSignalToDestination);
-
     crcStore = new CrcStore(crcStoreItems, automaticallyStoreNewIds);
 
-    printf("Register message handler on destination\n");
-
-    //call RegisterMessageHandlers on the destination protocol handler with a dummy function
-    destinationProtocolHandler->RegisterMessageHandlers(EmptyImmediateSignalCaller);
-
-    printf("Register message handler on source\n");
-    sourceProtocolHandler->RegisterMessageHandlers(SendImmediateSignalToDestination);
+    BridgeRuntime::Hooks runtimeHooks{};
+    runtimeHooks.periodic = RuntimePeriodicHook;
+    runtimeHooks.diagnostic = RuntimeDiagnosticHook;
+    runtimeHooks.sourceMessage = RuntimeSourceMessageHook;
+    bridgeRuntime = new BridgeRuntime(
+        carState,
+        &applicationClock,
+        sourceProtocolHandler,
+        destinationProtocolHandler,
+        diagnosticsContainer,
+        runtimeHooks);
+    if (!bridgeRuntime->Initialize())
+    {
+        printf("Error: failed to initialize bridge runtime\n");
+        return;
+    }
 
     printf("Starting tasks\n");
 
