@@ -4,6 +4,7 @@
     #define _LpCoreVanTx_hpp
 
 #include <stdint.h>
+#include "VanLpShared.h"
 #include "driver/gpio.h"
 #include "../IVanMessageSender.h"
 
@@ -15,6 +16,8 @@
 class LpCoreVanTx : public IVanMessageSender
 {
     public:
+
+    static constexpr uint8_t MAX_ACK_IDENTIFIER_COUNT = VAN_LP_ENTRY_COUNT;
 
     typedef enum {
         LP_VAN_62K5BPS  = 0,
@@ -29,15 +32,27 @@ private:
         gpio_num_t _txPin;
         LP_VAN_NETWORK_SPEED _networkSpeed;
 
-        uint16_t Crc15(const uint8_t data[], const uint8_t length);
-        void InternalSendFrame(const uint8_t retryCount, const uint8_t data[], const uint8_t length);
+        VanLpConfig _configuration = {};
+        bool _started = false;
+        void PublishConfiguration();
     public:
         LpCoreVanTx(gpio_num_t rxPin, gpio_num_t txPin, LP_VAN_NETWORK_SPEED networkSpeed);
         ~LpCoreVanTx();
+        // Nonblocking: false means invalid input, not started, or previous update
+        // still in use by LP. Retry from task context once configuration is ready.
+        bool IsConfigurationReady() const;
+        bool ConfigureAckFrame(uint8_t slot, uint16_t identifier, bool enabled = true);
+        bool ConfigureReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled = true);
+        bool TrySendFrame(uint16_t identifier, const uint8_t* data, uint8_t length, uint8_t command, bool query);
+        VanLpResult GetLastTxResult() const;
+        VanLpResult GetLastBusResult() const;
         void Start();
         void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck);
         void SendReplyRequestFrame(const uint16_t identifier);
         bool IsTxPossible();
+        void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override;
+        void SetQueryRequesterAckEnabled(const bool enabled) override;
+        void SetRequestedReplyFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override;
 };
 #else
     #if !defined(CONFIG_IDF_TARGET_ESP32)
@@ -56,6 +71,9 @@ private:
             void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck) {}
             void SendReplyRequestFrame(const uint16_t identifier) {}
             bool IsTxPossible() { return false; }
+                void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
+                void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
+                void SetRequestedReplyFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)identifier; (void)data; (void)length; (void)enabled;}
     };
     #endif
 #endif
