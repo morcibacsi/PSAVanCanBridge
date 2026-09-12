@@ -7,7 +7,7 @@ VanLpResult test_receive(const VanLpConfig* config, uint32_t edge)
 }
 VanLpResult test_request(const VanLpFrame* frame, uint32_t edge, int ack)
 {
-    return transmit_prepared(frame->words, frame->frameWordCount, 0, 9, edge, true, ack != 0);
+    return transmit_prepared(frame->words, frame->frameWordCount, 0, 9, edge, VAN_TX_REQUESTER, ack != 0);
 }
 void test_monitor_reset(void)
 {
