@@ -11,10 +11,17 @@
 #define VAN_LP_TRACE_QUERY_ID 0
 #endif
 
+// Temporary diagnostics for the two normal frames reported as SOF-only.
+// Runs on HP after completion; no extra instructions in the LP transmit loop.
+#ifndef VAN_LP_TRACE_NORMAL_TX
+#define VAN_LP_TRACE_NORMAL_TX 1
+#endif
+
 static const char* VanQueryResultName(VanLpResult result)
 {
     switch (result)
     {
+        case VAN_LP_NORMAL_TX_COMPLETED: return "NORMAL_TX_COMPLETED";
         case VAN_LP_QUERY_NO_RESPONSE: return "NO_IMMEDIATE_RESPONSE";
         case VAN_LP_QUERY_RESPONSE_ACKED: return "RESPONSE_ACK_SENT";
         case VAN_LP_QUERY_RESPONSE_RECEIVED: return "RESPONSE_RECEIVED_ACK_DISABLED";
@@ -125,11 +132,31 @@ void VANTransportLayer::TxTask()
     BusMessage message;
 #ifdef CONFIG_IDF_TARGET_ESP32C6
     bool queryResultPending = false;
+    bool normalResultPending = false;
+    uint16_t normalResultId = 0;
     // On C6 this transport is wired to LpCoreVanTx in Platform/Esp/main.cpp.
     // This TX task owns submission: read the completed result before it can
     // submit another frame and allow LP to overwrite VAN_TX_RESULT.
-    auto reportCompletedQuery = [&]()
+    auto reportCompletedTx = [&]()
     {
+        if (normalResultPending && _vanMessageSender->IsTxPossible())
+        {
+            auto* sender = static_cast<LpCoreVanTx*>(_vanMessageSender);
+            const VanLpResult result = sender->GetLastTxResult();
+            normalResultPending = false;
+            if (result == VAN_LP_ABORT)
+            {
+                const uint32_t detail = sender->GetLastTxAbortDetail();
+                printf("VAN normal %03X completed: result=%u (%s) stage=%s raw_ts=%u\n",
+                       static_cast<unsigned>(normalResultId), static_cast<unsigned>(result),
+                       VanQueryResultName(result), VanAbortStageName(detail),
+                       static_cast<unsigned>(detail & 0xffffu));
+            }
+            else
+                printf("VAN normal %03X completed: result=%u (%s)\n",
+                       static_cast<unsigned>(normalResultId), static_cast<unsigned>(result),
+                       VanQueryResultName(result));
+        }
         if (queryResultPending && _vanMessageSender->IsTxPossible())
         {
             const VanLpResult result = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxResult();
@@ -170,10 +197,10 @@ void VANTransportLayer::TxTask()
     {
         TickType_t queueWait = portMAX_DELAY;
 #ifdef CONFIG_IDF_TARGET_ESP32C6
-        reportCompletedQuery();
-        // A query can complete while the queue is empty. Yield for one tick
+        reportCompletedTx();
+        // A traced TX can complete while the queue is empty. Yield for one tick
         // rather than waiting forever for a subsequent queued message.
-        if (queryResultPending)
+        if (queryResultPending || normalResultPending)
         {
             queueWait = 1;
         }
@@ -197,7 +224,7 @@ void VANTransportLayer::TxTask()
 
 #ifdef CONFIG_IDF_TARGET_ESP32C6
             // Completion may also occur during xQueueReceive/IsBusAvailable.
-            reportCompletedQuery();
+            reportCompletedTx();
 #endif
             switch (message.type)
             {
@@ -210,7 +237,16 @@ void VANTransportLayer::TxTask()
                     break;
                 case MessageType::Normal:
                     //printf("Send normal message: %03X\n", (unsigned int) message.id);
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+                    // Track only accepted submissions, before this task can
+                    // submit another frame and overwrite the completion slot.
+                    normalResultPending = static_cast<LpCoreVanTx*>(_vanMessageSender)->TrySendFrame(
+                        message.id, message.data, message.dataLength, message.ack ? 0xc : 0x8, false)
+                        && VAN_LP_TRACE_NORMAL_TX && (message.id == 0x5e4 || message.id == 0x8a4);
+                    normalResultId = message.id;
+#else
                     _vanMessageSender->SendNormalFrame(message.id, message.data, message.dataLength, message.ack);
+#endif
                     break;
                 default:
                     break;

@@ -128,6 +128,43 @@ static std::vector<unsigned> reference(uint16_t id, uint8_t com, const uint8_t* 
 
 int main()
 {
+    // Reported normal frames must run through the actual monitor/normal TX
+    // branch to completion. Check GPIO transition order, not host NOP timing.
+    const uint8_t normal5e4[] = {0x20, 0x1e};
+    const uint8_t normal8a4[] = {0x8f, 0x47, 0xff, 0x38, 0x31, 0x0f, 0xff};
+    for (bool longer : {false, true})
+    {
+        const uint16_t id = longer ? 0x8a4 : 0x5e4;
+        const uint8_t com = longer ? 0x8 : 0xc;
+        const uint8_t* payload = longer ? normal8a4 : normal5e4;
+        const unsigned length = longer ? sizeof(normal8a4) : sizeof(normal5e4);
+        VanLpFrame normal = {};
+        assert(VanFrameBuilder::Build(id, com, payload, length, normal));
+        auto expected = reference(id, com, payload, length);
+        assert(raw(normal) == expected);
+        std::vector<uint8_t> crcInput = {static_cast<uint8_t>(id >> 4),
+                                       static_cast<uint8_t>((id << 4) | com)};
+        crcInput.insert(crcInput.end(), payload, payload + length);
+        assert(VanFrameBuilder::Crc15(crcInput.data(), crcInput.size()) == (longer ? 0x39fc : 0x8a50));
+        reset({});
+        for (unsigned i = 0; i < normal.frameWordCount; ++i) VAN_DATA[i] = normal.words[i];
+        VAN_DATA_LENGTH = normal.frameWordCount;
+        VAN_FRAME_TYPE = 0; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+        test_monitor_reset();
+        while (!VAN_TX_FINISHED && now < 100000) test_monitor_step();
+        assert(VAN_TX_FINISHED && !VAN_START_TX);
+        assert(VAN_TX_RESULT == VAN_LP_NORMAL_TX_COMPLETED && txLevel == 1);
+        size_t transition = 0;
+        unsigned previous = 1;
+        for (unsigned level : expected)
+            if (level != previous)
+            {
+                assert(transition < writes.size() && writes[transition].second == level);
+                previous = level;
+                ++transition;
+            }
+        assert(transition == writes.size());
+    }
     // Exact 27-byte immediate response supplied in the 0x564 hardware report.
     const uint8_t captured564[] = {
         0x80,0,0,0,0,0,0,0,0,0,0xe1,0x2a,0x2a,0x09,0x1c,0x94,
