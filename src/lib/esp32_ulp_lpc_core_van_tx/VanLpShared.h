@@ -2,6 +2,16 @@
 
 #include <stdint.h>
 
+#define VAN_LP_RX_TRACE_COUNT 8u
+typedef struct {
+    uint32_t rawTs;
+    uint32_t pair; // D in bits 3:2, inverse in 1:0; 2 means not sampled.
+    uint32_t centerOffset; // Scheduled inverse center relative to COM inverse.
+    int32_t correction; // Edge resynchronization applied to this pair.
+    int32_t fourthLate; // Post-read timestamp minus scheduled D center.
+    int32_t inverseLate; // Post-helper timestamp minus adjusted inverse center.
+} VanLpRxTrace;
+
 // All offsets below count raw 8 us time slices, starting at SOF[0].
 #define VAN_LP_ENTRY_COUNT 5u
 #define VAN_LP_MAX_DATA_BYTES 28u
@@ -47,3 +57,24 @@ typedef enum {
     VAN_LP_REPLY_NOT_ACKNOWLEDGED,
     VAN_LP_ABORT
 } VanLpResult;
+
+// Failure detail: stage in bits 31..16, zero-based raw 8 us slice in 15..0.
+// Written only after releasing the bus on failure; no per-sample trace buffer.
+typedef enum {
+    VAN_LP_ABORT_UNSPECIFIED = 0,
+    VAN_LP_ABORT_TX_LENGTH,
+    VAN_LP_ABORT_TX_EDGE_DEADLINE,
+    VAN_LP_ABORT_TX_SAMPLE_DEADLINE,
+    VAN_LP_ABORT_TX_DOMINANT_NOT_SEEN,
+    VAN_LP_ABORT_RTR_INVERSE_TIMING,
+    VAN_LP_ABORT_RTR_INVERSE_INVALID,
+    VAN_LP_ABORT_RX_SAMPLE_DEADLINE,
+    VAN_LP_ABORT_RX_INVERSE_TIMING,
+    VAN_LP_ABORT_RX_EOD_INVALID,
+    VAN_LP_ABORT_RX_SCAN_LIMIT,
+    VAN_LP_ABORT_ACK_FIRST_DEADLINE,
+    VAN_LP_ABORT_ACK_FIRST_DOMINANT,
+    VAN_LP_ABORT_ACK_DRIVE_DEADLINE,
+    VAN_LP_ABORT_ACK_RELEASE_DEADLINE,
+    VAN_LP_ABORT_TX_END_DEADLINE
+} VanLpAbortStage;

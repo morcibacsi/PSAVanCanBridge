@@ -45,6 +45,10 @@ private:
         bool ConfigureReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled = true);
         bool TrySendFrame(uint16_t identifier, const uint8_t* data, uint8_t length, uint8_t command, bool query);
         VanLpResult GetLastTxResult() const;
+        uint32_t GetLastTxAbortDetail() const;
+        // Zero-based second EOD slice, or UINT32_MAX if none was completed.
+        uint32_t GetLastTxEodTs() const;
+        bool GetLastTxRxTrace(uint8_t index, VanLpRxTrace& trace) const;
         VanLpResult GetLastBusResult() const;
         void Start();
         void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck);

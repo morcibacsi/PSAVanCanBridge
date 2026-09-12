@@ -3,6 +3,51 @@
 
 #include "Protocol/VANTransportLayer.hpp"
 
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+// Temporary HP-side completion tracing for the trip-computer request.
+// Override with -DVAN_LP_TRACE_QUERY_ID=0 to disable, or another VAN ID.
+#ifndef VAN_LP_TRACE_QUERY_ID
+//#define VAN_LP_TRACE_QUERY_ID 0x564
+#define VAN_LP_TRACE_QUERY_ID 0
+#endif
+
+static const char* VanQueryResultName(VanLpResult result)
+{
+    switch (result)
+    {
+        case VAN_LP_QUERY_NO_RESPONSE: return "NO_IMMEDIATE_RESPONSE";
+        case VAN_LP_QUERY_RESPONSE_ACKED: return "RESPONSE_ACK_SENT";
+        case VAN_LP_QUERY_RESPONSE_RECEIVED: return "RESPONSE_RECEIVED_ACK_DISABLED";
+        case VAN_LP_ARBITRATION_LOST: return "ARBITRATION_LOST";
+        case VAN_LP_ABORT: return "PROTOCOL_OR_TIMING_ABORT";
+        default: return "UNEXPECTED_RESULT";
+    }
+}
+
+static const char* VanAbortStageName(uint32_t detail)
+{
+    switch (static_cast<VanLpAbortStage>(detail >> 16))
+    {
+        case VAN_LP_ABORT_TX_LENGTH: return "TX_LENGTH";
+        case VAN_LP_ABORT_TX_EDGE_DEADLINE: return "TX_EDGE_DEADLINE";
+        case VAN_LP_ABORT_TX_SAMPLE_DEADLINE: return "TX_SAMPLE_DEADLINE";
+        case VAN_LP_ABORT_TX_DOMINANT_NOT_SEEN: return "TX_DOMINANT_NOT_SEEN";
+        case VAN_LP_ABORT_RTR_INVERSE_TIMING: return "RTR_INVERSE_TIMING";
+        case VAN_LP_ABORT_RTR_INVERSE_INVALID: return "RTR_INVERSE_INVALID";
+        case VAN_LP_ABORT_RX_SAMPLE_DEADLINE: return "RX_SAMPLE_DEADLINE";
+        case VAN_LP_ABORT_RX_INVERSE_TIMING: return "RX_INVERSE_TIMING";
+        case VAN_LP_ABORT_RX_EOD_INVALID: return "RX_EOD_INVALID";
+        case VAN_LP_ABORT_RX_SCAN_LIMIT: return "RX_SCAN_LIMIT";
+        case VAN_LP_ABORT_ACK_FIRST_DEADLINE: return "ACK_FIRST_DEADLINE";
+        case VAN_LP_ABORT_ACK_FIRST_DOMINANT: return "ACK_FIRST_DOMINANT";
+        case VAN_LP_ABORT_ACK_DRIVE_DEADLINE: return "ACK_DRIVE_DEADLINE";
+        case VAN_LP_ABORT_ACK_RELEASE_DEADLINE: return "ACK_RELEASE_DEADLINE";
+        case VAN_LP_ABORT_TX_END_DEADLINE: return "TX_END_DEADLINE";
+        default: return "UNSPECIFIED";
+    }
+}
+#endif
+
 VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender, uint8_t rxPin, uint8_t dataRxLedIndicatorPin)
 {
     _vanMessageSender = vanMessageSender;
@@ -78,10 +123,62 @@ bool VANTransportLayer::IsBusAvailable()
 void VANTransportLayer::TxTask()
 {
     BusMessage message;
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+    bool queryResultPending = false;
+    // On C6 this transport is wired to LpCoreVanTx in Platform/Esp/main.cpp.
+    // This TX task owns submission: read the completed result before it can
+    // submit another frame and allow LP to overwrite VAN_TX_RESULT.
+    auto reportCompletedQuery = [&]()
+    {
+        if (queryResultPending && _vanMessageSender->IsTxPossible())
+        {
+            const VanLpResult result = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxResult();
+            queryResultPending = false;
+            if (result == VAN_LP_ABORT)
+            {
+                const uint32_t detail = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxAbortDetail();
+                printf("VAN query %03X completed: result=%u (%s) stage=%s raw_ts=%u\n",
+                       static_cast<unsigned>(VAN_LP_TRACE_QUERY_ID), static_cast<unsigned>(result),
+                       VanQueryResultName(result), VanAbortStageName(detail),
+                       static_cast<unsigned>(detail & 0xffffu));
+            }
+            else if (result == VAN_LP_QUERY_RESPONSE_ACKED || result == VAN_LP_QUERY_RESPONSE_RECEIVED)
+            {
+                const uint32_t eodTs = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxEodTs();
+                printf("VAN query %03X completed: result=%u (%s) eod_ts=%u\n",
+                       static_cast<unsigned>(VAN_LP_TRACE_QUERY_ID), static_cast<unsigned>(result),
+                       VanQueryResultName(result), static_cast<unsigned>(eodTs));
+            }
+            else
+            {
+                printf("VAN query %03X completed: result=%u (%s)\n",
+                       static_cast<unsigned>(VAN_LP_TRACE_QUERY_ID),
+                       static_cast<unsigned>(result), VanQueryResultName(result));
+            }
+            VanLpRxTrace trace;
+            for (uint8_t i = 0; static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxRxTrace(i, trace); ++i)
+                printf("VAN RX ts=%u pair=%u%u center=%u shift=%ld dlate=%ld ilate=%ld\n",
+                       static_cast<unsigned>(trace.rawTs), static_cast<unsigned>((trace.pair >> 2) & 3),
+                       static_cast<unsigned>(trace.pair & 3), static_cast<unsigned>(trace.centerOffset),
+                       static_cast<long>(trace.correction), static_cast<long>(trace.fourthLate),
+                       static_cast<long>(trace.inverseLate));
+        }
+    };
+#endif
 
     while (true)
     {
-        if (xQueueReceive(_txQueue, &message, portMAX_DELAY) == pdTRUE)
+        TickType_t queueWait = portMAX_DELAY;
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+        reportCompletedQuery();
+        // A query can complete while the queue is empty. Yield for one tick
+        // rather than waiting forever for a subsequent queued message.
+        if (queryResultPending)
+        {
+            queueWait = 1;
+        }
+#endif
+        if (xQueueReceive(_txQueue, &message, queueWait) == pdTRUE)
         {
             if (!IsBusAvailable()) {
                 // Optional delay to avoid busy-looping
@@ -98,11 +195,18 @@ void VANTransportLayer::TxTask()
                 continue;
             }
 
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+            // Completion may also occur during xQueueReceive/IsBusAvailable.
+            reportCompletedQuery();
+#endif
             switch (message.type)
             {
                 case MessageType::Query:
                     //printf("Send query message: %03X\n", (unsigned int) message.id);
                     _vanMessageSender->SendReplyRequestFrame(message.id);
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+                    queryResultPending = VAN_LP_TRACE_QUERY_ID != 0 && message.id == VAN_LP_TRACE_QUERY_ID;
+#endif
                     break;
                 case MessageType::Normal:
                     //printf("Send normal message: %03X\n", (unsigned int) message.id);

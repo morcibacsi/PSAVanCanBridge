@@ -307,8 +307,14 @@ extern "C" void app_main(void)
             sourceVanMessageSender = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, LpCoreVanTx::LP_VAN_125KBPS);
         #endif
 
-
         sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
+
+        if (carState->EMULATE_DISPLAY_ON_SOURCE)
+        {
+            uint16_t ackIdentifiers[] = {0x8C4, 0x9C4};
+            sourceVanMessageSender->SetAckIdentifiers(ackIdentifiers, 2);
+        }
+
         //sourceTransportLayer = new VANTransportLayerOnSerial();
         sourceProtocolHandler = new AEE2001ComfortBus(
             carState,

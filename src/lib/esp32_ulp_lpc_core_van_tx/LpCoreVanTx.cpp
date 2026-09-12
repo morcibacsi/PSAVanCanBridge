@@ -2,6 +2,9 @@
 
 #ifdef CONFIG_IDF_TARGET_ESP32C6
 #include <ulp_lp_core.h>
+#include "esp_clk_tree.h"
+#include "esp_timer.h"
+#include <cstdio>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "VanFrameBuilder.hpp"
@@ -40,12 +43,21 @@ LpCoreVanTx::~LpCoreVanTx() = default;
 
 void LpCoreVanTx::Start()
 {
+    uint32_t lpClockHz = 0;
+    ESP_ERROR_CHECK(esp_clk_tree_src_get_freq_hz(SOC_MOD_CLK_RTC_FAST,
+                    ESP_CLK_TREE_SRC_FREQ_PRECISION_EXACT, &lpClockHz));
+    const uint32_t sliceCycles = (lpClockHz + 62500u) / 125000u;
+    // Reject an unusable calibration instead of transmitting with bogus timing.
+    ESP_ERROR_CHECK(sliceCycles >= 96 && sliceCycles <= 192 ? ESP_OK : ESP_ERR_INVALID_STATE);
     ESP_ERROR_CHECK(ulp_lp_core_load_binary(ulp_main_bin_start, ulp_main_bin_end - ulp_main_bin_start));
     ulp_lp_core_cfg_t cfg = { .wakeup_source = ULP_LP_CORE_WAKEUP_SOURCE_HP_CPU };
     ESP_ERROR_CHECK(ulp_lp_core_run(&cfg));
     _configuration = {};
     SharedWord(ulp_SET_VAN_RX_PIN) = _rxPin;
     SharedWord(ulp_SET_VAN_TX_PIN) = _txPin;
+    SharedWord(ulp_VAN_TS_CYCLES) = sliceCycles;
+    printf("VAN LP clock: %u Hz, 8us slice=%u cycles\n",
+           static_cast<unsigned>(lpClockHz), static_cast<unsigned>(sliceCycles));
     // Query ACK defaults on; the legacy setter can explicitly disable it.
     _configuration.queryAckEnabled = 1;
     volatile VanLpConfig* banks = reinterpret_cast<volatile VanLpConfig*>(&ulp_VAN_CONFIG);
@@ -53,8 +65,8 @@ void LpCoreVanTx::Start()
     volatile uint32_t* target = reinterpret_cast<volatile uint32_t*>(&banks[0]);
     for (unsigned i = 0; i < sizeof(VanLpConfig) / 4; ++i) target[i] = source[i];
     SharedFence();
-    _started = true;
     SharedWord(ulp_VAN_START_APP) = 1;
+    _started = true;
 }
 
 bool LpCoreVanTx::IsConfigurationReady() const
@@ -176,5 +188,17 @@ void LpCoreVanTx::SendReplyRequestFrame(uint16_t identifier)
 
 bool LpCoreVanTx::IsTxPossible() { return _started && SharedWord(ulp_VAN_TX_FINISHED) == 1; }
 VanLpResult LpCoreVanTx::GetLastTxResult() const { return static_cast<VanLpResult>(SharedWord(ulp_VAN_TX_RESULT)); }
+uint32_t LpCoreVanTx::GetLastTxAbortDetail() const { return SharedWord(ulp_VAN_TX_ABORT_DETAIL); }
+uint32_t LpCoreVanTx::GetLastTxEodTs() const { return SharedWord(ulp_VAN_TX_EOD_TS); }
+bool LpCoreVanTx::GetLastTxRxTrace(uint8_t index, VanLpRxTrace& trace) const
+{
+    if (SharedWord(ulp_VAN_TX_FINISHED) != 1 || index >= VAN_LP_RX_TRACE_COUNT
+        || index >= SharedWord(ulp_VAN_TX_RX_TRACE_COUNT)) return false;
+    SharedFence();
+    const volatile VanLpRxTrace* records = reinterpret_cast<const volatile VanLpRxTrace*>(&ulp_VAN_TX_RX_TRACE);
+    trace = { records[index].rawTs, records[index].pair, records[index].centerOffset,
+              records[index].correction, records[index].fourthLate, records[index].inverseLate };
+    return true;
+}
 VanLpResult LpCoreVanTx::GetLastBusResult() const { return static_cast<VanLpResult>(SharedWord(ulp_VAN_BUS_RESULT)); }
 #endif

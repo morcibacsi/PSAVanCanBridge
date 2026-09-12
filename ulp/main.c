@@ -15,14 +15,23 @@ volatile uint32_t VAN_TX_FINISHED = 1;
 volatile uint32_t SET_VAN_RX_PIN, SET_VAN_TX_PIN, VAN_START_APP;
 volatile uint32_t VAN_RETRY_COUNT, VAN_FRAME_TYPE;
 volatile uint32_t VAN_TX_RESULT, VAN_BUS_RESULT;
+volatile uint32_t VAN_TX_ABORT_DETAIL;
+volatile uint32_t VAN_TX_EOD_TS;
+volatile uint32_t VAN_TS_CYCLES = 128;
+volatile VanLpRxTrace VAN_TX_RX_TRACE[VAN_LP_RX_TRACE_COUNT];
+volatile uint32_t VAN_TX_RX_TRACE_COUNT;
+static uint32_t abortDetail;
+static uint32_t responseEodTs;
 volatile VanLpConfig VAN_CONFIG[2];
 volatile uint32_t VAN_CONFIG_PUBLISHED, VAN_CONFIG_APPLIED;
 volatile lp_io_num_t VAN_RX_PIN, VAN_TX_PIN;
 
-// ESP-IDF's C6 LP delay implementation also assumes 16 MHz. These constants
-// require the same clock; no HP clock/frequency scaling may alter the LP clock.
-#define TS_CYCLES 128u
-#define HALF_TS_CYCLES 64u
+// HP calibrates RTC_FAST before starting bus activity. The RC oscillator's
+// nominal 16 MHz is not precise enough for absolute receive/TX deadlines.
+// Cache once: no shared-RAM timing updates during an active transaction.
+static uint32_t tsCycles = 128;
+#define TS_CYCLES tsCycles
+#define HALF_TS_CYCLES (tsCycles / 2u)
 #define DEADLINE_SLACK_CYCLES 16u
 #define INLINE static inline __attribute__((always_inline))
 
@@ -67,6 +76,13 @@ INLINE void drive_bus(uint32_t level) { ulp_lp_core_gpio_set_level(VAN_TX_PIN, l
 #endif
 INLINE void release_bus(void) { drive_bus(1); }
 
+static VanLpResult abort_at(VanLpAbortStage stage, uint32_t rawTs)
+{
+    release_bus(); // Never lengthen a dominant pulse to record diagnostics.
+    abortDetail = ((uint32_t)stage << 16) | (rawTs & 0xffffu);
+    return VAN_LP_ABORT;
+}
+
 INLINE bool sample_at(uint32_t deadline, uint32_t* bit)
 {
     if (!wait_until(deadline)) return false;
@@ -80,68 +96,128 @@ INLINE bool sample_at(uint32_t deadline, uint32_t* bit)
 INLINE bool sample_inverse(uint32_t* sampleCycle, uint32_t previous, uint32_t* bit)
 {
     uint32_t now;
-    while ((int32_t)((now = cycles()) - *sampleCycle) < 0)
+    uint32_t lastPreviousCycle = *sampleCycle - TS_CYCLES;
+    // Stop GPIO edge polling a quarter-TS before the sample center. At EOD
+    // there is deliberately no edge: polling all the way to the center could
+    // overshoot it by one MMIO/poll iteration and falsely trip the 16-cycle
+    // deadline guard. Finish with the same short timer-only wait as sample_at.
+    // An edge in the final timer-only interval must ALSO correct phase. Merely
+    // accepting its new level at the center leaves RX free-running, eventually
+    // classifying DATA as EOD. Keep a bracket for that otherwise missed edge.
+    const uint32_t edgeSearchEnd = *sampleCycle - HALF_TS_CYCLES / 2;
+    while ((int32_t)((now = cycles()) - edgeSearchEnd) < 0)
     {
         if (read_bus() != previous)
         {
             // Reject an edge outside the middle half of the expected TS.
             int32_t error = (int32_t)(now - (*sampleCycle - HALF_TS_CYCLES));
-            if (error < -32 || error > 32) return false;
+            if (error < -(int32_t)(HALF_TS_CYCLES / 2) || error > (int32_t)(HALF_TS_CYCLES / 2)) return false;
             *sampleCycle = now + HALF_TS_CYCLES;
             return sample_at(*sampleCycle, bit);
         }
+        lastPreviousCycle = now;
     }
-    if ((int32_t)(now - *sampleCycle) > (int32_t)DEADLINE_SLACK_CYCLES) return false;
-    *bit = read_bus();
+    if (!sample_at(*sampleCycle, bit)) return false;
+    if (*bit != previous)
+    {
+        // The transition lies between the last old-level observation and this
+        // new-level observation. Use their midpoint, not the late sample as
+        // the exact edge. The bit has already been sampled; move only future
+        // deadlines. At EOD there is no transition and the phase is unchanged.
+        const uint32_t observedCycle = cycles();
+        const uint32_t edge = lastPreviousCycle + (observedCycle - lastPreviousCycle) / 2u;
+        *sampleCycle = edge + HALF_TS_CYCLES;
+    }
     return true;
 }
 
 // Start with DATA[0] at raw index 30. The COM inverse has already been consumed.
 // EOD is only legal at 48/49 + 10*N, N=0..28; never infer a nonexistent DLC.
+// Trace writes occur after a pair (three skipped DATA slices are available),
+// after an abort releases TX, or after ACK release. Never during ACK dominance.
+static void record_rx_pair(unsigned rawTs, uint32_t pair, uint32_t start,
+                           uint32_t planned, uint32_t adjusted,
+                           uint32_t fourthDone, uint32_t inverseDone)
+{
+    const unsigned index = VAN_TX_RX_TRACE_COUNT;
+    if (index >= VAN_LP_RX_TRACE_COUNT) return;
+    volatile VanLpRxTrace* trace = &VAN_TX_RX_TRACE[index];
+    trace->rawTs = rawTs;
+    trace->pair = pair;
+    trace->centerOffset = adjusted - start;
+    trace->correction = (int32_t)(adjusted - planned);
+    trace->fourthLate = (int32_t)(fourthDone - (planned - TS_CYCLES));
+    trace->inverseLate = (int32_t)(inverseDone - adjusted);
+    VAN_TX_RX_TRACE_COUNT = index + 1;
+}
+
 static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query)
 {
-    uint32_t bit = 0, fourth = 0;
-    unsigned phase = 0;
+    uint32_t bit, fourth;
+    const uint32_t responseStart = sampleCycle;
+    if (query) VAN_TX_RX_TRACE_COUNT = 0;
     unsigned pairParity = 0; // Even number of five-TS groups at byte boundary.
-    for (unsigned rawTs = 30; rawTs < 330; ++rawTs)
+    // The HP receiver decodes DATA/FCS. Here only D,!D is needed to locate
+    // EOD. Skip A,B,C so the D sample can flow directly into edge polling:
+    // a per-slice loop spends the narrow D-center -> !D-edge window on
+    // phase bookkeeping, branches and the next loop iteration instead.
+    for (unsigned rawTs = 34; rawTs < 330; rawTs += 5)
     {
-        sampleCycle += TS_CYCLES;
-        if (phase == 4)
+        sampleCycle += 5 * TS_CYCLES;
+        const bool trace = query && rawTs < 34 + 5 * VAN_LP_RX_TRACE_COUNT;
+        const uint32_t planned = sampleCycle;
+        if (!sample_at(sampleCycle - TS_CYCLES, &fourth))
+            return abort_at(VAN_LP_ABORT_RX_SAMPLE_DEADLINE, rawTs - 1);
+        const uint32_t fourthDone = trace ? cycles() : 0;
+        bit = 2;
+        const bool inverseOk = sample_inverse(&sampleCycle, fourth, &bit);
+        const uint32_t inverseDone = trace ? cycles() : 0;
+        if (!inverseOk)
         {
-            if (!sample_inverse(&sampleCycle, fourth, &bit)) goto abort;
-            if (bit == fourth)
+            VanLpResult result = abort_at(VAN_LP_ABORT_RX_INVERSE_TIMING, rawTs);
+            if (trace) record_rx_pair(rawTs, (fourth << 2) | bit, responseStart,
+                                      planned, sampleCycle, fourthDone, inverseDone);
+            return result;
+        }
+        if (bit == fourth)
+        {
+            // 11 is malformed, not EOD. A full 15-bit FCS must fit before
+            // the 00, and DATA always has a whole number of bytes.
+            if (bit || rawTs < 49 || !pairParity)
             {
-                // 11 is malformed, not EOD. A full 15-bit FCS must fit before
-                // the 00, and DATA always has a whole number of bytes.
-                if (bit || rawTs < 49 || !pairParity) goto abort;
-                if (ack)
-                {
-                    // At second EOD slot center. ACK[0] starts +0.5 TS;
-                    // ACK[1] starts +1.5 TS. Drive only ACK[1], for ONE TS.
-                    if (!sample_at(sampleCycle + TS_CYCLES, &bit) || !bit) goto abort;
-                    uint32_t ackEdge = sampleCycle + TS_CYCLES + HALF_TS_CYCLES;
-                    if (!wait_until(ackEdge)) goto abort;
-                    drive_bus(0);
-                    bool onTime = wait_until(ackEdge + TS_CYCLES);
-                    release_bus();
-                    if (!onTime) goto abort;
-                }
-                return query ? (ack ? VAN_LP_QUERY_RESPONSE_ACKED : VAN_LP_QUERY_RESPONSE_RECEIVED)
-                             : (ack ? VAN_LP_NORMAL_FRAME_ACKED : VAN_LP_NONE);
+                VanLpResult result = abort_at(VAN_LP_ABORT_RX_EOD_INVALID, rawTs);
+                if (trace) record_rx_pair(rawTs, (fourth << 2) | bit, responseStart,
+                                          planned, sampleCycle, fourthDone, inverseDone);
+                return result;
             }
-            phase = 0;
-            pairParity ^= 1;
+            if (ack)
+            {
+                // At second EOD slot center. ACK[0] starts +0.5 TS;
+                // ACK[1] starts +1.5 TS. Drive only ACK[1], for ONE TS.
+                if (!sample_at(sampleCycle + TS_CYCLES, &bit))
+                    return abort_at(VAN_LP_ABORT_ACK_FIRST_DEADLINE, rawTs + 1);
+                if (!bit) return abort_at(VAN_LP_ABORT_ACK_FIRST_DOMINANT, rawTs + 1);
+                uint32_t ackEdge = sampleCycle + TS_CYCLES + HALF_TS_CYCLES;
+                if (!wait_until(ackEdge)) return abort_at(VAN_LP_ABORT_ACK_DRIVE_DEADLINE, rawTs + 2);
+                drive_bus(0);
+                bool onTime = wait_until(ackEdge + TS_CYCLES);
+                release_bus();
+                if (!onTime) return abort_at(VAN_LP_ABORT_ACK_RELEASE_DEADLINE, rawTs + 3);
+            }
+            // Record only after releasing ACK; no diagnostic stores in the
+            // sampling loop or dominant pulse. This is the detected boundary,
+            // not proof that it was the real end of the reply.
+            responseEodTs = rawTs;
+            if (trace) record_rx_pair(rawTs, fourth << 2, responseStart,
+                                      planned, sampleCycle, fourthDone, inverseDone);
+            return query ? (ack ? VAN_LP_QUERY_RESPONSE_ACKED : VAN_LP_QUERY_RESPONSE_RECEIVED)
+                         : (ack ? VAN_LP_NORMAL_FRAME_ACKED : VAN_LP_NONE);
         }
-        else
-        {
-            if (!sample_at(sampleCycle, &bit)) goto abort;
-            if (phase == 3) fourth = bit;
-            ++phase;
-        }
+        if (trace) record_rx_pair(rawTs, (fourth << 2) | bit, responseStart,
+                                  planned, sampleCycle, fourthDone, inverseDone);
+        pairParity ^= 1;
     }
-abort:
-    release_bus();
-    return VAN_LP_ABORT;
+    return abort_at(VAN_LP_ABORT_RX_SCAN_LIMIT, 330);
 }
 
 // Transmit using an existing full frame and an already established array index.
@@ -151,7 +227,7 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
                                      unsigned wordIndex, int bitIndex, uint32_t edgeCycle,
                                      bool requester, bool queryAck)
 {
-    if (wordCount < 6 || wordCount > VAN_LP_FRAME_WORDS) goto abort;
+    if (wordCount < 6 || wordCount > VAN_LP_FRAME_WORDS) return abort_at(VAN_LP_ABORT_TX_LENGTH, 0);
     uint32_t bit, bus;
     bool acknowledged = false;
     for (; wordIndex < wordCount; ++wordIndex, bitIndex = 9)
@@ -160,15 +236,19 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
         for (; bitIndex >= 0; --bitIndex)
         {
             bit = (word >> bitIndex) & 1u;
-            if (!wait_until(edgeCycle)) goto abort;
+            if (!wait_until(edgeCycle))
+                return abort_at(VAN_LP_ABORT_TX_EDGE_DEADLINE, wordIndex * 10 + 9 - bitIndex);
             drive_bus(bit);
-            if (!sample_at(edgeCycle + HALF_TS_CYCLES, &bus)) goto abort;
-            if (!bit && bus) goto abort;
+            if (!sample_at(edgeCycle + HALF_TS_CYCLES, &bus))
+                return abort_at(VAN_LP_ABORT_TX_SAMPLE_DEADLINE, wordIndex * 10 + 9 - bitIndex);
+            if (!bit && bus)
+                return abort_at(VAN_LP_ABORT_TX_DOMINANT_NOT_SEEN, wordIndex * 10 + 9 - bitIndex);
             if (requester && wordIndex == 2 && bitIndex == 1 && !bus)
             {
                 release_bus(); // RTR recessive lost: stay inside this frame.
                 uint32_t center = edgeCycle + HALF_TS_CYCLES + TS_CYCLES;
-                if (!sample_inverse(&center, 0, &bus) || bus != 1) goto abort;
+                if (!sample_inverse(&center, 0, &bus)) return abort_at(VAN_LP_ABORT_RTR_INVERSE_TIMING, 29);
+                if (bus != 1) return abort_at(VAN_LP_ABORT_RTR_INVERSE_INVALID, 29);
                 return track_response(center, queryAck, true);
             }
             if (wordIndex == wordCount - 1 && bitIndex == 8)
@@ -181,13 +261,10 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
             edgeCycle += TS_CYCLES;
         }
     }
-    if (!wait_until(edgeCycle)) goto abort;
+    if (!wait_until(edgeCycle)) return abort_at(VAN_LP_ABORT_TX_END_DEADLINE, wordCount * 10);
     release_bus();
     return requester ? VAN_LP_QUERY_NO_RESPONSE
                      : (acknowledged ? VAN_LP_REPLY_ACKNOWLEDGED : VAN_LP_REPLY_NOT_ACKNOWLEDGED);
-abort:
-    release_bus();
-    return VAN_LP_ABORT;
 }
 
 static VanLpResult receive_frame(const volatile VanLpConfig* config, uint32_t edgeCycle)
@@ -381,9 +458,12 @@ static void monitor_once(void)
     // handles a competing start occurring after this final GPIO check.
     if (!read_bus()) return;
     shared_fence();
+    abortDetail = 0;
+    responseEodTs = UINT32_MAX;
+    VAN_TX_RX_TRACE_COUNT = 0;
     VanLpResult result;
     if (VAN_DATA_LENGTH < 6 || VAN_DATA_LENGTH > VAN_LP_FRAME_WORDS)
-        result = VAN_LP_ABORT;
+        result = abort_at(VAN_LP_ABORT_TX_LENGTH, 0);
     else if (VAN_FRAME_TYPE == 1)
     {
         // Begin SOF immediately after the final idle check. Do not spend an
@@ -400,6 +480,10 @@ static void monitor_once(void)
     release_bus();
     monitor.wasHigh = 0;
     VAN_TX_RESULT = result;
+    // Pin the local-TX failure detail before continuous monitoring resumes.
+    // Incoming frames can change abortDetail but not this completion snapshot.
+    VAN_TX_ABORT_DETAIL = result == VAN_LP_ABORT ? abortDetail : 0;
+    VAN_TX_EOD_TS = responseEodTs;
     if (result == VAN_LP_ARBITRATION_LOST && VAN_FRAME_TYPE == 0 && ++monitor.retries < VAN_RETRY_COUNT)
         return; // Retain pending TX, resume incoming monitoring before IFS.
     monitor.retries = 0;
@@ -416,6 +500,7 @@ int main(void)
     // Continuous polling needs no LP interrupts; prevent interrupt latency from
     // stretching ACK or disturbing RTR. HP configuration uses shared RAM only.
     __asm__ __volatile__("csrci mstatus, 8" ::: "memory");
+    tsCycles = VAN_TS_CYCLES;
     VAN_RX_PIN = SET_VAN_RX_PIN;
     VAN_TX_PIN = SET_VAN_TX_PIN;
     rxMask = 1u << VAN_RX_PIN;
