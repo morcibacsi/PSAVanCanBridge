@@ -86,6 +86,11 @@ void AEE2001ComfortBus::GenerateMessages(MessageDirection direction)
 
 void AEE2001ComfortBus::GenerateMessagesForSource()
 {
+    if (_carState == nullptr || _schedulerForSourceNetwork == nullptr)
+    {
+        return;
+    }
+
     // only for testing without BSI on bench
     //
     /*
@@ -94,10 +99,14 @@ void AEE2001ComfortBus::GenerateMessagesForSource()
     _schedulerForSourceNetwork->AddOrUpdateMessage(ignitionMessage, _carState->CurrenTime);
     //*/
 
-    if (_carState == nullptr || _schedulerForSourceNetwork == nullptr)
-    {
-        return;
-    }
+    // only for testing the CDC response message, requires the original EMF + headunit for testing
+    //
+    /*
+    BusMessage cdcMessage = std::get<MessageHandler_4EC>(handlers).Generate(_carState);
+    cdcMessage.isActive = true;
+    _schedulerForSourceNetwork->AddOrUpdateMessage(cdcMessage, _carState->CurrenTime);
+    _transportLayer->SendMessage(cdcMessage, true);
+    //*/
 
     BusMessage aasMessage = std::get<MessageHandler_A68>(handlers).Generate(_carState);
     _schedulerForSourceNetwork->AddOrUpdateMessage(aasMessage, _carState->CurrenTime);

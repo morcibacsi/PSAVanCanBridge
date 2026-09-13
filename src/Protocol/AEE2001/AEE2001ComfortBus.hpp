@@ -25,6 +25,8 @@
 #include "Handlers/BSI/MessageHandler_ADC.hpp"
 #include "Handlers/BSI/MessageHandler_A5C.hpp"
 
+#include "Handlers/CDC/MessageHandler_4EC.hpp"
+
 #include "Handlers/CLIM/MessageHandler_464.hpp"
 
 #include "Handlers/CMB/MessageHandler_664.hpp"
@@ -56,6 +58,7 @@ class AEE2001ComfortBus : public IProtocolHandler
 
     public:
     std::tuple<
+        MessageHandler_4EC,
         MessageHandler_4FC,
         MessageHandler_4DC,
         MessageHandler_8A4,
