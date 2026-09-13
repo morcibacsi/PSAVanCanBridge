@@ -304,7 +304,7 @@ extern "C" void app_main(void)
         #if CONFIG_IDF_TARGET_ESP32
             sourceVanMessageSender = new HulpVanTx(VAN_RX_PIN, VAN_TX_PIN);
         #else
-            sourceVanMessageSender = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, LpCoreVanTx::LP_VAN_125KBPS);
+            sourceVanMessageSender = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, VanBusSpeed::Kts125);
         #endif
 
         sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);

@@ -1,4 +1,5 @@
 #include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanFrameBuilder.hpp"
+#include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanBusTiming.hpp"
 #include <assert.h>
 #include <stdio.h>
 #include <vector>
@@ -100,6 +101,11 @@ static void reset(const std::vector<unsigned>& bits, uint64_t start = 128)
     test_set_ts_cycles(128);
     gpioReadCycles = 0;
 }
+static void set_bus_period(unsigned period)
+{
+    wireTsCycles = period;
+    test_set_ts_cycles(period);
+}
 static void check_ack(unsigned ackStartTs)
 {
     assert(writes.size() == 2 && writes[0].second == 0 && writes[1].second == 1);
@@ -140,6 +146,13 @@ static std::vector<unsigned> reference(uint16_t id, uint8_t com, const uint8_t* 
 
 int main()
 {
+    static_assert(VanBusTiming::IsSupported(VanBusSpeed::Kts125));
+    static_assert(VanBusTiming::IsSupported(VanBusSpeed::Kts62_5));
+    static_assert(VanBusTiming::BitRate(VanBusSpeed::Kts125) == 125000);
+    static_assert(VanBusTiming::BitRate(VanBusSpeed::Kts62_5) == 62500);
+    static_assert(VanBusTiming::TimeSliceCycles(16000000, VanBusSpeed::Kts125) == 128);
+    static_assert(VanBusTiming::TimeSliceCycles(16000000, VanBusSpeed::Kts62_5) == 256);
+
     // Reported normal frames must run through the actual monitor/normal TX
     // branch to completion. Check GPIO transition order, not host NOP timing.
     const uint8_t normal5e4[] = {0x20, 0x1e};
@@ -613,7 +626,9 @@ int main()
         assert(test_receive(&config, origin) == VAN_LP_NORMAL_FRAME_ACKED);
     }
 
-    // Actual monitor iteration: pending TX is untouched by ACK/reply traffic.
+    // Actual monitor iteration at both speeds: pending TX is untouched by
+    // incoming ACK/reply traffic and resumes only after scaled EOF+IFS.
+    for (unsigned period : {128u, 256u})
     for (bool reply : {false, true})
     {
         VanLpConfig active = {};
@@ -621,14 +636,15 @@ int main()
         VanFrameBuilder::SetReply(active, 0, 0x9c0, sample, sizeof(sample), true);
         auto input = raw(frame(reply ? 0x9c0 : 0x8c0, reply ? 0xf : 0xc));
         if (reply) { input.resize(active.replies[0].frameWordCount * 10, 1); std::fill(input.begin()+29, input.end(), 1); }
-        reset(input, 1600); now = 0;
+        reset(input, 13 * period); now = 0;
+        set_bus_period(period);
         const uint32_t* source = reinterpret_cast<const uint32_t*>(&active);
         volatile uint32_t* dest = reinterpret_cast<volatile uint32_t*>(&VAN_CONFIG[0]);
         for (unsigned i = 0; i < sizeof(active)/4; ++i) dest[i] = source[i];
         dest = reinterpret_cast<volatile uint32_t*>(&VAN_CONFIG[1]);
         for (unsigned i = 0; i < sizeof(active)/4; ++i) dest[i] = 0;
         VAN_CONFIG_PUBLISHED = VAN_CONFIG_APPLIED = 0;
-        publishAt = origin + 15 * 128;
+        publishAt = origin + 15 * period;
         publishDuringFrame = true;
         auto outgoing = frame(0x700, 8);
         for (unsigned i = 0; i < outgoing.frameWordCount; ++i) VAN_DATA[i] = outgoing.words[i];
@@ -645,7 +661,7 @@ int main()
         assert(VAN_CONFIG_APPLIED == 1); // Old bank can only now be recycled.
         // Avoid host NOP timing claims: wait through complete wire frame + IFS;
         // normal TX only checked for consumption/completion, not pulse widths.
-        while (!VAN_TX_FINISHED && now < origin + 200000) test_monitor_step();
+        while (!VAN_TX_FINISHED && now < origin + 400000) test_monitor_step();
         assert(VAN_TX_FINISHED && !VAN_START_TX);
     }
     // Exercise query SOF start through the real monitor, including its immediate
@@ -696,5 +712,73 @@ int main()
     assert(test_receive(&incomingConfig, origin) == VAN_LP_ABORT);
     assert((test_abort_detail() & 0xffffu) == 44);
     assert(VAN_TX_ABORT_DETAIL == queryDetail);
-    puts("VAN LP: encoding, all slots/lengths, ACK, RTR, malformed frames, deadlines, wrap, drift and pending TX passed");
+
+    // The state machine, prepared frames and matching configuration are shared
+    // by both speeds. Exercise each timing-dependent role at nominal 16 MHz:
+    // 128 cycles/TS = 125 KTS, 256 cycles/TS = 62.5 KTS.
+    const auto speedNormal = frame(0x8c4, 0xc, 3);
+    const auto speedNormalBits = raw(speedNormal);
+    VanLpConfig speedConfig = {};
+    assert(VanFrameBuilder::SetAck(speedConfig, 0, 0x8c4, 0xc, true));
+    const uint8_t speedReplyData[] = {0x80, 0x01, 0x55};
+    assert(VanFrameBuilder::SetReply(speedConfig, 0, 0x9c0,
+                                     speedReplyData, sizeof(speedReplyData), true));
+    const auto preparedAt125 = speedConfig.replies[0];
+    for (unsigned period : {128u, 256u})
+    {
+        // Incoming normal frame ACK: ACK[0], ACK[1], EOD and EOF positions are
+        // logical indices; only the selected cycle duration changes.
+        reset(speedNormalBits);
+        set_bus_period(period);
+        assert(test_receive(&speedConfig, origin) == VAN_LP_NORMAL_FRAME_ACKED);
+        const unsigned ackTs = VanFrameBuilder::AckStartTs(speedNormal);
+        assert(writes.size() == 2);
+        assert(writes[0].first >= origin + (ackTs + 1) * period
+                                      - test_ack_edge_advance() - 1);
+        assert(writes[0].first <= origin + (ackTs + 1) * period
+                                      - test_ack_edge_advance() + 8);
+        assert(writes[1].first - writes[0].first
+               == period + test_ack_hold_extension());
+
+        // Requested-module role: compare through R/W, take RTR at raw TS 28,
+        // then continue transmitting from the same complete prepared array.
+        auto replyRequestBus = raw(frame(0x9c0, 0xf, 0));
+        replyRequestBus.resize(speedConfig.replies[0].frameWordCount * 10, 1);
+        std::fill(replyRequestBus.begin() + 29, replyRequestBus.end(), 1);
+        reset(replyRequestBus);
+        set_bus_period(period);
+        assert(test_receive(&speedConfig, origin) == VAN_LP_REPLY_NOT_ACKNOWLEDGED);
+        assert(writes.front().second == 0);
+        assert(writes.front().first >= origin + 28 * period);
+        assert(writes.front().first <= origin + 28 * period + 8);
+        assert(memcmp(&speedConfig.replies[0], &preparedAt125,
+                      sizeof(preparedAt125)) == 0);
+
+        // Requesting-module role: lose recessive RTR, track the returned frame,
+        // find EOD by phase and ACK its second slot at the selected duration.
+        auto returned = raw(frame(0x8c4, 0xe, 3));
+        std::fill(returned.begin(), returned.begin() + 28, 1);
+        auto outgoingRequest = frame(0x8c4, 0xf, 0);
+        reset(returned);
+        set_bus_period(period);
+        assert(test_request(&outgoingRequest, origin, 1) == VAN_LP_QUERY_RESPONSE_ACKED);
+        assert(test_eod_ts() == 79);
+        assert(writes.back().first - writes[writes.size() - 2].first
+               == period + test_ack_hold_extension());
+
+        // Normal TX uses the same prepared bits. The monitor's EOF+IFS gate is
+        // 16 logical slices at both rates and therefore doubles in real time.
+        reset({});
+        set_bus_period(period);
+        const uint64_t idleStart = now;
+        for (unsigned i = 0; i < speedNormal.frameWordCount; ++i)
+            VAN_DATA[i] = speedNormal.words[i];
+        VAN_DATA_LENGTH = speedNormal.frameWordCount;
+        VAN_FRAME_TYPE = 0; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+        test_monitor_reset();
+        while (!VAN_TX_FINISHED && now < idleStart + 200000) test_monitor_step();
+        assert(VAN_TX_FINISHED && VAN_TX_RESULT == VAN_LP_NORMAL_TX_COMPLETED);
+        assert(!writes.empty() && writes.front().first >= idleStart + 16 * period);
+    }
+    puts("VAN LP: both speeds, encoding, all slots/lengths, ACK, RTR, malformed frames, deadlines, wrap, drift and pending TX passed");
 }

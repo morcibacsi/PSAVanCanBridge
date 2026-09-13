@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include "VanLpShared.h"
+#include "VanBusTiming.hpp"
 #include "driver/gpio.h"
 #include "../IVanMessageSender.h"
 
@@ -19,10 +20,9 @@ class LpCoreVanTx : public IVanMessageSender
 
     static constexpr uint8_t MAX_ACK_IDENTIFIER_COUNT = VAN_LP_ENTRY_COUNT;
 
-    typedef enum {
-        LP_VAN_62K5BPS  = 0,
-        LP_VAN_125KBPS  = 1,
-    } LP_VAN_NETWORK_SPEED;
+    using LP_VAN_NETWORK_SPEED = VanBusSpeed;
+    static constexpr VanBusSpeed LP_VAN_62K5BPS = VanBusSpeed::Kts62_5;
+    static constexpr VanBusSpeed LP_VAN_125KBPS = VanBusSpeed::Kts125;
 
 private:
     void PrintToSerial(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, uint8_t *byteArray);
@@ -66,10 +66,9 @@ private:
     class LpCoreVanTx : public IVanMessageSender
     {
         public:
-            typedef enum {
-                LP_VAN_62K5BPS  = 0,
-                LP_VAN_125KBPS  = 1,
-            } LP_VAN_NETWORK_SPEED;
+            using LP_VAN_NETWORK_SPEED = VanBusSpeed;
+            static constexpr VanBusSpeed LP_VAN_62K5BPS = VanBusSpeed::Kts62_5;
+            static constexpr VanBusSpeed LP_VAN_125KBPS = VanBusSpeed::Kts125;
 
             LpCoreVanTx(gpio_num_t rxPin, gpio_num_t txPin, LP_VAN_NETWORK_SPEED networkSpeed) {}
             ~LpCoreVanTx() {}
@@ -77,9 +76,9 @@ private:
             void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck) {}
             void SendReplyRequestFrame(const uint16_t identifier) {}
             bool IsTxPossible() { return false; }
-                void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
-                void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
-                void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)slot; (void)identifier; (void)data; (void)length; (void)enabled;}
+            void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
+            void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
+            void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)slot; (void)identifier; (void)data; (void)length; (void)enabled;}
     };
     #endif
 #endif

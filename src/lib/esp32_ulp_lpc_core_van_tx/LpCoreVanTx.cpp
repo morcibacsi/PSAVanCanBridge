@@ -46,12 +46,10 @@ LpCoreVanTx::~LpCoreVanTx() = default;
 
 void LpCoreVanTx::Start()
 {
+    ESP_ERROR_CHECK(VanBusTiming::IsSupported(_networkSpeed) ? ESP_OK : ESP_ERR_INVALID_ARG);
     uint32_t lpClockHz = 0;
-    ESP_ERROR_CHECK(esp_clk_tree_src_get_freq_hz(SOC_MOD_CLK_RTC_FAST,
-                    ESP_CLK_TREE_SRC_FREQ_PRECISION_EXACT, &lpClockHz));
-    const uint32_t sliceCycles = (lpClockHz + 62500u) / 125000u;
-    // Reject an unusable calibration instead of transmitting with bogus timing.
-    ESP_ERROR_CHECK(sliceCycles >= 96 && sliceCycles <= 192 ? ESP_OK : ESP_ERR_INVALID_STATE);
+    ESP_ERROR_CHECK(esp_clk_tree_src_get_freq_hz(SOC_MOD_CLK_RTC_FAST, ESP_CLK_TREE_SRC_FREQ_PRECISION_EXACT, &lpClockHz));
+    const uint32_t sliceCycles = VanBusTiming::TimeSliceCycles(lpClockHz, _networkSpeed);
     ESP_ERROR_CHECK(ulp_lp_core_load_binary(ulp_main_bin_start, ulp_main_bin_end - ulp_main_bin_start));
     ulp_lp_core_cfg_t cfg = { .wakeup_source = ULP_LP_CORE_WAKEUP_SOURCE_HP_CPU };
     ESP_ERROR_CHECK(ulp_lp_core_run(&cfg));
@@ -59,8 +57,10 @@ void LpCoreVanTx::Start()
     SharedWord(ulp_SET_VAN_RX_PIN) = _rxPin;
     SharedWord(ulp_SET_VAN_TX_PIN) = _txPin;
     SharedWord(ulp_VAN_TS_CYCLES) = sliceCycles;
-    printf("VAN LP clock: %u Hz, 8us slice=%u cycles\n",
-           static_cast<unsigned>(lpClockHz), static_cast<unsigned>(sliceCycles));
+    printf("VAN LP clock: %u Hz, %u bps, slice=%u cycles\n",
+           static_cast<unsigned>(lpClockHz),
+           static_cast<unsigned>(VanBusTiming::BitRate(_networkSpeed)),
+           static_cast<unsigned>(sliceCycles));
     // Query ACK defaults on; the legacy setter can explicitly disable it.
     _configuration.queryAckEnabled = 1;
     volatile VanLpConfig* banks = reinterpret_cast<volatile VanLpConfig*>(&ulp_VAN_CONFIG);
