@@ -35,6 +35,13 @@ static uint32_t tsCycles = 128;
 #define TS_CYCLES tsCycles
 #define HALF_TS_CYCLES (tsCycles / 2u)
 #define DEADLINE_SLACK_CYCLES 16u
+// wait_until() returns at the nominal boundary, then the generated deadline
+// check, address/mask loads and LP GPIO MMIO store delay the physical edge.
+// Advance the ACK drive deadline to shorten ACK[0]. The release path has fewer
+// instructions after its deadline than the drive path, so hold ACK[1] for a
+// small additional interval before releasing it.
+#define ACK_EDGE_ADVANCE_CYCLES 12u
+#define ACK_HOLD_EXTENSION_CYCLES 5u
 #define INLINE static inline __attribute__((always_inline))
 
 #ifndef VAN_LP_HOST_TEST
@@ -227,14 +234,15 @@ static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query)
             if (ack)
             {
                 // At second EOD slot center. ACK[0] starts +0.5 TS;
-                // ACK[1] starts +1.5 TS. Drive only ACK[1], for ONE TS.
+                // ACK[1] starts +1.5 TS. Drive only ACK[1]; its release
+                // deadline compensates for the shorter generated release path.
                 if (!sample_at(sampleCycle + TS_CYCLES, &bit))
                     return abort_at(VAN_LP_ABORT_ACK_FIRST_DEADLINE, rawTs + 1);
                 if (!bit) return abort_at(VAN_LP_ABORT_ACK_FIRST_DOMINANT, rawTs + 1);
-                uint32_t ackEdge = sampleCycle + TS_CYCLES + HALF_TS_CYCLES;
+                uint32_t ackEdge = sampleCycle + TS_CYCLES + HALF_TS_CYCLES - ACK_EDGE_ADVANCE_CYCLES;
                 if (!wait_until(ackEdge)) return abort_at(VAN_LP_ABORT_ACK_DRIVE_DEADLINE, rawTs + 2);
                 drive_bus(0);
-                bool onTime = wait_until(ackEdge + TS_CYCLES);
+                bool onTime = wait_until(ackEdge + TS_CYCLES + ACK_HOLD_EXTENSION_CYCLES);
                 release_bus();
                 if (!onTime) return abort_at(VAN_LP_ABORT_ACK_RELEASE_DEADLINE, rawTs + 3);
             }

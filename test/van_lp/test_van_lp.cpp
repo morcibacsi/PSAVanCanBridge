@@ -13,6 +13,8 @@ void test_monitor_step(void);
 int test_inverse(uint32_t*, uint32_t, uint32_t*);
 uint32_t test_abort_detail(void);
 uint32_t test_eod_ts(void);
+uint32_t test_ack_edge_advance(void);
+uint32_t test_ack_hold_extension(void);
 void test_set_ts_cycles(uint32_t);
 VanLpResult test_track_response(uint32_t);
 extern volatile uint32_t VAN_DATA[], VAN_DATA_LENGTH, VAN_START_TX, VAN_TX_FINISHED;
@@ -101,9 +103,10 @@ static void reset(const std::vector<unsigned>& bits, uint64_t start = 128)
 static void check_ack(unsigned ackStartTs)
 {
     assert(writes.size() == 2 && writes[0].second == 0 && writes[1].second == 1);
-    const int64_t error = writes[0].first - (origin + (ackStartTs + 1) * 128);
+    const int64_t error = writes[0].first
+                        - (origin + (ackStartTs + 1) * 128 - test_ack_edge_advance());
     assert(error >= -4 && error <= 8);
-    assert(writes[1].first - writes[0].first == 128);
+    assert(writes[1].first - writes[0].first == 128 + test_ack_hold_extension());
     assert(txLevel == 1);
 }
 
@@ -268,9 +271,11 @@ int main()
                 assert(test_track_response(center) == VAN_LP_QUERY_RESPONSE_ACKED);
                 assert(test_eod_ts() == 319);
                 const int64_t ackError = static_cast<int64_t>(writes.front().first)
-                                       - static_cast<int64_t>(origin + 321 * period);
+                                       - static_cast<int64_t>(origin + 321 * period
+                                                              - test_ack_edge_advance());
                 assert(ackError >= -32 && ackError <= 32);
-                assert(writes.size() == 2 && writes[1].first - writes[0].first == 128);
+                assert(writes.size() == 2
+                       && writes[1].first - writes[0].first == 128 + test_ack_hold_extension());
             }
 
     // EOD has NO inversion edge. A GPIO polling iteration straddling the
@@ -291,7 +296,8 @@ int main()
     gpioReadCycles = 20;
     assert(test_request(&capturedRequest, origin, 1) == VAN_LP_QUERY_RESPONSE_ACKED);
     assert(txLevel == 1);
-    assert(writes.back().first - writes[writes.size()-2].first == 128);
+    assert(writes.back().first - writes[writes.size()-2].first
+           == 128 + test_ack_hold_extension());
 
     // Updated hardware capture: valid EOD is at 318/319, not 53/54.
     uint8_t captured564Latest[sizeof(captured564)];
@@ -313,9 +319,10 @@ int main()
         assert(test_eod_ts() == 319);
         const auto& ackWrite = writes[writes.size() - 2];
         assert(ackWrite.second == 0);
-        assert(ackWrite.first >= origin + 321 * 128);
-        assert(ackWrite.first < origin + 321 * 128 + 32);
-        assert(writes.back().first - ackWrite.first == 128);
+        assert(ackWrite.first >= origin + 321 * 128 - test_ack_edge_advance());
+        assert(ackWrite.first < origin + 321 * 128 - test_ack_edge_advance() + 32);
+        assert(writes.back().first - ackWrite.first
+               == 128 + test_ack_hold_extension());
     }
     for (unsigned level : {0u, 1u})
     {
@@ -374,9 +381,9 @@ int main()
         assert(test_request(&capturedRequest, origin, 1) == VAN_LP_QUERY_RESPONSE_ACKED);
         assert(test_eod_ts() == 319);
         const uint64_t ackStart = writes[writes.size()-2].first;
-        assert(ackStart >= origin + 321 * period - 1);
-        assert(ackStart <= origin + 321 * period + 8);
-        assert(writes.back().first - ackStart == period);
+        assert(ackStart >= origin + 321 * period - test_ack_edge_advance() - 1);
+        assert(ackStart <= origin + 321 * period - test_ack_edge_advance() + 8);
+        assert(writes.back().first - ackStart == period + test_ack_hold_extension());
     }
     // Start at an accurately known handover, then use the wrong 16 MHz
     // assumption for reception. A clean reply must not be reported as received.
@@ -562,8 +569,11 @@ int main()
         std::fill(bus.begin(), bus.begin() + 28, 1);
         reset(bus);
         assert(test_request(&request, origin, 1) == VAN_LP_QUERY_RESPONSE_ACKED);
-        assert(writes[writes.size()-2].first >= origin + (VanFrameBuilder::AckStartTs(response) + 1) * 128);
-        assert(writes.back().first - writes[writes.size()-2].first == 128);
+        assert(writes[writes.size()-2].first >= origin
+               + (VanFrameBuilder::AckStartTs(response) + 1) * 128
+               - test_ack_edge_advance());
+        assert(writes.back().first - writes[writes.size()-2].first
+               == 128 + test_ack_hold_extension());
         reset(bus);
         assert(test_request(&request, origin, 0) == VAN_LP_QUERY_RESPONSE_RECEIVED);
         assert(writes.back().first < origin + 30 * 128);

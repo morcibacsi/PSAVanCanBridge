@@ -25,5 +25,7 @@ int test_inverse(uint32_t* center, uint32_t previous, uint32_t* bit)
 
 uint32_t test_abort_detail(void) { return abortDetail; }
 uint32_t test_eod_ts(void) { return responseEodTs; }
+uint32_t test_ack_edge_advance(void) { return ACK_EDGE_ADVANCE_CYCLES; }
+uint32_t test_ack_hold_extension(void) { return ACK_HOLD_EXTENSION_CYCLES; }
 void test_set_ts_cycles(uint32_t value) { tsCycles = value; }
 VanLpResult test_track_response(uint32_t center) { return track_response(center, true, true); }
