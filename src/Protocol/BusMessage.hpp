@@ -7,7 +7,8 @@
 typedef enum {
     Normal = 1,
     Query = 2,
-    Response = 3
+    Response = 3,
+    AckOnly = 4
 } MessageType;
 
 struct BusMessage {

@@ -12,6 +12,13 @@ class IVanMessageSender
         // Optional capabilities for ULP/LP-core based VAN helpers.
         // Implementations that do not support these features can keep defaults.
         virtual void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) { (void)identifiers; (void)count; }
+        virtual void SetAckIdentifier(const uint8_t slot, const uint16_t identifier, const bool enabled)
+        {
+            (void)slot;
+            (void)identifier;
+            (void)enabled;
+        }
+
         virtual void SetQueryRequesterAckEnabled(const bool enabled) { (void)enabled; }
         virtual void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled)
         {

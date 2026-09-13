@@ -71,6 +71,7 @@ private:
         void SendReplyRequestFrame(const uint16_t identifier);
         bool IsTxPossible();
         void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override;
+        void SetAckIdentifier(const uint8_t slot, const uint16_t identifier, const bool enabled) override;
         void SetQueryRequesterAckEnabled(const bool enabled) override;
         void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override;
 };
@@ -92,6 +93,7 @@ private:
             bool IsTxPossible() { return false; }
             void ReceiveData(uint8_t* messageLength, uint8_t message[]) override { *messageLength = 0; (void)message; }
             void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
+            void SetAckIdentifier(const uint8_t slot, const uint16_t identifier, const bool enabled) override {(void)slot; (void)identifier; (void)enabled;}
             void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
             void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)slot; (void)identifier; (void)data; (void)length; (void)enabled;}
     };

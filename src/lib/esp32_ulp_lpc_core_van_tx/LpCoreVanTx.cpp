@@ -140,6 +140,12 @@ void LpCoreVanTx::SetAckIdentifiers(const uint16_t* identifiers, uint8_t count)
     portEXIT_CRITICAL(&vanApiLock);
 }
 
+void LpCoreVanTx::SetAckIdentifier(const uint8_t slot, const uint16_t identifier, const bool enabled)
+{
+    if (slot >= VAN_LP_ENTRY_COUNT) return;
+    if (WaitForConfiguration(*this)) ConfigureAckFrame(slot, identifier, enabled);
+}
+
 void LpCoreVanTx::SetQueryRequesterAckEnabled(bool enabled)
 {
     if (!WaitForConfiguration(*this)) return;

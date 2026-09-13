@@ -273,6 +273,9 @@ void VANTransportLayer::TxTask()
                     //printf("Send response message: %03X\n", (unsigned int) message.id);
                     _vanMessageSender->SetRequestedReplyFrame(message.slot, message.id, message.data, message.dataLength, message.isActive);
                     break;
+                case MessageType::AckOnly:
+                    _vanMessageSender->SetAckIdentifier(message.slot, message.id, message.isActive);
+                    break;
                 default:
                     break;
             }
