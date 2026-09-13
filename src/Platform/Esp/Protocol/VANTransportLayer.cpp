@@ -266,6 +266,10 @@ void VANTransportLayer::TxTask()
                     _vanMessageSender->SendNormalFrame(message.id, message.data, message.dataLength, message.ack);
 #endif
                     break;
+                case MessageType::Response:
+                    //printf("Send response message: %03X\n", (unsigned int) message.id);
+                    _vanMessageSender->SetRequestedReplyFrame(message.slot, message.id, message.data, message.dataLength, message.isActive);
+                    break;
                 default:
                     break;
             }

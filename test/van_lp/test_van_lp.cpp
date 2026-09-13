@@ -446,21 +446,61 @@ int main()
         assert(raw(built) == reference(id, 0xc, nullptr, 0));
     }
 
+    // The application-facing slot model maps directly to the five fixed LP
+    // entries: replacement/removal is explicit and never reallocates peers.
+    VanLpConfig replySlots = {};
+    const uint8_t initialReply[] = {0x80, 0x01, 0x55};
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
+        assert(VanFrameBuilder::SetReply(replySlots, slot, 0x9c0 + slot,
+                                         initialReply, sizeof(initialReply), true));
+
+    VanLpConfig beforeUpdate = replySlots;
+    const uint8_t replacementReply[] = {0x40, 0x02, 0xaa, 0x17};
+    assert(VanFrameBuilder::SetReply(replySlots, 2, 0xa52, replacementReply,
+                                     sizeof(replacementReply), true));
+    const uint32_t updatedCandidate = 1u << (VAN_LP_ENTRY_COUNT + 2);
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
+        if (slot != 2)
+            assert(memcmp(&replySlots.replies[slot], &beforeUpdate.replies[slot],
+                          sizeof(replySlots.replies[slot])) == 0);
+    for (unsigned ts = 0; ts < VAN_LP_PREFIX_TS; ++ts)
+        for (unsigned level = 0; level < 2; ++level)
+            assert(((replySlots.matchMask[ts][level] ^ beforeUpdate.matchMask[ts][level])
+                    & ~updatedCandidate) == 0);
+
+    VanLpConfig beforeDisable = replySlots;
+    assert(VanFrameBuilder::SetReply(replySlots, 3, 0, nullptr, 0, false));
+    assert(replySlots.replies[3].frameWordCount == 0);
+    const uint32_t disabledCandidate = 1u << (VAN_LP_ENTRY_COUNT + 3);
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
+        if (slot != 3)
+            assert(memcmp(&replySlots.replies[slot], &beforeDisable.replies[slot],
+                          sizeof(replySlots.replies[slot])) == 0);
+    for (unsigned ts = 0; ts < VAN_LP_PREFIX_TS; ++ts)
+        for (unsigned level = 0; level < 2; ++level)
+            assert(((replySlots.matchMask[ts][level] ^ beforeDisable.matchMask[ts][level])
+                    & ~disabledCandidate) == 0);
+
+    VanLpConfig beforeInvalidSlot = replySlots;
+    assert(!VanFrameBuilder::SetReply(replySlots, VAN_LP_ENTRY_COUNT, 0x777,
+                                      initialReply, sizeof(initialReply), true));
+    assert(memcmp(&replySlots, &beforeInvalidSlot, sizeof(replySlots)) == 0);
+
     VanLpConfig config = {};
     reset(raw(frame(0x8c4, 0xc)));
     assert(test_receive(&config, origin) == VAN_LP_NONE && writes.empty());
-    for (unsigned slot = 0; slot < 5; ++slot)
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
     {
         assert(VanFrameBuilder::SetAck(config, slot, 0x8c0 + slot, 0xc, true));
         const uint8_t data[] = {0x80, 0x01, 0x55};
         assert(VanFrameBuilder::SetReply(config, slot, 0x9c0 + slot, data, sizeof(data), true));
     }
     assert(config.enabledMask == 0x3ff);
-    assert(!VanFrameBuilder::SetAck(config, 5, 0, 0xc, true));
+    assert(!VanFrameBuilder::SetAck(config, VAN_LP_ENTRY_COUNT, 0, 0xc, true));
     assert(!VanFrameBuilder::SetAck(config, 0, 0, 0x8, true));
-    assert(!VanFrameBuilder::SetReply(config, 5, 0, nullptr, 0, true));
+    assert(!VanFrameBuilder::SetReply(config, VAN_LP_ENTRY_COUNT, 0, nullptr, 0, true));
 
-    for (unsigned slot = 0; slot < 5; ++slot)
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
         for (unsigned length = 0; length <= 28; ++length)
         {
             VanLpFrame incomingFrame = frame(0x8c0 + slot, 0xc, length);
@@ -483,7 +523,7 @@ int main()
 
     // Reply takeover from the same complete frame. Requester supplies ONLY the
     // prefix through RTR=1; no external transmitter supplies the response.
-    for (unsigned slot = 0; slot < 5; ++slot)
+    for (unsigned slot = 0; slot < VAN_LP_ENTRY_COUNT; ++slot)
         for (bool ack : {false, true})
         {
             auto request = raw(frame(0x9c0 + slot, 0xf, 0));

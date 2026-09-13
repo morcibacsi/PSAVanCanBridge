@@ -6,7 +6,8 @@
 
 typedef enum {
     Normal = 1,
-    Query = 2
+    Query = 2,
+    Response = 3
 } MessageType;
 
 struct BusMessage {
@@ -23,4 +24,5 @@ struct BusMessage {
     bool isActive;
     uint8_t retryCount = 0;
     uint8_t priority = 0;
+    uint8_t slot = 0;
 };

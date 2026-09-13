@@ -148,10 +148,10 @@ void LpCoreVanTx::SetQueryRequesterAckEnabled(bool enabled)
     portEXIT_CRITICAL(&vanApiLock);
 }
 
-void LpCoreVanTx::SetRequestedReplyFrame(uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled)
+void LpCoreVanTx::SetRequestedReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled)
 {
-    // Original single-response API maps to slot zero; slots 1..4 remain intact.
-    if (WaitForConfiguration(*this)) ConfigureReplyFrame(0, identifier, data, length, enabled);
+    if (slot >= VAN_LP_ENTRY_COUNT) return;
+    if (WaitForConfiguration(*this)) ConfigureReplyFrame(slot, identifier, data, length, enabled);
 }
 
 bool LpCoreVanTx::TrySendFrame(uint16_t identifier, const uint8_t* data, uint8_t length, uint8_t command, bool query)

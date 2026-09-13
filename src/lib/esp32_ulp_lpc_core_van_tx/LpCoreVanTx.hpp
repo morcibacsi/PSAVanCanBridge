@@ -58,7 +58,7 @@ private:
         bool IsTxPossible();
         void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override;
         void SetQueryRequesterAckEnabled(const bool enabled) override;
-        void SetRequestedReplyFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override;
+        void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override;
 };
 #else
     #if !defined(CONFIG_IDF_TARGET_ESP32)
@@ -79,7 +79,7 @@ private:
             bool IsTxPossible() { return false; }
                 void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
                 void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
-                void SetRequestedReplyFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)identifier; (void)data; (void)length; (void)enabled;}
+                void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)slot; (void)identifier; (void)data; (void)length; (void)enabled;}
     };
     #endif
 #endif
