@@ -317,8 +317,8 @@ extern "C" void app_main(void)
 
         if (carState->EMULATE_DISPLAY_ON_SOURCE)
         {
-            uint16_t ackIdentifiers[] = {0x8C4, 0x9C4};
-            sourceVanMessageSender->SetAckIdentifiers(ackIdentifiers, 2);
+            uint16_t ackIdentifiers[] = { 0x8C4, 0x9C4, 0x744 };
+            sourceVanMessageSender->SetAckIdentifiers(ackIdentifiers, sizeof(ackIdentifiers) / sizeof(ackIdentifiers[0]));
         }
 
         //sourceTransportLayer = new VANTransportLayerOnSerial();
