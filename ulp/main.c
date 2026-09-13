@@ -26,6 +26,7 @@ static uint32_t abortDetail;
 static uint32_t responseEodTs;
 volatile VanLpConfig VAN_CONFIG[2];
 volatile uint32_t VAN_CONFIG_PUBLISHED, VAN_CONFIG_APPLIED;
+volatile VanLpRxQueue VAN_RX_QUEUE;
 volatile lp_io_num_t VAN_RX_PIN, VAN_TX_PIN;
 
 // HP calibrates RTC_FAST before starting bus activity. The RC oscillator's
@@ -192,22 +193,95 @@ static void record_rx_pair(unsigned rawTs, uint32_t pair, uint32_t start,
     VAN_TX_RX_TRACE_COUNT = index + 1;
 }
 
-static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query)
+typedef struct {
+    uint8_t groups[VAN_LP_RX_MAX_GROUPS];
+    uint32_t groupCount;
+} VanRxCapture;
+
+INLINE void capture_reset(VanRxCapture* capture)
 {
-    uint32_t bit, fourth;
+    capture->groupCount = 0;
+}
+
+INLINE bool capture_group(VanRxCapture* capture, uint32_t group)
+{
+    if (!capture) return true;
+    if (capture->groupCount >= VAN_LP_RX_MAX_GROUPS) return false;
+    capture->groups[capture->groupCount++] = (uint8_t)(group & 0x1fu);
+    return true;
+}
+
+static void capture_prepared_prefix(const volatile uint32_t* words, VanRxCapture* capture)
+{
+    capture_reset(capture);
+    for (unsigned word = 0; word < 3; ++word)
+    {
+        capture->groups[capture->groupCount++] = (uint8_t)((words[word] >> 5) & 0x1fu);
+        capture->groups[capture->groupCount++] = (uint8_t)(words[word] & 0x1fu);
+    }
+}
+
+static void capture_prepared_message(const volatile uint32_t* words, unsigned wordCount,
+                                     VanRxCapture* capture)
+{
+    capture_reset(capture);
+    // The final prepared word is ACK[2]+EOF[8]. Preserve both raw five-state
+    // groups from every preceding word; HP reconstructs logical bytes.
+    if (wordCount < 6 || wordCount > VAN_LP_FRAME_WORDS
+        || (wordCount - 1) * 2 > VAN_LP_RX_MAX_GROUPS) return;
+    for (unsigned word = 0; word + 1 < wordCount; ++word)
+    {
+        if (!capture_group(capture, words[word] >> 5)
+            || !capture_group(capture, words[word]))
+            return;
+    }
+}
+
+static void commit_capture(const VanRxCapture* capture)
+{
+    if (!capture || capture->groupCount < 10
+        || capture->groupCount > VAN_LP_RX_MAX_GROUPS
+        || (capture->groupCount & 1u))
+    {
+        ++VAN_RX_QUEUE.malformedCount;
+        return;
+    }
+    const uint32_t write = VAN_RX_QUEUE.writeIndex;
+    const uint32_t occupancy = write - VAN_RX_QUEUE.readIndex;
+    if (occupancy >= VAN_LP_RX_QUEUE_LENGTH)
+    {
+        ++VAN_RX_QUEUE.overflowCount;
+        return;
+    }
+    volatile VanLpRxFrame* target = &VAN_RX_QUEUE.frames[write % VAN_LP_RX_QUEUE_LENGTH];
+    target->groupCount = capture->groupCount;
+    for (uint32_t i = 0; i < capture->groupCount; ++i) target->groups[i] = capture->groups[i];
+    shared_fence();
+    VAN_RX_QUEUE.writeIndex = write + 1;
+    ++VAN_RX_QUEUE.receivedCount;
+    if (occupancy + 1 > VAN_RX_QUEUE.maxOccupancy)
+        VAN_RX_QUEUE.maxOccupancy = occupancy + 1;
+}
+
+static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query, VanRxCapture* capture)
+{
+    uint32_t bit, first, second, third, fourth;
     const uint32_t responseStart = sampleCycle;
     if (query) VAN_TX_RX_TRACE_COUNT = 0;
     unsigned pairParity = 0; // Even number of five-TS groups at byte boundary.
-    // The HP receiver decodes DATA/FCS. Here only D,!D is needed to locate
-    // EOD. Skip A,B,C so the D sample can flow directly into edge polling:
-    // a per-slice loop spends the narrow D-center -> !D-edge window on
-    // phase bookkeeping, branches and the next loop iteration instead.
+    // HP decodes the captured groups into logical bytes. LP samples A-D for
+    // capture and retains the existing timing-sensitive D,!D phase/EOD check.
+    // Grouping the four ordinary samples here avoids a per-slice decode loop
+    // in the narrow D-center -> !D-edge window.
     for (unsigned rawTs = 34; rawTs < 330; rawTs += 5)
     {
         sampleCycle += 5 * TS_CYCLES;
         const bool trace = query && rawTs < 34 + 5 * VAN_LP_RX_TRACE_COUNT;
         const uint32_t planned = sampleCycle;
-        if (!sample_at(sampleCycle - TS_CYCLES, &fourth))
+        if (!sample_at(sampleCycle - 4 * TS_CYCLES, &first)
+            || !sample_at(sampleCycle - 3 * TS_CYCLES, &second)
+            || !sample_at(sampleCycle - 2 * TS_CYCLES, &third)
+            || !sample_at(sampleCycle - TS_CYCLES, &fourth))
             return abort_at(VAN_LP_ABORT_RX_SAMPLE_DEADLINE, rawTs - 1);
         const uint32_t fourthDone = trace ? cycles() : 0;
         bit = 2;
@@ -231,6 +305,12 @@ static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query)
                                           planned, sampleCycle, fourthDone, inverseDone);
                 return result;
             }
+            if (!capture_group(capture, (first << 4) | (second << 3)
+                                        | (third << 2) | (fourth << 1) | bit))
+            {
+                ++VAN_RX_QUEUE.malformedCount;
+                return abort_at(VAN_LP_ABORT_RX_SCAN_LIMIT, rawTs);
+            }
             if (ack)
             {
                 // At second EOD slot center. ACK[0] starts +0.5 TS;
@@ -250,10 +330,17 @@ static VanLpResult track_response(uint32_t sampleCycle, bool ack, bool query)
             // sampling loop or dominant pulse. This is the detected boundary,
             // not proof that it was the real end of the reply.
             responseEodTs = rawTs;
+            commit_capture(capture);
             if (trace) record_rx_pair(rawTs, fourth << 2, responseStart,
                                       planned, sampleCycle, fourthDone, inverseDone);
             return query ? (ack ? VAN_LP_QUERY_RESPONSE_ACKED : VAN_LP_QUERY_RESPONSE_RECEIVED)
                          : (ack ? VAN_LP_NORMAL_FRAME_ACKED : VAN_LP_NONE);
+        }
+        if (!capture_group(capture, (first << 4) | (second << 3)
+                                    | (third << 2) | (fourth << 1) | bit))
+        {
+            ++VAN_RX_QUEUE.malformedCount;
+            return abort_at(VAN_LP_ABORT_RX_SCAN_LIMIT, rawTs);
         }
         if (trace) record_rx_pair(rawTs, (fourth << 2) | bit, responseStart,
                                   planned, sampleCycle, fourthDone, inverseDone);
@@ -269,7 +356,7 @@ typedef enum { VAN_TX_NORMAL, VAN_TX_REQUESTER, VAN_TX_RESPONDER } VanTxRole;
 
 INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wordCount,
                                      unsigned wordIndex, int bitIndex, uint32_t edgeCycle,
-                                     VanTxRole role, bool queryAck)
+                                     VanTxRole role, bool queryAck, VanRxCapture* requesterCapture)
 {
     const bool requester = role == VAN_TX_REQUESTER;
     if (wordCount < 6 || wordCount > VAN_LP_FRAME_WORDS) return abort_at(VAN_LP_ABORT_TX_LENGTH, 0);
@@ -305,10 +392,14 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
             if (requester && wordIndex == 2 && bitIndex == 1 && !bus)
             {
                 release_bus(); // RTR recessive lost: stay inside this frame.
+                // Replace the request's final RTR,!RTR pair (10) with the
+                // responder-owned pair (01); HP later decodes the raw group.
+                if (requesterCapture) requesterCapture->groups[5]
+                    = (requesterCapture->groups[5] & 0x1cu) | 1u;
                 uint32_t center = edgeCycle + HALF_TS_CYCLES + TS_CYCLES;
                 if (!sample_inverse(&center, 0, &bus)) return abort_at(VAN_LP_ABORT_RTR_INVERSE_TIMING, 29);
                 if (bus != 1) return abort_at(VAN_LP_ABORT_RTR_INVERSE_INVALID, 29);
-                return track_response(center, queryAck, true);
+                return track_response(center, queryAck, true, requesterCapture);
             }
             if (wordIndex == wordCount - 1 && bitIndex == 8)
                 acknowledged = !bus; // Bus was released by the prepared 1.
@@ -349,6 +440,9 @@ static VanLpResult receive_frame(const volatile VanLpConfig* config, uint32_t ed
     const volatile VanLpFrame* selected = 0;
     unsigned selectedWordCount = 0;
     uint32_t selectedRtr = 0;
+    uint32_t rawGroup = 0;
+    VanRxCapture capture;
+    capture_reset(&capture);
     for (unsigned rawTs = 0; rawTs < VAN_LP_PREFIX_TS; ++rawTs)
     {
         if (bitIndex == 5 || bitIndex == 0)
@@ -362,7 +456,9 @@ static VanLpResult receive_frame(const volatile VanLpConfig* config, uint32_t ed
             if (rawTs == 9 && sof != 0x03d) goto abort;
         }
         candidates &= config->matchMask[rawTs][bit];
-        if (!candidates) return VAN_LP_NONE;
+        rawGroup = (rawGroup << 1) | bit;
+        if ((bitIndex == 5 || bitIndex == 0) && !capture_group(&capture, rawGroup)) goto abort;
+        if (bitIndex == 5 || bitIndex == 0) rawGroup = 0;
         previous = bit;
         // Resolve duplicates and fetch metadata at RAK, one full TS BEFORE
         // R/W. Every reply candidate expects the same remaining R/W=1. This
@@ -388,13 +484,20 @@ static VanLpResult receive_frame(const volatile VanLpConfig* config, uint32_t ed
             uint32_t rtrEdge = center + HALF_TS_CYCLES;
             if (!wait_until(rtrEdge)) goto abort;
             drive_bus(selectedRtr);
-            return transmit_prepared(selected->words, selectedWordCount,
-                                     wordIndex, bitIndex - 1, rtrEdge + TS_CYCLES, VAN_TX_RESPONDER, false);
+            VanLpResult result = transmit_prepared(selected->words, selectedWordCount,
+                                                   wordIndex, bitIndex - 1, rtrEdge + TS_CYCLES,
+                                                   VAN_TX_RESPONDER, false, 0);
+            if (result == VAN_LP_REPLY_ACKNOWLEDGED || result == VAN_LP_REPLY_NOT_ACKNOWLEDGED)
+            {
+                capture_prepared_message(selected->words, selectedWordCount, &capture);
+                commit_capture(&capture);
+            }
+            return result;
         }
         if (--bitIndex < 0) { bitIndex = 9; ++wordIndex; }
         if (rawTs != VAN_LP_PREFIX_TS - 1) center += TS_CYCLES;
     }
-    return track_response(center, (candidates & VAN_LP_ACK_MASK) != 0, false);
+    return track_response(center, (candidates & VAN_LP_ACK_MASK) != 0, false, &capture);
 abort:
     release_bus();
     return VAN_LP_ABORT;
@@ -450,10 +553,12 @@ static void monitor_once(void)
         // extra slice waiting on a TX deadline with incoming monitoring off.
         unsigned wordCount = VAN_DATA_LENGTH;
         bool queryAck = monitor.config->queryAckEnabled != 0;
+        VanRxCapture requesterCapture;
+        capture_prepared_prefix(VAN_DATA, &requesterCapture);
         if (!read_bus()) return;
         drive_bus(0); // SOF[0], identical for every VAN frame.
         result = transmit_prepared(VAN_DATA, wordCount, 0, 8,
-                                   cycles() + TS_CYCLES, VAN_TX_REQUESTER, queryAck);
+                                   cycles() + TS_CYCLES, VAN_TX_REQUESTER, queryAck, &requesterCapture);
     }
     else
     {
@@ -461,9 +566,15 @@ static void monitor_once(void)
         if (!read_bus()) return;
         drive_bus(0); // Same immediate SOF start as the requester path.
         result = transmit_prepared(VAN_DATA, wordCount, 0, 8,
-                                   cycles() + TS_CYCLES, VAN_TX_NORMAL, false);
+                                   cycles() + TS_CYCLES, VAN_TX_NORMAL, false, 0);
     }
     release_bus();
+    if (result == VAN_LP_NORMAL_TX_COMPLETED || result == VAN_LP_QUERY_NO_RESPONSE)
+    {
+        VanRxCapture localCapture;
+        capture_prepared_message(VAN_DATA, VAN_DATA_LENGTH, &localCapture);
+        commit_capture(&localCapture);
+    }
     monitor.wasHigh = 0;
     VAN_TX_RESULT = result;
     if (result == VAN_LP_ARBITRATION_LOST && VAN_FRAME_TYPE == 0)

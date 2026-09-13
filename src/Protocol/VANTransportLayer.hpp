@@ -7,12 +7,13 @@
 #include "BusMessage.hpp"
 #include "../lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
 #include "../lib/esp32_rmt_van_rx/esp32_arduino_rmt_van_rx.h"
+#include "../lib/IVanMessageReceiver.h"
 #include "../lib/IVanMessageSender.h"
 #include "../Helpers/VanCrcCalculator.hpp"
 
 class VANTransportLayer : public ITransportLayer {
 private:
-    ESP32_RMT_VAN_RX* _vanRx = nullptr;
+    IVanMessageReceiver* _vanRx = nullptr;
     VanCrcCalculator* _crcCalculator = nullptr;
     IVanMessageSender* _vanMessageSender = nullptr;
 
@@ -30,7 +31,7 @@ private:
 public:
     std::string Name() override { return "VAN"; };
 
-    VANTransportLayer(IVanMessageSender* vanMessageSender, uint8_t rxPin, uint8_t dataRxLedIndicatorPin);
+    VANTransportLayer(IVanMessageSender* vanMessageSender, IVanMessageReceiver* vanMessageReceiver);
 
     uint8_t SendMessage(const BusMessage& message, bool highPriority = false) override;
 

@@ -1,6 +1,8 @@
 #include "esp32_arduino_rmt_van_rx.h"
 #include <string.h>
 
+ESP32_RMT_VAN_RX::~ESP32_RMT_VAN_RX() = default;
+
 void ESP32_RMT_VAN_RX::BeforeProcessSignal()
 {
     _bitCounter = 0;

@@ -14,7 +14,8 @@
 // Temporary diagnostics for the two normal frames reported as SOF-only.
 // Runs on HP after completion; no extra instructions in the LP transmit loop.
 #ifndef VAN_LP_TRACE_NORMAL_TX
-#define VAN_LP_TRACE_NORMAL_TX 1
+//#define VAN_LP_TRACE_NORMAL_TX 1
+#define VAN_LP_TRACE_NORMAL_TX 0
 #endif
 
 static const char* VanQueryResultName(VanLpResult result)
@@ -55,16 +56,13 @@ static const char* VanAbortStageName(uint32_t detail)
 }
 #endif
 
-VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender, uint8_t rxPin, uint8_t dataRxLedIndicatorPin)
+VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender, IVanMessageReceiver* vanMessageReceiver)
 {
     _vanMessageSender = vanMessageSender;
+    _vanRx = vanMessageReceiver;
     _crcCalculator = new VanCrcCalculator();
 
     _vanMessageSender->Start();
-
-    _vanRx = new ESP32_RMT_VAN_RX(rxPin, dataRxLedIndicatorPin, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
-    //_vanRx = new ESP32_RMT_VAN_RX(rxPin, dataRxLedIndicatorPin, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_BODY);
-    _vanRx->Start();
 
     _txQueue = xQueueCreate(TX_QUEUE_LENGTH, TX_QUEUE_ITEM_SIZE);
     xTaskCreate([](void* arg) {
@@ -91,11 +89,16 @@ uint8_t VANTransportLayer::SendMessage(const BusMessage& message, bool highPrior
 bool VANTransportLayer::ReceiveMessage(BusMessage& message)
 {
     uint8_t vanMessageLength;
-    uint8_t vanMessage[32];
+    uint8_t vanMessage[VAN_RX_MAX_MESSAGE_BYTES];
 
     _vanRx->ReceiveData(&vanMessageLength, vanMessage);
 
     if (vanMessageLength == 0)
+    {
+        return false;
+    }
+
+    if (vanMessageLength < 5 || vanMessageLength > VAN_RX_MAX_MESSAGE_BYTES)
     {
         return false;
     }
@@ -108,7 +111,7 @@ bool VANTransportLayer::ReceiveMessage(BusMessage& message)
     message.id = (vanMessage[1] << 8 | vanMessage[2]) >> 4;
     message.command = vanMessage[2] & 0x0F;
 
-    std::memcpy(message.data, vanMessage + 3, vanMessageLength-2); //+3 to skip SOF+IDEN+COM, -2 to remove CRC from the data
+    std::memcpy(message.data, vanMessage + 3, vanMessageLength - 5);
     message.dataLength = vanMessageLength - 5; // -5 to remove SOF, IDEN, COM, CRC from the data
     message.crc = vanMessage[vanMessageLength - 2] << 8 | vanMessage[vanMessageLength - 1] << 0; // last two bytes of the data
 

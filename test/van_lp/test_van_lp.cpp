@@ -1,5 +1,7 @@
 #include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanFrameBuilder.hpp"
 #include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanBusTiming.hpp"
+#include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanEManchesterDecoder.hpp"
+#include "../../src/Helpers/VanCrcCalculator.hpp"
 #include <assert.h>
 #include <stdio.h>
 #include <vector>
@@ -9,6 +11,7 @@
 extern "C" {
 VanLpResult test_receive(const VanLpConfig*, uint32_t);
 VanLpResult test_request(const VanLpFrame*, uint32_t, int);
+VanLpResult test_request_capture(const VanLpFrame*, uint32_t, int);
 void test_monitor_reset(void);
 void test_monitor_step(void);
 int test_inverse(uint32_t*, uint32_t, uint32_t*);
@@ -18,6 +21,10 @@ uint32_t test_ack_edge_advance(void);
 uint32_t test_ack_hold_extension(void);
 void test_set_ts_cycles(uint32_t);
 VanLpResult test_track_response(uint32_t);
+void test_rx_reset(void);
+uint32_t test_rx_count(void);
+uint32_t test_rx_pop(VanLpRxFrame*);
+uint32_t test_rx_overflow(void);
 extern volatile uint32_t VAN_DATA[], VAN_DATA_LENGTH, VAN_START_TX, VAN_TX_FINISHED;
 extern volatile uint32_t VAN_FRAME_TYPE, VAN_TX_RESULT, VAN_BUS_RESULT;
 extern volatile uint32_t VAN_TX_ABORT_DETAIL;
@@ -28,6 +35,20 @@ extern volatile uint32_t VAN_RETRY_COUNT;
 extern volatile VanLpArbitrationTrace VAN_TX_ARBITRATION_TRACE;
 extern volatile uint32_t VAN_CONFIG_PUBLISHED, VAN_CONFIG_APPLIED;
 extern volatile VanLpConfig VAN_CONFIG[2];
+}
+
+struct DecodedCapture
+{
+    uint8_t length = 0;
+    uint8_t data[VAN_LP_RX_MAX_MESSAGE_BYTES] = {};
+};
+
+static bool pop_decoded(DecodedCapture& decoded)
+{
+    VanLpRxFrame rawCapture = {};
+    return test_rx_pop(&rawCapture)
+           && VanEManchesterDecoder::Decode(rawCapture.groups, rawCapture.groupCount,
+                                            decoded.data, &decoded.length);
 }
 
 static uint64_t now, origin;
@@ -76,6 +97,18 @@ static std::vector<unsigned> raw(const VanLpFrame& frame)
     for (unsigned w = 0; w < frame.frameWordCount; ++w)
         for (int b = 9; b >= 0; --b) bits.push_back((frame.words[w] >> b) & 1);
     return bits;
+}
+static VanLpRxFrame raw_capture(const VanLpFrame& frame)
+{
+    VanLpRxFrame capture = {};
+    const auto states = raw(frame);
+    capture.groupCount = (frame.frameWordCount - 1) * 2;
+    assert(capture.groupCount <= VAN_LP_RX_MAX_GROUPS);
+    for (unsigned group = 0; group < capture.groupCount; ++group)
+        for (unsigned state = 0; state < 5; ++state)
+            capture.groups[group] = static_cast<uint8_t>((capture.groups[group] << 1)
+                                                         | states[group * 5 + state]);
+    return capture;
 }
 static VanLpFrame frame(uint16_t id, uint8_t com, unsigned length = 3)
 {
@@ -175,10 +208,18 @@ int main()
         for (unsigned i = 0; i < normal.frameWordCount; ++i) VAN_DATA[i] = normal.words[i];
         VAN_DATA_LENGTH = normal.frameWordCount;
         VAN_FRAME_TYPE = 0; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+        test_rx_reset();
         test_monitor_reset();
         while (!VAN_TX_FINISHED && now < 100000) test_monitor_step();
         assert(VAN_TX_FINISHED && !VAN_START_TX);
         assert(VAN_TX_RESULT == VAN_LP_NORMAL_TX_COMPLETED && txLevel == 1);
+        DecodedCapture localEcho;
+        assert(pop_decoded(localEcho));
+        assert(localEcho.length == length + 5);
+        assert(localEcho.data[0] == 0x0e);
+        assert(localEcho.data[1] == static_cast<uint8_t>(id >> 4));
+        assert(localEcho.data[2] == static_cast<uint8_t>((id << 4) | com));
+        assert(memcmp(localEcho.data + 3, payload, length) == 0);
         size_t transition = 0;
         unsigned previous = 1;
         for (unsigned level : expected)
@@ -455,6 +496,99 @@ int main()
         }
     const uint8_t sample[] = {0x8c, 0x4c, 0x8a, 0x21, 0x40};
     assert(VanFrameBuilder::Crc15(sample, sizeof(sample)) == 0x3d54);
+
+    // LP receive output is byte-for-byte the existing RMT-facing contract:
+    // SOF, ID/COM, payload, and the packed FCS (no EOD/ACK/EOF bytes).
+    for (unsigned period : {128u, 256u})
+        for (unsigned length : {0u, 3u, 28u})
+        {
+            uint8_t payload[28];
+            for (unsigned i = 0; i < 28; ++i) payload[i] = static_cast<uint8_t>(i * 37);
+            const auto received = frame(0x8c4, 0xc, length);
+            reset(raw(received));
+            set_bus_period(period);
+            test_rx_reset();
+            VanLpConfig receiveOnly = {};
+            assert(test_receive(&receiveOnly, origin) == VAN_LP_NONE);
+            assert(test_rx_count() == 1);
+            DecodedCapture captured;
+            assert(pop_decoded(captured));
+            assert(captured.length == length + 5);
+            assert(captured.data[0] == 0x0e);
+            assert(captured.data[1] == 0x8c);
+            assert(captured.data[2] == 0x4c);
+            assert(memcmp(captured.data + 3, payload, length) == 0);
+            uint8_t crcInputBytes[30] = {0x8c, 0x4c};
+            memcpy(crcInputBytes + 2, payload, length);
+            const uint16_t crc = VanFrameBuilder::Crc15(crcInputBytes, length + 2);
+            assert(captured.data[length + 3] == static_cast<uint8_t>(crc >> 8));
+            assert(captured.data[length + 4] == static_cast<uint8_t>(crc));
+        }
+
+    // Main-CPU decoding rejects malformed fifth states and incomplete raw
+    // captures, while deliberately leaving FCS validation to VANTransportLayer.
+    {
+        const auto validFrame = frame(0x8c4, 0xc, 3);
+        const auto valid = raw_capture(validFrame);
+        DecodedCapture decoded;
+        assert(VanEManchesterDecoder::Decode(valid.groups, valid.groupCount,
+                                              decoded.data, &decoded.length));
+        VanCrcCalculator crcCalculator;
+        assert(crcCalculator.IsCrcOk(decoded.data, decoded.length));
+
+        auto malformed = valid;
+        malformed.groups[0] = static_cast<uint8_t>((malformed.groups[0] & 0x1eu)
+                                                   | ((malformed.groups[0] >> 1) & 1u));
+        assert(!VanEManchesterDecoder::Decode(malformed.groups, malformed.groupCount,
+                                               decoded.data, &decoded.length));
+        assert(!VanEManchesterDecoder::Decode(valid.groups, valid.groupCount - 1,
+                                               decoded.data, &decoded.length));
+        assert(!VanEManchesterDecoder::Decode(valid.groups, valid.groupCount - 2,
+                                               decoded.data, &decoded.length));
+
+        auto invalidFcs = valid;
+        invalidFcs.groups[invalidFcs.groupCount - 1] ^= 0x10u;
+        assert(VanEManchesterDecoder::Decode(invalidFcs.groups, invalidFcs.groupCount,
+                                              decoded.data, &decoded.length));
+        assert(!crcCalculator.IsCrcOk(decoded.data, decoded.length));
+    }
+
+    // The fixed queue is nonblocking for LP: preserve four oldest frames and
+    // deterministically drop the newest while recording the overflow.
+    test_rx_reset();
+    VanLpConfig receiveOnly = {};
+    for (unsigned i = 0; i < VAN_LP_RX_QUEUE_LENGTH + 1; ++i)
+    {
+        reset(raw(frame(static_cast<uint16_t>(0x700 + i), 0x8, 1)));
+        assert(test_receive(&receiveOnly, origin) == VAN_LP_NONE);
+    }
+    assert(test_rx_count() == VAN_LP_RX_QUEUE_LENGTH);
+    assert(test_rx_overflow() == 1);
+    for (unsigned i = 0; i < VAN_LP_RX_QUEUE_LENGTH; ++i)
+    {
+        DecodedCapture captured;
+        assert(pop_decoded(captured));
+        const unsigned capturedId = static_cast<unsigned>(captured.data[1] << 8 | captured.data[2]) >> 4;
+        assert(capturedId == 0x700u + i);
+    }
+
+    // A requester-side immediate response is delivered as the on-wire COM=E
+    // frame, including the externally supplied payload/FCS.
+    const uint8_t replyPayload[] = {0x12, 0x34, 0x56};
+    VanLpFrame replyFrame = {};
+    assert(VanFrameBuilder::Build(0x564, 0xe, replyPayload, sizeof(replyPayload), replyFrame));
+    auto replyBus = raw(replyFrame);
+    std::fill(replyBus.begin(), replyBus.begin() + VAN_LP_RTR_TS, 1);
+    auto requestFrame = frame(0x564, 0xf, 0);
+    reset(replyBus);
+    test_rx_reset();
+    assert(test_request_capture(&requestFrame, origin, 1) == VAN_LP_QUERY_RESPONSE_ACKED);
+    DecodedCapture capturedReply;
+    assert(pop_decoded(capturedReply));
+    assert(capturedReply.length == sizeof(replyPayload) + 5);
+    assert(capturedReply.data[0] == 0x0e && capturedReply.data[1] == 0x56
+           && capturedReply.data[2] == 0x4e);
+    assert(memcmp(capturedReply.data + 3, replyPayload, sizeof(replyPayload)) == 0);
     VanLpFrame invalid = {};
     assert(!VanFrameBuilder::Build(0x1000, 0xc, nullptr, 0, invalid));
     assert(!VanFrameBuilder::Build(0, 0xc, nullptr, 1, invalid));
@@ -679,12 +813,18 @@ int main()
         for (unsigned i = 0; i < request.frameWordCount; ++i) VAN_DATA[i] = request.words[i];
         VAN_DATA_LENGTH = request.frameWordCount;
         VAN_FRAME_TYPE = 1; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+        test_rx_reset();
         test_monitor_reset();
         while (!VAN_TX_FINISHED && now < 100000) test_monitor_step();
         assert(VAN_TX_FINISHED && !VAN_START_TX);
         assert(VAN_TX_RESULT == (responder ? VAN_LP_QUERY_RESPONSE_ACKED : VAN_LP_QUERY_NO_RESPONSE));
         assert(VAN_TX_ABORT_DETAIL == 0);
         assert(VAN_TX_EOD_TS == (responder ? 329u : UINT32_MAX));
+        DecodedCapture queryEcho;
+        assert(pop_decoded(queryEcho));
+        assert(queryEcho.length == (responder ? 33u : 5u));
+        assert(queryEcho.data[0] == 0x0e && queryEcho.data[1] == 0x8c);
+        assert(queryEcho.data[2] == (responder ? 0x4e : 0x4f));
     }
     // Incoming frames must not replace the published local-TX boundary.
     const uint32_t completedEod = VAN_TX_EOD_TS;
@@ -730,6 +870,7 @@ int main()
         // logical indices; only the selected cycle duration changes.
         reset(speedNormalBits);
         set_bus_period(period);
+        test_rx_reset();
         assert(test_receive(&speedConfig, origin) == VAN_LP_NORMAL_FRAME_ACKED);
         const unsigned ackTs = VanFrameBuilder::AckStartTs(speedNormal);
         assert(writes.size() == 2);
@@ -739,6 +880,9 @@ int main()
                                       - test_ack_edge_advance() + 8);
         assert(writes[1].first - writes[0].first
                == period + test_ack_hold_extension());
+        DecodedCapture ackedCapture;
+        assert(pop_decoded(ackedCapture));
+        assert(ackedCapture.length == 8 && ackedCapture.data[2] == 0x4c);
 
         // Requested-module role: compare through R/W, take RTR at raw TS 28,
         // then continue transmitting from the same complete prepared array.
@@ -747,12 +891,20 @@ int main()
         std::fill(replyRequestBus.begin() + 29, replyRequestBus.end(), 1);
         reset(replyRequestBus);
         set_bus_period(period);
+        test_rx_reset();
         assert(test_receive(&speedConfig, origin) == VAN_LP_REPLY_NOT_ACKNOWLEDGED);
         assert(writes.front().second == 0);
         assert(writes.front().first >= origin + 28 * period);
         assert(writes.front().first <= origin + 28 * period + 8);
         assert(memcmp(&speedConfig.replies[0], &preparedAt125,
                       sizeof(preparedAt125)) == 0);
+        DecodedCapture localReplyCapture;
+        assert(pop_decoded(localReplyCapture));
+        assert(localReplyCapture.length == sizeof(speedReplyData) + 5);
+        assert(localReplyCapture.data[0] == 0x0e && localReplyCapture.data[1] == 0x9c
+               && localReplyCapture.data[2] == 0x0e);
+        assert(memcmp(localReplyCapture.data + 3, speedReplyData,
+                      sizeof(speedReplyData)) == 0);
 
         // Requesting-module role: lose recessive RTR, track the returned frame,
         // find EOD by phase and ACK its second slot at the selected duration.

@@ -4,6 +4,7 @@
     #define _esp32_arduino_rmt_van_rx_h
 
     #include "Esp32RmtReader.h"
+    #include "../IVanMessageReceiver.h"
 
 typedef enum {
     VAN_LINE_LEVEL_LOW   = 0,
@@ -15,7 +16,7 @@ typedef enum {
     VAN_NETWORK_TYPE_COMFORT  = 1,
 } VAN_NETWORK_TYPE;
 
-class ESP32_RMT_VAN_RX: public Esp32RmtReader
+class ESP32_RMT_VAN_RX: public Esp32RmtReader, public IVanMessageReceiver
 {
 private:
     //static constexpr uint32_t minSignal = 1250;          // the shortest duration for one bit is 8us, 1250ns < 8us, valid signal won't be treated as noise
@@ -50,6 +51,11 @@ public:
     }
 
     ~ESP32_RMT_VAN_RX();
+
+    void ReceiveData(uint8_t* messageLength, uint8_t message[]) override
+    {
+        Esp32RmtReader::ReceiveData(messageLength, message);
+    }
 
     // You can check the CRC of the received message with this function
     bool IsCrcOk(uint8_t vanMessage[], uint8_t vanMessageLength);

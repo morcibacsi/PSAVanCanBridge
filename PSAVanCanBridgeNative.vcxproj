@@ -109,6 +109,8 @@
     <ClInclude Include="src\lib\esp32_rmt_van_rx\Esp32RmtReader.h" />
     <ClInclude Include="src\lib\esp32_ulp_lpc_core_van_tx\LpCoreVanTx.hpp" />
     <ClInclude Include="src\lib\IVanMessageSender.h" />
+    <ClInclude Include="src\lib\IVanMessageReceiver.h" />
+    <ClInclude Include="src\lib\esp32_ulp_lpc_core_van_tx\VanEManchesterDecoder.hpp" />
     <ClInclude Include="src\Platform\Native\FileReplayTransport.hpp" />
     <ClInclude Include="src\Platform\Esp\Helpers\TimeProvider.hpp" />
     <ClInclude Include="src\Platform\Native\SimulatedClock.hpp" />

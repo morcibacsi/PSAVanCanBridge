@@ -10,6 +10,7 @@
 #include <cstdio>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "VanEManchesterDecoder.hpp"
 #include "VanFrameBuilder.hpp"
 #include "ulp_main.h"
 
@@ -54,6 +55,9 @@ void LpCoreVanTx::Start()
     ulp_lp_core_cfg_t cfg = { .wakeup_source = ULP_LP_CORE_WAKEUP_SOURCE_HP_CPU };
     ESP_ERROR_CHECK(ulp_lp_core_run(&cfg));
     _configuration = {};
+    volatile VanLpRxQueue* rxQueue = reinterpret_cast<volatile VanLpRxQueue*>(&ulp_VAN_RX_QUEUE);
+    volatile uint32_t* rxWords = reinterpret_cast<volatile uint32_t*>(rxQueue);
+    for (unsigned i = 0; i < sizeof(VanLpRxQueue) / 4; ++i) rxWords[i] = 0;
     SharedWord(ulp_SET_VAN_RX_PIN) = _rxPin;
     SharedWord(ulp_SET_VAN_TX_PIN) = _txPin;
     SharedWord(ulp_VAN_TS_CYCLES) = sliceCycles;
@@ -226,4 +230,36 @@ bool LpCoreVanTx::GetLastTxRxTrace(uint8_t index, VanLpRxTrace& trace) const
     return true;
 }
 VanLpResult LpCoreVanTx::GetLastBusResult() const { return static_cast<VanLpResult>(SharedWord(ulp_VAN_BUS_RESULT)); }
+
+void LpCoreVanTx::GetReceiveDiagnostics(VanLpRxDiagnostics& diagnostics) const
+{
+    const volatile VanLpRxQueue* queue = reinterpret_cast<const volatile VanLpRxQueue*>(&ulp_VAN_RX_QUEUE);
+    SharedFence();
+    diagnostics = {queue->receivedCount, queue->overflowCount,
+                   queue->malformedCount, queue->maxOccupancy};
+}
+
+void LpCoreVanTx::ReceiveData(uint8_t* messageLength, uint8_t message[])
+{
+    *messageLength = 0;
+    volatile VanLpRxQueue* queue = reinterpret_cast<volatile VanLpRxQueue*>(&ulp_VAN_RX_QUEUE);
+    while (_started && queue->readIndex == queue->writeIndex) vTaskDelay(1);
+    if (!_started) return;
+
+    SharedFence();
+    const uint32_t read = queue->readIndex;
+    const volatile VanLpRxFrame* frame = &queue->frames[read % VAN_LP_RX_QUEUE_LENGTH];
+    const uint32_t groupCount = frame->groupCount;
+    if (groupCount > VAN_LP_RX_MAX_GROUPS)
+    {
+        SharedFence();
+        queue->readIndex = read + 1;
+        return;
+    }
+    uint8_t groups[VAN_LP_RX_MAX_GROUPS];
+    for (uint32_t i = 0; i < groupCount; ++i) groups[i] = frame->groups[i];
+    SharedFence();
+    queue->readIndex = read + 1;
+    VanEManchesterDecoder::Decode(groups, groupCount, message, messageLength);
+}
 #endif

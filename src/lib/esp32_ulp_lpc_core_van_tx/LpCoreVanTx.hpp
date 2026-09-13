@@ -8,13 +8,25 @@
 #include "VanBusTiming.hpp"
 #include "driver/gpio.h"
 #include "../IVanMessageSender.h"
+#include "../IVanMessageReceiver.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32C6
 
 #include "esp_sleep.h"
 #include "driver/rtc_io.h"
 
-class LpCoreVanTx : public IVanMessageSender
+static_assert(VAN_RX_MAX_MESSAGE_BYTES == VAN_LP_RX_MAX_MESSAGE_BYTES,
+              "Transport and LP receive buffer sizes must match");
+
+struct VanLpRxDiagnostics
+{
+    uint32_t receivedCount;
+    uint32_t overflowCount;
+    uint32_t malformedCount;
+    uint32_t maxOccupancy;
+};
+
+class LpCoreVanTx : public IVanMessageSender, public IVanMessageReceiver
 {
     public:
 
@@ -52,6 +64,8 @@ private:
         uint32_t GetLastTxEodTs() const;
         bool GetLastTxRxTrace(uint8_t index, VanLpRxTrace& trace) const;
         VanLpResult GetLastBusResult() const;
+        void GetReceiveDiagnostics(VanLpRxDiagnostics& diagnostics) const;
+        void ReceiveData(uint8_t* messageLength, uint8_t message[]) override;
         void Start();
         void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck);
         void SendReplyRequestFrame(const uint16_t identifier);
@@ -63,7 +77,7 @@ private:
 #else
     #if !defined(CONFIG_IDF_TARGET_ESP32)
     //dummy class to avoid compiler errors when compiling for a target which is not ESP32 (for example ESP32C3)
-    class LpCoreVanTx : public IVanMessageSender
+    class LpCoreVanTx : public IVanMessageSender, public IVanMessageReceiver
     {
         public:
             using LP_VAN_NETWORK_SPEED = VanBusSpeed;
@@ -76,6 +90,7 @@ private:
             void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck) {}
             void SendReplyRequestFrame(const uint16_t identifier) {}
             bool IsTxPossible() { return false; }
+            void ReceiveData(uint8_t* messageLength, uint8_t message[]) override { *messageLength = 0; (void)message; }
             void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override {(void)identifiers; (void)count;}
             void SetQueryRequesterAckEnabled(const bool enabled) override {(void)enabled;}
             void SetRequestedReplyFrame(const uint8_t slot, const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool enabled) override {(void)slot; (void)identifier; (void)data; (void)length; (void)enabled;}

@@ -303,11 +303,17 @@ extern "C" void app_main(void)
 
         #if CONFIG_IDF_TARGET_ESP32
             sourceVanMessageSender = new HulpVanTx(VAN_RX_PIN, VAN_TX_PIN);
+            auto* rmtReceiver = new ESP32_RMT_VAN_RX(VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
+            rmtReceiver->Start();
+            sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, rmtReceiver);
         #else
-            sourceVanMessageSender = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, VanBusSpeed::Kts125);
+            auto* lpVan = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, VanBusSpeed::Kts125);
+            sourceVanMessageSender = lpVan;
+            auto* rmtReceiver = new ESP32_RMT_VAN_RX(VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
+            rmtReceiver->Start();
+            sourceTransportLayer = new VANTransportLayer(lpVan, rmtReceiver);
+            //sourceTransportLayer = new VANTransportLayer(lpVan, lpVan);
         #endif
-
-        sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN);
 
         if (carState->EMULATE_DISPLAY_ON_SOURCE)
         {
