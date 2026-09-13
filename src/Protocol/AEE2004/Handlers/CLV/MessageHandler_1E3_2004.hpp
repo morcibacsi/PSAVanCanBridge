@@ -69,7 +69,18 @@ class MessageHandler_1E3 : public IMessageHandler<MessageHandler_1E3>
 
         void Parse(CarState* carState, const BusMessage& message)
         {
+            CanAirConOnDisplayStruct packet;
+            std::memcpy(&packet, message.data, sizeof(packet));
 
+            carState->AirConLeftTemperature  = packet.TemperatureLeft;
+            carState->AirConRightTemperature = packet.TemperatureRight;
+            carState->AirConMonoMode         = packet.Modes.data.separate_sides == 0 ? 1 : 0; // if separate sides is 0 then mono mode is active
+            carState->AirConDirectionLeft    = packet.AirDirectionLeft;
+            carState->AirConDirectionRight   = packet.AirDirectionRight;
+
+            carState->AirConditionerStatus.data.FanSpeed = packet.Speed;
+            carState->AirConditionerStatus.data.IsWindowHeatingOn = packet.Field2.data.rear_window_heating_on;
+            carState->AirConditionerStatus.data.IsHeatingPanelOn = packet.Modes.data.off == 0 ? 1 : 0;
         }
 };
 #endif

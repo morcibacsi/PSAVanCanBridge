@@ -21,7 +21,7 @@
 #include "../BoardConfig.h"
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "3.6.3"
+#define FIRMWARE_VERSION "DEVELOPMENT VERSION"
 #endif
 
 struct CarState
@@ -92,6 +92,13 @@ struct CarState
 
     //1E3
     AirConditionerState AirConditionerStatus{};
+    uint8_t AirConEvaporatorTemperature1 = 0;
+    uint8_t AirConEvaporatorTemperature2 = 0;
+    uint8_t AirConLeftTemperature = 0;
+    uint8_t AirConRightTemperature = 0;
+    uint8_t AirConMonoMode = 0;
+    uint8_t AirConDirectionLeft = 0;
+    uint8_t AirConDirectionRight = 0;
 
     //161 AEE2010
     uint8_t OilLevelRestart = 0;

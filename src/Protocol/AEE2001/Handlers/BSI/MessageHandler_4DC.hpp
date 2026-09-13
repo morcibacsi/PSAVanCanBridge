@@ -42,6 +42,8 @@ class MessageHandler_4DC : public IMessageHandler<MessageHandler_4DC>
 
             carState->AirConditionerStatus.data.IsWindowHeatingOn = packet.Status1.rear_window_heating_on;
             carState->AirConditionerStatus.data.IsACCompressorOn = packet.Status1.ac_compressor_auth_on;
+            carState->AirConEvaporatorTemperature1 = packet.EvaporatorTemperature1;
+            carState->AirConEvaporatorTemperature2 = packet.EvaporatorTemperature2;
         }
 };
 #endif
