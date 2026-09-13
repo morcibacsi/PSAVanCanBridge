@@ -21,6 +21,8 @@ extern volatile uint32_t VAN_TX_ABORT_DETAIL;
 extern volatile uint32_t VAN_TX_EOD_TS;
 extern volatile VanLpRxTrace VAN_TX_RX_TRACE[VAN_LP_RX_TRACE_COUNT];
 extern volatile uint32_t VAN_TX_RX_TRACE_COUNT;
+extern volatile uint32_t VAN_RETRY_COUNT;
+extern volatile VanLpArbitrationTrace VAN_TX_ARBITRATION_TRACE;
 extern volatile uint32_t VAN_CONFIG_PUBLISHED, VAN_CONFIG_APPLIED;
 extern volatile VanLpConfig VAN_CONFIG[2];
 }
@@ -36,6 +38,8 @@ static bool publishDuringFrame;
 static uint64_t publishAt;
 static bool alignQueryOrigin;
 static unsigned gpioReadCycles;
+static unsigned txReleaseDelayCycles;
+static uint64_t txRecessiveAt;
 
 extern "C" uint32_t van_test_cycles()
 {
@@ -46,7 +50,8 @@ extern "C" uint32_t van_test_cycles()
 extern "C" uint32_t ulp_lp_core_gpio_get_level(unsigned)
 {
     const uint64_t ts = now >= origin ? (now - origin) / wireTsCycles : UINT64_MAX;
-    const unsigned level = txLevel & (ts < incoming.size() ? incoming[ts] : 1u);
+    const unsigned localLevel = txLevel && now >= txRecessiveAt;
+    const unsigned level = localLevel & (ts < incoming.size() ? incoming[ts] : 1u);
     // Model time spent completing a GPIO read/poll. This is a latency stress
     // model, not an instruction-accurate ESP32-C6 emulator.
     now += gpioReadCycles;
@@ -56,6 +61,8 @@ extern "C" void ulp_lp_core_gpio_set_level(unsigned, uint8_t level)
 {
     if (alignQueryOrigin && level == 0) { origin = now; alignQueryOrigin = false; }
     if (level != txLevel) writes.emplace_back(now, level);
+    if (level && !txLevel) txRecessiveAt = now + txReleaseDelayCycles;
+    else if (!level) txRecessiveAt = UINT64_MAX;
     txLevel = level;
 }
 extern "C" void ulp_lp_core_delay_us(uint32_t us) { now += 16 * us; }
@@ -80,6 +87,8 @@ static void reset(const std::vector<unsigned>& bits, uint64_t start = 128)
     now = start - 64;
     origin = start;
     txLevel = 1;
+    txReleaseDelayCycles = 0;
+    txRecessiveAt = 0;
     writes.clear();
     incoming = bits;
     injectedDelay = 0;
@@ -165,6 +174,59 @@ int main()
             }
         assert(transition == writes.size());
     }
+    // C6 hardware reports stale dominant RX after a commanded recessive
+    // transition. The late same-slice confirmation must accept delayed local
+    // readback without weakening genuine dominant arbitration below.
+    {
+        VanLpFrame delayed = {};
+        assert(VanFrameBuilder::Build(0x5e4, 0xc, normal5e4, sizeof(normal5e4), delayed));
+        reset({});
+        txReleaseDelayCycles = 96;
+        gpioReadCycles = 8;
+        for (unsigned i = 0; i < delayed.frameWordCount; ++i) VAN_DATA[i] = delayed.words[i];
+        VAN_DATA_LENGTH = delayed.frameWordCount;
+        VAN_FRAME_TYPE = 0; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+        test_monitor_reset();
+        while (!VAN_TX_FINISHED && now < 100000) test_monitor_step();
+        assert(VAN_TX_FINISHED && !VAN_START_TX && txLevel == 1);
+        assert(VAN_TX_RESULT == VAN_LP_NORMAL_TX_COMPLETED);
+    }
+    // Preserve the exact arbitration location through asynchronous completion.
+    // Exercise all recessive slices, especially the first SOF transition at 4.
+    auto arbitrationFrame = frame(0x5e4, 0xc, 2);
+    auto arbitrationBits = raw(arbitrationFrame);
+    for (unsigned ts = 0; ts < arbitrationBits.size(); ++ts)
+        if (arbitrationBits[ts] && ts != arbitrationBits.size() - 9)
+        {
+            std::vector<unsigned> competitor(arbitrationBits.size(), 1);
+            competitor[ts] = 0;
+            reset(competitor, UINT64_MAX / 2);
+            now = 0;
+            alignQueryOrigin = true;
+            for (unsigned i = 0; i < arbitrationFrame.frameWordCount; ++i) VAN_DATA[i] = arbitrationFrame.words[i];
+            VAN_DATA_LENGTH = arbitrationFrame.frameWordCount;
+            VAN_FRAME_TYPE = 0; VAN_START_TX = 1; VAN_TX_FINISHED = 0;
+            VAN_RETRY_COUNT = 1;
+            test_monitor_reset();
+            while (!VAN_TX_FINISHED && now < 100000) test_monitor_step();
+            assert(VAN_TX_FINISHED && !VAN_START_TX && txLevel == 1);
+            assert(VAN_TX_RESULT == VAN_LP_ARBITRATION_LOST);
+            assert(VAN_TX_ARBITRATION_TRACE.rawTs == ts);
+            assert(VAN_TX_ARBITRATION_TRACE.sampleOffset >= 64);
+            assert(VAN_TX_ARBITRATION_TRACE.outputBeforeRelease == 1);
+            assert(VAN_TX_ARBITRATION_TRACE.outputReadOffset > VAN_TX_ARBITRATION_TRACE.sampleOffset);
+            assert(VAN_TX_ARBITRATION_TRACE.releaseOffset >= 64);
+            assert(VAN_TX_ARBITRATION_TRACE.releaseOffset > VAN_TX_ARBITRATION_TRACE.outputReadOffset);
+            assert(VAN_TX_ARBITRATION_TRACE.readOffset > VAN_TX_ARBITRATION_TRACE.releaseOffset);
+            assert(VAN_TX_ARBITRATION_TRACE.rxAfterRelease == 0);
+            assert(VAN_TX_ARBITRATION_TRACE.outputAfterRelease == 1);
+            assert(VAN_TX_ARBITRATION_TRACE.rxRecessiveOffset >= 128);
+            assert(VAN_TX_ARBITRATION_TRACE.rxRecessiveOffset < 256);
+            VanLpConfig noMatches = {};
+            reset(raw(frame(0x8c4, 0xc)));
+            test_receive(&noMatches, origin);
+            assert(VAN_TX_ARBITRATION_TRACE.rawTs == ts);
+        }
     // Exact 27-byte immediate response supplied in the 0x564 hardware report.
     const uint8_t captured564[] = {
         0x80,0,0,0,0,0,0,0,0,0,0xe1,0x2a,0x2a,0x09,0x1c,0x94,

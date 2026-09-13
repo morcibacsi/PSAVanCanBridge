@@ -152,10 +152,28 @@ void VANTransportLayer::TxTask()
                        VanQueryResultName(result), VanAbortStageName(detail),
                        static_cast<unsigned>(detail & 0xffffu));
             }
+            else if (result == VAN_LP_ARBITRATION_LOST)
+            {
+                VanLpArbitrationTrace trace;
+                if (sender->GetLastTxArbitrationTrace(trace))
+                    printf("VAN normal %03X completed: result=%u (%s) raw_ts=%u sample_offset=%u tx_before=%u tx_read_offset=%u release_offset=%u rx_after=%u read_offset=%u tx_latch=%u rx_recessive_offset=%u\n",
+                           static_cast<unsigned>(normalResultId), static_cast<unsigned>(result), VanQueryResultName(result),
+                           static_cast<unsigned>(trace.rawTs), static_cast<unsigned>(trace.sampleOffset),
+                           static_cast<unsigned>(trace.outputBeforeRelease), static_cast<unsigned>(trace.outputReadOffset),
+                           static_cast<unsigned>(trace.releaseOffset),
+                           static_cast<unsigned>(trace.rxAfterRelease), static_cast<unsigned>(trace.readOffset),
+                           static_cast<unsigned>(trace.outputAfterRelease), static_cast<unsigned>(trace.rxRecessiveOffset));
+            }
             else
-                printf("VAN normal %03X completed: result=%u (%s)\n",
-                       static_cast<unsigned>(normalResultId), static_cast<unsigned>(result),
-                       VanQueryResultName(result));
+            {
+                VanLpGpioState gpio;
+                sender->GetGpioState(gpio);
+                printf("VAN normal %03X completed: result=%u (%s) gpio_oe=%08X gpio_out=%08X gpio_in=%08X gpio_mux=%08X tx_cfg=%08X rx_cfg=%08X\n",
+                       static_cast<unsigned>(normalResultId), static_cast<unsigned>(result), VanQueryResultName(result),
+                       static_cast<unsigned>(gpio.outputEnable), static_cast<unsigned>(gpio.outputData),
+                       static_cast<unsigned>(gpio.inputData), static_cast<unsigned>(gpio.gpioMux),
+                       static_cast<unsigned>(gpio.txConfig), static_cast<unsigned>(gpio.rxConfig));
+            }
         }
         if (queryResultPending && _vanMessageSender->IsTxPossible())
         {

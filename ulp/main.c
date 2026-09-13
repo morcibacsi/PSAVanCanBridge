@@ -20,6 +20,8 @@ volatile uint32_t VAN_TX_EOD_TS;
 volatile uint32_t VAN_TS_CYCLES = 128;
 volatile VanLpRxTrace VAN_TX_RX_TRACE[VAN_LP_RX_TRACE_COUNT];
 volatile uint32_t VAN_TX_RX_TRACE_COUNT;
+volatile VanLpArbitrationTrace VAN_TX_ARBITRATION_TRACE;
+static VanLpArbitrationTrace arbitrationTrace;
 static uint32_t abortDetail;
 static uint32_t responseEodTs;
 volatile VanLpConfig VAN_CONFIG[2];
@@ -60,11 +62,14 @@ INLINE bool wait_until(uint32_t deadline)
 static uint32_t rxMask, txMask;
 // C6 LP GPIO W1TS/W1TC are full 32-bit registers with pins in bits 0..7.
 // Direct MMIO avoids the IDF -Os bitfield helpers' calls and stack spills.
-// The production normal TX function below deliberately still uses its original
-// GPIO helpers; only the new deadline-driven paths use these operations.
+// All prepared TX modes use these operations.
 INLINE uint32_t read_bus(void)
 {
     return (*(volatile uint32_t*)LP_IO_IN_REG & rxMask) != 0;
+}
+INLINE uint32_t read_output(void)
+{
+    return (*(volatile uint32_t*)LP_IO_OUT_DATA_REG & txMask) != 0;
 }
 INLINE void drive_bus(uint32_t level)
 {
@@ -72,9 +77,38 @@ INLINE void drive_bus(uint32_t level)
 }
 #else
 INLINE uint32_t read_bus(void) { return ulp_lp_core_gpio_get_level(VAN_RX_PIN) != 0; }
+INLINE uint32_t read_output(void) { return 1; }
 INLINE void drive_bus(uint32_t level) { ulp_lp_core_gpio_set_level(VAN_TX_PIN, level); }
 #endif
 INLINE void release_bus(void) { drive_bus(1); }
+
+// Called only after normal TX has lost arbitration and released its output.
+// No extra reads/timestamps on successful slices and no retry/re-sampling of
+// the arbitration decision. Incoming response activity must not overwrite the
+// published local-TX snapshot while HP is waiting to read completion.
+static __attribute__((noinline)) void record_arbitration_loss(unsigned wordIndex, int bitIndex, uint32_t edge,
+                                                              uint32_t sampleDone, uint32_t outputBefore,
+                                                              uint32_t outputReadDone)
+{
+    const uint32_t released = cycles();
+    uint32_t after = read_bus();
+    const uint32_t initialAfter = after;
+    const uint32_t readDone = cycles();
+    const uint32_t output = read_output();
+    uint32_t recessiveOffset = after ? readDone - edge : UINT32_MAX;
+    // Failure-path-only observation. Do not retry or reinterpret the original
+    // arbitration sample; just determine whether RX follows the released TX
+    // latch before two complete slices have elapsed.
+    while (!after && (uint32_t)(cycles() - edge) < 2 * TS_CYCLES)
+    {
+        after = read_bus();
+        if (after) recessiveOffset = cycles() - edge;
+    }
+    arbitrationTrace = (VanLpArbitrationTrace){wordIndex * 10 + 9 - bitIndex,
+                                            sampleDone - edge, outputBefore, outputReadDone - edge,
+                                            released - edge, initialAfter, readDone - edge,
+                                            output, recessiveOffset};
+}
 
 static VanLpResult abort_at(VanLpAbortStage stage, uint32_t rawTs)
 {
@@ -232,6 +266,9 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
     const bool requester = role == VAN_TX_REQUESTER;
     if (wordCount < 6 || wordCount > VAN_LP_FRAME_WORDS) return abort_at(VAN_LP_ABORT_TX_LENGTH, 0);
     uint32_t bit, bus;
+    // Local TX enters after driving dominant SOF[0]. Responder takeover also
+    // drives dominant RTR before entering here.
+    uint32_t previousBit = 0;
     bool acknowledged = false;
     for (; wordIndex < wordCount; ++wordIndex, bitIndex = 9)
     {
@@ -246,6 +283,17 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
                 return abort_at(VAN_LP_ABORT_TX_SAMPLE_DEADLINE, wordIndex * 10 + 9 - bitIndex);
             if (!bit && bus)
                 return abort_at(VAN_LP_ABORT_TX_DOMINANT_NOT_SEEN, wordIndex * 10 + 9 - bitIndex);
+            // Hardware traces show the C6 LP input can still report the old
+            // dominant state at the ordinary sample after a local 0 -> 1
+            // transition, even though OUT_DATA already contains 1. Confirm
+            // only that mismatch late in the same slice. A real contender
+            // remains dominant and still wins arbitration.
+            if (role == VAN_TX_NORMAL && bit && !bus && !previousBit)
+            {
+                const uint32_t confirmCycle = edgeCycle + TS_CYCLES - TS_CYCLES / 4;
+                if (!sample_at(confirmCycle, &bus))
+                    return abort_at(VAN_LP_ABORT_TX_SAMPLE_DEADLINE, wordIndex * 10 + 9 - bitIndex);
+            }
             if (requester && wordIndex == 2 && bitIndex == 1 && !bus)
             {
                 release_bus(); // RTR recessive lost: stay inside this frame.
@@ -258,9 +306,19 @@ INLINE VanLpResult transmit_prepared(const volatile uint32_t* words, unsigned wo
                 acknowledged = !bus; // Bus was released by the prepared 1.
             else if (bit && !bus)
             {
+                // The arbitration decision is already final. Capture whether
+                // the original recessive write reached the TX latch before the
+                // unconditional safety release can hide that distinction.
+                const uint32_t sampleDone = cycles();
+                const uint32_t outputBefore = role == VAN_TX_NORMAL ? read_output() : 0;
+                const uint32_t outputReadDone = role == VAN_TX_NORMAL ? cycles() : sampleDone;
                 release_bus();
+                if (role == VAN_TX_NORMAL)
+                    record_arbitration_loss(wordIndex, bitIndex, edgeCycle,
+                                            sampleDone, outputBefore, outputReadDone);
                 return VAN_LP_ARBITRATION_LOST;
             }
+            previousBit = bit;
             edgeCycle += TS_CYCLES;
         }
     }
@@ -400,6 +458,8 @@ static void monitor_once(void)
     release_bus();
     monitor.wasHigh = 0;
     VAN_TX_RESULT = result;
+    if (result == VAN_LP_ARBITRATION_LOST && VAN_FRAME_TYPE == 0)
+        VAN_TX_ARBITRATION_TRACE = arbitrationTrace;
     // Pin the local-TX failure detail before continuous monitoring resumes.
     // Incoming frames can change abortDetail but not this completion snapshot.
     VAN_TX_ABORT_DETAIL = result == VAN_LP_ABORT ? abortDetail : 0;

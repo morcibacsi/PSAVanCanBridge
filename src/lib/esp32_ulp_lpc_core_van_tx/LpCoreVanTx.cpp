@@ -4,6 +4,9 @@
 #include <ulp_lp_core.h>
 #include "esp_clk_tree.h"
 #include "esp_timer.h"
+#include "soc/lp_aon_reg.h"
+#include "soc/lp_io_reg.h"
+#include "soc/soc.h"
 #include <cstdio>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -189,6 +192,28 @@ void LpCoreVanTx::SendReplyRequestFrame(uint16_t identifier)
 bool LpCoreVanTx::IsTxPossible() { return _started && SharedWord(ulp_VAN_TX_FINISHED) == 1; }
 VanLpResult LpCoreVanTx::GetLastTxResult() const { return static_cast<VanLpResult>(SharedWord(ulp_VAN_TX_RESULT)); }
 uint32_t LpCoreVanTx::GetLastTxAbortDetail() const { return SharedWord(ulp_VAN_TX_ABORT_DETAIL); }
+bool LpCoreVanTx::GetLastTxArbitrationTrace(VanLpArbitrationTrace& trace) const
+{
+    if (SharedWord(ulp_VAN_TX_FINISHED) != 1 || SharedWord(ulp_VAN_FRAME_TYPE) != 0
+        || SharedWord(ulp_VAN_TX_RESULT) != VAN_LP_ARBITRATION_LOST) return false;
+    SharedFence();
+    const volatile auto* source = reinterpret_cast<const volatile VanLpArbitrationTrace*>(&ulp_VAN_TX_ARBITRATION_TRACE);
+    trace = {source->rawTs, source->sampleOffset, source->outputBeforeRelease,
+             source->outputReadOffset, source->releaseOffset, source->rxAfterRelease,
+             source->readOffset, source->outputAfterRelease, source->rxRecessiveOffset};
+    return true;
+}
+void LpCoreVanTx::GetGpioState(VanLpGpioState& state) const
+{
+    state = {
+        REG_READ(LP_IO_OUT_ENABLE_REG),
+        REG_READ(LP_IO_OUT_DATA_REG),
+        REG_READ(LP_IO_IN_REG),
+        REG_READ(LP_AON_GPIO_MUX_REG),
+        REG_READ(LP_IO_GPIO0_REG + static_cast<uint32_t>(_txPin) * sizeof(uint32_t)),
+        REG_READ(LP_IO_GPIO0_REG + static_cast<uint32_t>(_rxPin) * sizeof(uint32_t))
+    };
+}
 uint32_t LpCoreVanTx::GetLastTxEodTs() const { return SharedWord(ulp_VAN_TX_EOD_TS); }
 bool LpCoreVanTx::GetLastTxRxTrace(uint8_t index, VanLpRxTrace& trace) const
 {

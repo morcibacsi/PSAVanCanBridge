@@ -5,6 +5,27 @@
 #define VAN_LP_RX_TRACE_COUNT 8u
 typedef struct {
     uint32_t rawTs;
+    uint32_t sampleOffset; // Timestamp immediately after the failed arbitration sample.
+    uint32_t outputBeforeRelease; // TX latch before the redundant safety release.
+    uint32_t outputReadOffset; // Timestamp after reading that pre-release latch.
+    uint32_t releaseOffset; // Failure-path timestamp after release, relative to scheduled slice edge.
+    uint32_t rxAfterRelease; // A fresh read, not the original arbitration sample (which was 0).
+    uint32_t readOffset; // Timestamp after that read, relative to scheduled slice edge.
+    uint32_t outputAfterRelease; // TX output latch after release (1 means recessive was latched).
+    uint32_t rxRecessiveOffset; // First observed recessive RX offset, or UINT32_MAX if absent for two slices.
+} VanLpArbitrationTrace;
+
+typedef struct {
+    uint32_t outputEnable;
+    uint32_t outputData;
+    uint32_t inputData;
+    uint32_t gpioMux;
+    uint32_t txConfig;
+    uint32_t rxConfig;
+} VanLpGpioState;
+
+typedef struct {
+    uint32_t rawTs;
     uint32_t pair; // D in bits 3:2, inverse in 1:0; 2 means not sampled.
     uint32_t centerOffset; // Scheduled inverse center relative to COM inverse.
     int32_t correction; // Edge resynchronization applied to this pair.
