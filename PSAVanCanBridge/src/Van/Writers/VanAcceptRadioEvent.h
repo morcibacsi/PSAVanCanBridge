@@ -10,7 +10,7 @@
 
 class VanAcceptRadioEvent : public VanMessageWriterBase
 {
-    const static uint16_t QUERY_INTERVAL = 100;
+    const static uint16_t QUERY_INTERVAL = 50;
     const static uint8_t  CHANNEL = 9;
 
     uint8_t _ignition = 0;

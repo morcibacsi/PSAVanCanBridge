@@ -22,6 +22,12 @@ VanWriterContainer::VanWriterContainer(IVanMessageSender *VANInterface, Config *
 
 void VanWriterContainer::Process(unsigned long currentTime)
 {
+    if (!_config->ORIGINAL_DISPLAY_PRESENT)
+    {
+        acceptRadioEvent->SetData(_dataBroker->Ignition);
+        acceptRadioEvent->Process(currentTime, false);
+    }
+
     VanCommand command;
 
     if (xQueueReceive(_queue, &command, (TickType_t)5) == pdTRUE)
