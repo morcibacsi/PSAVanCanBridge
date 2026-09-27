@@ -5,7 +5,6 @@
 
 #include "ITransportLayer.hpp"
 #include "BusMessage.hpp"
-#include "../lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
 #include "../lib/esp32_rmt_van_rx/esp32_arduino_rmt_van_rx.h"
 
 class VANTransportLayerOnSerial : public ITransportLayer {

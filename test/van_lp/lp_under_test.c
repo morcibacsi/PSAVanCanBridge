@@ -1,5 +1,5 @@
 #define VAN_LP_HOST_TEST
-#include "../../ulp/main.c"
+#include "../../components/lp_core_van/ulp/main.c"
 
 VanLpResult test_receive(const VanLpConfig* config, uint32_t edge)
 {
@@ -7,14 +7,17 @@ VanLpResult test_receive(const VanLpConfig* config, uint32_t edge)
 }
 VanLpResult test_request(const VanLpFrame* frame, uint32_t edge, int ack)
 {
-    return transmit_prepared(frame->words, frame->frameWordCount, 0, 9, edge, VAN_TX_REQUESTER, ack != 0, 0);
+    VanRxCapture capture;
+    capture_prepared_prefix(frame->words, &capture);
+    return transmit_prepared(frame->words, frame->frameWordCount, 0, 9, edge,
+                             VAN_TX_REQUESTER, ack != 0, &capture, 0);
 }
 VanLpResult test_request_capture(const VanLpFrame* frame, uint32_t edge, int ack)
 {
     VanRxCapture capture;
     capture_prepared_prefix(frame->words, &capture);
     return transmit_prepared(frame->words, frame->frameWordCount, 0, 9, edge,
-                             VAN_TX_REQUESTER, ack != 0, &capture);
+                             VAN_TX_REQUESTER, ack != 0, &capture, 0);
 }
 void test_monitor_reset(void)
 {
@@ -45,4 +48,9 @@ uint32_t test_eod_ts(void) { return responseEodTs; }
 uint32_t test_ack_edge_advance(void) { return ACK_EDGE_ADVANCE_CYCLES; }
 uint32_t test_ack_hold_extension(void) { return ACK_HOLD_EXTENSION_CYCLES; }
 void test_set_ts_cycles(uint32_t value) { tsCycles = value; }
-VanLpResult test_track_response(uint32_t center) { return track_response(center, true, true, 0); }
+VanLpResult test_track_response(uint32_t center)
+{
+    VanRxCapture capture;
+    capture_reset(&capture);
+    return track_response(center, true, true, &capture);
+}

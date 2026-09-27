@@ -3,7 +3,7 @@
 This document is the protocol-level reference for VAN framing and wire
 encoding. For the ESP32-C6 implementation, ownership split, timing strategy,
 and maintenance constraints, see
-[`ulp/VAN-LP-CORE-ARCHITECTURE.md`](ulp/VAN-LP-CORE-ARCHITECTURE.md).
+[`docs/VAN-LP-CORE-ARCHITECTURE.md`](docs/VAN-LP-CORE-ARCHITECTURE.md).
 
 The VAN bus used by PSA is based on ISO 11519-3. At 125 kbit/s, the fundamental bus time slice is 8 µs. Logical 0 is the dominant bus state and logical 1 is the recessive bus state.
 

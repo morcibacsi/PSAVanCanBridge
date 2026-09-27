@@ -3,7 +3,6 @@
 
 #include "Protocol/VANTransportLayer.hpp"
 
-#ifdef CONFIG_IDF_TARGET_ESP32C6
 // Temporary HP-side completion tracing for the trip-computer request.
 // Override with -DVAN_LP_TRACE_QUERY_ID=0 to disable, or another VAN ID.
 #ifndef VAN_LP_TRACE_QUERY_ID
@@ -54,9 +53,10 @@ static const char* VanAbortStageName(uint32_t detail)
         default: return "UNSPECIFIED";
     }
 }
-#endif
-
-VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender, IVanMessageReceiver* vanMessageReceiver)
+VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender,
+                                     IVanMessageReceiver* vanMessageReceiver,
+                                     ILpCoreVanDiagnostics* lpCoreDiagnostics)
+    : _lpCoreDiagnostics(lpCoreDiagnostics)
 {
     _vanMessageSender = vanMessageSender;
     _vanRx = vanMessageReceiver;
@@ -133,23 +133,21 @@ bool VANTransportLayer::IsBusAvailable()
 void VANTransportLayer::TxTask()
 {
     BusMessage message;
-#ifdef CONFIG_IDF_TARGET_ESP32C6
     bool queryResultPending = false;
     bool normalResultPending = false;
     uint16_t normalResultId = 0;
-    // On C6 this transport is wired to LpCoreVanTx in Platform/Esp/main.cpp.
+    // C6 supplies LpCoreVanAdapter; other targets supply the null object.
     // This TX task owns submission: read the completed result before it can
     // submit another frame and allow LP to overwrite VAN_TX_RESULT.
     auto reportCompletedTx = [&]()
     {
         if (normalResultPending && _vanMessageSender->IsTxPossible())
         {
-            auto* sender = static_cast<LpCoreVanTx*>(_vanMessageSender);
-            const VanLpResult result = sender->GetLastTxResult();
+            const VanLpResult result = _lpCoreDiagnostics->GetLastTxResult();
             normalResultPending = false;
             if (result == VAN_LP_ABORT)
             {
-                const uint32_t detail = sender->GetLastTxAbortDetail();
+                const uint32_t detail = _lpCoreDiagnostics->GetLastTxAbortDetail();
                 printf("VAN normal %03X completed: result=%u (%s) stage=%s raw_ts=%u\n",
                        static_cast<unsigned>(normalResultId), static_cast<unsigned>(result),
                        VanQueryResultName(result), VanAbortStageName(detail),
@@ -158,7 +156,7 @@ void VANTransportLayer::TxTask()
             else if (result == VAN_LP_ARBITRATION_LOST)
             {
                 VanLpArbitrationTrace trace;
-                if (sender->GetLastTxArbitrationTrace(trace))
+                if (_lpCoreDiagnostics->GetLastTxArbitrationTrace(trace))
                     printf("VAN normal %03X completed: result=%u (%s) raw_ts=%u sample_offset=%u tx_before=%u tx_read_offset=%u release_offset=%u rx_after=%u read_offset=%u tx_latch=%u rx_recessive_offset=%u\n",
                            static_cast<unsigned>(normalResultId), static_cast<unsigned>(result), VanQueryResultName(result),
                            static_cast<unsigned>(trace.rawTs), static_cast<unsigned>(trace.sampleOffset),
@@ -170,7 +168,7 @@ void VANTransportLayer::TxTask()
             else
             {
                 VanLpGpioState gpio;
-                sender->GetGpioState(gpio);
+                _lpCoreDiagnostics->GetGpioState(gpio);
                 printf("VAN normal %03X completed: result=%u (%s) gpio_oe=%08X gpio_out=%08X gpio_in=%08X gpio_mux=%08X tx_cfg=%08X rx_cfg=%08X\n",
                        static_cast<unsigned>(normalResultId), static_cast<unsigned>(result), VanQueryResultName(result),
                        static_cast<unsigned>(gpio.outputEnable), static_cast<unsigned>(gpio.outputData),
@@ -180,11 +178,11 @@ void VANTransportLayer::TxTask()
         }
         if (queryResultPending && _vanMessageSender->IsTxPossible())
         {
-            const VanLpResult result = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxResult();
+            const VanLpResult result = _lpCoreDiagnostics->GetLastTxResult();
             queryResultPending = false;
             if (result == VAN_LP_ABORT)
             {
-                const uint32_t detail = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxAbortDetail();
+                const uint32_t detail = _lpCoreDiagnostics->GetLastTxAbortDetail();
                 printf("VAN query %03X completed: result=%u (%s) stage=%s raw_ts=%u\n",
                        static_cast<unsigned>(VAN_LP_TRACE_QUERY_ID), static_cast<unsigned>(result),
                        VanQueryResultName(result), VanAbortStageName(detail),
@@ -192,7 +190,7 @@ void VANTransportLayer::TxTask()
             }
             else if (result == VAN_LP_QUERY_RESPONSE_ACKED || result == VAN_LP_QUERY_RESPONSE_RECEIVED)
             {
-                const uint32_t eodTs = static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxEodTs();
+                const uint32_t eodTs = _lpCoreDiagnostics->GetLastTxEodTs();
                 printf("VAN query %03X completed: result=%u (%s) eod_ts=%u\n",
                        static_cast<unsigned>(VAN_LP_TRACE_QUERY_ID), static_cast<unsigned>(result),
                        VanQueryResultName(result), static_cast<unsigned>(eodTs));
@@ -204,7 +202,7 @@ void VANTransportLayer::TxTask()
                        static_cast<unsigned>(result), VanQueryResultName(result));
             }
             VanLpRxTrace trace;
-            for (uint8_t i = 0; static_cast<LpCoreVanTx*>(_vanMessageSender)->GetLastTxRxTrace(i, trace); ++i)
+            for (uint8_t i = 0; _lpCoreDiagnostics->GetLastTxRxTrace(i, trace); ++i)
                 printf("VAN RX ts=%u pair=%u%u center=%u shift=%ld dlate=%ld ilate=%ld\n",
                        static_cast<unsigned>(trace.rawTs), static_cast<unsigned>((trace.pair >> 2) & 3),
                        static_cast<unsigned>(trace.pair & 3), static_cast<unsigned>(trace.centerOffset),
@@ -212,12 +210,10 @@ void VANTransportLayer::TxTask()
                        static_cast<long>(trace.inverseLate));
         }
     };
-#endif
 
     while (true)
     {
         TickType_t queueWait = portMAX_DELAY;
-#ifdef CONFIG_IDF_TARGET_ESP32C6
         reportCompletedTx();
         // A traced TX can complete while the queue is empty. Yield for one tick
         // rather than waiting forever for a subsequent queued message.
@@ -225,7 +221,6 @@ void VANTransportLayer::TxTask()
         {
             queueWait = 1;
         }
-#endif
         if (xQueueReceive(_txQueue, &message, queueWait) == pdTRUE)
         {
             if (!IsBusAvailable()) {
@@ -243,31 +238,25 @@ void VANTransportLayer::TxTask()
                 continue;
             }
 
-#ifdef CONFIG_IDF_TARGET_ESP32C6
             // Completion may also occur during xQueueReceive/IsBusAvailable.
             reportCompletedTx();
-#endif
             switch (message.type)
             {
                 case MessageType::Query:
                     //printf("Send query message: %03X\n", (unsigned int) message.id);
                     _vanMessageSender->SendReplyRequestFrame(message.id);
-#ifdef CONFIG_IDF_TARGET_ESP32C6
-                    queryResultPending = VAN_LP_TRACE_QUERY_ID != 0 && message.id == VAN_LP_TRACE_QUERY_ID;
-#endif
+                    queryResultPending = VAN_LP_TRACE_QUERY_ID != 0
+                                         && message.id == VAN_LP_TRACE_QUERY_ID;
                     break;
                 case MessageType::Normal:
                     //printf("Send normal message: %03X\n", (unsigned int) message.id);
-#ifdef CONFIG_IDF_TARGET_ESP32C6
-                    // Track only accepted submissions, before this task can
-                    // submit another frame and overwrite the completion slot.
-                    normalResultPending = static_cast<LpCoreVanTx*>(_vanMessageSender)->TrySendFrame(
-                        message.id, message.data, message.dataLength, message.ack ? 0xc : 0x8, false)
-                        && VAN_LP_TRACE_NORMAL_TX && (message.id == 0x5e4 || message.id == 0x8a4);
-                    normalResultId = message.id;
-#else
+                    // Availability was checked immediately before submission.
+                    // Track the result before this task can submit another
+                    // frame and overwrite the completion slot.
                     _vanMessageSender->SendNormalFrame(message.id, message.data, message.dataLength, message.ack);
-#endif
+                    normalResultPending = VAN_LP_TRACE_NORMAL_TX
+                        && (message.id == 0x5e4 || message.id == 0x8a4);
+                    normalResultId = message.id;
                     break;
                 case MessageType::Response:
                     //printf("Send response message: %03X\n", (unsigned int) message.id);

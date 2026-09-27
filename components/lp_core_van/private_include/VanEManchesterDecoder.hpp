@@ -18,6 +18,7 @@ class VanEManchesterDecoder
                 return false;
 
             uint8_t currentByte = 0;
+            uint8_t decodedLength = 0;
             for (uint32_t i = 0; i < groupCount; ++i)
             {
                 const uint8_t group = groups[i];
@@ -32,16 +33,20 @@ class VanEManchesterDecoder
                     currentByte = nibble << 4;
                 else
                 {
-                    if (*messageLength >= VAN_LP_RX_MAX_MESSAGE_BYTES) return false;
-                    message[(*messageLength)++] = currentByte | nibble;
+                    if (decodedLength >= VAN_LP_RX_MAX_MESSAGE_BYTES) return false;
+                    message[decodedLength++] = currentByte | nibble;
                 }
 
                 if (!violation) continue;
                 // EOD is the 00 violation in the second group of a byte. It
                 // must terminate the capture and follow at least SOF, ID/COM
                 // and the two FCS bytes.
-                return !fourth && (i & 1u) && i + 1 == groupCount
-                       && *messageLength >= 5;
+                if (!fourth && (i & 1u) && i + 1 == groupCount && decodedLength >= 5)
+                {
+                    *messageLength = decodedLength;
+                    return true;
+                }
+                return false;
             }
             return false; // Complete captures always include an EOD violation.
         }

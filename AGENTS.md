@@ -112,7 +112,7 @@ When adding a new message handler:
 Before modifying VAN transport, LP/ULP code, VAN sender/receiver abstractions, bus timing, ACK, ReplyRequest, or requested-module reply behavior, read the relevant VAN documentation:
 
 - `VAN-BUS-FORMAT.md` is the protocol reference for framing, E-Manchester encoding, fields, FCS, EOD, ACK, ReplyRequest behavior, and bus timing.
-- `ulp/VAN-LP-CORE-ARCHITECTURE.md` describes the current ESP32-C6 implementation: main-CPU/LP-core responsibilities, TX and RX, ACK and both ReplyRequest roles, prepared replies, 125/62.5 KTS support, timing-sensitive implementation details, and architectural invariants/gotchas.
+- `docs/VAN-LP-CORE-ARCHITECTURE.md` describes the current ESP32-C6 implementation: main-CPU/LP-core responsibilities, TX and RX, ACK and both ReplyRequest roles, prepared replies, 125/62.5 KTS support, timing-sensitive implementation details, and architectural invariants/gotchas.
 
 Keep timing-critical bus interaction on the LP core and expensive or non-time-critical preparation and decoding on the main CPU. Do not casually refactor LP GPIO or generated instruction timing, assembly/NOP delays, ACK timing, arbitration sampling, RTR takeover, or TX timing; consult the implementation document first.
 

@@ -28,10 +28,16 @@ if os.name == "nt":
 
 build = root / ".pio/van_lp_tests"
 build.mkdir(parents=True, exist_ok=True)
-subprocess.run(["clang", "-O2", "-Wall", "-Wextra", "-Itest/van_lp/stubs", "-c",
+library_includes = [
+    "-Icomponents/lp_core_van/include",
+    "-Icomponents/lp_core_van/private_include",
+]
+subprocess.run(["clang", "-O2", "-Wall", "-Wextra", "-Itest/van_lp/stubs",
+                *library_includes, "-c",
                 "test/van_lp/lp_under_test.c", "-o", str(build / "lp.obj")], check=True)
 subprocess.run(["clang++", "-std=c++17", "-O2", "-Wall", "-Wextra",
                 "-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH",
+                *library_includes,
                 "test/van_lp/test_van_lp.cpp", "src/Helpers/VanCrcCalculator.cpp",
                 str(build / "lp.obj"),
                 "-o", str(build / "test.exe")], check=True)

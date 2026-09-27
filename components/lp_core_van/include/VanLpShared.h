@@ -46,7 +46,9 @@ typedef struct {
 #define VAN_LP_RX_MAX_GROUPS (VAN_LP_RX_MAX_MESSAGE_BYTES * 2u)
 
 typedef struct {
-    uint32_t words[VAN_LP_FRAME_WORDS]; // Each word holds ten bus states, MSB first.
+    // Ten states fit in 16 bits. Keeping 32-bit words here exhausted LP RAM
+    // once both configuration banks and the RX queue were linked.
+    uint16_t words[VAN_LP_FRAME_WORDS]; // Each word holds ten bus states, MSB first.
     uint32_t frameWordCount;           // Zero disables entry. Final word = ACK[2]+EOF[8].
 } VanLpFrame;
 
@@ -66,7 +68,8 @@ typedef struct {
     // One raw five-state E-Manchester group per byte, MSB first in bits 4..0.
     // Keeping groups byte-aligned minimizes LP work; HP performs decoding.
     uint8_t groups[VAN_LP_RX_MAX_GROUPS];
-    uint8_t padding[2];
+    uint8_t ack; // Raw two-state ACK field, first state in bit 1.
+    uint8_t padding;
 } VanLpRxFrame;
 
 // One LP producer and one HP consumer. The producer publishes writeIndex only
@@ -80,18 +83,20 @@ typedef struct {
     uint32_t overflowCount;
     uint32_t malformedCount;
     uint32_t maxOccupancy;
+    uint32_t sofCount;
+    uint32_t eodCount;
 } VanLpRxQueue;
 
 #ifdef __cplusplus
-static_assert(sizeof(VanLpFrame) == 140, "LP frame ABI must contain 35 words");
-static_assert(sizeof(VanLpConfig) == 948, "HP/LP configuration layout must match");
+static_assert(sizeof(VanLpFrame) == 72, "LP frame ABI must contain 34 packed words and a length");
+static_assert(sizeof(VanLpConfig) == 608, "HP/LP configuration layout must match");
 static_assert(sizeof(VanLpRxFrame) == 72, "LP receive frame ABI must match");
-static_assert(sizeof(VanLpRxQueue) == 312, "LP receive queue ABI must match");
+static_assert(sizeof(VanLpRxQueue) == 320, "LP receive queue ABI must match");
 #else
-_Static_assert(sizeof(VanLpFrame) == 140, "LP frame ABI must contain 35 words");
-_Static_assert(sizeof(VanLpConfig) == 948, "HP/LP configuration layout must match");
+_Static_assert(sizeof(VanLpFrame) == 72, "LP frame ABI must contain 34 packed words and a length");
+_Static_assert(sizeof(VanLpConfig) == 608, "HP/LP configuration layout must match");
 _Static_assert(sizeof(VanLpRxFrame) == 72, "LP receive frame ABI must match");
-_Static_assert(sizeof(VanLpRxQueue) == 312, "LP receive queue ABI must match");
+_Static_assert(sizeof(VanLpRxQueue) == 320, "LP receive queue ABI must match");
 #endif
 
 typedef enum {

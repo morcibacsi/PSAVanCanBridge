@@ -1,12 +1,103 @@
-#include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanFrameBuilder.hpp"
-#include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanBusTiming.hpp"
-#include "../../src/lib/esp32_ulp_lpc_core_van_tx/VanEManchesterDecoder.hpp"
+#include "../../components/lp_core_van/private_include/VanFrameBuilder.hpp"
+#include "../../components/lp_core_van/include/VanBusTiming.hpp"
+#include "../../components/lp_core_van/private_include/VanEManchesterDecoder.hpp"
 #include "../../src/Helpers/VanCrcCalculator.hpp"
+#include "../../src/Platform/Esp/Protocol/ILpCoreVanDiagnostics.hpp"
+#include "../../src/lib/VanMessageSenderReceiverAdapter.hpp"
 #include <assert.h>
 #include <stdio.h>
 #include <vector>
 #include <utility>
 #include <algorithm>
+
+struct FakeVanBackendState
+{
+    bool started = false;
+    bool txPossible = true;
+    uint16_t identifier = 0;
+    uint8_t data[3] = {};
+    uint8_t length = 0;
+    bool flag = false;
+    uint8_t slot = 0;
+    uint16_t ackIdentifiers[2] = {};
+    uint8_t ackIdentifierCount = 0;
+    uint8_t call = 0;
+};
+
+class FakeVanBackend
+{
+private:
+    FakeVanBackendState* _state;
+
+public:
+    explicit FakeVanBackend(FakeVanBackendState* state) : _state(state) {}
+    void Start() { _state->started = true; }
+    void SendNormalFrame(uint16_t identifier, const uint8_t data[], uint8_t length, bool requireAck)
+    {
+        _state->call = 1; _state->identifier = identifier; _state->length = length; _state->flag = requireAck;
+        std::copy(data, data + length, _state->data);
+    }
+    void SendReplyRequestFrame(uint16_t identifier) { _state->call = 2; _state->identifier = identifier; }
+    bool IsTxPossible() { return _state->txPossible; }
+    bool SetAckIdentifiers(const uint16_t identifiers[], uint8_t count)
+    {
+        _state->call = 3; _state->ackIdentifierCount = count;
+        std::copy(identifiers, identifiers + count, _state->ackIdentifiers); return true;
+    }
+    bool SetAckIdentifier(uint8_t slot, uint16_t identifier, bool enabled)
+    {
+        _state->call = 4; _state->slot = slot; _state->identifier = identifier; _state->flag = enabled; return true;
+    }
+    bool SetQueryRequesterAckEnabled(bool enabled) { _state->call = 5; _state->flag = enabled; return true; }
+    bool SetRequestedReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t data[], uint8_t length, bool enabled)
+    {
+        _state->call = 6; _state->slot = slot; _state->identifier = identifier;
+        _state->length = length; _state->flag = enabled; std::copy(data, data + length, _state->data); return true;
+    }
+    void ReceiveData(uint8_t* length, uint8_t message[]) { _state->call = 7; *length = 2; message[0] = 0x0e; message[1] = 0x8c; }
+};
+
+static void TestVanApplicationAdapter()
+{
+    FakeVanBackendState state;
+    VanMessageSenderReceiverAdapter<FakeVanBackend> adapter(&state);
+    IVanMessageSender* sender = &adapter;
+    IVanMessageReceiver* receiver = &adapter;
+    const uint8_t data[] = {0x11, 0x22, 0x33};
+    const uint16_t ackIdentifiers[] = {0x8c4, 0x9c4};
+
+    sender->Start();
+    assert(state.started && sender->IsTxPossible());
+    sender->SendNormalFrame(0x8c4, data, sizeof(data), true);
+    assert(state.call == 1 && state.identifier == 0x8c4 && state.length == 3 && state.flag && state.data[2] == 0x33);
+    sender->SendReplyRequestFrame(0x564);
+    assert(state.call == 2 && state.identifier == 0x564);
+    sender->SetAckIdentifiers(ackIdentifiers, 2);
+    assert(state.call == 3 && state.ackIdentifierCount == 2 && state.ackIdentifiers[1] == 0x9c4);
+    sender->SetAckIdentifier(4, 0x744, false);
+    assert(state.call == 4 && state.slot == 4 && state.identifier == 0x744 && !state.flag);
+    sender->SetQueryRequesterAckEnabled(false);
+    assert(state.call == 5 && !state.flag);
+    sender->SetRequestedReplyFrame(2, 0x8a4, data, sizeof(data), true);
+    assert(state.call == 6 && state.slot == 2 && state.identifier == 0x8a4 && state.flag && state.data[0] == 0x11);
+    uint8_t receivedLength = 0;
+    uint8_t received[2] = {};
+    receiver->ReceiveData(&receivedLength, received);
+    assert(state.call == 7 && receivedLength == 2 && received[0] == 0x0e && received[1] == 0x8c);
+
+    NullLpCoreVanDiagnostics nullDiagnostics;
+    VanLpArbitrationTrace arbitrationTrace = {};
+    VanLpGpioState gpioState = {};
+    VanLpRxTrace rxTrace = {};
+    gpioState.outputEnable = 1;
+    assert(nullDiagnostics.GetLastTxResult() == VAN_LP_NONE);
+    assert(nullDiagnostics.GetLastTxAbortDetail() == 0);
+    assert(!nullDiagnostics.GetLastTxArbitrationTrace(arbitrationTrace));
+    nullDiagnostics.GetGpioState(gpioState);
+    assert(gpioState.outputEnable == 0);
+    assert(nullDiagnostics.GetLastTxEodTs() == UINT32_MAX);
+    assert(!nullDiagnostics.GetLastTxRxTrace(0, rxTrace));
+}
 
 extern "C" {
 VanLpResult test_receive(const VanLpConfig*, uint32_t);
@@ -25,7 +116,8 @@ void test_rx_reset(void);
 uint32_t test_rx_count(void);
 uint32_t test_rx_pop(VanLpRxFrame*);
 uint32_t test_rx_overflow(void);
-extern volatile uint32_t VAN_DATA[], VAN_DATA_LENGTH, VAN_START_TX, VAN_TX_FINISHED;
+extern volatile uint16_t VAN_DATA[];
+extern volatile uint32_t VAN_DATA_LENGTH, VAN_START_TX, VAN_TX_FINISHED;
 extern volatile uint32_t VAN_FRAME_TYPE, VAN_TX_RESULT, VAN_BUS_RESULT;
 extern volatile uint32_t VAN_TX_ABORT_DETAIL;
 extern volatile uint32_t VAN_TX_EOD_TS;
@@ -46,9 +138,19 @@ struct DecodedCapture
 static bool pop_decoded(DecodedCapture& decoded)
 {
     VanLpRxFrame rawCapture = {};
-    return test_rx_pop(&rawCapture)
-           && VanEManchesterDecoder::Decode(rawCapture.groups, rawCapture.groupCount,
-                                            decoded.data, &decoded.length);
+    if (!test_rx_pop(&rawCapture))
+    {
+        fprintf(stderr, "No LP capture available\n");
+        return false;
+    }
+    if (VanEManchesterDecoder::Decode(rawCapture.groups, rawCapture.groupCount,
+                                      decoded.data, &decoded.length))
+        return true;
+    fprintf(stderr, "Could not decode LP capture with %u groups:", rawCapture.groupCount);
+    for (uint32_t i = 0; i < rawCapture.groupCount; ++i)
+        fprintf(stderr, " %02x", rawCapture.groups[i]);
+    fprintf(stderr, "\n");
+    return false;
 }
 
 static uint64_t now, origin;
@@ -179,6 +281,7 @@ static std::vector<unsigned> reference(uint16_t id, uint8_t com, const uint8_t* 
 
 int main()
 {
+    TestVanApplicationAdapter();
     static_assert(VanBusTiming::IsSupported(VanBusSpeed::Kts125));
     static_assert(VanBusTiming::IsSupported(VanBusSpeed::Kts62_5));
     static_assert(VanBusTiming::BitRate(VanBusSpeed::Kts125) == 125000);

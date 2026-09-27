@@ -1,6 +1,8 @@
-#include "lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
+#include "sdkconfig.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32C6
+
+#include "LpCoreVanTx.hpp"
 #include <ulp_lp_core.h>
 #include "esp_clk_tree.h"
 #include "esp_timer.h"
@@ -11,11 +13,22 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "VanEManchesterDecoder.hpp"
+#include "VanConfiguration.hpp"
+#include "VanFrameCodec.hpp"
 #include "VanFrameBuilder.hpp"
+#ifdef LP_CORE_VAN_PLATFORMIO
 #include "ulp_main.h"
+#else
+#include "lp_core_van_ulp.h"
+#endif
 
+#ifdef LP_CORE_VAN_PLATFORMIO
 extern const uint8_t ulp_main_bin_start[] asm("_binary_ulp_main_bin_start");
 extern const uint8_t ulp_main_bin_end[] asm("_binary_ulp_main_bin_end");
+#else
+extern const uint8_t ulp_main_bin_start[] asm("_binary_lp_core_van_ulp_bin_start");
+extern const uint8_t ulp_main_bin_end[] asm("_binary_lp_core_van_ulp_bin_end");
+#endif
 static portMUX_TYPE vanApiLock = portMUX_INITIALIZER_UNLOCKED;
 
 // LP RAM is uncached on C6. Aligned 32-bit publication plus hardware fences;
@@ -94,30 +107,10 @@ void LpCoreVanTx::PublishConfiguration()
     SharedWord(ulp_VAN_CONFIG_PUBLISHED) = next;
 }
 
-bool LpCoreVanTx::ConfigureAckFrame(uint8_t slot, uint16_t identifier, bool enabled)
-{
-    portENTER_CRITICAL(&vanApiLock);
-    const bool ok = IsConfigurationReady() && VanFrameBuilder::SetAck(_configuration, slot, identifier, 0xc, enabled);
-    if (ok) PublishConfiguration();
-    portEXIT_CRITICAL(&vanApiLock);
-    return ok;
-}
-
-bool LpCoreVanTx::ConfigureReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled)
-{
-    portENTER_CRITICAL(&vanApiLock);
-    const bool ok = IsConfigurationReady() && VanFrameBuilder::SetReply(_configuration, slot, identifier, data, length, enabled);
-    if (ok) PublishConfiguration();
-    portEXIT_CRITICAL(&vanApiLock);
-    return ok;
-}
-
-// Compatibility setters are task-context configuration operations, never parse/
-// generate fast paths. Bounded waiting leaves the LP monitoring continuously.
-static bool WaitForConfiguration(LpCoreVanTx& tx)
+bool LpCoreVanTx::WaitForConfiguration() const
 {
     const TickType_t start = xTaskGetTickCount();
-    while (!tx.IsConfigurationReady())
+    while (!IsConfigurationReady())
     {
         if (xTaskGetTickCount() - start >= pdMS_TO_TICKS(50)) return false;
         vTaskDelay(1);
@@ -125,43 +118,57 @@ static bool WaitForConfiguration(LpCoreVanTx& tx)
     return true;
 }
 
-void LpCoreVanTx::SetAckIdentifiers(const uint16_t* identifiers, uint8_t count)
+bool LpCoreVanTx::SetAckIdentifiers(const uint16_t* identifiers, uint8_t count)
 {
-    if (count > VAN_LP_ENTRY_COUNT || (count && !identifiers)) return;
-    for (unsigned i = 0; i < count; ++i) if (identifiers[i] > 0xfff) return;
-    if (!WaitForConfiguration(*this)) return;
+    if (!VanConfiguration::IsValidAckIdentifiers(identifiers, count)) return false;
+    if (!WaitForConfiguration()) return false;
     portENTER_CRITICAL(&vanApiLock);
-    if (IsConfigurationReady())
-    {
-        for (unsigned i = 0; i < VAN_LP_ENTRY_COUNT; ++i)
-            VanFrameBuilder::SetAck(_configuration, i, i < count ? identifiers[i] : 0, 0xc, i < count);
-        PublishConfiguration();
-    }
+    const bool ok = IsConfigurationReady()
+                 && VanConfiguration::SetAckIdentifiers(_configuration, identifiers, count);
+    if (ok) PublishConfiguration();
     portEXIT_CRITICAL(&vanApiLock);
+    return ok;
 }
 
-void LpCoreVanTx::SetAckIdentifier(const uint8_t slot, const uint16_t identifier, const bool enabled)
+bool LpCoreVanTx::SetAckIdentifier(uint8_t slot, uint16_t identifier, bool enabled)
 {
-    if (slot >= VAN_LP_ENTRY_COUNT) return;
-    if (WaitForConfiguration(*this)) ConfigureAckFrame(slot, identifier, enabled);
-}
-
-void LpCoreVanTx::SetQueryRequesterAckEnabled(bool enabled)
-{
-    if (!WaitForConfiguration(*this)) return;
+    if (!VanConfiguration::IsValidAckIdentifier(slot, identifier, enabled)) return false;
+    if (!WaitForConfiguration()) return false;
     portENTER_CRITICAL(&vanApiLock);
-    if (IsConfigurationReady())
+    const bool ok = IsConfigurationReady()
+                 && VanConfiguration::SetAckIdentifier(_configuration, slot, identifier, enabled);
+    if (ok) PublishConfiguration();
+    portEXIT_CRITICAL(&vanApiLock);
+    return ok;
+}
+
+bool LpCoreVanTx::SetQueryRequesterAckEnabled(bool enabled)
+{
+    if (!WaitForConfiguration()) return false;
+    portENTER_CRITICAL(&vanApiLock);
+    const bool ok = IsConfigurationReady();
+    if (ok)
     {
         _configuration.queryAckEnabled = enabled;
         PublishConfiguration();
     }
     portEXIT_CRITICAL(&vanApiLock);
+    return ok;
 }
 
-void LpCoreVanTx::SetRequestedReplyFrame(uint8_t slot, uint16_t identifier, const uint8_t* data, uint8_t length, bool enabled)
+bool LpCoreVanTx::SetRequestedReplyFrame(uint8_t slot, uint16_t identifier,
+                                        const uint8_t* data, uint8_t length, bool enabled)
 {
-    if (slot >= VAN_LP_ENTRY_COUNT) return;
-    if (WaitForConfiguration(*this)) ConfigureReplyFrame(slot, identifier, data, length, enabled);
+    if (!VanConfiguration::IsValidRequestedReplyFrame(slot, identifier, data, length, enabled))
+        return false;
+    if (!WaitForConfiguration()) return false;
+    portENTER_CRITICAL(&vanApiLock);
+    const bool ok = IsConfigurationReady()
+                 && VanConfiguration::SetRequestedReplyFrame(
+                        _configuration, slot, identifier, data, length, enabled);
+    if (ok) PublishConfiguration();
+    portEXIT_CRITICAL(&vanApiLock);
+    return ok;
 }
 
 bool LpCoreVanTx::TrySendFrame(uint16_t identifier, const uint8_t* data, uint8_t length, uint8_t command, bool query)
@@ -177,7 +184,7 @@ bool LpCoreVanTx::TrySendFrame(uint16_t identifier, const uint8_t* data, uint8_t
         return false;
     }
     SharedFence();
-    volatile uint32_t* target = &ulp_VAN_DATA;
+    volatile uint16_t* target = reinterpret_cast<volatile uint16_t*>(&ulp_VAN_DATA);
     for (unsigned i = 0; i < frame.frameWordCount; ++i) target[i] = frame.words[i];
     SharedWord(ulp_VAN_DATA_LENGTH) = frame.frameWordCount;
     SharedWord(ulp_VAN_FRAME_TYPE) = query ? 1 : 0;
@@ -242,30 +249,49 @@ void LpCoreVanTx::GetReceiveDiagnostics(VanLpRxDiagnostics& diagnostics) const
     const volatile VanLpRxQueue* queue = reinterpret_cast<const volatile VanLpRxQueue*>(&ulp_VAN_RX_QUEUE);
     SharedFence();
     diagnostics = {queue->receivedCount, queue->overflowCount,
-                   queue->malformedCount, queue->maxOccupancy};
+                   queue->malformedCount, queue->maxOccupancy,
+                   queue->sofCount, queue->eodCount,
+                   queue->writeIndex, queue->readIndex};
 }
 
 void LpCoreVanTx::ReceiveData(uint8_t* messageLength, uint8_t message[])
 {
+    if (!messageLength) return;
     *messageLength = 0;
+    if (!message) return;
+    VanFrame frame;
+    if (!ReceiveFrame(frame)) return;
+    VanFrameCodec::ToLegacyBytes(frame, message, messageLength);
+}
+
+bool LpCoreVanTx::ReceiveFrame(VanFrame& frame) const
+{
     volatile VanLpRxQueue* queue = reinterpret_cast<volatile VanLpRxQueue*>(&ulp_VAN_RX_QUEUE);
-    while (_started && queue->readIndex == queue->writeIndex) vTaskDelay(1);
-    if (!_started) return;
+    while (_started && queue->readIndex == queue->writeIndex)
+    {
+        vTaskDelay(1);
+    }
+    if (!_started) return false;
 
     SharedFence();
     const uint32_t read = queue->readIndex;
-    const volatile VanLpRxFrame* frame = &queue->frames[read % VAN_LP_RX_QUEUE_LENGTH];
-    const uint32_t groupCount = frame->groupCount;
+    const volatile VanLpRxFrame* captured = &queue->frames[read % VAN_LP_RX_QUEUE_LENGTH];
+    const uint32_t groupCount = captured->groupCount;
     if (groupCount > VAN_LP_RX_MAX_GROUPS)
     {
         SharedFence();
         queue->readIndex = read + 1;
-        return;
+        return false;
     }
     uint8_t groups[VAN_LP_RX_MAX_GROUPS];
-    for (uint32_t i = 0; i < groupCount; ++i) groups[i] = frame->groups[i];
+    for (uint32_t i = 0; i < groupCount; ++i) groups[i] = captured->groups[i];
+    const uint8_t rawAck = captured->ack;
     SharedFence();
     queue->readIndex = read + 1;
-    VanEManchesterDecoder::Decode(groups, groupCount, message, messageLength);
+    uint8_t message[VAN_LP_RX_MAX_MESSAGE_BYTES];
+    uint8_t messageLength = 0;
+    return VanEManchesterDecoder::Decode(groups, groupCount, message, &messageLength)
+        && VanFrameBuilder::HasValidFcs(message, messageLength)
+        && VanFrameCodec::FromLegacyBytes(message, messageLength, rawAck, frame);
 }
-#endif
+#endif // CONFIG_IDF_TARGET_ESP32C6

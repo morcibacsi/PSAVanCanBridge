@@ -29,8 +29,8 @@ in one place.
 
 ### Main-CPU responsibilities
 
-- expose VAN through `IVanMessageSender`, `IVanMessageReceiver`, and
-  `VANTransportLayer`;
+- expose VAN through `IVanMessageSender`, `IVanMessageReceiver`, the
+  application-owned `LpCoreVanAdapter`, and `VANTransportLayer`;
 - construct complete logical frames and calculate the 15-bit FCS;
 - expand bytes into the raw ten-state representation used for transmission;
 - build ACK and requested-reply match data;
@@ -42,9 +42,10 @@ in one place.
 
 The main implementation files are:
 
-- `src/lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.cpp`
-- `src/lib/esp32_ulp_lpc_core_van_tx/VanFrameBuilder.hpp`
-- `src/lib/esp32_ulp_lpc_core_van_tx/VanEManchesterDecoder.hpp`
+- `components/lp_core_van/src/LpCoreVanTx.cpp`
+- `components/lp_core_van/private_include/VanFrameBuilder.hpp`
+- `components/lp_core_van/private_include/VanEManchesterDecoder.hpp`
+- `src/Platform/Esp/lib/LpCoreVanAdapter.hpp`
 - `src/Platform/Esp/Protocol/VANTransportLayer.cpp`
 
 ### LP-core responsibilities
@@ -61,11 +62,17 @@ The main implementation files are:
 - handle both sides of the in-frame RTR ownership transfer;
 - capture raw five-state groups for later main-CPU decoding.
 
-The timing-critical implementation is `ulp/main.c`. Shared HP/LP layout and
+The timing-critical implementation is `components/lp_core_van/ulp/main.c`. Shared HP/LP layout and
 fixed capacities are defined in
-`src/lib/esp32_ulp_lpc_core_van_tx/VanLpShared.h`.
+`components/lp_core_van/include/VanLpShared.h`.
 
 ## Application-facing abstractions
+
+The standalone `LpCoreVanTx` library is application-agnostic and does not
+inherit either bridge interface. `LpCoreVanAdapter` is the application-owned
+boundary: one adapter owns one `LpCoreVanTx` instance and implements both
+`IVanMessageSender` and `IVanMessageReceiver`. The sender and receiver pointers
+given to `VANTransportLayer` are two interface views of that same adapter.
 
 `IVanMessageSender` keeps `VANTransportLayer` independent of the hardware TX
 backend. Its core operations start the backend, submit a normal frame, submit a
@@ -143,10 +150,11 @@ generation. The LP core adopts and acknowledges a bank only between bus
 transactions, then pins that pointer for the complete receive/TX transaction.
 It never waits for a main-CPU lock.
 
-The concrete boolean slot APIs are nonblocking and reject an update when the
-previous generation is still in use. The `IVanMessageSender` void configuration
-methods wait for at most 50 ms in task context. Do not call those compatibility
-methods from a timing-sensitive parse or generate path.
+The concrete boolean slot APIs report invalid input, an unstarted backend, or a
+configuration update that stayed busy. The adapter maps the bridge's void
+configuration methods to those canonical `Set*` APIs. They wait for at most
+50 ms in task context. Do not call them from a timing-sensitive parse or
+generate path.
 
 ## Continuous monitor and normal TX
 
@@ -283,7 +291,8 @@ cannot reserve ring-buffer space, that capture is dropped and RX is restarted.
 
 ### LP-core receiver
 
-`LpCoreVanTx` also implements `IVanMessageReceiver`. The LP core continuously
+`LpCoreVanAdapter` exposes the library's legacy receive compatibility API as
+`IVanMessageReceiver`. The LP core continuously
 captures raw five-state groups while it performs the phase/EOD work already
 needed for real-time ACK and handover. It does not assemble general receive
 bytes. `LpCoreVanTx::ReceiveData()` copies one completed capture out of shared
@@ -299,11 +308,23 @@ occupancy counters are available through `GetReceiveDiagnostics()`.
 The LP publishes frames it receives and complete frames produced locally, so
 the selected receiver backend presents the same application representation.
 
-Current ESP32-C6 application wiring in `src/Platform/Esp/main.cpp` uses
-`LpCoreVanTx` as the sender and a separately started `ESP32_RMT_VAN_RX` as the
-receiver. The alternative `VANTransportLayer(lpVan, lpVan)` wiring is present
-but commented out. Thus LP receive is implemented and tested, but is not the
-active application receive backend in the current configuration.
+Current ESP32-C6 application wiring in `src/Platform/Esp/main.cpp` constructs
+one `LpCoreVanAdapter` and supplies it as both sender and receiver. The adapter
+owns the single `LpCoreVanTx` instance, and `VANTransportLayer` calls `Start()`
+once through the sender interface. An alternative RMT receiver remains a
+commented application-side wiring option.
+
+`VANTransportLayer` has the same diagnostics dependency on every ESP target.
+ESP32-C6 receives the real adapter diagnostics view; other targets receive an
+application-owned `NullLpCoreVanDiagnostics` instance.
+
+The standalone library is registered as the `lp_core_van` ESP-IDF component.
+Native ESP-IDF builds use its own `CMakeLists.txt` to embed the LP binary.
+PlatformIO only schedules an application-level LP program, so the bridge keeps
+a one-line `ulp/main.c` shim that includes the component's LP source and selects
+the library's existing `LP_CORE_VAN_PLATFORMIO` ABI. Application CMake excludes
+PlatformIO's unschedulable component-generated binary assembly while leaving
+`LpCoreVanTx.cpp` owned by the component. No library implementation is copied.
 
 ## 125 KTS and 62.5 KTS
 

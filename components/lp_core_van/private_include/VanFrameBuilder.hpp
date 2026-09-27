@@ -28,6 +28,13 @@ inline uint16_t Crc15(const uint8_t* data, uint8_t length)
     return (crc ^ 0x7fff) << 1;
 }
 
+inline bool HasValidFcs(const uint8_t* message, uint8_t length)
+{
+    if (!message || length < 5 || length > VAN_LP_RX_MAX_MESSAGE_BYTES) return false;
+    const uint16_t received = (uint16_t(message[length - 2]) << 8) | message[length - 1];
+    return Crc15(message + 1, length - 3) == received;
+}
+
 inline bool Build(uint16_t identifier, uint8_t command, const uint8_t* data,
                   uint8_t dataBytes, VanLpFrame& frame)
 {
@@ -62,7 +69,8 @@ inline void RemoveCandidate(VanLpConfig& config, unsigned candidate)
         for (unsigned level = 0; level < 2; ++level) config.matchMask[ts][level] &= keep;
 }
 
-inline void SetCandidate(VanLpConfig& config, unsigned candidate, const uint32_t* words)
+template<typename Word>
+inline void SetCandidate(VanLpConfig& config, unsigned candidate, const Word* words)
 {
     RemoveCandidate(config, candidate);
     for (unsigned ts = 0; ts < VAN_LP_PREFIX_TS; ++ts)

@@ -17,8 +17,10 @@
 #include "Protocol/AEE2001/AEE2001ComfortBus.hpp"
 
 #include "lib/IVanMessageSender.h"
-#include "lib/esp32_ulp_lpc_core_van_tx/LpCoreVanTx.hpp"
 #include "lib/esp32_hulp_van_tx/HulpVanTx.hpp"
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+#include "Platform/Esp/lib/LpCoreVanAdapter.hpp"
+#endif
 
 #include "lib/CanMessageSender/CanMessageSenderEsp32Idf.h"
 #include "lib/CanMessageSender/CanMessageSenderMcp2515Idf.h"
@@ -302,17 +304,19 @@ extern "C" void app_main(void)
         };
 
         #if CONFIG_IDF_TARGET_ESP32
+            NullLpCoreVanDiagnostics* nullLpCoreVanDiagnostics = new NullLpCoreVanDiagnostics();
+
             sourceVanMessageSender = new HulpVanTx(VAN_RX_PIN, VAN_TX_PIN);
             auto* rmtReceiver = new ESP32_RMT_VAN_RX(VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
             rmtReceiver->Start();
-            sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, rmtReceiver);
-        #else
-            auto* lpVan = new LpCoreVanTx((gpio_num_t)VAN_RX_PIN, (gpio_num_t)VAN_TX_PIN, VanBusSpeed::Kts125);
-            sourceVanMessageSender = lpVan;
-            auto* rmtReceiver = new ESP32_RMT_VAN_RX(VAN_RX_PIN, VAN_DATA_RX_LED_INDICATOR_PIN, VAN_LINE_LEVEL_HIGH, VAN_NETWORK_TYPE_COMFORT);
-            rmtReceiver->Start();
-            sourceTransportLayer = new VANTransportLayer(lpVan, rmtReceiver);
-            //sourceTransportLayer = new VANTransportLayer(lpVan, lpVan);
+            sourceTransportLayer = new VANTransportLayer(sourceVanMessageSender, rmtReceiver, nullLpCoreVanDiagnostics);
+        #elif CONFIG_IDF_TARGET_ESP32C6
+            auto* lpVanAdapter = new LpCoreVanAdapter(
+                static_cast<gpio_num_t>(VAN_RX_PIN),
+                static_cast<gpio_num_t>(VAN_TX_PIN),
+                VanBusSpeed::Kts125);
+            sourceVanMessageSender = lpVanAdapter;
+            sourceTransportLayer = new VANTransportLayer(lpVanAdapter, lpVanAdapter, lpVanAdapter);
         #endif
 
         if (carState->EMULATE_DISPLAY_ON_SOURCE)
