@@ -18,5 +18,6 @@ public:
     virtual void SendNormalFrame(const uint16_t identifier, const uint8_t data[], const uint8_t length, const bool requireAck) override;
     virtual void SendReplyRequestFrame(const uint16_t identifier) override;
     virtual bool IsTxPossible() override;
+    virtual void SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count) override;
 };
 #endif

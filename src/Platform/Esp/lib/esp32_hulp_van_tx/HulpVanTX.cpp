@@ -26,4 +26,13 @@ bool HulpVanTx::IsTxPossible()
 {
     return true;
 }
+
+void HulpVanTx::SetAckIdentifiers(const uint16_t identifiers[], const uint8_t count)
+{
+    if (count > 0)
+    {
+        //only one acknowledgment identifier is supported, so we take the first one
+        _ulpVanTx->SetAckIdentifier(identifiers[0], true);
+    }
+}
 #endif
