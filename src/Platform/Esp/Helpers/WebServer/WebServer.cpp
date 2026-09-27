@@ -680,16 +680,20 @@ esp_err_t WebServer::post_time_handler(httpd_req_t *req)
     jsonObj = cJSON_GetObjectItem(root, "minute");
     double minute = cJSON_GetNumberValue(jsonObj);
 
+    jsonObj = cJSON_GetObjectItem(root, "second");
+    double second = cJSON_IsNumber(jsonObj) ? cJSON_GetNumberValue(jsonObj) : 0;
+
     printf("year: %d\n", (int)year);
     printf("month: %d\n", (int)month);
     printf("day: %d\n", (int)day);
     printf("hour: %d\n", (int)hour);
     printf("minute: %d\n", (int)minute);
+    printf("second: %d\n", (int)second);
 
     cJSON_Delete(root);
 
     auto *instance = static_cast<WebServer *>(req->user_ctx);
-    instance->_timeProvider->SetDateTime((int)year, (int)month, (int)day, (int)hour, (int)minute, 0);
+    instance->_timeProvider->SetDateTime((int)year, (int)month, (int)day, (int)hour, (int)minute, (int)second);
 
     return SendOkResponse(req, "Time saved");
 }

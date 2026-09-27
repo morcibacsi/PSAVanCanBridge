@@ -218,6 +218,329 @@
         #confirmButtons {
             text-align: right;
         }
+
+        .setup-menu-toggle {
+            display: none;
+        }
+
+        .setup-device-card {
+            margin-bottom: 1rem;
+        }
+
+        .setup-device-card .setup-status-grid {
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        }
+
+        .setup-time-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #333;
+        }
+
+        .setup-time-actions > .btn {
+            width: auto;
+            margin: 0;
+        }
+
+        .setup-manual-time {
+            flex: 1 1 310px;
+        }
+
+        .setup-manual-time summary {
+            min-height: 38px;
+            padding: 0.45rem 0;
+            color: #b8b8b8;
+            cursor: pointer;
+        }
+
+        .setup-manual-time-fields {
+            padding-top: 0.5rem;
+        }
+
+        .setup-time-status {
+            flex: 1 0 100%;
+            min-height: 1.2rem;
+            margin: 0;
+            color: #b8b8b8;
+            font-size: 0.82rem;
+        }
+
+        .setup-time-status.is-success {
+            color: #75d38a;
+        }
+
+        .setup-time-status.is-error {
+            color: #ff8a8a;
+        }
+
+        .setup-bottom-grid-single {
+            grid-template-columns: 1fr;
+        }
+
+        .setup-mobile-save {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .setup-container {
+                padding: 0.65rem 0.75rem 0.75rem !important;
+            }
+
+            .setup-header.has-mobile-menu {
+                position: relative;
+                align-items: center;
+                flex-direction: row;
+                gap: 0.5rem;
+                padding: 0;
+                margin-bottom: 0.6rem !important;
+            }
+
+            .setup-header.has-mobile-menu > div {
+                min-width: 0;
+            }
+
+            .setup-menu-toggle {
+                display: inline-flex;
+                flex: 0 0 38px;
+                width: 38px;
+                height: 38px;
+                margin: 0;
+                padding: 0;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #4a4a4a;
+                border-radius: 0.45rem;
+                background: #2c2c2c;
+                color: #fff;
+            }
+
+            .setup-header h1 {
+                font-size: 1.25rem;
+                line-height: 1.15;
+            }
+
+            .setup-header p {
+                margin-top: 0.05rem;
+                font-size: 0.8rem;
+                line-height: 1.2;
+            }
+
+            .setup-menu-toggle:hover,
+            .setup-menu-toggle:focus-visible {
+                background: #3a3a3a;
+                border-color: #6a6a6a;
+            }
+
+            .setup-menu-icon,
+            .setup-menu-icon::before,
+            .setup-menu-icon::after {
+                display: block;
+                width: 20px;
+                height: 2px;
+                border-radius: 1px;
+                background: currentColor;
+            }
+
+            .setup-menu-icon {
+                position: relative;
+            }
+
+            .setup-menu-icon::before,
+            .setup-menu-icon::after {
+                position: absolute;
+                left: 0;
+                content: "";
+            }
+
+            .setup-menu-icon::before {
+                top: -6px;
+            }
+
+            .setup-menu-icon::after {
+                top: 6px;
+            }
+
+            .setup-header.has-mobile-menu .setup-links {
+                display: none;
+                position: absolute;
+                z-index: 1000;
+                top: calc(100% + 0.35rem);
+                right: 0;
+                width: min(260px, calc(100vw - 2rem));
+                padding: 0.5rem;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                background: #202020;
+                border: 1px solid #444;
+                border-radius: 0.5rem;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            }
+
+            .setup-header.has-mobile-menu .setup-links.is-open {
+                display: flex;
+            }
+
+            .setup-header.has-mobile-menu .setup-links .btn {
+                width: 100%;
+                margin: 0;
+                text-align: left;
+            }
+
+            body.setup-page {
+                padding-bottom: calc(76px + env(safe-area-inset-bottom));
+            }
+
+            .setup-device-card {
+                margin-bottom: 0.65rem;
+            }
+
+            .setup-card.mb-3 {
+                margin-bottom: 0.65rem;
+            }
+
+            .setup-card .card-header {
+                padding: 0.6rem 0.75rem;
+            }
+
+            .setup-section-description {
+                margin-top: 0.1rem;
+                font-size: 0.8rem;
+                line-height: 1.2;
+            }
+
+            .setup-card .card-body {
+                padding: 0.7rem 0.75rem;
+            }
+
+            .setup-fields {
+                gap: 0.6rem;
+            }
+
+            .setup-label-row {
+                min-height: 0;
+                margin-bottom: 0.2rem;
+            }
+
+            .setup-label-row .form-label {
+                margin-bottom: 0.1rem;
+            }
+
+            .setup-tip {
+                line-height: 1.2;
+            }
+
+            .setup-field > .form-control,
+            .setup-field > .form-select,
+            .setup-inline .form-control,
+            .setup-input-row .form-control {
+                padding: 0.3rem 0.65rem;
+            }
+
+            .setup-input-row {
+                gap: 0.35rem;
+            }
+
+            .setup-switch-field {
+                min-height: 44px;
+                padding: 0.4rem 0.55rem;
+            }
+
+            .setup-device-card .card-header {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .setup-device-card .card-body {
+                padding: 0.65rem 0.75rem;
+            }
+
+            .setup-device-card .setup-status-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.45rem 0.75rem;
+            }
+
+            .setup-device-card .setup-status-grid > div:last-child {
+                display: flex;
+                grid-column: 1 / -1;
+                align-items: baseline;
+                gap: 0.5rem;
+            }
+
+            .setup-device-card .setup-status-grid strong {
+                margin-top: 0.1rem;
+                font-size: 0.9rem;
+            }
+
+            .setup-time-actions {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 0.4rem 0.65rem;
+                margin-top: 0.6rem;
+                padding-top: 0.6rem;
+            }
+
+            .setup-time-actions > .btn {
+                width: 100%;
+                padding: 0.5rem 0.65rem;
+            }
+
+            .setup-manual-time {
+                min-width: 0;
+            }
+
+            .setup-manual-time[open] {
+                grid-column: 1 / -1;
+            }
+
+            .setup-manual-time summary {
+                min-height: 0;
+                padding: 0.45rem 0;
+                white-space: nowrap;
+            }
+
+            .setup-manual-time-fields {
+                padding-top: 0.25rem;
+            }
+
+            .setup-manual-time-fields .setup-inline-button {
+                flex: none;
+                width: auto;
+                align-self: flex-start;
+                margin-top: 0;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .setup-time-status {
+                grid-column: 1 / -1;
+            }
+
+            .setup-actions #saveConfig {
+                display: none;
+            }
+
+            .setup-mobile-save {
+                display: block;
+                position: fixed;
+                z-index: 900;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom));
+                background: rgba(24, 24, 24, 0.96);
+                border-top: 1px solid #444;
+                box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+            }
+
+            .setup-mobile-save .btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
     </style>
 
     <script type="text/javascript">
@@ -814,42 +1137,48 @@
             return result;
         }
 
-        async function setTime() {
-            const input = document.querySelector('#DATETIME');
-            const value = input.value; // e.g., "2025-04-29T14:30"
+        function formatLocalDateTime(date, separator = ' ') {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}${separator}` +
+                `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+        }
 
-            if (!value) {
-                console.log("No date selected.");
-                return;
-            }
-
-            const [datePart, timePart] = value.split('T'); // Split into date and time
-            const [year, month, day] = datePart.split('-').map(Number);
-            const [hour, minute] = timePart.split(':').map(Number);
-
+        async function setRtcTime(date, triggerButton) {
+            const status = document.getElementById('time-sync-status');
             const data = {
-                year,
-                month,
-                day,
-                hour,
-                minute
+                year: date.getFullYear(),
+                month: date.getMonth() + 1,
+                day: date.getDate(),
+                hour: date.getHours(),
+                minute: date.getMinutes(),
+                second: date.getSeconds()
             };
 
-            console.log('Year:', year);
-            console.log('Month:', month);
-            console.log('Day:', day);
-            console.log('Hour:', hour);
-            console.log('Minute:', minute);
+            status.textContent = 'Setting RTC time...';
+            status.classList.remove('is-success', 'is-error');
+            triggerButton.disabled = true;
 
-            let response = await fetch(apiEndpoint + 'time', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch(apiEndpoint + 'time', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
 
-            console.log('Response:', response.status, response.statusText);
+                if (!response.ok) {
+                    throw new Error(`Failed to set time: ${response.statusText}`);
+                }
+
+                status.textContent = `RTC set to ${formatLocalDateTime(date)}.`;
+                status.classList.add('is-success');
+            } catch (error) {
+                console.error('Error setting time:', error);
+                status.textContent = 'Failed to set RTC time. Please try again.';
+                status.classList.add('is-error');
+            } finally {
+                triggerButton.disabled = false;
+            }
         }
 
         async function reboot() {
@@ -1111,8 +1440,7 @@ Continue?
                 description: "RTC availability and time forwarding.",
                 fields: [
                     "HAS_RTC",
-                    "SEND_TIME",
-                    "DATETIME"
+                    "SEND_TIME"
                 ]
             },
             {
@@ -1135,6 +1463,44 @@ Continue?
         ];
 
         document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.getElementById('setupMenuToggle');
+            const setupNavigation = document.getElementById('setupNavigation');
+
+            if (menuToggle && setupNavigation) {
+                const setupHeader = menuToggle.closest('.has-mobile-menu');
+
+                const closeSetupMenu = () => {
+                    setupNavigation.classList.remove('is-open');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    menuToggle.setAttribute('aria-label', 'Open navigation menu');
+                };
+
+                menuToggle.addEventListener('click', () => {
+                    const isOpen = setupNavigation.classList.toggle('is-open');
+                    menuToggle.setAttribute('aria-expanded', String(isOpen));
+                    menuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (setupNavigation.classList.contains('is-open') && !setupHeader.contains(event.target)) {
+                        closeSetupMenu();
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && setupNavigation.classList.contains('is-open')) {
+                        closeSetupMenu();
+                        menuToggle.focus();
+                    }
+                });
+
+                window.matchMedia('(min-width: 769px)').addEventListener('change', (event) => {
+                    if (event.matches) {
+                        closeSetupMenu();
+                    }
+                });
+            }
+
             async function updateTime() {
                 const abortController = new AbortController();
                 const timeoutHandle = setTimeout(() => {
@@ -1174,6 +1540,56 @@ Continue?
 
             updateTime();
 
+            const browserTimeOutput = document.getElementById('browser-time-value');
+            const manualDateTimeInput = document.getElementById('manualDateTime');
+            const manualTimeDetails = document.getElementById('manualTimeDetails');
+            const syncBrowserTimeButton = document.getElementById('syncBrowserTime');
+            const setManualTimeButton = document.getElementById('setManualTime');
+
+            function updateBrowserTime() {
+                if (browserTimeOutput) {
+                    browserTimeOutput.textContent = formatLocalDateTime(new Date());
+                }
+            }
+
+            function setManualTimeToNow() {
+                if (manualDateTimeInput) {
+                    manualDateTimeInput.value = formatLocalDateTime(new Date(), 'T');
+                }
+            }
+
+            updateBrowserTime();
+            setInterval(updateBrowserTime, 1000);
+
+            if (syncBrowserTimeButton) {
+                syncBrowserTimeButton.addEventListener('click', () => {
+                    // Capture now at click time so a long-open page never submits a stale timestamp.
+                    setRtcTime(new Date(), syncBrowserTimeButton);
+                });
+            }
+
+            if (manualTimeDetails) {
+                manualTimeDetails.addEventListener('toggle', () => {
+                    if (manualTimeDetails.open && !manualDateTimeInput.value) {
+                        setManualTimeToNow();
+                    }
+                });
+            }
+
+            if (setManualTimeButton) {
+                setManualTimeButton.addEventListener('click', () => {
+                    const manualDate = new Date(manualDateTimeInput.value);
+                    if (Number.isNaN(manualDate.getTime())) {
+                        const status = document.getElementById('time-sync-status');
+                        status.textContent = 'Choose a valid manual date and time first.';
+                        status.classList.remove('is-success');
+                        status.classList.add('is-error');
+                        return;
+                    }
+                    setRtcTime(manualDate, setManualTimeButton);
+                });
+            }
+
             const formContainer = document.getElementById('form-elements');
             let activeFieldsContainer = formContainer;
 
@@ -1203,12 +1619,7 @@ Continue?
             function createFormField(key, value, path) {
                 const fullPath = path ? `${path}.${key}` : key;
 
-                if (fullPath == "MILEAGE_AT_CMB_TRIP_RESET") {
-                    return;
-                }
-
-                if (fullPath == "DATETIME") {
-                    addDateTimeGroup(key, fullPath, value);
+                if (fullPath == "MILEAGE_AT_CMB_TRIP_RESET" || fullPath == "DATETIME") {
                     return;
                 }
 
@@ -1501,7 +1912,7 @@ Continue?
                 const paths = [];
 
                 for (const key in obj) {
-                    if (key == "SUPPORTED_SOURCE_PROTOCOLS" || key == "SUPPORTED_DESTINATION_PROTOCOLS" || key == "MILEAGE_AT_CMB_TRIP_RESET") {
+                    if (key == "SUPPORTED_SOURCE_PROTOCOLS" || key == "SUPPORTED_DESTINATION_PROTOCOLS" || key == "MILEAGE_AT_CMB_TRIP_RESET" || key == "DATETIME") {
                         continue;
                     }
 
@@ -1605,39 +2016,16 @@ Continue?
                 });
             }
 
-            function addDateTimeGroup(labelText, path, value) {
-                const translatedLabel = get_translated_label(labelText);
-                const tip = get_translated_tip(labelText);
-                const template = document.getElementById('form-group-date-template').innerHTML;
-                const dateTimeHTML = template
-                    .replace(/replace-id/g, path)
-                    .replace(/Label Text/g, translatedLabel)
-                    .replace(/Tip Text/g, tip)
-                    .replace(/Enter placeholder text/g, value);
-                appendFieldHtml(dateTimeHTML);
-                markLatestField(path);
-                document.getElementById(path).value = value;
-
-                const input = document.getElementById(path);
-                if (input) {
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0'); // months are 0-based
-                    const day = String(now.getDate()).padStart(2, '0');
-                    const hour = String(now.getHours()).padStart(2, '0');
-                    const minute = String(now.getMinutes()).padStart(2, '0');
-
-                    // Format: "YYYY-MM-DDTHH:MM"
-                    const formatted = `${year}-${month}-${day}T${hour}:${minute}`;
-                    input.value = formatted;
-                }
-            }
-
             var form = document.querySelector('#setupForm');
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 saveConfigToDevice();
             });
+
+            const mobileSaveButton = document.getElementById('saveConfigMobile');
+            if (mobileSaveButton) {
+                mobileSaveButton.addEventListener('click', saveConfigToDevice);
+            }
 
             const updateBtn = document.getElementById('updateBtn');
             if (updateBtn) {
@@ -1720,19 +2108,6 @@ Continue?
     </div>
     </div>
 
-    <template id="form-group-date-template">
-        <div class="setup-field">
-            <div class="setup-label-row">
-                <label class="form-label" for="replace-id">Label Text</label>
-                <span class="setup-tip">Tip Text</span>
-            </div>
-            <div class="setup-inline">
-                <input class="form-control" type="datetime-local" id="replace-id">
-                <button class="btn btn-secondary setup-inline-button" type="button" onClick="setTime()">Set time</button>
-            </div>
-        </div>
-    </template>
-
     <template id="form-group-input-template">
         <div class="setup-field">
             <div class="setup-label-row">
@@ -1775,18 +2150,56 @@ Continue?
     </template>
 
     <div class="container-fluid p-3 setup-container">
-        <div class="setup-header mb-3">
+        <div class="setup-header has-mobile-menu mb-3">
             <div>
                 <h1>PSA VAN-CAN Bridge</h1>
                 <p>Board setup</p>
             </div>
-            <nav class="setup-links">
+            <button class="setup-menu-toggle" type="button" id="setupMenuToggle"
+                aria-controls="setupNavigation" aria-expanded="false" aria-label="Open navigation menu">
+                <span class="setup-menu-icon" aria-hidden="true"></span>
+            </button>
+            <nav class="setup-links" id="setupNavigation" aria-label="Setup navigation">
                 <a class="btn btn-secondary" href="dashboard.html">Dashboard</a>
                 <a class="btn btn-secondary" href="monitor.html">Network Monitor</a>
                 <a class="btn btn-secondary" href="telecoding.html">Telecoding</a>
                 <a class="btn btn-secondary" href="https://github.com/morcibacsi/PSAVanCanBridge">GitHub</a>
             </nav>
         </div>
+
+        <section class="card setup-device-card" aria-labelledby="device-status-title">
+            <div class="card-header" id="device-status-title">Device status &amp; clock</div>
+            <div class="card-body">
+                <div class="setup-status-grid">
+                    <div>
+                        <span>RTC time</span>
+                        <strong id="rtc-time-value">-</strong>
+                    </div>
+                    <div>
+                        <span>This device time</span>
+                        <strong id="browser-time-value">-</strong>
+                    </div>
+                    <div>
+                        <span>Firmware version</span>
+                        <strong id="firmware-version-value">-</strong>
+                    </div>
+                </div>
+                <div class="setup-time-actions">
+                    <button class="btn btn-primary" type="button" id="syncBrowserTime">Sync RTC now</button>
+                    <details class="setup-manual-time" id="manualTimeDetails">
+                        <summary>Set time manually</summary>
+                        <div class="setup-manual-time-fields">
+                            <label class="form-label" for="manualDateTime">Manual date &amp; time</label>
+                            <div class="setup-inline">
+                                <input class="form-control" type="datetime-local" step="1" id="manualDateTime">
+                                <button class="btn btn-secondary setup-inline-button" type="button" id="setManualTime">Set manual time</button>
+                            </div>
+                        </div>
+                    </details>
+                    <p class="setup-time-status" id="time-sync-status" aria-live="polite"></p>
+                </div>
+            </div>
+        </section>
 
         <form id="setupForm">
             <div id="form-elements" class="elements">
@@ -1804,7 +2217,7 @@ Continue?
             </div>
         </form>
 
-        <div class="setup-bottom-grid">
+        <div class="setup-bottom-grid setup-bottom-grid-single">
             <div class="card">
                 <div class="card-header">OTA Update</div>
                 <div class="card-body">
@@ -1816,21 +2229,11 @@ Continue?
                     <p id="otaStatus" class="setup-status"></p>
                 </div>
             </div>
-
-            <div class="card">
-                <div class="card-header">Device status</div>
-                <div class="card-body setup-status-grid">
-                    <div>
-                        <span>RTC time</span>
-                        <strong id="rtc-time-value">-</strong>
-                    </div>
-                    <div>
-                        <span>Firmware version</span>
-                        <strong id="firmware-version-value">-</strong>
-                    </div>
-                </div>
-            </div>
         </div>
+    </div>
+
+    <div class="setup-mobile-save">
+        <button class="btn btn-primary" type="button" id="saveConfigMobile">Save configuration</button>
     </div>
 </body>
 </html>
