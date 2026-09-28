@@ -39,7 +39,9 @@ class MessageHandler_984 : public IMessageHandler<MessageHandler_984>
             bool reverseEngagedButParkingAidIsNotVanBusType =
                 (carState->IsReverseEngaged == 1 && carState->PARKING_AID_TYPE != 0x01);
 
-            message.isActive = emulateDisplay && (reverseNotEngaged || reverseEngagedButParkingAidIsNotVanBusType);
+            message.isActive = emulateDisplay &&
+                               carState->Ignition &&
+                               (reverseNotEngaged || reverseEngagedButParkingAidIsNotVanBusType);
 
             message.data[0] = 0x00;
             message.data[1] = 0x00;
