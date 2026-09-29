@@ -4,12 +4,22 @@
 .vscode/launch.json
 .vscode/ipch
 .vs
+.continue
 build
 out
 firmware
 __pycache__/
 *.pyc
 compile_commands.json
+# PlatformIO-generated, fully resolved ESP-IDF configurations. Maintained
+# layered defaults use sdkconfig.defaults, sdkconfig.<chip>, and *.defaults.
+sdkconfig.esp32_v13_can
+sdkconfig.esp32_v14_can
+sdkconfig.esp32_v15_can
+sdkconfig.esp32_v15_van_ulp
+sdkconfig.esp32c6_v16
+sdkconfig.esp32c6_v18
+sdkconfig.*.old
 PSAVanCa.*/
 *.user
 *.zip

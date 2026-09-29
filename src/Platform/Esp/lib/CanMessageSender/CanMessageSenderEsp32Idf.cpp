@@ -20,20 +20,40 @@ CanMessageSenderEsp32Idf::CanMessageSenderEsp32Idf(uint8_t rxPin, uint8_t txPin,
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
     esp_err_t result = twai_driver_install_v2(&g_config, &t_config, &f_config, &_twai);
+    if (result != ESP_OK)
+    {
+        _twai = nullptr;
+        printf("TWAI driver install failed: %s\n", esp_err_to_name(result));
+    }
 
     canSemaphore = xSemaphoreCreateMutex();
 }
 
 void CanMessageSenderEsp32Idf::Init()
 {
+    if (_twai == nullptr)
+    {
+        return;
+    }
+
     esp_err_t result = twai_start_v2(_twai);
+    if (result != ESP_OK)
+    {
+        printf("TWAI driver start failed: %s\n", esp_err_to_name(result));
+        return;
+    }
 
     _alertInit = twai_reconfigure_alerts_v2(_twai, TWAI_ALERT_ABOVE_ERR_WARN | TWAI_ALERT_ERR_PASS | TWAI_ALERT_BUS_OFF, NULL);
 }
 
 uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8_t sizeOfByteArray, const uint8_t byteArray[])
 {
-    twai_message_t message;
+    if (_twai == nullptr || sizeOfByteArray > TWAI_FRAME_MAX_DLC || byteArray == nullptr)
+    {
+        return 0;
+    }
+
+    twai_message_t message = {};
     message.identifier = canId;
     message.flags = TWAI_MSG_FLAG_NONE;
     message.data_length_code = sizeOfByteArray;
@@ -70,10 +90,22 @@ uint8_t CanMessageSenderEsp32Idf::SendMessage(uint16_t canId, uint8_t ext, uint8
 
 bool CanMessageSenderEsp32Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint8_t *buf)
 {
-    twai_message_t message;
+    if (canId == nullptr || len == nullptr || buf == nullptr)
+    {
+        return false;
+    }
+
+    *len = 0;
+    if (_twai == nullptr)
+    {
+        return false;
+    }
+
+    twai_message_t message = {};
     //if (twai_receive_v2(_twai, &message, pdMS_TO_TICKS(5)) == ESP_OK) {
     if (twai_receive_v2(_twai, &message, portMAX_DELAY) == ESP_OK) {
-        if (message.flags == TWAI_MSG_FLAG_NONE || message.flags == TWAI_MSG_FLAG_SS)
+        if ((message.flags == TWAI_MSG_FLAG_NONE || message.flags == TWAI_MSG_FLAG_SS) &&
+            message.data_length_code <= TWAI_FRAME_MAX_DLC)
         {
             *canId = message.identifier;
             *len = message.data_length_code;
@@ -81,8 +113,9 @@ bool CanMessageSenderEsp32Idf::ReadMessage(uint16_t *canId, uint8_t *len, uint8_
             {
                 buf[i] = message.data[i];
             }
+            return true;
         }
-        return true;
+        return false;
     } else {
         //printf("Failed to receive message\n");
         return false;

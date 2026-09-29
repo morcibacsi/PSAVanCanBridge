@@ -2,7 +2,21 @@ FILE(GLOB_RECURSE app_sources ${CMAKE_SOURCE_DIR}/src/*.*)
 list(FILTER app_sources EXCLUDE REGEX "/Platform/Native/")
 idf_component_register(
     SRCS ${app_sources}
-    PRIV_REQUIRES lp_core_van
+    # PlatformIO derives its LP-core include paths from this component rather
+    # than from IDF's ulp component. Mirror the IDF 6.x ULP runtime dependencies
+    # so its generated LP project receives every required HAL include path.
+    PRIV_REQUIRES
+        lp_core_van
+        esp_adc
+        esp_driver_gpio
+        esp_driver_i2s
+        esp_driver_uart
+        esp_hal_clock
+        esp_hal_gpspi
+        esp_hal_i2c
+        esp_hal_pmu
+        esp_hal_rtc_timer
+        esp_hal_touch_sens
     #REQUIRES bt
 )
 

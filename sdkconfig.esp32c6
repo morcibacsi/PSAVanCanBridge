@@ -1,0 +1,14 @@
+# ESP32-C6 defaults.
+
+# Both C6 images exceed the OTA application slot with IDF 6.1's debug
+# optimization, so use the size-optimized release configuration.
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+
+# LP Core owns timing-critical VAN bus work on C6 boards.
+CONFIG_ULP_COPROC_ENABLED=y
+CONFIG_ULP_COPROC_TYPE_LP_CORE=y
+CONFIG_ULP_COPROC_RESERVE_MEM=12000
+
+# PlatformIO's ESP-IDF 6.1 LP Core build currently requires Newlib flags that
+# are not provided by its Picolibc integration.
+CONFIG_LIBC_NEWLIB=y

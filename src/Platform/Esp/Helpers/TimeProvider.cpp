@@ -1,4 +1,5 @@
 #include "Platform/Esp/Helpers/TimeProvider.hpp"
+#include <ctime>
 #include <string.h>
 
 TimeProvider::TimeProvider(uint8_t sdaPin, uint8_t sclPin, CarState* carState)
@@ -63,7 +64,6 @@ bool TimeProvider::Process(unsigned long currentTime)
         return false;
     }
 
-    uint8_t wday;
     if (currentTime - _previousTime >= 1000)
     {
         _previousTime = currentTime;

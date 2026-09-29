@@ -15,9 +15,13 @@
 #   include "driver/rtc_cntl.h"
 #endif
 #include "driver/rtc_io.h"
+#if ESP_IDF_VERSION_MAJOR < 6
 #include "driver/adc.h"
+#endif
 #include "soc/rtc.h"
+#if ESP_IDF_VERSION_MAJOR < 6
 #include "soc/adc_periph.h"
+#endif
 
 #include "hulp.h"
 #include "hulp_compat.h"
@@ -41,6 +45,7 @@ esp_err_t hulp_configure_pin(gpio_num_t pin, rtc_gpio_mode_t mode, gpio_pull_mod
     return ESP_OK;
 }
 
+#if ESP_IDF_VERSION_MAJOR < 6
 int hulp_adc_get_periph_index(gpio_num_t pin)
 {
     for(int periph = 0; periph < SOC_ADC_PERIPH_NUM; ++periph)
@@ -99,6 +104,7 @@ esp_err_t hulp_configure_analog_pin(gpio_num_t pin, adc_atten_t attenuation, adc
     }
     return ESP_OK;
 }
+#endif
 
 #define RTCIO_FUNC_RTC_I2C 0x3
 
@@ -200,6 +206,7 @@ void hulp_peripherals_on(void)
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
 }
 
+#if ESP_IDF_VERSION_MAJOR < 6
 void hulp_configure_hall_effect_sensor(void)
 {
     //GPIO 36
@@ -213,6 +220,7 @@ void hulp_configure_hall_effect_sensor(void)
     //Connect sensor to 36 and 39
     REG_SET_BIT(RTC_IO_HALL_SENS_REG, RTC_IO_XPD_HALL);
 }
+#endif
 
 static uint64_t hulp_us_to_ticks(uint64_t time_us)
 {

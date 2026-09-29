@@ -1,15 +1,23 @@
-#
-# Ultra Low Power (ULP) Co-processor
-#
-CONFIG_ULP_COPROC_ENABLED=y
-CONFIG_ULP_COPROC_TYPE_LP_CORE=y
-CONFIG_ULP_COPROC_RESERVE_MEM=8128
-# Set log level to Warning to produce clean output
+# Shared ESP-IDF defaults. Chip- and environment-specific settings are layered
+# by platformio.ini after this file.
+
+# Keep normal serial output focused on warnings and errors.
 CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
-CONFIG_BOOTLOADER_LOG_LEVEL=2
 CONFIG_LOG_DEFAULT_LEVEL_WARN=y
-CONFIG_LOG_DEFAULT_LEVEL=2
-CONFIG_RMT_ENABLE_DEBUG_LOG=y
-#CONFIG_BT_ENABLED=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# ESP-IDF 6 enables stricter compiler/linker policies by default than the
+# configurations this project previously generated. Preserve the established
+# warning behavior and linker placement policy across targets.
+CONFIG_COMPILER_DISABLE_DEFAULT_ERRORS=y
+CONFIG_COMPILER_ORPHAN_SECTIONS_PLACE=y
+
+# The firmware serves WebSocket endpoints with headers larger than the IDF
+# default. These settings are required on every hardware target.
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
+CONFIG_HTTPD_WS_SUPPORT=y
+
+# PlatformIO also selects partitions.csv through board_build.partitions. Keep
+# the Kconfig selection explicit for direct ESP-IDF configuration as well.
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"

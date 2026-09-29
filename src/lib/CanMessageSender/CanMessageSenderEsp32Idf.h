@@ -16,8 +16,8 @@ private:
 
     uint16_t _prevCanId;
     unsigned long _prevCanIdTime;
-    esp_err_t _alertInit;
-    twai_handle_t _twai;
+    esp_err_t _alertInit = ESP_FAIL;
+    twai_handle_t _twai = nullptr;
     uint8_t _handle;
 
     SemaphoreHandle_t canSemaphore;

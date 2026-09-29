@@ -29,15 +29,20 @@ uint8_t CANTransportLayer::SendMessage(const BusMessage& message, bool highPrior
 bool CANTransportLayer::ReceiveMessage(BusMessage& message)
 {
     uint16_t canMessageId = 0;
-    uint8_t canMessageLength;
-    uint8_t canMessage[8];
+    uint8_t canMessageLength = 0;
+    uint8_t canMessage[8] = {};
 
-    _canMessageSender->ReadMessage(&canMessageId, &canMessageLength, canMessage);
-
-    if (canMessageLength == 0)
+    if (!_canMessageSender->ReadMessage(&canMessageId, &canMessageLength, canMessage) ||
+        canMessageLength == 0 ||
+        canMessageLength > sizeof(canMessage) ||
+        canMessageLength > sizeof(message.data))
     {
         return false;
     }
+
+    message.id = canMessageId;
+    std::memcpy(message.data, canMessage, canMessageLength);
+    message.dataLength = canMessageLength;
 
     PrintToSerial(canMessageId, 0, canMessageLength, canMessage);
     if (_loggerFunction)
@@ -45,9 +50,6 @@ bool CANTransportLayer::ReceiveMessage(BusMessage& message)
         _loggerFunction(_network, 1, message); // 1 for incoming message
     }
 
-    message.id = canMessageId;
-    std::memcpy(message.data, canMessage, canMessageLength);
-    message.dataLength = canMessageLength;
     //message.data.assign(canMessage, canMessage + canMessageLength);
     //UInt16 checksum {};
     ////checksum.asUint16 = FastChecksum(message.data.data(), message.data.size());

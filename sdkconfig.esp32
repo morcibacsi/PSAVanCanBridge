@@ -1,0 +1,7 @@
+# Classic ESP32 defaults.
+
+# The classic transport headers use the FSM ULP support on this family. The
+# default reserve is sufficient for CAN-only and v15 VAN builds.
+CONFIG_ULP_COPROC_ENABLED=y
+CONFIG_ULP_COPROC_TYPE_FSM=y
+CONFIG_ULP_COPROC_RESERVE_MEM=512

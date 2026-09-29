@@ -190,6 +190,10 @@ void ReadDestinationFunction(void * parameter)
     {
         if (bridgeRuntime->ProcessDestinationOnce())
         {
+            taskYIELD();
+        }
+        else
+        {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     } while (1);

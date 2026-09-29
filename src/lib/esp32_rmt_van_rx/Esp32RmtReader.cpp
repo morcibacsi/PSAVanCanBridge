@@ -1,6 +1,5 @@
 #include "Esp32RmtReader.h"
 #include <string.h>
-#include <rom/gpio.h>
 #include "driver/gpio.h"
 
 Esp32RmtReader::Esp32RmtReader(uint32_t minSignal, uint32_t maxSignal, uint8_t rxPin, int8_t ledPin)
@@ -16,8 +15,8 @@ void Esp32RmtReader::InitLed()
 {
     if (_ledPin > -1)
     {
-        gpio_pad_select_gpio(_ledPin);
-        gpio_set_direction((gpio_num_t)_ledPin, GPIO_MODE_OUTPUT);
+        ESP_ERROR_CHECK(gpio_reset_pin((gpio_num_t)_ledPin));
+        ESP_ERROR_CHECK(gpio_set_direction((gpio_num_t)_ledPin, GPIO_MODE_OUTPUT));
     }
 }
 
@@ -66,7 +65,6 @@ int32_t Esp32RmtReader::Start()
     rx_channel_cfg.intr_priority = 0;
     rx_channel_cfg.flags.invert_in = 0;
     rx_channel_cfg.flags.with_dma = 0;
-    rx_channel_cfg.flags.io_loop_back = 0;
 
     ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &_rx_channel));
 

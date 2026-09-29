@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <time.h>
 #include <sys/time.h>
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
