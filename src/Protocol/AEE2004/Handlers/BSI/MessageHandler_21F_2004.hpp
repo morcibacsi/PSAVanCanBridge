@@ -78,30 +78,43 @@ class MessageHandler_21F : public IMessageHandler<MessageHandler_21F>
                 return;
             }
 
-            CAN_21F_2004_Struct packet;
+            CAN_21F_2004_Struct packet{};
             std::memcpy(&packet, message.data, packetSize);
 
-            carState->RadioRemote.data.list                   = packet.Command.data.list;
-            carState->RadioRemote.data.mode_phone             = packet.Command.data.mode_phone;
-            carState->RadioRemote.data.owerflow_scan_negative = packet.Command.data.owerflow_scan_negative;
-            carState->RadioRemote.data.owerflow_scan_positive = packet.Command.data.owerflow_scan_positive;
-            carState->RadioRemote.data.seek_down              = packet.Command.data.seek_down;
-            carState->RadioRemote.data.seek_up                = packet.Command.data.seek_up;
-            carState->RadioRemote.data.volume_minus           = packet.Command.data.volume_minus;
-            carState->RadioRemote.data.volume_plus            = packet.Command.data.volume_plus;
-
-            carState->RadioRemote.data.scroll_position = packet.ScrollPosition;
+            CarRadioRemoteStruct input = carState->RadioRemote;
+            input.data.list                   = packet.Command.data.list;
+            input.data.mode_phone             = packet.Command.data.mode_phone;
+            input.data.owerflow_scan_negative = packet.Command.data.owerflow_scan_negative;
+            input.data.owerflow_scan_positive = packet.Command.data.owerflow_scan_positive;
+            input.data.seek_down              = packet.Command.data.seek_down;
+            input.data.seek_up                = packet.Command.data.seek_up;
+            input.data.volume_minus           = packet.Command.data.volume_minus;
+            input.data.volume_plus            = packet.Command.data.volume_plus;
+            input.data.scroll_position        = packet.ScrollPosition;
 
             if (packetSize > 2)
             {
-                carState->RadioRemote.data.command_valid = packet.Command3.data.command_valid;
-                carState->RadioRemote.data.list_minus    = packet.Command3.data.list_minus;
-                carState->RadioRemote.data.list_plus     = packet.Command3.data.list_plus;
-                carState->RadioRemote.data.source        = packet.Command3.data.source;
+                input.data.command_valid = packet.Command3.data.command_valid;
+                input.data.list_minus    = packet.Command3.data.list_minus;
+                input.data.list_plus     = packet.Command3.data.list_plus;
+                input.data.source        = packet.Command3.data.source;
             }
+
+            const auto result = carState->RadioRemoteVolumeControlState.Process(input, carState->CurrenTime);
+            carState->RadioRemote = result.remote;
 
             if (_immediateSignalCallback != nullptr)
             {
+                if (result.pulse != RadioRemoteVolumeControl::Pulse::None)
+                {
+                    carState->RadioRemote.data.volume_minus =
+                        result.pulse == RadioRemoteVolumeControl::Pulse::VolumeMinus;
+                    carState->RadioRemote.data.volume_plus =
+                        result.pulse == RadioRemoteVolumeControl::Pulse::VolumePlus;
+                    _immediateSignalCallback(ImmediateSignal::RadioRemote);
+                    carState->RadioRemote.data.volume_minus = 0;
+                    carState->RadioRemote.data.volume_plus = 0;
+                }
                 _immediateSignalCallback(ImmediateSignal::RadioRemote);
             }
         }

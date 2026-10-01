@@ -8,6 +8,7 @@
 #include "DoorStatus.h"
 #include "OdometerStates.h"
 #include "CarRadioRemote.h"
+#include "RadioRemoteVolumeControl.hpp"
 #include "CarSteeringWheelRemote.h"
 #include "AirConditionerState.h"
 #include "DisplayMessage.h"
@@ -153,6 +154,7 @@ struct CarState
 
     //21F
     CarRadioRemoteStruct RadioRemote{};
+    RadioRemoteVolumeControl RadioRemoteVolumeControlState{};
 
     //0A2
     CarSteeringWheelRemoteStruct SteeringWheelRemote{};

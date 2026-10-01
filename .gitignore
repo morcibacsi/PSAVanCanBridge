@@ -5,6 +5,7 @@
 .vscode/ipch
 .vs
 .continue
+.cache
 build
 out
 firmware

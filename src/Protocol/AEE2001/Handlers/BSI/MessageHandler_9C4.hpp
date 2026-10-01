@@ -50,19 +50,31 @@ class MessageHandler_9C4 : public IMessageHandler<MessageHandler_9C4>
             VanRadioRemoteStruct packet;
             std::memcpy(&packet, message.data, ExpectedPacketSize);
 
-            carState->RadioRemote.data.scroll_position = packet.ScroolPosition;
+            CarRadioRemoteStruct input = carState->RadioRemote;
+            input.data.scroll_position = packet.ScroolPosition;
+            input.data.source          = packet.ButtonStatus.data.source;
+            input.data.volume_minus    = packet.ButtonStatus.data.volume_minus;
+            input.data.volume_plus     = packet.ButtonStatus.data.volume_plus;
+            input.data.seek_up         = packet.ButtonStatus.data.seek_up;
+            input.data.seek_down       = packet.ButtonStatus.data.seek_down;
+            input.data.owerflow_scan_positive = packet.ButtonStatus.data.counter_overflow_positive;
+            input.data.owerflow_scan_negative = packet.ButtonStatus.data.counter_overflow_negative;
 
-            carState->RadioRemote.data.source          = packet.ButtonStatus.data.source;
-            carState->RadioRemote.data.volume_minus    = packet.ButtonStatus.data.volume_minus;
-            carState->RadioRemote.data.volume_plus     = packet.ButtonStatus.data.volume_plus;
-            carState->RadioRemote.data.seek_up         = packet.ButtonStatus.data.seek_up;
-            carState->RadioRemote.data.seek_down       = packet.ButtonStatus.data.seek_down;
-
-            carState->RadioRemote.data.owerflow_scan_positive = packet.ButtonStatus.data.counter_overflow_positive;
-            carState->RadioRemote.data.owerflow_scan_negative = packet.ButtonStatus.data.counter_overflow_negative;
+            const auto result = carState->RadioRemoteVolumeControlState.Process(input, carState->CurrenTime);
+            carState->RadioRemote = result.remote;
 
             if (_immediateSignalCallback != nullptr)
             {
+                if (result.pulse != RadioRemoteVolumeControl::Pulse::None)
+                {
+                    carState->RadioRemote.data.volume_minus =
+                        result.pulse == RadioRemoteVolumeControl::Pulse::VolumeMinus;
+                    carState->RadioRemote.data.volume_plus =
+                        result.pulse == RadioRemoteVolumeControl::Pulse::VolumePlus;
+                    _immediateSignalCallback(ImmediateSignal::RadioRemote);
+                    carState->RadioRemote.data.volume_minus = 0;
+                    carState->RadioRemote.data.volume_plus = 0;
+                }
                 _immediateSignalCallback(ImmediateSignal::RadioRemote);
             }
         }
