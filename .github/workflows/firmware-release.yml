@@ -53,12 +53,14 @@ jobs:
       matrix:
         environment: ${{ fromJSON(needs.prepare.outputs.environments) }}
     env:
-      # Keep ESP-IDF outside the checkout so CMake emits absolute framework
-      # source paths. PlatformIO resolves relative tfpsacrypto paths under src/.
-      PLATFORMIO_CORE_DIR: ${{ runner.temp }}/platformio
       PLATFORMIO_BUILD_FLAGS: -D FIRMWARE_VERSION=\"${{ needs.prepare.outputs.version }}\"
     steps:
       - uses: actions/checkout@v6
+      - name: Configure PlatformIO directory
+        # Keep ESP-IDF outside the checkout so CMake emits absolute framework
+        # source paths. PlatformIO resolves relative tfpsacrypto paths under src/.
+        shell: bash
+        run: echo "PLATFORMIO_CORE_DIR=$RUNNER_TEMP/platformio" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
