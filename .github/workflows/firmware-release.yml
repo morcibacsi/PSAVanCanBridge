@@ -53,7 +53,9 @@ jobs:
       matrix:
         environment: ${{ fromJSON(needs.prepare.outputs.environments) }}
     env:
-      PLATFORMIO_CORE_DIR: ${{ github.workspace }}/.platformio
+      # Keep ESP-IDF outside the checkout so CMake emits absolute framework
+      # source paths. PlatformIO resolves relative tfpsacrypto paths under src/.
+      PLATFORMIO_CORE_DIR: ${{ runner.temp }}/platformio
       PLATFORMIO_BUILD_FLAGS: -D FIRMWARE_VERSION=\"${{ needs.prepare.outputs.version }}\"
     steps:
       - uses: actions/checkout@v6
@@ -66,9 +68,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            .platformio/.cache
-            .platformio/packages
-            .platformio/platforms
+            ${{ env.PLATFORMIO_CORE_DIR }}/.cache
+            ${{ env.PLATFORMIO_CORE_DIR }}/packages
+            ${{ env.PLATFORMIO_CORE_DIR }}/platforms
           key: platformio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'dependencies.lock') }}
       - name: Build firmware
         run: pio run --environment "${{ matrix.environment }}"
