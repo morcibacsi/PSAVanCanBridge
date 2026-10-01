@@ -130,12 +130,16 @@ const CONFIG = {
 /* ================= STATE ================= */
 
 let ws = null;
+let monitorRequest = Promise.resolve();
+
+let protocolConfigPromise = Promise.resolve({});
 
 const frames = new Map();
 
 const log = [];
 
 const pendingFrames = [];
+let renderErrorReported = false;
 
 const desktopRows =
     document.getElementById("desktopRows");
@@ -161,65 +165,93 @@ async function changeNetworkAndDirection() {
 
     const network = getSelectedNetwork();
     const direction = getSelectedDirection();
+    const networkName = document.getElementById("networkSelect").selectedOptions[0].text;
+    const directionName = document.getElementById("directionSelect").selectedOptions[0].text;
+    const selection = `Network: ${networkName} (${network})\nDirection: ${directionName} (${direction})`;
 
-    await setNetworkAndDirection(network, direction);
+    try {
+        await setNetworkAndDirection(network, direction);
+    }
+    catch (error) {
+        setStatus("Monitor setup failed", "#ff9800");
+        console.error(error);
+        alert(`${selection}\nMonitor request failed: ${error.message}`);
+    }
 }
 
-async function setNetworkAndDirection(network, direction) {
-    const wsUrl = document.getElementById("wsUrl").value
-        .replace("ws://", "http://")
-        .replace("/ws", "/api/setmonitor");
+function setNetworkAndDirection(network, direction) {
+    const apiUrl = new URL(document.getElementById("wsUrl").value);
+    apiUrl.protocol = apiUrl.protocol === "wss:" ? "https:" : "http:";
+    apiUrl.pathname = "/api/setmonitor";
+    apiUrl.search = "";
+    apiUrl.hash = "";
 
-    const response = await fetch(
-        wsUrl,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+    // Apply selections in order, even when the user changes them quickly.
+    monitorRequest = monitorRequest.catch(() => {}).then(async () => {
+        const response = await fetch(
+            apiUrl.href,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    network,
+                    direction
+                })
             },
-            body: JSON.stringify({
-                network,
-                direction
-            })
+        );
+        const body = await response.text();
+        if (!response.ok) {
+            throw new Error(`${apiUrl.href}\nHTTP status: ${response.status}\nResponse: ${body}`);
         }
-    );
+        return { url: apiUrl.href, status: response.status, body };
+    });
+    return monitorRequest;
 }
 
 function connectWs() {
-    const network = getSelectedNetwork();
-    const direction = getSelectedDirection();
+    if (ws) ws.close();
 
-    disconnectWs();
-
-    ws = new WebSocket(
+    const socket = new WebSocket(
         document.getElementById("wsUrl").value
     );
+    ws = socket;
 
-    ws.onopen = async () => {
+    socket.onopen = async () => {
+        if (ws !== socket) return;
         setStatus(
             "Connected",
             "#4caf50"
         );
-        if (network !== 0 && direction !== 0) {
-            await setNetworkAndDirection(network, direction);
+        try {
+            await setNetworkAndDirection(getSelectedNetwork(), getSelectedDirection());
+        }
+        catch (error) {
+            if (ws === socket) setStatus("Monitor setup failed", "#ff9800");
+            console.error(error);
         }
     };
 
-    ws.onclose = () => {
+    socket.onclose = () => {
+        if (ws !== socket) return;
+        ws = null;
         setStatus(
             "Disconnected",
             "#f44336"
         );
     };
 
-    ws.onerror = () => {
+    socket.onerror = () => {
+        if (ws !== socket) return;
         setStatus(
             "Error",
             "#ff9800"
         );
     };
 
-    ws.onmessage = (e) => {
+    socket.onmessage = (e) => {
+        if (ws !== socket) return;
         pendingFrames.push(
             e.data
         );
@@ -227,12 +259,13 @@ function connectWs() {
 }
 
 function disconnectWs() {
-    setNetworkAndDirection(0, 0);
+    setNetworkAndDirection(0, 0).catch(error => console.error(error));
 
     if (ws)
         ws.close();
 
     ws = null;
+    setStatus("Disconnected", "#f44336");
 }
 
 function setStatus(text, color) {
@@ -252,9 +285,17 @@ function processPendingFrames() {
         pendingFrames.length &&
         processed < CONFIG.maxFramesPerRender
     ) {
-        handleFrame(
-            pendingFrames.shift()
-        );
+        const raw = pendingFrames.shift();
+        try {
+            handleFrame(raw);
+        }
+        catch (error) {
+            console.error("Monitor render failed", error, raw);
+            if (!renderErrorReported) {
+                renderErrorReported = true;
+                alert(`Monitor render failed: ${error.message}\nPacket: ${String(raw).slice(0, 500)}`);
+            }
+        }
         processed++;
     }
 
@@ -737,7 +778,35 @@ function clearData() {
     pendingFrames.length = 0;
 }
 
-function saveLog() {
+function getLogFilename(config, network, direction, date = new Date()) {
+    const protocolNames = {
+        1: "AEE2001",
+        2: "AEE2004",
+        3: "AEE2010"
+    };
+    const protocol = network === 1
+        ? config.SOURCE_PROTOCOL
+        : network === 2 ? config.DESTINATION_PROTOCOL : undefined;
+    const protocolName = protocolNames[protocol] || "unknown";
+    const networkName = network === 1 ? "src" : network === 2 ? "dest" : "none";
+    const directionName = direction === 1 ? "in" : direction === 2 ? "out" : "none";
+    const timestamp = [
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes(),
+        date.getSeconds()
+    ].map(value => String(value).padStart(2, "0")).join("_");
+
+    return `${protocolName}_${networkName}_${directionName}_${timestamp}.txt`;
+}
+
+async function saveLog() {
+
+    const network = getSelectedNetwork();
+    const direction = getSelectedDirection();
+    const config = await protocolConfigPromise;
 
     const blob =
         new Blob(
@@ -755,7 +824,7 @@ function saveLog() {
         URL.createObjectURL(blob);
 
     a.download =
-        "protocol_log.txt";
+        getLogFilename(config, network, direction);
 
     a.click();
 
@@ -765,6 +834,18 @@ function saveLog() {
 document.addEventListener(
     "DOMContentLoaded",
     () => {
+        protocolConfigPromise = fetch("api/config.json")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Config request failed: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error("Could not load monitor protocol configuration", error);
+                return {};
+            });
+
         var wsUrlInput = document.getElementById("wsUrl");
         wsUrlInput.value = "ws://" + window.location.host + "/ws";
 

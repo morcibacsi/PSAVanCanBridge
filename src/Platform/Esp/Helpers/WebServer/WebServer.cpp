@@ -4,6 +4,7 @@
 #include "mdns.h"
 #include <atomic>
 #include <cstring>
+#include <cstdio>
 
 static std::atomic_bool webServerCanBeStarted{false};
 static std::atomic_bool stationIpAcquired{false};
@@ -352,6 +353,12 @@ void WebServer::RegisterHandler(const char* uri, httpd_method_t method, my_httpd
         .handle_ws_control_frames = false,
         .supported_subprotocol = NULL
     };
+#if CONFIG_HTTPD_WS_POST_HANDSHAKE_CB_SUPPORT
+    if (isWebSocket)
+    {
+        uri_t.ws_post_handshake_cb = &WebServer::ws_connected_handler;
+    }
+#endif
     httpd_register_uri_handler(server, &uri_t);
 }
 
@@ -956,6 +963,17 @@ esp_err_t WebServer::post_carstate_handler(httpd_req_t *req)
     return SendOkResponse(req, "CarState received");
 }
 
+esp_err_t WebServer::ws_connected_handler(httpd_req_t *req)
+{
+    auto* instance = static_cast<WebServer*>(req->user_ctx);
+    instance->_lastRequestTime = instance->_carState->CurrenTime;
+    if (instance->_webSocketSerial)
+    {
+        instance->_webSocketSerial->OnClientConnected(httpd_req_to_sockfd(req));
+    }
+    return ESP_OK;
+}
+
 esp_err_t WebServer::ws_handler(httpd_req_t *req)
 {
     auto *instance = static_cast<WebServer *>(req->user_ctx);
@@ -963,14 +981,9 @@ esp_err_t WebServer::ws_handler(httpd_req_t *req)
 
     if (req->method == HTTP_GET)
     {
-        int sock = httpd_req_to_sockfd(req);
-
-        if (instance->_webSocketSerial)
-        {
-            instance->_webSocketSerial->OnClientConnected(sock);
-        }
-
-        return ESP_OK;
+        // Older ESP-IDF versions invoke the URI handler during the handshake.
+        // Newer versions use ws_post_handshake_cb and skip this GET branch.
+        return ws_connected_handler(req);
     }
 
     httpd_ws_frame_t frame = {};

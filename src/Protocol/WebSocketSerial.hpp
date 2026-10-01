@@ -5,13 +5,21 @@
 #include "esp_http_server.h"
 #include "freertos/ringbuf.h"
 #include "freertos/semphr.h"
+#include <atomic>
 
 class WebSocketSerial : public ISerial
 {
 private:
     httpd_handle_t _server = nullptr;
-    int _clientFd = -1;
-    uint8_t _txBuffer[1024];
+    std::atomic_int _clientFd{-1};
+    struct TxBuffer
+    {
+        std::atomic_bool inUse{false};
+        WebSocketSerial* owner = nullptr;
+        uint8_t data[1024];
+    };
+    // Async sends retain their payload until the HTTP server completes them.
+    TxBuffer _txBuffers[8];
 
     RingbufHandle_t _rxRing;
     SemaphoreHandle_t _txMutex;

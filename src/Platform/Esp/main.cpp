@@ -243,6 +243,15 @@ void RuntimeSourceMessageHook(void*, const BusMessage& message)
     }
 }
 
+void LogSourceTransportMessage(const uint8_t network, const uint8_t direction, const BusMessage& message)
+{
+    // Incoming source frames are already logged by RuntimeSourceMessageHook.
+    if (direction == 2)
+    {
+        PrintMessageToWebSocket(network, direction, message);
+    }
+}
+
 extern "C" void app_main(void)
 {
     /* If user is using USB-serial-jtag then idf monitor needs some time to
@@ -397,6 +406,7 @@ extern "C" void app_main(void)
         return;
     }
 
+    sourceTransportLayer->SetLoggerFunction(1, LogSourceTransportMessage);
     destinationTransportLayer->SetLoggerFunction(2, PrintMessageToWebSocket);
 
     psaDiagLib = new PsaDiagLib(destinationTransportLayer, webSocketSerial, isoTpDelayProvider);

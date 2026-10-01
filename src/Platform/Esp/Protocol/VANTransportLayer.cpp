@@ -72,15 +72,21 @@ VANTransportLayer::VANTransportLayer(IVanMessageSender* vanMessageSender,
 
 uint8_t VANTransportLayer::SendMessage(const BusMessage& message, bool highPriority)
 {
+    BaseType_t queued;
     if (highPriority)
     {
         // Send to the front of the queue
-        xQueueSendToFront(_txQueue, &message, 0);
+        queued = xQueueSendToFront(_txQueue, &message, 0);
     }
     else
     {
         // Send to the back of the queue
-        xQueueSendToBack(_txQueue, &message, 0);
+        queued = xQueueSendToBack(_txQueue, &message, 0);
+    }
+
+    if (queued == pdTRUE && _loggerFunction)
+    {
+        _loggerFunction(_network, 2, message);
     }
 
     return 1;
@@ -114,6 +120,11 @@ bool VANTransportLayer::ReceiveMessage(BusMessage& message)
     std::memcpy(message.data, vanMessage + 3, vanMessageLength - 5);
     message.dataLength = vanMessageLength - 5; // -5 to remove SOF, IDEN, COM, CRC from the data
     message.crc = vanMessage[vanMessageLength - 2] << 8 | vanMessage[vanMessageLength - 1] << 0; // last two bytes of the data
+
+    if (_loggerFunction)
+    {
+        _loggerFunction(_network, 1, message);
+    }
 
     return true;
 }

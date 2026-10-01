@@ -1,13 +1,7 @@
 #include "Protocol/WebSocketSerial.hpp"
 #include <cstring>
 #include <cctype>
-
-struct ws_async_msg_t {
-    WebSocketSerial* instance;
-    int fd;
-    size_t len;
-    uint8_t data[];
-};
+#include <cstdio>
 
 WebSocketSerial::WebSocketSerial(CarState* carState)
 {
@@ -117,11 +111,14 @@ int WebSocketSerial::write(const uint8_t* data, size_t length)
 {
     if (data == nullptr || length == 0)
     {
-        printf("Data is null or length is 0\n");
         return -1;
     }
 
-    xSemaphoreTake(_txMutex, portMAX_DELAY);
+    // Monitoring must not stall a protocol task behind another writer.
+    if (xSemaphoreTake(_txMutex, 0) != pdTRUE)
+    {
+        return -1;
+    }
 
     if (_server == nullptr || _clientFd < 0)
     {
@@ -129,27 +126,45 @@ int WebSocketSerial::write(const uint8_t* data, size_t length)
         return -1;
     }
 
-    if (length > sizeof(_txBuffer))
+    TxBuffer* txBuffer = nullptr;
+    for (auto& candidate : _txBuffers)
     {
-        printf("WebSocketSerial::write: length %u exceeds buffer size, truncating\n", (unsigned)length);
-        length = sizeof(_txBuffer);
+        if (!candidate.inUse.exchange(true))
+        {
+            txBuffer = &candidate;
+            break;
+        }
     }
 
-    memcpy(_txBuffer, data, length);
+    if (txBuffer == nullptr)
+    {
+        xSemaphoreGive(_txMutex);
+        return -1;
+    }
+    if (length > sizeof(txBuffer->data))
+    {
+        length = sizeof(txBuffer->data);
+    }
+    memcpy(txBuffer->data, data, length);
+    txBuffer->owner = this;
 
     httpd_ws_frame_t frame = {};
     frame.type = HTTPD_WS_TYPE_TEXT;
-    frame.payload = _txBuffer;
+    frame.payload = txBuffer->data;
     frame.len = length;
     frame.final = true;
     frame.fragmented = false;
 
-    for(int i = 0; i < length; i++)
+    esp_err_t ret = httpd_ws_send_data_async(_server, _clientFd, &frame,
+        [](esp_err_t error, int, void* arg)
+        {
+            auto* buffer = static_cast<TxBuffer*>(arg);
+            buffer->inUse.store(false);
+        }, txBuffer);
+    if (ret != ESP_OK)
     {
-        printf("%c", data[i]);
+        txBuffer->inUse.store(false);
     }
-
-    esp_err_t ret = httpd_ws_send_data_async(_server, _clientFd, &frame, NULL, NULL);
 
     xSemaphoreGive(_txMutex);
 
