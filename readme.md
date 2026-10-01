@@ -119,6 +119,8 @@ You can monitor both the source and destination networks, as well as both incomi
     - All of them should work the same. However, you may need to configure your head unit in the BSI to one that supports navigation. This will enable the additional data frames in your car that are required for navigation.
 - Is it possible to use a head unit from one generation with a display from another generation? For example: RD4 (AEE2004) with a 6-pin display (AEE2010), or RD3 (AEE2001) with a 6-pin display (AEE2010) or a 12-pin display (AEE2004)?
     - No. Not even by chaining multiple devices together. The radio and display are tightly coupled and exchange a large number of messages during operation. While it would be theoretically possible to support such a mixed setup, it simply isn't worth the effort to implement.
+- Is it possible to implement XY feature?
+    - Read the following wiki page for a generic answer: [Feature implementation difficulties](./wiki/faq-adding-features.md)
 
 ### Removing the original display (AEE2001 - VAN)
 
