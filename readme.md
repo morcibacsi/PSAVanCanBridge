@@ -39,10 +39,6 @@ As mentioned before, this is the third iteration of the software. The previous v
 
 I've used the software in my own car for years without any issues. However, I take no responsibility if something goes wrong when you build and install it in your own vehicle. Use both the software and hardware at your own risk.
 
-## Warning
-
-⚠️ There is a known issue with certain vehicles where the board can cause the BSI to crash. Please read the details and the workaround here: [#34](https://github.com/morcibacsi/PSAVanCanBridge/issues/34)
-
 ## PCB
 
 You need a custom PCB for the software. I built several hardware revisions using various ESP32 microcontrollers, integrating CAN transceivers and the TSS463C VAN controller onto one board. The KiCad project files are available in [this repository][psavancanbridgehw].
