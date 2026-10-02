@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSA VAN-CAN Bridge - Telecoding</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="telecoding-page">
+
+<div class="container-fluid p-3">
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">WebSocket URL</label>
+                    <input id="wsUrl" class="form-control" value="ws://192.168.100.1/ws">
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <button id="connectBtn" class="btn btn-success w-100">
+                        Connect
+                    </button>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">ECU JSON</label>
+                    <input id="jsonFile" type="file" class="form-control" accept=".json">
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">ECU Key</label>
+                    <select id="ecuKey" class="form-select"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3" id="ecuInfoCard">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>ECU:</strong>
+                    <div id="ecuName">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Protocol:</strong>
+                    <div id="ecuProtocol">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>TX ID:</strong>
+                    <div id="ecuTx">-</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>RX ID:</strong>
+                    <div id="ecuRx">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <button id="readAllBtn" class="btn btn-primary me-2">
+            Read All Zones
+        </button>
+
+        <button id="writeModifiedBtn" class="btn btn-warning">
+            Write Modified Zones
+        </button>
+
+        <span id="diagnosticActions" style="margin-left:0.5rem;"></span>
+    </div>
+
+    <div class="card mb-3" id="faultsCard" hidden>
+        <div class="card-header">
+            ECU Faults
+        </div>
+        <div class="card-body">
+            <div id="faultsSummary" class="mb-2"></div>
+            <div id="faultsList" class="mb-2"></div>
+            <div>
+                <strong>Raw response:</strong>
+                <code id="faultsRaw">-</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3" id="diagnosticTestsCard" hidden>
+        <div class="card-header">
+            Optional diagnostic tests
+        </div>
+        <div class="card-body">
+            <div id="diagnosticTests" class="mb-2"></div>
+            <div id="diagnosticTestSummary" class="mb-2"></div>
+            <div>
+                <strong>Raw test responses:</strong>
+                <pre id="diagnosticTestRaw" class="mb-0" style="white-space:pre-wrap;">-</pre>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs" id="tabBar"></ul>
+
+    <div id="tabContent" class="tab-content mt-3"></div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            Live Log
+        </div>
+
+        <div class="card-body">
+            <textarea id="logConsole" class="form-control log-console" readonly></textarea>
+        </div>
+    </div>
+
+</div>
+
+<script>
+class Logger {
+    static log(text) {
+        const consoleElement = document.getElementById("logConsole");
+        consoleElement.value += text + "\n";
+        consoleElement.scrollTop = consoleElement.scrollHeight;
+    }
+}
+
+class WebSocketTransport {
+    constructor() {
+        this.ws = null;
+        this.pendingResolve = null;
+        this.pendingReject = null;
+        this.timeoutHandle = null;
+    }
+
+    connect(url) {
+        return new Promise((resolve, reject) => {
+            this.ws = new WebSocket(url);
+
+            this.ws.onopen = () => {
+                Logger.log("Connected to WebSocket");
+                resolve();
+            };
+
+            this.ws.onerror = (err) => {
+                Logger.log("WebSocket Error");
+                reject(err);
+            };
+
+            this.ws.onclose = () => {
+                Logger.log("WebSocket Disconnected");
+            };
+
+            this.ws.onmessage = (event) => {
+                const data = event.data;
+
+                Logger.log("< " + data);
+
+                if (this.pendingResolve) {
+                    clearTimeout(this.timeoutHandle);
+                    this.pendingResolve(data);
+                    this.pendingResolve = null;
+                    this.pendingReject = null;
+                }
+            };
+        });
+    }
+
+    async send(command, timeout = 5000) {
+
+        const responsePromise = new Promise((resolve, reject) => {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                    reject("WebSocket not connected");
+                    return;
+                }
+
+                Logger.log("> " + command);
+
+                this.pendingResolve = resolve;
+                this.pendingReject = reject;
+
+                this.timeoutHandle = setTimeout(() => {
+                    this.pendingResolve = null;
+                    this.pendingReject = null;
+                    reject("Timeout");
+                }, timeout);
+
+                this.ws.send(command);
+            });
+
+        var response = await responsePromise;
+
+        let replacedText = response.replace(/[\r\n]+/g, "");
+        return replacedText;
+    }
+}
+
+class DiagnosticClient {
+    constructor(transport, ecuDefinition) {
+        this.transport = transport;
+        this.ecuDefinition = ecuDefinition;
+        this.keepAliveInterval = null;
+        this.unlockKey = null;
+
+        this.protocolMap = {
+            uds: {
+                name: "UDS",
+                keepAlive: "KU",
+                stopKeepAlive: "S",
+                startDiag: "1003",
+                stopDiag: "1001",
+                readZoneTag: "22",
+                writeZoneTag: "2E",
+                unlockServiceConfig: "2703",
+                unlockResponseConfig: "2704",
+                unlockServiceConfigSuccess: "6703",
+                unlockResponseConfigSuccess: "6704",
+                secureTraceability: "2E2901FD000000010101"
+            },
+            kwp_hab: {
+                name: "KWP-HAB",
+                keepAlive: "KK",
+                stopKeepAlive: "S",
+                startDiag: "10C0",
+                stopDiag: "1081",
+                readZoneTag: "21",
+                writeZoneTag: "3B",
+                responsePrefix: "67",
+                unlockServiceConfig: "2783",
+                unlockResponseConfig: "2784",
+                unlockServiceConfigSuccess: "6783",
+                unlockResponseConfigSuccess: "6784",
+                secureTraceability: ""
+            }
+        };
+    }
+
+    setUnlockKey(key) {
+        this.unlockKey = key;
+    }
+
+    get protocol() {
+        return this.protocolMap[this.ecuDefinition.protocol];
+    }
+
+    async selectECU() {
+        const cmd = ">" + this.ecuDefinition.tx_id + ":" + this.ecuDefinition.rx_id;
+        const response = await this.transport.send(cmd);
+
+        if (response !== "OK") {
+            throw new Error("ECU selection failed");
+        }
+    }
+
+    async startSession() {
+        //await this.transport.send(this.protocol.keepAlive);
+
+        const response = await this.transport.send(this.protocol.startDiag);
+
+        if (!response.startsWith("50")) {
+            await this.stopSession();
+            throw new Error("Failed to start diagnostic session");
+        }
+        else {
+            Logger.log("Diagnostic session started");
+            const stopKeepAliveResponse = await this.transport.send(this.protocol.stopKeepAlive);
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+
+/*
+        this.keepAliveInterval = setInterval(async () => {
+            try {
+                await this.transport.send(this.protocol.keepAlive);
+            }
+            catch {}
+        }, 2000);
+*/
+    }
+
+    async stopSession() {
+        clearInterval(this.keepAliveInterval);
+
+        try {
+            await this.transport.send(this.protocol.stopKeepAlive);
+        }
+        catch {}
+
+        await this.transport.send(this.protocol.stopDiag);
+    }
+
+    transform(data_msb, data_lsb, sec) {
+        let data = (data_msb << 8) | data_lsb;
+        let neg = false;
+
+        if (data & 0x8000) {
+            data -= 0x10000;
+            data *= -1;
+            neg = true;
+        }
+
+        let rem = data % sec[0];
+        let num = Math.trunc(data / sec[0]);
+
+        if (neg) {
+            rem *= -1;
+            num *= -1;
+        }
+
+        const rem16 = (((rem & 0xFFFF) << 16) >> 16);
+        const num16 = (((num & 0xFFFF) << 16) >> 16);
+
+        let dom1 = (rem16 * sec[2]) | 0;
+        let dom2 = (num16 * sec[1]) | 0;
+        let result = (dom1 - dom2) | 0;
+
+        if (result < 0) {
+            result += sec[0] * sec[2] + sec[1];
+        }
+
+        return result & 0xFFFF;
+    }
+
+    computeResponse(key, seed) {
+        const sec1 = [0xB2, 0x3F, 0xAA];
+        const sec2 = [0xB1, 0x02, 0xAB];
+
+        const res_msb = this.transform((key >>> 8) & 0xFF, key & 0xFF, sec1) |
+                        this.transform((seed >>> 24) & 0xFF, seed & 0xFF, sec2);
+        const res_lsb = this.transform((seed >>> 16) & 0xFF, (seed >>> 8) & 0xFF, sec1) |
+                        this.transform((res_msb >>> 8) & 0xFF, res_msb & 0xFF, sec2);
+
+        return (((res_msb & 0xFFFF) << 16) | (res_lsb & 0xFFFF)) >>> 0;
+    }
+
+    async unlock() {
+        if (!this.unlockKey) {
+            return;
+        }
+
+        let tryCnt = 8
+        let seedResponse = null;
+
+        while (tryCnt > 0) {
+            try {
+                seedResponse = await this.transport.send(this.protocol.unlockServiceConfig);
+
+                if (!seedResponse.startsWith(this.protocol.unlockServiceConfigSuccess)) {
+                    if (tryCnt === 1) {
+                        throw new Error("Unlock request failed");
+                    }
+                    else {
+                        Logger.log("Unlock request failed, retrying...");
+                        tryCnt--;
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        continue;
+                    }
+                }
+                else {
+                    Logger.log("Unlock request successful");
+                    break;
+                }
+            }
+            catch (err) {
+                Logger.log("Unlock attempt failed: " + err);
+                tryCnt--;
+            }
+        }
+
+        if (!seedResponse || !seedResponse.startsWith(this.protocol.unlockServiceConfigSuccess)) {
+            throw new Error("Failed to get seed for unlocking");
+        }
+
+        const seedHex = seedResponse.substring(4);
+        Logger.log("Seed received: " + seedHex);
+
+        const keyInt = parseInt(this.unlockKey, 16);
+        const seedInt = parseInt(seedHex, 16);
+        const responseInt = this.computeResponse(keyInt, seedInt);
+        const responseHex = responseInt.toString(16).padStart(8, "0").toUpperCase();
+
+        Logger.log("Computed unlock response: " + responseHex);
+
+        const unlockResponse = await this.transport.send(
+            this.protocol.unlockResponseConfig + responseHex
+        );
+
+        if (!unlockResponse.startsWith(this.protocol.unlockResponseConfigSuccess)) {
+            throw new Error("Unlock failed");
+        }
+    }
+
+    async readZone(zoneId) {
+        const normalizedZoneId = String(zoneId).toUpperCase();
+        const expectedPrefix = (this.protocol.name === "UDS" ? "62" : "61") + normalizedZoneId;
+        const response = String(await this.transport.send(
+            this.protocol.readZoneTag + normalizedZoneId
+        )).replace(/\s+/g, "").toUpperCase();
+
+        if (!/^[0-9A-F]+$/.test(response) || response.length % 2 !== 0 ||
+            !response.startsWith(expectedPrefix)) {
+            throw new Error("Read failed for zone " + normalizedZoneId + ": " + response);
+        }
+        return response.substring(expectedPrefix.length);
+    }
+
+    async executeDiagnosticAction(action) {
+        const request = String(action && action.request || "")
+            .replace(/\s+/g, "")
+            .toUpperCase();
+
+        if (!request || !/^[0-9A-F]+$/.test(request) || request.length % 2 !== 0) {
+            throw new Error("Invalid diagnostic request in ECU JSON: " + request);
+        }
+
+        const response = await this.transport.send(request);
+
+        if (response.startsWith("7F")) {
+            throw new Error("Negative diagnostic response: " + response);
+        }
+
+        const positivePrefix = String(action.positive_prefix || "")
+            .replace(/\s+/g, "")
+            .toUpperCase();
+
+        if (positivePrefix && !response.startsWith(positivePrefix)) {
+            throw new Error(
+                "Unexpected diagnostic response: " + response +
+                " (expected prefix " + positivePrefix + ")"
+            );
+        }
+
+        return response;
+    }
+
+    async writeZone(zoneId, hexData) {
+        const response = await this.transport.send(
+            this.protocol.writeZoneTag + zoneId + hexData
+        );
+
+        if (this.protocol.name === "UDS") {
+            if (response.length != 6 ||
+                !response.startsWith("6E") && response.substring(2, 6) !== zoneId) {
+                    throw new Error("Write failed: " + response);
+            }
+        }
+        else if (this.protocol.name === "KWP-HAB") {
+            const expectedResponse = "7B" + zoneId.toUpperCase();
+            if (response !== expectedResponse) {
+                throw new Error("Write failed for zone " + zoneId +
+                    ": expected " + expectedResponse + ", got " + response);
+            }
+        }
+    }
+
+    async writeSecureTraceability() {
+        if (this.protocol.name === "UDS") {
+            const traceabilityResponse = await this.transport.send(this.protocol.secureTraceability);
+            if (traceabilityResponse.length != 6 && !traceabilityResponse.startsWith("6E")) {
+                throw new Error("Secure traceability failed: " + traceabilityResponse);
+            }
+        }
+    }
+
+    // RD45/KWP-HAB full telecoding transaction support.
+    // Descriptor-driven: no RD45 payload or VIN is hard-coded here.
+    getKwpHabTelecodingTransactionConfig() {
+        if (this.protocol.name !== "KWP-HAB") {
+            return null;
+        }
+
+        const config = this.ecuDefinition.kwp_hab_telecoding_transaction;
+        if (!config || config.enabled !== true) {
+            return null;
+        }
+
+        if (!Array.isArray(config.transaction_zones) ||
+            config.transaction_zones.length === 0 ||
+            typeof config.traceability_zone !== "string") {
+            throw new Error("Invalid kwp_hab_telecoding_transaction descriptor");
+        }
+
+        const zones = config.transaction_zones.map(zone => String(zone).toUpperCase());
+        const traceabilityZone = config.traceability_zone.toUpperCase();
+        if (!/^[0-9A-F]{2}$/.test(traceabilityZone) ||
+            zones.some(zone => !/^[0-9A-F]{2}$/.test(zone)) ||
+            new Set(zones).size !== zones.length || zones.includes(traceabilityZone)) {
+            throw new Error("Invalid or duplicate KWP-HAB transaction zones");
+        }
+
+        for (const [zoneId, length] of Object.entries(config.expected_payload_lengths_bytes || {})) {
+            if (!Number.isInteger(length) || length < 0) {
+                throw new Error("Invalid expected payload length for zone " + zoneId);
+            }
+        }
+
+        return config;
+    }
+
+    normalizeZoneHex(hexData) {
+        const normalized = String(hexData || "")
+            .replace(/\s+/g, "")
+            .toUpperCase();
+
+        if (!/^[0-9A-F]*$/.test(normalized) || (normalized.length % 2) !== 0) {
+            throw new Error("Invalid hexadecimal zone payload: " + hexData);
+        }
+
+        return normalized;
+    }
+
+    validateTransactionZoneLength(zoneId, hexData, config) {
+        const normalized = this.normalizeZoneHex(hexData);
+        const expectedLengths = config.expected_payload_lengths_bytes || {};
+        const expectedLength = expectedLengths[zoneId];
+
+        if (expectedLength !== undefined && normalized.length !== expectedLength * 2) {
+            throw new Error(
+                "Unexpected payload length for zone " + zoneId +
+                ": expected " + expectedLength + " byte(s), got " +
+                (normalized.length / 2)
+            );
+        }
+
+        return normalized;
+    }
+
+    isKwpHabTransactionZone(zoneId) {
+        const config = this.getKwpHabTelecodingTransactionConfig();
+        if (!config) {
+            return false;
+        }
+
+        const wanted = zoneId.toUpperCase();
+        return config.transaction_zones
+            .map(zone => String(zone).toUpperCase())
+            .includes(wanted);
+    }
+
+    async writeKwpHabTelecodingTransaction(modifiedZoneHexById) {
+        const config = this.getKwpHabTelecodingTransactionConfig();
+        if (!config) {
+            throw new Error("KWP-HAB telecoding transaction is not enabled in this ECU descriptor");
+        }
+
+        if (Object.keys(modifiedZoneHexById || {}).length === 0) return { verified: {} };
+
+        const transactionZones = config.transaction_zones
+            .map(zone => String(zone).toUpperCase());
+        const traceabilityZone = String(config.traceability_zone).toUpperCase();
+        const payloads = {};
+
+        Logger.log("KWP-HAB telecoding: capturing current transaction payloads");
+
+        for (const zoneId of [...transactionZones, traceabilityZone]) {
+            const currentHex = await this.readZone(zoneId);
+            payloads[zoneId] = this.validateTransactionZoneLength(
+                zoneId,
+                currentHex,
+                config
+            );
+            Logger.log("Captured " + zoneId + " = " + payloads[zoneId]);
+        }
+
+        const deliberatelyModified = {};
+        for (const [rawZoneId, rawHex] of Object.entries(modifiedZoneHexById || {})) {
+            const zoneId = rawZoneId.toUpperCase();
+            if (!transactionZones.includes(zoneId)) {
+                throw new Error(
+                    "Zone " + zoneId +
+                    " is not part of the configured KWP-HAB telecoding transaction"
+                );
+            }
+
+            const modifiedHex = this.validateTransactionZoneLength(
+                zoneId,
+                rawHex,
+                config
+            );
+            payloads[zoneId] = modifiedHex;
+            deliberatelyModified[zoneId] = modifiedHex;
+        }
+
+        Logger.log(
+            "KWP-HAB telecoding: writing full transaction set " +
+            transactionZones.join(" -> ") + " -> " + traceabilityZone
+        );
+
+        for (const zoneId of transactionZones) {
+            await this.writeZone(zoneId, payloads[zoneId]);
+        }
+
+        // A0 is not generated or edited by the bridge. Re-read it immediately
+        // before finalisation so firmware-owned counters/state updated by the
+        // preceding configuration writes are not replaced with a stale value.
+        const traceabilityInitial = payloads[traceabilityZone];
+        const traceabilityBefore = this.validateTransactionZoneLength(
+            traceabilityZone,
+            await this.readZone(traceabilityZone),
+            config
+        );
+        Logger.log(
+            "A0 initial/pre-finalize: " +
+            traceabilityInitial + " -> " + traceabilityBefore
+        );
+        await this.writeZone(traceabilityZone, traceabilityBefore);
+
+        const verified = {};
+        for (const [zoneId, expectedHex] of Object.entries(deliberatelyModified)) {
+            const readback = this.validateTransactionZoneLength(
+                zoneId,
+                await this.readZone(zoneId),
+                config
+            );
+            if (readback !== expectedHex) {
+                throw new Error(
+                    "Read-back mismatch for zone " + zoneId +
+                    ": expected " + expectedHex + ", got " + readback
+                );
+            }
+            verified[zoneId] = readback;
+            Logger.log("Verified " + zoneId + " = " + readback);
+        }
+
+        const traceabilityAfter = this.validateTransactionZoneLength(
+            traceabilityZone,
+            await this.readZone(traceabilityZone),
+            config
+        );
+        Logger.log(
+            "A0 traceability before/after: " +
+            traceabilityBefore + " -> " + traceabilityAfter
+        );
+
+        return {
+            verified,
+            traceabilityInitial,
+            traceabilityBefore,
+            traceabilityAfter
+        };
+    }
+}
+
+class ZoneState {
+    constructor(zoneId, zoneDef) {
+        this.zoneId = zoneId;
+
+        const requiredLength = calculateZoneLength(zoneDef);
+
+        this.originalBytes = new Uint8Array(requiredLength);
+        this.modifiedBytes = new Uint8Array(requiredLength);
+    }
+
+    setHex(hex) {
+        this.originalBytes = hexToBytes(hex);
+        this.modifiedBytes = hexToBytes(hex);
+    }
+
+    get originalHex() {
+        return bytesToHex(this.originalBytes);
+    }
+
+    get modifiedHex() {
+        return bytesToHex(this.modifiedBytes);
+    }
+
+    get dirty() {
+        return this.originalHex !== this.modifiedHex;
+    }
+
+    reset() {
+        this.modifiedBytes = new Uint8Array(this.originalBytes);
+    }
+}
+
+const app = {
+    transport: new WebSocketTransport(),
+    diagnosticClient: null,
+    ecuDefinition: null,
+    zoneStates: {}
+};
+
+function hexToBytes(hex) {
+    const bytes = [];
+
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes.push(parseInt(hex.substr(i, 2), 16));
+    }
+
+    return new Uint8Array(bytes);
+}
+
+function calculateZoneLength(zoneDef) {
+    let maxByte = 0;
+
+    if (Array.isArray(zoneDef.params)) {
+        for (const param of zoneDef.params) {
+            if (param.byte !== undefined) {
+                const end = param.byte + (param.byte_range || 1) - 1;
+                if (end > maxByte) maxByte = end;
+            }
+        }
+    } else {
+        for (const key in zoneDef) {
+            const item = zoneDef[key];
+            if (typeof item === "object" && item !== null && item.byte !== undefined) {
+                if (item.byte > maxByte) maxByte = item.byte;
+            }
+        }
+    }
+
+    return maxByte + 1;
+}
+
+function bytesToHex(bytes) {
+    return Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+}
+
+function bytesToAscii(bytes) {
+    return Array.from(bytes)
+        .map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : ".")
+        .join("");
+}
+
+function asciiToBytes(str) {
+    const bytes = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) {
+        bytes[i] = str.charCodeAt(i) & 0xFF;
+    }
+    return bytes;
+}
+
+function formatHex(hex) {
+    return hex.match(/.{1,2}/g)?.join(" ") || "";
+}
+
+function maskToInt(maskString) {
+    return parseInt(maskString, 2);
+}
+
+function extractMaskedValue(byte, maskString) {
+    const mask = maskToInt(maskString);
+
+    let shift = 0;
+
+    while (((mask >> shift) & 1) === 0) {
+        shift++;
+    }
+
+    return (byte & mask) >> shift;
+}
+
+function applyMaskedValue(byte, maskString, value) {
+    const mask = maskToInt(maskString);
+
+    let shift = 0;
+
+    while (((mask >> shift) & 1) === 0) {
+        shift++;
+    }
+
+    byte &= ~mask;
+    byte |= (value << shift) & mask;
+
+    return byte;
+}
+
+function updateZoneCard(zoneId) {
+    const zoneState = app.zoneStates[zoneId];
+
+    const originalElement = document.getElementById(`original-${zoneId}`);
+    const modifiedElement = document.getElementById(`modified-${zoneId}`);
+    const card = document.getElementById(`card-${zoneId}`);
+    const status = document.getElementById(`status-${zoneId}`);
+
+    originalElement.innerText = formatHex(zoneState.originalHex);
+    modifiedElement.innerText = formatHex(zoneState.modifiedHex);
+
+    const rawEditor = document.querySelector(`#card-${zoneId} input.form-control.mb-2`);
+
+    if (rawEditor) {
+        rawEditor.value = formatHex(zoneState.modifiedHex);
+    }
+
+    if (zoneState.dirty) {
+        card.classList.remove("zone-clean");
+        card.classList.add("zone-modified");
+
+        status.className = "badge bg-warning badge-status";
+        status.innerText = "MODIFIED";
+    }
+    else {
+        card.classList.remove("zone-modified");
+        card.classList.add("zone-clean");
+
+        status.className = "badge bg-success badge-status";
+        status.innerText = "SYNCED";
+    }
+}
+
+function createControl(zoneId, controlKey, controlDef) {
+    const zoneState = app.zoneStates[zoneId];
+
+    if (controlDef.zoneLength) {
+        if (Array.isArray(controlDef.zoneLength)) {
+            if (controlDef.zoneLength.includes(zoneState.modifiedBytes.length)) {
+                // valid
+            }
+            else {
+                console.warn(`Control ${controlDef.name} has zoneLength ${controlDef.zoneLength}, but zone has length ${zoneState.modifiedBytes.length}`);
+                return;
+            }
+        }
+        else if (controlDef.zoneLength !== zoneState.modifiedBytes.length) {
+            console.warn(`Control ${controlDef.name} has zoneLength ${controlDef.zoneLength}, but zone has length ${zoneState.modifiedBytes.length}`);
+            return;
+        }
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "control-row";
+
+    const label = document.createElement("label");
+    label.innerText = controlDef.name;
+    label.title = controlDef.name;
+
+    const byteIndex = controlDef.byte;
+    const mask = controlDef.mask;
+
+    if (controlDef.form_type === "checkbox") {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "form-check-input";
+        checkbox.id = `chk-${zoneId}-${controlKey}`;
+        label.htmlFor = checkbox.id;
+
+        const maskValue = maskToInt(mask);
+
+        if (controlDef.available_logic && controlDef.available_logic === "active_high") {
+            checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
+        }
+        else {
+            checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) === 0;
+        }
+
+        //checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
+
+        checkbox.addEventListener("change", () => {
+            const activeHigh = controlDef.available_logic === "active_high";
+            if (checkbox.checked === activeHigh) {
+                zoneState.modifiedBytes[byteIndex] |= maskValue;
+            }
+            else {
+                zoneState.modifiedBytes[byteIndex] &= ~maskValue;
+            }
+
+            updateZoneCard(zoneId);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(checkbox);
+    }
+
+    else if (controlDef.form_type === "combobox") {
+        const select = document.createElement("select");
+        select.className = "form-select form-select-sm";
+
+        const currentValue = extractMaskedValue(
+            zoneState.modifiedBytes[byteIndex],
+            mask
+        );
+
+        controlDef.params.forEach((param) => {
+            const option = document.createElement("option");
+
+            option.innerText = param.name;
+            option.value = parseInt(param.mask, 2);
+
+            const optionValue = extractMaskedValue(
+                parseInt(param.mask, 2),
+                mask
+            );
+
+            if (optionValue === currentValue) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        });
+
+        select.addEventListener("change", () => {
+            zoneState.modifiedBytes[byteIndex] = applyMaskedValue(
+                zoneState.modifiedBytes[byteIndex],
+                mask,
+                extractMaskedValue(parseInt(select.value), mask)
+            );
+
+            updateZoneCard(zoneId);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(select);
+    }
+
+    else if (controlDef.form_type === "string") {
+        const byteIndex = controlDef.byte;
+        const isAscii = controlDef.type === "string_ascii";
+        const byteRange = controlDef.byte_range !== undefined
+            ? controlDef.byte_range
+            : (isAscii ? zoneState.modifiedBytes.length - byteIndex : 1);
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control form-control-sm font-monospace";
+        const bytes = zoneState.modifiedBytes.slice(byteIndex, byteIndex + byteRange);
+
+        if (isAscii) {
+            input.value = bytesToAscii(bytes);
+            input.addEventListener("change", () => {
+                const newBytes = asciiToBytes(input.value);
+                zoneState.modifiedBytes.fill(0, byteIndex, byteIndex + byteRange);
+                zoneState.modifiedBytes.set(newBytes.slice(0, byteRange), byteIndex);
+                updateZoneCard(zoneId);
+            });
+        } else {
+            input.value = bytesToHex(bytes);
+            input.addEventListener("change", () => {
+                const cleanHex = input.value.replace(/\s/g, "").toUpperCase()
+                    .padEnd(byteRange * 2, "0").substring(0, byteRange * 2);
+                const newBytes = hexToBytes(cleanHex);
+                for (let i = 0; i < newBytes.length && (byteIndex + i) < zoneState.modifiedBytes.length; i++) {
+                    zoneState.modifiedBytes[byteIndex + i] = newBytes[i];
+                }
+                updateZoneCard(zoneId);
+            });
+        }
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+    }
+
+    return wrapper;
+}
+
+function createZoneCard(zoneId, zoneDef) {
+    const zoneState = app.zoneStates[zoneId];
+    const isReadOnly = zoneDef.read_only === true;
+    const card = document.createElement("div");
+    card.className = "card mb-2 zone-clean";
+    card.id = `card-${zoneId}`;
+
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body zone-card-body";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "d-flex justify-content-between align-items-center mb-1";
+
+    titleRow.innerHTML = `
+        <div>
+            <div class="zone-title">
+                ${zoneDef.name}
+                ${isReadOnly ? '<span class="badge bg-secondary ms-1">READ ONLY</span>' : ''}
+            </div>
+            <small class="zone-meta">Zone ${zoneId}</small>
+        </div>
+
+        <span id="status-${zoneId}" class="badge bg-success badge-status">
+            SYNCED
+        </span>
+    `;
+
+    cardBody.appendChild(titleRow);
+
+    cardBody.innerHTML += `
+        <div class="zone-meta mb-1">
+            <div><strong>ECU:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong> <span id="original-${zoneId}" class="zone-raw">--</span></div>
+            <div><strong>Modified:</strong> <span id="modified-${zoneId}" class="zone-raw">--</span></div>
+        </div>
+    `;
+
+    const controlsGrid = document.createElement("div");
+    controlsGrid.className = "controls-grid mb-2";
+
+    if (Array.isArray(zoneDef.params)) {
+        for (const param of zoneDef.params) {
+            if (param.form_type && param.form_type !== "multi") {
+                const control = createControl(zoneId, param.id || param.name, param);
+                if (control) {
+                    controlsGrid.appendChild(control);
+                }
+            }
+        }
+    } else if (zoneDef.form_type) {
+        const control = createControl(zoneId, zoneDef.id || zoneId, zoneDef);
+        if (control) {
+            controlsGrid.appendChild(control);
+        }
+    } else {
+        for (const key in zoneDef) {
+            const item = zoneDef[key];
+            if (typeof item === "object" && item !== null && item.form_type) {
+                const control = createControl(zoneId, key, item);
+                if (control) {
+                    controlsGrid.appendChild(control);
+                }
+            }
+        }
+    }
+
+    if (isReadOnly) {
+        controlsGrid.querySelectorAll("input, select, textarea").forEach((element) => {
+            element.disabled = true;
+        });
+    }
+
+    cardBody.appendChild(controlsGrid);
+
+    const rawEditorLabel = document.createElement("label");
+    rawEditorLabel.className = "form-label mb-1";
+    rawEditorLabel.style.fontSize = "0.75rem";
+    rawEditorLabel.innerText = "Raw Hex";
+
+    cardBody.appendChild(rawEditorLabel);
+
+    const rawEditor = document.createElement("input");
+    rawEditor.className = "form-control form-control-sm font-monospace mb-2";
+    rawEditor.value = formatHex(zoneState.modifiedHex);
+    rawEditor.readOnly = isReadOnly;
+
+    rawEditor.addEventListener("change", () => {
+        if (isReadOnly) {
+            return;
+        }
+        const cleanHex = rawEditor.value
+            .replace(/\s/g, "")
+            .toUpperCase();
+
+        zoneState.modifiedBytes = hexToBytes(cleanHex);
+
+        refreshControls(zoneId, zoneDef);
+        updateZoneCard(zoneId);
+    });
+
+    cardBody.appendChild(rawEditor);
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.className = "zone-buttons";
+
+    const readButton = document.createElement("button");
+    readButton.className = "btn btn-primary me-2";
+    readButton.innerText = "Read";
+
+    readButton.addEventListener("click", async () => {
+        try {
+            if (!app.transport){
+                Logger.log("Not connected");
+                console.error("Not connected");
+                return;
+            }
+
+            await app.diagnosticClient.selectECU();
+            await app.diagnosticClient.startSession();
+
+            const data = await app.diagnosticClient.readZone(zoneId);
+
+            app.zoneStates[zoneId].setHex(data);
+
+            await app.diagnosticClient.stopSession();
+
+            refreshControls(zoneId, zoneDef);
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed reading zone " + zoneId + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+    });
+
+    buttonContainer.appendChild(readButton);
+
+    const writeButton = document.createElement("button");
+    writeButton.className = "btn btn-warning me-2";
+    writeButton.innerText = "Write";
+    writeButton.hidden = isReadOnly;
+
+    writeButton.addEventListener("click", async () => {
+        let sessionStarted = false;
+        try {
+            if (isReadOnly) {
+                Logger.log("Write blocked for read-only zone " + zoneId);
+                return;
+            }
+            await app.diagnosticClient.selectECU();
+            await app.diagnosticClient.startSession();
+            sessionStarted = true;
+
+            await app.diagnosticClient.unlock();
+
+            if (app.diagnosticClient.isKwpHabTransactionZone(zoneId)) {
+                await app.diagnosticClient.writeKwpHabTelecodingTransaction(
+                    { [zoneId]: app.zoneStates[zoneId].modifiedHex }
+                );
+            } else {
+                await app.diagnosticClient.readZone(zoneId);
+                await app.diagnosticClient.writeZone(
+                    zoneId,
+                    app.zoneStates[zoneId].modifiedHex
+                );
+
+                try {
+                    await app.diagnosticClient.writeSecureTraceability();
+                }
+                catch (err) {
+                    Logger.log("Secure traceability failed: " + err);
+                }
+            }
+
+
+            app.zoneStates[zoneId].originalBytes =
+                new Uint8Array(app.zoneStates[zoneId].modifiedBytes);
+
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed writing zone " + zoneId + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+        finally {
+            if (sessionStarted) {
+                try { await app.diagnosticClient.stopSession(); }
+                catch (err) { Logger.log("Failed closing diagnostic session: " + err); }
+            }
+        }
+    });
+
+    buttonContainer.appendChild(writeButton);
+
+    const resetButton = document.createElement("button");
+    resetButton.className = "btn btn-secondary";
+    resetButton.innerText = "Reset";
+    resetButton.hidden = isReadOnly;
+
+    resetButton.addEventListener("click", () => {
+        if (isReadOnly) {
+            return;
+        }
+
+        app.zoneStates[zoneId].reset();
+
+        refreshControls(zoneId, zoneDef);
+        updateZoneCard(zoneId);
+    });
+
+    buttonContainer.appendChild(resetButton);
+
+    cardBody.appendChild(buttonContainer);
+
+    card.appendChild(cardBody);
+
+    return card;
+}
+
+function refreshControls(zoneId, zoneDef) {
+    const oldCard = document.getElementById(`card-${zoneId}`);
+    const parent = oldCard.parentElement;
+
+    const newCard = createZoneCard(zoneId, zoneDef);
+
+    parent.replaceChild(newCard, oldCard);
+
+    updateZoneCard(zoneId);
+}
+
+function renderTabs() {
+    const tabBar = document.getElementById("tabBar");
+    const tabContent = document.getElementById("tabContent");
+
+    tabBar.innerHTML = "";
+    tabContent.innerHTML = "";
+
+    const tabs = { ...(app.ecuDefinition.tabs || {}) };
+    app.zoneStates = {};
+    for (const [zoneId, zoneDef] of Object.entries(app.ecuDefinition.zones)) {
+        const tabId = String(zoneDef.tab === undefined ? "coding" : zoneDef.tab);
+        if (!(tabId in tabs)) tabs[tabId] = tabId;
+        app.zoneStates[zoneId] = new ZoneState(zoneId, zoneDef);
+    }
+
+    let first = true;
+
+    for (const tabId in tabs) {
+        const tabButton = document.createElement("li");
+        tabButton.className = "nav-item";
+
+        tabButton.innerHTML = `
+            <button class="nav-link ${first ? 'active' : ''}"
+                    data-bs-toggle="tab"
+                    data-bs-target="#tab-${tabId}">
+                ${tabs[tabId]}
+            </button>
+        `;
+
+        tabBar.appendChild(tabButton);
+
+        const tabPane = document.createElement("div");
+        tabPane.className = `tab-pane fade ${first ? 'show active' : ''}`;
+        tabPane.id = `tab-${tabId}`;
+
+        for (const zoneId in app.ecuDefinition.zones) {
+            const zoneDef = app.ecuDefinition.zones[zoneId];
+
+            if (String(zoneDef.tab === undefined ? "coding" : zoneDef.tab) === tabId) {
+
+                tabPane.appendChild(
+                    createZoneCard(zoneId, zoneDef)
+                );
+            }
+        }
+
+        tabContent.appendChild(tabPane);
+
+        first = false;
+    }
+}
+
+function setupTabs() {
+    const tabBar = document.getElementById("tabBar");
+    const tabContent = document.getElementById("tabContent");
+
+    tabBar.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-bs-toggle='tab']");
+        if (!button) {
+            return;
+        }
+
+        const targetSelector = button.getAttribute("data-bs-target");
+        if (!targetSelector) {
+            return;
+        }
+
+        const targetPane = tabContent.querySelector(targetSelector);
+        if (!targetPane) {
+            return;
+        }
+
+        tabBar.querySelectorAll(".nav-link").forEach((navButton) => {
+            navButton.classList.remove("active");
+        });
+
+        tabContent.querySelectorAll(".tab-pane").forEach((pane) => {
+            pane.classList.remove("show", "active");
+        });
+
+        button.classList.add("active");
+        targetPane.classList.add("active", "show");
+    });
+}
+
+// BRIDGE_JSON_DIAGNOSTICS_V1
+// BRIDGE_JSON_DIAGNOSTICS_V2_RD45_TESTS
+function normalizeHexString(value) {
+    return String(value || "").replace(/\s+/g, "").toUpperCase();
+}
+
+function formatHexCode(bytes) {
+    return Array.from(bytes)
+        .map((value) => value.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+}
+
+const PSA_KWP_FAULT_TYPE_FALLBACK = {
+    0: { name: "Absence", key: "absence" },
+    1: { name: "Coherence fault", key: "coherence" },
+    2: { name: "Short circuit to positive", key: "short_to_positive" },
+    3: { name: "Short circuit to ground", key: "short_to_ground" },
+    4: { name: "Open circuit", key: "open_circuit" },
+    5: { name: "Lower limit", key: "lower_limit" },
+    6: { name: "Upper limit", key: "upper_limit" },
+    7: { name: "Other fault mode", key: "other_mode" }
+};
+
+function getPsaFaultTypeDefinition(index) {
+    const configured = app.ecuDefinition && app.ecuDefinition.dtc_fault_types;
+    const fromJson = configured && configured[String(index)];
+
+    if (fromJson && typeof fromJson === "object") {
+        return {
+            ...PSA_KWP_FAULT_TYPE_FALLBACK[index],
+            ...fromJson
+        };
+    }
+
+    return PSA_KWP_FAULT_TYPE_FALLBACK[index] || {
+        name: "Unknown fault mode " + index,
+        key: "unknown"
+    };
+}
+
+function decodePsaKwpDtcWord(highByte, lowByte) {
+    const word = ((highByte << 8) | lowByte) & 0xFFFF;
+    const originLocal = (word & 0x8000) !== 0;
+    const faultTypeIndex = (word >>> 12) & 0x07;
+    const baseCodeValue = word & 0x0FFF;
+    const faultType = getPsaFaultTypeDefinition(faultTypeIndex);
+
+    return {
+        code: word.toString(16).padStart(4, "0").toUpperCase(),
+        baseCode: baseCodeValue.toString(16).padStart(3, "0").toUpperCase(),
+        origin: originLocal ? "local" : "distant",
+        originLocal,
+        faultTypeIndex,
+        faultTypeKey: faultType.key || "unknown",
+        faultTypeName: faultType.name || ("Fault mode " + faultTypeIndex),
+        faultTypeDefinition: faultType,
+        status: null
+    };
+}
+
+function parsePsaKwpCompactDtcResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 2 || bytes[0] !== 0x57) {
+        throw new Error("Unexpected PSA KWP fault response: " + response);
+    }
+
+    const declaredCount = bytes[1];
+    const payload = bytes.slice(2);
+    const expectedLength = declaredCount * 2;
+
+    if (payload.length !== expectedLength) {
+        throw new Error(
+            "PSA compact DTC payload length mismatch: expected " +
+            expectedLength + " byte(s), got " + payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let i = 0; i < declaredCount; i++) {
+        const offset = i * 2;
+        faults.push(decodePsaKwpDtcWord(payload[offset], payload[offset + 1]));
+    }
+
+    return {
+        declaredCount,
+        faults,
+        format: "psa_kwp_compact"
+    };
+}
+
+function parseKwpTwoByteDtcWithStatusResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 2 || bytes[0] !== 0x57) {
+        throw new Error("Unexpected KWP fault response: " + response);
+    }
+
+    const declaredCount = bytes[1];
+    const payload = bytes.slice(2);
+    const expectedLength = declaredCount * 3;
+
+    if (payload.length !== expectedLength) {
+        throw new Error(
+            "KWP DTC/status payload length mismatch: expected " +
+            expectedLength + " byte(s), got " + payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let i = 0; i < declaredCount; i++) {
+        const offset = i * 3;
+        faults.push({
+            code: formatHexCode(payload.slice(offset, offset + 2)),
+            status: payload[offset + 2]
+        });
+    }
+
+    return {
+        declaredCount,
+        faults,
+        format: "kwp_2byte_status"
+    };
+}
+
+function parseUds1902DtcResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 3 || bytes[0] !== 0x59 || bytes[1] !== 0x02) {
+        throw new Error("Unexpected UDS 19 02 response: " + response);
+    }
+
+    const availabilityMask = bytes[2];
+    const payload = bytes.slice(3);
+
+    if (payload.length % 4 !== 0) {
+        throw new Error(
+            "UDS DTC/status payload is not a multiple of 4 bytes: " +
+            payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let offset = 0; offset < payload.length; offset += 4) {
+        faults.push({
+            code: formatHexCode(payload.slice(offset, offset + 3)),
+            status: payload[offset + 3]
+        });
+    }
+
+    return {
+        declaredCount: faults.length,
+        faults,
+        format: "uds_1902",
+        availabilityMask
+    };
+}
+
+const DTC_PARSERS = {
+    psa_kwp_compact: parsePsaKwpCompactDtcResponse,
+    kwp_2byte_status: parseKwpTwoByteDtcWithStatusResponse,
+    uds_1902: parseUds1902DtcResponse
+};
+
+function normalizeDtcDefinition(value) {
+    if (typeof value === "string") {
+        return { name: value };
+    }
+    if (value && typeof value === "object") {
+        return value;
+    }
+    return null;
+}
+
+function getDtcDefinition(fault) {
+    if (!app.ecuDefinition || !fault) {
+        return null;
+    }
+
+    const exactDefinitions = app.ecuDefinition.dtc_definitions;
+    const exact = exactDefinitions &&
+        normalizeDtcDefinition(exactDefinitions[String(fault.code || "").toUpperCase()]);
+
+    const baseDefinitions = app.ecuDefinition.dtc_base_definitions;
+    const base = fault.baseCode && baseDefinitions &&
+        normalizeDtcDefinition(baseDefinitions[String(fault.baseCode).toUpperCase()]);
+
+    if (base && exact) {
+        return { ...base, ...exact };
+    }
+    return exact || base || null;
+}
+
+function appendDiagnosticNote(wrapper, text) {
+    if (text === undefined || text === null || text === "") {
+        return;
+    }
+    const note = document.createElement("div");
+    note.className = "text-secondary";
+    note.style.fontSize = "0.85rem";
+    note.textContent = String(text);
+    wrapper.appendChild(note);
+}
+
+function appendDtcDefinitionNotes(wrapper, definition) {
+    if (!definition) {
+        return;
+    }
+
+    if (definition.component) {
+        appendDiagnosticNote(wrapper, "Component: " + definition.component);
+    }
+    if (definition.description) {
+        appendDiagnosticNote(wrapper, definition.description);
+    }
+    if (definition.electrical_interpretation) {
+        if (typeof definition.electrical_interpretation === "string") {
+            appendDiagnosticNote(wrapper, definition.electrical_interpretation);
+        } else if (typeof definition.electrical_interpretation === "object") {
+            const electrical = definition.electrical_interpretation;
+            if (electrical.what_is_known) appendDiagnosticNote(wrapper, electrical.what_is_known);
+            if (electrical.what_is_not_known) appendDiagnosticNote(wrapper, electrical.what_is_not_known);
+            if (electrical.useful_live_test) appendDiagnosticNote(wrapper, electrical.useful_live_test);
+        }
+    }
+    if (definition.threshold_summary) {
+        appendDiagnosticNote(wrapper, definition.threshold_summary);
+    } else if (definition.thresholds_mV && typeof definition.thresholds_mV === "object") {
+        const thresholds = definition.thresholds_mV;
+        const parts = [];
+        if (thresholds.open_circuit && thresholds.open_circuit.condition) {
+            parts.push("open circuit " + thresholds.open_circuit.condition + " mV");
+        }
+        if (thresholds.short_to_ground && thresholds.short_to_ground.condition) {
+            parts.push("short-to-ground " + thresholds.short_to_ground.condition + " mV");
+        }
+        if (thresholds.healthy && thresholds.healthy.condition) {
+            parts.push("healthy " + thresholds.healthy.condition + " mV");
+        }
+        if (parts.length) appendDiagnosticNote(wrapper, "Internal monitor thresholds: " + parts.join("; "));
+    }
+    if (definition.debounce_samples !== undefined) {
+        appendDiagnosticNote(wrapper, "Electrical classifier debounce: " + definition.debounce_samples + " samples");
+    }
+    if (definition.adc_channel !== undefined) {
+        const registerText = definition.adc_register ? " @ " + definition.adc_register : "";
+        appendDiagnosticNote(wrapper, "Firmware ADC monitor: channel " + definition.adc_channel + registerText);
+    }
+    if (definition.measurement_note) {
+        appendDiagnosticNote(wrapper, definition.measurement_note);
+    }
+    if (definition.threshold_status) {
+        appendDiagnosticNote(wrapper, "Electrical threshold status: " + definition.threshold_status);
+    }
+    if (definition.relevance) {
+        appendDiagnosticNote(wrapper, definition.relevance);
+    }
+    if (definition.clear_condition) {
+        appendDiagnosticNote(wrapper, "Clear condition: " + definition.clear_condition);
+    }
+}
+
+function renderFaultsResponse(response, action) {
+    const card = document.getElementById("faultsCard");
+    const summary = document.getElementById("faultsSummary");
+    const list = document.getElementById("faultsList");
+    const raw = document.getElementById("faultsRaw");
+
+    card.hidden = false;
+    raw.textContent = response;
+    list.replaceChildren();
+
+    const parserName = action.dtc_parser;
+    const parser = DTC_PARSERS[parserName];
+
+    if (!parser) {
+        summary.textContent = parserName
+            ? "No DTC parser named '" + parserName + "' is available. Raw response retained."
+            : "No DTC parser selected by the ECU JSON. Raw response retained.";
+        return;
+    }
+
+    let parsed;
+
+    try {
+        parsed = parser(response);
+    }
+    catch (err) {
+        summary.textContent = "DTC response received but could not be parsed. Raw response retained.";
+        Logger.log("DTC parser " + parserName + " failed: " + err);
+        return;
+    }
+
+    if (parsed.faults.length === 0) {
+        summary.textContent = "No DTCs reported by the ECU.";
+        return;
+    }
+
+    summary.textContent =
+        parsed.faults.length + " DTC(s) reported (" + parsed.format + ").";
+
+    for (const fault of parsed.faults) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-2";
+
+        const row = document.createElement("div");
+        const definition = getDtcDefinition(fault);
+        let text = fault.code;
+
+        if (definition) {
+            const title = definition.name || definition.text || definition.title;
+            const detail = definition.detail || definition.subtitle;
+            const parts = [];
+            if (title) parts.push(title);
+            if (detail) parts.push(detail);
+            if (parts.length > 0) text += " — " + parts.join(": ");
+        }
+
+        if (fault.baseCode !== undefined) {
+            const hasExplicitDetail = Boolean(definition && (definition.detail || definition.subtitle));
+            if (!hasExplicitDetail && fault.faultTypeName) {
+                text += " — " + fault.faultTypeName;
+            }
+            text += " [" + fault.origin + ", base 0x" + fault.baseCode + "]";
+        }
+
+        if (fault.status !== null && fault.status !== undefined) {
+            text +=
+                " (status 0x" +
+                fault.status.toString(16).padStart(2, "0").toUpperCase() +
+                ")";
+        }
+
+        row.textContent = text;
+        wrapper.appendChild(row);
+
+        if (fault.faultTypeDefinition && fault.faultTypeDefinition.interpretation) {
+            appendDiagnosticNote(wrapper, fault.faultTypeDefinition.interpretation);
+        }
+        appendDtcDefinitionNotes(wrapper, definition);
+        list.appendChild(wrapper);
+    }
+}
+
+function renderDiagnosticResult(action, response) {
+    if (action.response_handler === "dtc") {
+        renderFaultsResponse(response, action);
+        return;
+    }
+
+    if (action.response_handler === "clear_faults") {
+        const card = document.getElementById("faultsCard");
+        const summary = document.getElementById("faultsSummary");
+        const list = document.getElementById("faultsList");
+        const raw = document.getElementById("faultsRaw");
+
+        card.hidden = false;
+        summary.textContent = action.success_message || "Fault clear command accepted.";
+        list.replaceChildren();
+        raw.textContent = response;
+    }
+}
+
+function getDiagnosticActions() {
+    const configured = app.ecuDefinition && app.ecuDefinition.diagnostic_actions;
+
+    if (!configured) return [];
+
+    if (Array.isArray(configured)) {
+        return configured
+            .filter((action) => action && typeof action === "object")
+            .map((action, index) => ({ ...action, id: action.id || ("action_" + index) }));
+    }
+
+    if (typeof configured === "object") {
+        return Object.entries(configured)
+            .filter(([, action]) => action && typeof action === "object")
+            .map(([id, action]) => ({ ...action, id: action.id || id }));
+    }
+
+    return [];
+}
+
+function getDiagnosticTests() {
+    const configured = app.ecuDefinition && app.ecuDefinition.diagnostic_tests;
+
+    if (!configured) return [];
+
+    if (Array.isArray(configured)) {
+        return configured
+            .filter((test) => test && typeof test === "object")
+            .map((test, index) => ({ ...test, id: test.id || ("test_" + index) }));
+    }
+
+    if (typeof configured === "object") {
+        return Object.entries(configured)
+            .filter(([, test]) => test && typeof test === "object")
+            .map(([id, test]) => ({ ...test, id: test.id || id }));
+    }
+
+    return [];
+}
+
+function getDiagnosticButtonClass(action) {
+    const allowed = new Set([
+        "primary", "secondary", "success", "danger",
+        "warning", "info", "light", "dark"
+    ]);
+    const style = allowed.has(action.button_style) ? action.button_style : "secondary";
+    return "btn btn-" + style + " me-2 mb-2";
+}
+
+async function runDiagnosticAction(action) {
+    if (!app.diagnosticClient || !app.ecuDefinition) {
+        throw new Error("Load an ECU JSON and connect first");
+    }
+
+    await app.diagnosticClient.selectECU();
+
+    let sessionStarted = false;
+    const shouldStartSession = action.start_session !== false;
+    const shouldStopSession = action.stop_session !== false && action.ecu_resets !== true;
+
+    try {
+        if (shouldStartSession) {
+            await app.diagnosticClient.startSession();
+            sessionStarted = true;
+        }
+
+        if (action.requires_unlock === true) {
+            await app.diagnosticClient.unlock();
+        }
+
+        const response = await app.diagnosticClient.executeDiagnosticAction(action);
+        Logger.log(
+            "Diagnostic action '" + (action.label || action.id) + "' response: " + response
+        );
+        renderDiagnosticResult(action, response);
+
+        if (action.success_message) Logger.log(action.success_message);
+        return response;
+    }
+    finally {
+        if (sessionStarted && shouldStopSession) {
+            try {
+                await app.diagnosticClient.stopSession();
+            }
+            catch (err) {
+                Logger.log("Failed closing diagnostic session: " + err);
+            }
+        }
+    }
+}
+
+function renderDiagnosticActions() {
+    const container = document.getElementById("diagnosticActions");
+    if (!container) return;
+    container.replaceChildren();
+
+    for (const action of getDiagnosticActions()) {
+        if (action.visible === false || !action.request) continue;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = getDiagnosticButtonClass(action);
+        button.textContent = action.label || action.id;
+
+        button.addEventListener("click", async () => {
+            if (action.confirm && !confirm(action.confirm)) return;
+            button.disabled = true;
+            try {
+                await runDiagnosticAction(action);
+            }
+            catch (err) {
+                Logger.log("Diagnostic action '" + (action.label || action.id) + "' failed: " + err);
+                console.error(err);
+            }
+            finally {
+                button.disabled = false;
+            }
+        });
+        container.appendChild(button);
+    }
+}
+
+const RD45_C1_BANK1_KEYS = {
+    "01": "SOURCE",
+    "02": "EJECT",
+    "03": "AUDIO",
+    "04": "MENU",
+    "05": "LIST",
+    "06": "ESC",
+    "07": "CH_UP",
+    "08": "CH_DOWN",
+    "09": "UP",
+    "0A": "DOWN",
+    "0B": "PRESET_1",
+    "0C": "PRESET_2",
+    "0D": "PRESET_3",
+    "0E": "PRESET_4",
+    "0F": "PRESET_5",
+    "10": "PRESET_6",
+    "13": "ON_OFF",
+    "20": "TA_MUTE",
+    "21": "DARK_MUTE",
+    "22": "MODE",
+    "23": "OK",
+    "24": "BAND"
+};
+
+const RD45_ACTUATOR_80_STATUS = {
+    "00": "not launched",
+    "01": "in progress",
+    "02": "finished",
+    "04": "finished NOK",
+    "11": "stopped",
+    "12": "state"
+};
+
+function hexByte(value) {
+    return Number(value).toString(16).padStart(2, "0").toUpperCase();
+}
+
+function decodeRd45TestResponse(handler, response, step) {
+    const normalized = normalizeHexString(response);
+    const bytes = hexToBytes(normalized);
+
+    if (handler === "rd45_c1") {
+        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC1) {
+            return "Unexpected C1 response: " + normalized;
+        }
+        const bank1 = hexByte(bytes[2]);
+        const bank2 = hexByte(bytes[3]);
+        const known = RD45_C1_BANK1_KEYS[bank1];
+        return "C1 bank1=0x" + bank1 +
+            (known ? " (pressed: " + known + ")" : " (released/unknown code)") +
+            ", bank2=0x" + bank2 +
+            " (raw; DGD defines second-bank controls but no fixed idle code).";
+    }
+
+    if (handler === "rd45_a5") {
+        if (bytes.length < 3 || bytes[0] !== 0x61 || bytes[1] !== 0xA5) {
+            return "Unexpected A5 response: " + normalized;
+        }
+        const value = bytes[2];
+        const code = (value >>> 6) & 0x03;
+        const reductions = ["0", "-1", "-2", "-3"];
+        return "A5 raw=0x" + hexByte(value) +
+            "; reduction bits 7..6=" + code.toString(2).padStart(2, "0") +
+            " => " + reductions[code] +
+            "; lower six bits preserved/raw=0x" + hexByte(value & 0x3F) + ".";
+    }
+
+    if (handler === "rd45_c0") {
+        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC0) {
+            return "Unexpected C0 response: " + normalized;
+        }
+        const qualityCode = bytes[2] & 0x0F;
+        const qualityNames = {
+            0: "good",
+            1: "average",
+            2: "weak",
+            3: "very weak",
+            4: "impossible"
+        };
+        const quality = qualityNames[qualityCode] || ("raw quality code " + qualityCode);
+        return "C0 quality=" + quality +
+            " (0x" + qualityCode.toString(16).toUpperCase() + ")" +
+            "; reception level raw=0x" + hexByte(bytes[3]) +
+            " (" + bytes[3] + "). No proven mV conversion is defined by the supplied DGD/YML.";
+    }
+
+    if (handler === "rd45_actuator_80") {
+        if (bytes.length < 3 || bytes[0] !== 0x70 || bytes[1] !== 0x80) {
+            return "Unexpected speaker-actuator response: " + normalized;
+        }
+        const status = hexByte(bytes[2]);
+        return "Speaker actuator 0x80 status=0x" + status +
+            " (" + (RD45_ACTUATOR_80_STATUS[status] || "unknown") + ").";
+    }
+
+    if (handler === "dtc") {
+        const parserName = (step && step.dtc_parser) || "psa_kwp_compact";
+        const parser = DTC_PARSERS[parserName];
+        if (!parser) return "Raw DTC response: " + normalized;
+        try {
+            const parsed = parser(normalized);
+            if (parsed.faults.length === 0) return "No DTCs.";
+            return parsed.faults.map((fault) => {
+                let s = fault.code;
+                const definition = getDtcDefinition(fault);
+                if (definition && definition.name) s += " " + definition.name;
+                if (fault.faultTypeName) s += " / " + fault.faultTypeName;
+                if (fault.baseCode) s += " [" + fault.origin + ", base 0x" + fault.baseCode + "]";
+                return s;
+            }).join("; ");
+        }
+        catch (err) {
+            return "DTC parse error: " + err + "; raw=" + normalized;
+        }
+    }
+
+    return normalized;
+}
+
+function renderDiagnosticTestResult(test, resultLines, rawLines) {
+    const card = document.getElementById("diagnosticTestsCard");
+    const summary = document.getElementById("diagnosticTestSummary");
+    const raw = document.getElementById("diagnosticTestRaw");
+
+    if (!card || !summary || !raw) return;
+
+    card.hidden = false;
+    summary.replaceChildren();
+
+    const title = document.createElement("div");
+    title.className = "fw-bold mb-1";
+    title.textContent = test.label || test.id || "Diagnostic test";
+    summary.appendChild(title);
+
+    if (test.description) appendDiagnosticNote(summary, test.description);
+
+    for (const lineText of resultLines) {
+        const line = document.createElement("div");
+        line.textContent = lineText;
+        summary.appendChild(line);
+    }
+
+    raw.textContent = rawLines.join("\n");
+}
+
+function getTestSteps(test) {
+    if (Array.isArray(test.steps) && test.steps.length > 0) {
+        return test.steps;
+    }
+    if (test.request) {
+        return [{
+            label: test.label || test.id,
+            request: test.request,
+            positive_prefix: test.positive_prefix,
+            response_handler: test.response_handler,
+            dtc_parser: test.dtc_parser
+        }];
+    }
+    return [];
+}
+
+async function sleepMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runDiagnosticTest(test) {
+    if (!app.diagnosticClient || !app.ecuDefinition) {
+        throw new Error("Load an ECU JSON and connect first");
+    }
+
+    const steps = getTestSteps(test);
+    if (steps.length === 0) {
+        throw new Error("Diagnostic test has no request/steps");
+    }
+
+    await app.diagnosticClient.selectECU();
+
+    let sessionStarted = false;
+    let actuatorNeedsStop = false;
+    const results = [];
+    const rawLines = [];
+    const shouldStartSession = test.start_session !== false;
+    const shouldStopSession = test.stop_session !== false;
+
+    try {
+        if (shouldStartSession) {
+            await app.diagnosticClient.startSession();
+            sessionStarted = true;
+        }
+
+        if (test.requires_unlock === true) {
+            await app.diagnosticClient.unlock();
+        }
+
+        for (const step of steps) {
+            const response = await app.diagnosticClient.executeDiagnosticAction(step);
+            const label = step.label || step.request;
+            rawLines.push(label + ": " + response);
+            results.push(label + ": " + decodeRd45TestResponse(step.response_handler, response, step));
+        }
+
+        if (test.auto_stop_request) {
+            actuatorNeedsStop = true;
+            const delayMs = Number.isFinite(Number(test.auto_stop_ms))
+                ? Math.max(0, Number(test.auto_stop_ms))
+                : 800;
+            await sleepMs(delayMs);
+
+            const stopStep = {
+                request: test.auto_stop_request,
+                positive_prefix: test.auto_stop_positive_prefix || ""
+            };
+            const stopResponse = await app.diagnosticClient.executeDiagnosticAction(stopStep);
+            actuatorNeedsStop = false;
+            rawLines.push("Automatic STOP: " + stopResponse);
+            results.push("Automatic STOP: " + decodeRd45TestResponse("rd45_actuator_80", stopResponse, stopStep));
+        }
+
+        renderDiagnosticTestResult(test, results, rawLines);
+        return { results, rawLines };
+    }
+    finally {
+        if (actuatorNeedsStop && test.auto_stop_request) {
+            try {
+                const emergencyStop = await app.diagnosticClient.executeDiagnosticAction({
+                    request: test.auto_stop_request,
+                    positive_prefix: test.auto_stop_positive_prefix || ""
+                });
+                Logger.log("Speaker actuator cleanup STOP response: " + emergencyStop);
+            }
+            catch (err) {
+                Logger.log("Speaker actuator cleanup STOP failed: " + err);
+            }
+        }
+
+        if (sessionStarted && shouldStopSession) {
+            try {
+                await app.diagnosticClient.stopSession();
+            }
+            catch (err) {
+                Logger.log("Failed closing diagnostic test session: " + err);
+            }
+        }
+    }
+}
+
+function renderDiagnosticTests() {
+    const card = document.getElementById("diagnosticTestsCard");
+    const container = document.getElementById("diagnosticTests");
+    if (!card || !container) return;
+
+    const tests = getDiagnosticTests().filter((test) => test.visible !== false);
+    container.replaceChildren();
+    card.hidden = tests.length === 0;
+
+    for (const test of tests) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = getDiagnosticButtonClass(test);
+        button.textContent = test.label || test.id;
+        if (test.description) button.title = test.description;
+
+        button.addEventListener("click", async () => {
+            if (test.confirm && !confirm(test.confirm)) return;
+            button.disabled = true;
+            try {
+                await runDiagnosticTest(test);
+            }
+            catch (err) {
+                Logger.log("Diagnostic test '" + (test.label || test.id) + "' failed: " + err);
+                renderDiagnosticTestResult(test, ["FAILED: " + err], []);
+                console.error(err);
+            }
+            finally {
+                button.disabled = false;
+            }
+        });
+        container.appendChild(button);
+    }
+}
+
+async function readAllZones() {
+    await app.diagnosticClient.selectECU();
+    await app.diagnosticClient.startSession();
+
+    try {
+    for (const zoneId in app.ecuDefinition.zones) {
+        const zoneDef = app.ecuDefinition.zones[zoneId];
+
+        try {
+            const data = await app.diagnosticClient.readZone(zoneId);
+
+            app.zoneStates[zoneId].setHex(data);
+
+            refreshControls(zoneId, zoneDef);
+            updateZoneCard(zoneId);
+        }
+        catch (err) {
+            Logger.log("Failed reading zone " + zoneId + ": " + err);
+        }
+    }
+
+    }
+    finally {
+        await app.diagnosticClient.stopSession();
+    }
+}
+
+async function writeModifiedZones() {
+    await app.diagnosticClient.selectECU();
+    await app.diagnosticClient.startSession();
+
+    try {
+    await app.diagnosticClient.unlock();
+
+    const transactionConfig = app.diagnosticClient.getKwpHabTelecodingTransactionConfig();
+    const transactionZoneIds = transactionConfig
+        ? transactionConfig.transaction_zones.map(zone => String(zone).toUpperCase())
+        : [];
+
+    const transactionModified = {};
+    const regularModified = [];
+
+    for (const zoneId in app.zoneStates) {
+        const zoneState = app.zoneStates[zoneId];
+        const zoneDef = app.ecuDefinition.zones[zoneId];
+
+        if (zoneDef && zoneDef.read_only === true) {
+            Logger.log("Read-only zone skipped from bulk write: " + zoneId);
+            continue;
+        }
+
+        if (!zoneState.dirty) {
+            continue;
+        }
+
+        if (transactionConfig && transactionZoneIds.includes(zoneId.toUpperCase())) {
+            transactionModified[zoneId.toUpperCase()] = zoneState.modifiedHex;
+        } else {
+            regularModified.push(zoneId);
+        }
+    }
+
+    let anyRegularModified = false;
+
+    for (const zoneId of regularModified) {
+        const zoneState = app.zoneStates[zoneId];
+
+        try {
+            await app.diagnosticClient.readZone(zoneId);
+            await app.diagnosticClient.writeZone(
+                zoneId,
+                zoneState.modifiedHex
+            );
+
+            zoneState.originalBytes =
+                new Uint8Array(zoneState.modifiedBytes);
+            updateZoneCard(zoneId);
+            anyRegularModified = true;
+        }
+        catch (err) {
+            Logger.log("Failed writing zone " + zoneId + ": " + err);
+        }
+    }
+
+    const transactionModifiedIds = Object.keys(transactionModified);
+    if (transactionModifiedIds.length > 0) {
+        await app.diagnosticClient.writeKwpHabTelecodingTransaction(
+            transactionModified
+        );
+
+        for (const zoneId of transactionModifiedIds) {
+            const zoneState = app.zoneStates[zoneId];
+            if (zoneState) {
+                zoneState.originalBytes =
+                    new Uint8Array(zoneState.modifiedBytes);
+                updateZoneCard(zoneId);
+            }
+        }
+    }
+
+    // Preserve the existing UDS traceability behaviour for non-transaction
+    // writes. KWP-HAB A0 finalisation is performed only by the descriptor-
+    // driven full transaction helper above.
+    if (anyRegularModified && app.diagnosticClient.protocol.name === "UDS") {
+        try {
+            await app.diagnosticClient.writeSecureTraceability();
+        }
+        catch (err) {
+            Logger.log("Secure traceability failed: " + err);
+        }
+    }
+
+    }
+    finally {
+        await app.diagnosticClient.stopSession();
+    }
+}
+
+async function loadECU(json) {
+    app.ecuDefinition = json;
+
+    document.getElementById("ecuName").innerText = json.name;
+    document.getElementById("ecuProtocol").innerText = json.protocol;
+    document.getElementById("ecuTx").innerText = json.tx_id;
+    document.getElementById("ecuRx").innerText = json.rx_id;
+
+    const keySelect = document.getElementById("ecuKey");
+    keySelect.innerHTML = "";
+
+    if (json.keys) {
+        if (typeof json.keys === "string") {
+            const option = document.createElement("option");
+            option.innerText = json.keys;
+            option.value = json.keys;
+            keySelect.appendChild(option);
+        } else if (Array.isArray(json.keys)) {
+            for (const key of json.keys) {
+                const option = document.createElement("option");
+                option.innerText = key;
+                option.value = key;
+                keySelect.appendChild(option);
+            }
+        } else {
+            for (const [keyName, keyValue] of Object.entries(json.keys)) {
+                const option = document.createElement("option");
+                option.innerText = keyName;
+                option.value = keyValue;
+                keySelect.appendChild(option);
+            }
+        }
+    }
+
+
+    renderTabs();
+
+    app.diagnosticClient = new DiagnosticClient(
+        app.transport,
+        app.ecuDefinition
+    );
+
+    const selectedKey = keySelect.value;
+    if (selectedKey) {
+        app.diagnosticClient.setUnlockKey(selectedKey);
+    }
+
+    renderDiagnosticActions();
+    renderDiagnosticTests();
+}
+
+async function connectWebSocket() {
+    const url = document.getElementById("wsUrl").value;
+
+    await app.transport.connect(url);
+}
+
+document.getElementById("ecuKey").addEventListener("change", async (event) => {
+    const key = event.target.value;
+
+    if (app.diagnosticClient) {
+        try {
+            app.diagnosticClient.setUnlockKey(key);
+            //await app.diagnosticClient.unlock(key);
+            Logger.log("Set ECU unlock key: " + key);
+        }
+        catch (err) {
+            Logger.log("Failed to set ECU unlock key " + key + ": " + err);
+            console.error(err);
+            //alert(err);
+        }
+    }
+});
+
+document.getElementById("connectBtn").addEventListener("click", async () => {
+    try {
+        await connectWebSocket();
+
+        console.log("Connected");
+        Logger.log("Connected");
+        //alert("Connected");
+    }
+    catch (err) {
+        Logger.log("Connection failed: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+document.getElementById("jsonFile").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const json = JSON.parse(reader.result);
+        loadECU(json);
+    };
+
+    reader.readAsText(file);
+});
+
+document.getElementById("readAllBtn").addEventListener("click", async () => {
+    try {
+        await readAllZones();
+    }
+    catch (err) {
+        Logger.log("Failed reading all zones: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+document.getElementById("writeModifiedBtn").addEventListener("click", async () => {
+    if (!confirm("Write all modified zones?")) {
+        return;
+    }
+
+    try {
+        await writeModifiedZones();
+    }
+    catch (err) {
+        Logger.log("Failed writing modified zones: " + err);
+        console.error(err);
+        //alert(err);
+    }
+});
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        var wsUrlInput = document.getElementById("wsUrl");
+        wsUrlInput.value = "ws://" + window.location.host + "/ws";
+    }
+);
+
+setupTabs();
+</script>
+
+</body>
+</html>
