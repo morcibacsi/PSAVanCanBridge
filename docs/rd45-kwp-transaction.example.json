@@ -1,0 +1,21 @@
+{
+  "kwp_hab_telecoding_transaction": {
+    "enabled": true,
+    "transaction_zones": [
+      "B0",
+      "B1",
+      "B2",
+      "B3",
+      "B8"
+    ],
+    "traceability_zone": "A0",
+    "expected_payload_lengths_bytes": {
+      "B0": 17,
+      "B1": 8,
+      "B2": 2,
+      "B3": 1,
+      "B8": 1,
+      "A0": 10
+    }
+  }
+}
