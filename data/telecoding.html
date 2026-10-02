@@ -89,20 +89,6 @@
         </div>
     </div>
 
-    <div class="card mb-3" id="diagnosticTestsCard" hidden>
-        <div class="card-header">
-            Optional diagnostic tests
-        </div>
-        <div class="card-body">
-            <div id="diagnosticTests" class="mb-2"></div>
-            <div id="diagnosticTestSummary" class="mb-2"></div>
-            <div>
-                <strong>Raw test responses:</strong>
-                <pre id="diagnosticTestRaw" class="mb-0" style="white-space:pre-wrap;">-</pre>
-            </div>
-        </div>
-    </div>
-
     <ul class="nav nav-tabs" id="tabBar"></ul>
 
     <div id="tabContent" class="tab-content mt-3"></div>
@@ -202,13 +188,11 @@ class DiagnosticClient {
     constructor(transport, ecuDefinition) {
         this.transport = transport;
         this.ecuDefinition = ecuDefinition;
-        this.keepAliveInterval = null;
         this.unlockKey = null;
 
         this.protocolMap = {
             uds: {
                 name: "UDS",
-                keepAlive: "KU",
                 stopKeepAlive: "S",
                 startDiag: "1003",
                 stopDiag: "1001",
@@ -222,7 +206,6 @@ class DiagnosticClient {
             },
             kwp_hab: {
                 name: "KWP-HAB",
-                keepAlive: "KK",
                 stopKeepAlive: "S",
                 startDiag: "10C0",
                 stopDiag: "1081",
@@ -256,7 +239,6 @@ class DiagnosticClient {
     }
 
     async startSession() {
-        //await this.transport.send(this.protocol.keepAlive);
 
         const response = await this.transport.send(this.protocol.startDiag);
 
@@ -266,24 +248,14 @@ class DiagnosticClient {
         }
         else {
             Logger.log("Diagnostic session started");
-            const stopKeepAliveResponse = await this.transport.send(this.protocol.stopKeepAlive);
+            await this.transport.send(this.protocol.stopKeepAlive);
         }
         await new Promise(resolve => setTimeout(resolve, 500));
 
 
-/*
-        this.keepAliveInterval = setInterval(async () => {
-            try {
-                await this.transport.send(this.protocol.keepAlive);
-            }
-            catch {}
-        }, 2000);
-*/
     }
 
     async stopSession() {
-        clearInterval(this.keepAliveInterval);
-
         try {
             await this.transport.send(this.protocol.stopKeepAlive);
         }
@@ -465,8 +437,6 @@ class DiagnosticClient {
         }
     }
 
-    // RD45/KWP-HAB full telecoding transaction support.
-    // Descriptor-driven: no RD45 payload or VIN is hard-coded here.
     getKwpHabTelecodingTransactionConfig() {
         if (this.protocol.name !== "KWP-HAB") {
             return null;
@@ -810,7 +780,6 @@ function createControl(zoneId, controlKey, controlDef) {
     if (controlDef.zoneLength) {
         if (Array.isArray(controlDef.zoneLength)) {
             if (controlDef.zoneLength.includes(zoneState.modifiedBytes.length)) {
-                // valid
             }
             else {
                 console.warn(`Control ${controlDef.name} has zoneLength ${controlDef.zoneLength}, but zone has length ${zoneState.modifiedBytes.length}`);
@@ -849,7 +818,6 @@ function createControl(zoneId, controlKey, controlDef) {
             checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) === 0;
         }
 
-        //checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
 
         checkbox.addEventListener("change", () => {
             const activeHigh = controlDef.available_logic === "active_high";
@@ -1078,7 +1046,6 @@ function createZoneCard(zoneId, zoneDef) {
         catch (err) {
             Logger.log("Failed reading zone " + zoneId + ": " + err);
             console.error(err);
-            //alert(err);
         }
     });
 
@@ -1130,7 +1097,6 @@ function createZoneCard(zoneId, zoneDef) {
         catch (err) {
             Logger.log("Failed writing zone " + zoneId + ": " + err);
             console.error(err);
-            //alert(err);
         }
         finally {
             if (sessionStarted) {
@@ -1263,8 +1229,6 @@ function setupTabs() {
     });
 }
 
-// BRIDGE_JSON_DIAGNOSTICS_V1
-// BRIDGE_JSON_DIAGNOSTICS_V2_RD45_TESTS
 function normalizeHexString(value) {
     return String(value || "").replace(/\s+/g, "").toUpperCase();
 }
@@ -1668,26 +1632,6 @@ function getDiagnosticActions() {
     return [];
 }
 
-function getDiagnosticTests() {
-    const configured = app.ecuDefinition && app.ecuDefinition.diagnostic_tests;
-
-    if (!configured) return [];
-
-    if (Array.isArray(configured)) {
-        return configured
-            .filter((test) => test && typeof test === "object")
-            .map((test, index) => ({ ...test, id: test.id || ("test_" + index) }));
-    }
-
-    if (typeof configured === "object") {
-        return Object.entries(configured)
-            .filter(([, test]) => test && typeof test === "object")
-            .map(([id, test]) => ({ ...test, id: test.id || id }));
-    }
-
-    return [];
-}
-
 function getDiagnosticButtonClass(action) {
     const allowed = new Set([
         "primary", "secondary", "success", "danger",
@@ -1760,288 +1704,6 @@ function renderDiagnosticActions() {
             }
             catch (err) {
                 Logger.log("Diagnostic action '" + (action.label || action.id) + "' failed: " + err);
-                console.error(err);
-            }
-            finally {
-                button.disabled = false;
-            }
-        });
-        container.appendChild(button);
-    }
-}
-
-const RD45_C1_BANK1_KEYS = {
-    "01": "SOURCE",
-    "02": "EJECT",
-    "03": "AUDIO",
-    "04": "MENU",
-    "05": "LIST",
-    "06": "ESC",
-    "07": "CH_UP",
-    "08": "CH_DOWN",
-    "09": "UP",
-    "0A": "DOWN",
-    "0B": "PRESET_1",
-    "0C": "PRESET_2",
-    "0D": "PRESET_3",
-    "0E": "PRESET_4",
-    "0F": "PRESET_5",
-    "10": "PRESET_6",
-    "13": "ON_OFF",
-    "20": "TA_MUTE",
-    "21": "DARK_MUTE",
-    "22": "MODE",
-    "23": "OK",
-    "24": "BAND"
-};
-
-const RD45_ACTUATOR_80_STATUS = {
-    "00": "not launched",
-    "01": "in progress",
-    "02": "finished",
-    "04": "finished NOK",
-    "11": "stopped",
-    "12": "state"
-};
-
-function hexByte(value) {
-    return Number(value).toString(16).padStart(2, "0").toUpperCase();
-}
-
-function decodeRd45TestResponse(handler, response, step) {
-    const normalized = normalizeHexString(response);
-    const bytes = hexToBytes(normalized);
-
-    if (handler === "rd45_c1") {
-        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC1) {
-            return "Unexpected C1 response: " + normalized;
-        }
-        const bank1 = hexByte(bytes[2]);
-        const bank2 = hexByte(bytes[3]);
-        const known = RD45_C1_BANK1_KEYS[bank1];
-        return "C1 bank1=0x" + bank1 +
-            (known ? " (pressed: " + known + ")" : " (released/unknown code)") +
-            ", bank2=0x" + bank2 +
-            " (raw; DGD defines second-bank controls but no fixed idle code).";
-    }
-
-    if (handler === "rd45_a5") {
-        if (bytes.length < 3 || bytes[0] !== 0x61 || bytes[1] !== 0xA5) {
-            return "Unexpected A5 response: " + normalized;
-        }
-        const value = bytes[2];
-        const code = (value >>> 6) & 0x03;
-        const reductions = ["0", "-1", "-2", "-3"];
-        return "A5 raw=0x" + hexByte(value) +
-            "; reduction bits 7..6=" + code.toString(2).padStart(2, "0") +
-            " => " + reductions[code] +
-            "; lower six bits preserved/raw=0x" + hexByte(value & 0x3F) + ".";
-    }
-
-    if (handler === "rd45_c0") {
-        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC0) {
-            return "Unexpected C0 response: " + normalized;
-        }
-        const qualityCode = bytes[2] & 0x0F;
-        const qualityNames = {
-            0: "good",
-            1: "average",
-            2: "weak",
-            3: "very weak",
-            4: "impossible"
-        };
-        const quality = qualityNames[qualityCode] || ("raw quality code " + qualityCode);
-        return "C0 quality=" + quality +
-            " (0x" + qualityCode.toString(16).toUpperCase() + ")" +
-            "; reception level raw=0x" + hexByte(bytes[3]) +
-            " (" + bytes[3] + "). No proven mV conversion is defined by the supplied DGD/YML.";
-    }
-
-    if (handler === "rd45_actuator_80") {
-        if (bytes.length < 3 || bytes[0] !== 0x70 || bytes[1] !== 0x80) {
-            return "Unexpected speaker-actuator response: " + normalized;
-        }
-        const status = hexByte(bytes[2]);
-        return "Speaker actuator 0x80 status=0x" + status +
-            " (" + (RD45_ACTUATOR_80_STATUS[status] || "unknown") + ").";
-    }
-
-    if (handler === "dtc") {
-        const parserName = (step && step.dtc_parser) || "psa_kwp_compact";
-        const parser = DTC_PARSERS[parserName];
-        if (!parser) return "Raw DTC response: " + normalized;
-        try {
-            const parsed = parser(normalized);
-            if (parsed.faults.length === 0) return "No DTCs.";
-            return parsed.faults.map((fault) => {
-                let s = fault.code;
-                const definition = getDtcDefinition(fault);
-                if (definition && definition.name) s += " " + definition.name;
-                if (fault.faultTypeName) s += " / " + fault.faultTypeName;
-                if (fault.baseCode) s += " [" + fault.origin + ", base 0x" + fault.baseCode + "]";
-                return s;
-            }).join("; ");
-        }
-        catch (err) {
-            return "DTC parse error: " + err + "; raw=" + normalized;
-        }
-    }
-
-    return normalized;
-}
-
-function renderDiagnosticTestResult(test, resultLines, rawLines) {
-    const card = document.getElementById("diagnosticTestsCard");
-    const summary = document.getElementById("diagnosticTestSummary");
-    const raw = document.getElementById("diagnosticTestRaw");
-
-    if (!card || !summary || !raw) return;
-
-    card.hidden = false;
-    summary.replaceChildren();
-
-    const title = document.createElement("div");
-    title.className = "fw-bold mb-1";
-    title.textContent = test.label || test.id || "Diagnostic test";
-    summary.appendChild(title);
-
-    if (test.description) appendDiagnosticNote(summary, test.description);
-
-    for (const lineText of resultLines) {
-        const line = document.createElement("div");
-        line.textContent = lineText;
-        summary.appendChild(line);
-    }
-
-    raw.textContent = rawLines.join("\n");
-}
-
-function getTestSteps(test) {
-    if (Array.isArray(test.steps) && test.steps.length > 0) {
-        return test.steps;
-    }
-    if (test.request) {
-        return [{
-            label: test.label || test.id,
-            request: test.request,
-            positive_prefix: test.positive_prefix,
-            response_handler: test.response_handler,
-            dtc_parser: test.dtc_parser
-        }];
-    }
-    return [];
-}
-
-async function sleepMs(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function runDiagnosticTest(test) {
-    if (!app.diagnosticClient || !app.ecuDefinition) {
-        throw new Error("Load an ECU JSON and connect first");
-    }
-
-    const steps = getTestSteps(test);
-    if (steps.length === 0) {
-        throw new Error("Diagnostic test has no request/steps");
-    }
-
-    await app.diagnosticClient.selectECU();
-
-    let sessionStarted = false;
-    let actuatorNeedsStop = false;
-    const results = [];
-    const rawLines = [];
-    const shouldStartSession = test.start_session !== false;
-    const shouldStopSession = test.stop_session !== false;
-
-    try {
-        if (shouldStartSession) {
-            await app.diagnosticClient.startSession();
-            sessionStarted = true;
-        }
-
-        if (test.requires_unlock === true) {
-            await app.diagnosticClient.unlock();
-        }
-
-        for (const step of steps) {
-            const response = await app.diagnosticClient.executeDiagnosticAction(step);
-            const label = step.label || step.request;
-            rawLines.push(label + ": " + response);
-            results.push(label + ": " + decodeRd45TestResponse(step.response_handler, response, step));
-        }
-
-        if (test.auto_stop_request) {
-            actuatorNeedsStop = true;
-            const delayMs = Number.isFinite(Number(test.auto_stop_ms))
-                ? Math.max(0, Number(test.auto_stop_ms))
-                : 800;
-            await sleepMs(delayMs);
-
-            const stopStep = {
-                request: test.auto_stop_request,
-                positive_prefix: test.auto_stop_positive_prefix || ""
-            };
-            const stopResponse = await app.diagnosticClient.executeDiagnosticAction(stopStep);
-            actuatorNeedsStop = false;
-            rawLines.push("Automatic STOP: " + stopResponse);
-            results.push("Automatic STOP: " + decodeRd45TestResponse("rd45_actuator_80", stopResponse, stopStep));
-        }
-
-        renderDiagnosticTestResult(test, results, rawLines);
-        return { results, rawLines };
-    }
-    finally {
-        if (actuatorNeedsStop && test.auto_stop_request) {
-            try {
-                const emergencyStop = await app.diagnosticClient.executeDiagnosticAction({
-                    request: test.auto_stop_request,
-                    positive_prefix: test.auto_stop_positive_prefix || ""
-                });
-                Logger.log("Speaker actuator cleanup STOP response: " + emergencyStop);
-            }
-            catch (err) {
-                Logger.log("Speaker actuator cleanup STOP failed: " + err);
-            }
-        }
-
-        if (sessionStarted && shouldStopSession) {
-            try {
-                await app.diagnosticClient.stopSession();
-            }
-            catch (err) {
-                Logger.log("Failed closing diagnostic test session: " + err);
-            }
-        }
-    }
-}
-
-function renderDiagnosticTests() {
-    const card = document.getElementById("diagnosticTestsCard");
-    const container = document.getElementById("diagnosticTests");
-    if (!card || !container) return;
-
-    const tests = getDiagnosticTests().filter((test) => test.visible !== false);
-    container.replaceChildren();
-    card.hidden = tests.length === 0;
-
-    for (const test of tests) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = getDiagnosticButtonClass(test);
-        button.textContent = test.label || test.id;
-        if (test.description) button.title = test.description;
-
-        button.addEventListener("click", async () => {
-            if (test.confirm && !confirm(test.confirm)) return;
-            button.disabled = true;
-            try {
-                await runDiagnosticTest(test);
-            }
-            catch (err) {
-                Logger.log("Diagnostic test '" + (test.label || test.id) + "' failed: " + err);
-                renderDiagnosticTestResult(test, ["FAILED: " + err], []);
                 console.error(err);
             }
             finally {
@@ -2218,7 +1880,6 @@ async function loadECU(json) {
     }
 
     renderDiagnosticActions();
-    renderDiagnosticTests();
 }
 
 async function connectWebSocket() {
@@ -2233,13 +1894,11 @@ document.getElementById("ecuKey").addEventListener("change", async (event) => {
     if (app.diagnosticClient) {
         try {
             app.diagnosticClient.setUnlockKey(key);
-            //await app.diagnosticClient.unlock(key);
             Logger.log("Set ECU unlock key: " + key);
         }
         catch (err) {
             Logger.log("Failed to set ECU unlock key " + key + ": " + err);
             console.error(err);
-            //alert(err);
         }
     }
 });
@@ -2248,14 +1907,11 @@ document.getElementById("connectBtn").addEventListener("click", async () => {
     try {
         await connectWebSocket();
 
-        console.log("Connected");
         Logger.log("Connected");
-        //alert("Connected");
     }
     catch (err) {
         Logger.log("Connection failed: " + err);
         console.error(err);
-        //alert(err);
     }
 });
 
@@ -2283,7 +1939,6 @@ document.getElementById("readAllBtn").addEventListener("click", async () => {
     catch (err) {
         Logger.log("Failed reading all zones: " + err);
         console.error(err);
-        //alert(err);
     }
 });
 
@@ -2298,7 +1953,6 @@ document.getElementById("writeModifiedBtn").addEventListener("click", async () =
     catch (err) {
         Logger.log("Failed writing modified zones: " + err);
         console.error(err);
-        //alert(err);
     }
 });
 
