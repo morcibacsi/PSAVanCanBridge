@@ -71,6 +71,36 @@
         <button id="writeModifiedBtn" class="btn btn-warning">
             Write Modified Zones
         </button>
+
+        <span id="diagnosticActions" style="margin-left:0.5rem;"></span>
+    </div>
+
+    <div class="card mb-3" id="faultsCard" hidden>
+        <div class="card-header">
+            ECU Faults
+        </div>
+        <div class="card-body">
+            <div id="faultsSummary" class="mb-2"></div>
+            <div id="faultsList" class="mb-2"></div>
+            <div>
+                <strong>Raw response:</strong>
+                <code id="faultsRaw">-</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3" id="diagnosticTestsCard" hidden>
+        <div class="card-header">
+            Optional diagnostic tests
+        </div>
+        <div class="card-body">
+            <div id="diagnosticTests" class="mb-2"></div>
+            <div id="diagnosticTestSummary" class="mb-2"></div>
+            <div>
+                <strong>Raw test responses:</strong>
+                <pre id="diagnosticTestRaw" class="mb-0" style="white-space:pre-wrap;">-</pre>
+            </div>
+        </div>
     </div>
 
     <ul class="nav nav-tabs" id="tabBar"></ul>
@@ -364,19 +394,46 @@ class DiagnosticClient {
     }
 
     async readZone(zoneId) {
-        const response = await this.transport.send(
-            this.protocol.readZoneTag + zoneId
-        );
+        const normalizedZoneId = String(zoneId).toUpperCase();
+        const expectedPrefix = (this.protocol.name === "UDS" ? "62" : "61") + normalizedZoneId;
+        const response = String(await this.transport.send(
+            this.protocol.readZoneTag + normalizedZoneId
+        )).replace(/\s+/g, "").toUpperCase();
 
-        if (!response.startsWith("62") && !response.startsWith("61")) {
-            throw new Error("Read failed: " + response);
+        if (!/^[0-9A-F]+$/.test(response) || response.length % 2 !== 0 ||
+            !response.startsWith(expectedPrefix)) {
+            throw new Error("Read failed for zone " + normalizedZoneId + ": " + response);
+        }
+        return response.substring(expectedPrefix.length);
+    }
+
+    async executeDiagnosticAction(action) {
+        const request = String(action && action.request || "")
+            .replace(/\s+/g, "")
+            .toUpperCase();
+
+        if (!request || !/^[0-9A-F]+$/.test(request) || request.length % 2 !== 0) {
+            throw new Error("Invalid diagnostic request in ECU JSON: " + request);
         }
 
-        if (this.protocol.name === "UDS") {
-            return response.substring(6);
-        } else if (this.protocol.name === "KWP-HAB") {
-            return response.substring(4);
+        const response = await this.transport.send(request);
+
+        if (response.startsWith("7F")) {
+            throw new Error("Negative diagnostic response: " + response);
         }
+
+        const positivePrefix = String(action.positive_prefix || "")
+            .replace(/\s+/g, "")
+            .toUpperCase();
+
+        if (positivePrefix && !response.startsWith(positivePrefix)) {
+            throw new Error(
+                "Unexpected diagnostic response: " + response +
+                " (expected prefix " + positivePrefix + ")"
+            );
+        }
+
+        return response;
     }
 
     async writeZone(zoneId, hexData) {
@@ -407,6 +464,8 @@ class DiagnosticClient {
             }
         }
     }
+
+
 }
 
 class ZoneState {
@@ -617,7 +676,8 @@ function createControl(zoneId, controlKey, controlDef) {
         //checkbox.checked = (zoneState.modifiedBytes[byteIndex] & maskValue) !== 0;
 
         checkbox.addEventListener("change", () => {
-            if (checkbox.checked) {
+            const activeHigh = controlDef.available_logic === "active_high";
+            if (checkbox.checked === activeHigh) {
                 zoneState.modifiedBytes[byteIndex] |= maskValue;
             }
             else {
@@ -687,10 +747,8 @@ function createControl(zoneId, controlKey, controlDef) {
             input.value = bytesToAscii(bytes);
             input.addEventListener("change", () => {
                 const newBytes = asciiToBytes(input.value);
-                const newBuffer = new Uint8Array(byteIndex + newBytes.length);
-                newBuffer.set(zoneState.modifiedBytes.slice(0, byteIndex));
-                newBuffer.set(newBytes, byteIndex);
-                zoneState.modifiedBytes = newBuffer;
+                zoneState.modifiedBytes.fill(0, byteIndex, byteIndex + byteRange);
+                zoneState.modifiedBytes.set(newBytes.slice(0, byteRange), byteIndex);
                 updateZoneCard(zoneId);
             });
         } else {
@@ -715,6 +773,7 @@ function createControl(zoneId, controlKey, controlDef) {
 
 function createZoneCard(zoneId, zoneDef) {
     const zoneState = app.zoneStates[zoneId];
+    const isReadOnly = zoneDef.read_only === true;
     const card = document.createElement("div");
     card.className = "card mb-2 zone-clean";
     card.id = `card-${zoneId}`;
@@ -727,7 +786,10 @@ function createZoneCard(zoneId, zoneDef) {
 
     titleRow.innerHTML = `
         <div>
-            <div class="zone-title">${zoneDef.name}</div>
+            <div class="zone-title">
+                ${zoneDef.name}
+                ${isReadOnly ? '<span class="badge bg-secondary ms-1">READ ONLY</span>' : ''}
+            </div>
             <small class="zone-meta">Zone ${zoneId}</small>
         </div>
 
@@ -774,6 +836,12 @@ function createZoneCard(zoneId, zoneDef) {
         }
     }
 
+    if (isReadOnly) {
+        controlsGrid.querySelectorAll("input, select, textarea").forEach((element) => {
+            element.disabled = true;
+        });
+    }
+
     cardBody.appendChild(controlsGrid);
 
     const rawEditorLabel = document.createElement("label");
@@ -786,8 +854,12 @@ function createZoneCard(zoneId, zoneDef) {
     const rawEditor = document.createElement("input");
     rawEditor.className = "form-control form-control-sm font-monospace mb-2";
     rawEditor.value = formatHex(zoneState.modifiedHex);
+    rawEditor.readOnly = isReadOnly;
 
     rawEditor.addEventListener("change", () => {
+        if (isReadOnly) {
+            return;
+        }
         const cleanHex = rawEditor.value
             .replace(/\s/g, "")
             .toUpperCase();
@@ -839,9 +911,14 @@ function createZoneCard(zoneId, zoneDef) {
     const writeButton = document.createElement("button");
     writeButton.className = "btn btn-warning me-2";
     writeButton.innerText = "Write";
+    writeButton.hidden = isReadOnly;
 
     writeButton.addEventListener("click", async () => {
         try {
+            if (isReadOnly) {
+                Logger.log("Write blocked for read-only zone " + zoneId);
+                return;
+            }
             await app.diagnosticClient.selectECU();
             await app.diagnosticClient.startSession();
 
@@ -879,8 +956,13 @@ function createZoneCard(zoneId, zoneDef) {
     const resetButton = document.createElement("button");
     resetButton.className = "btn btn-secondary";
     resetButton.innerText = "Reset";
+    resetButton.hidden = isReadOnly;
 
     resetButton.addEventListener("click", () => {
+        if (isReadOnly) {
+            return;
+        }
+
         app.zoneStates[zoneId].reset();
 
         refreshControls(zoneId, zoneDef);
@@ -914,7 +996,13 @@ function renderTabs() {
     tabBar.innerHTML = "";
     tabContent.innerHTML = "";
 
-    const tabs = app.ecuDefinition.tabs;
+    const tabs = { ...(app.ecuDefinition.tabs || {}) };
+    app.zoneStates = {};
+    for (const [zoneId, zoneDef] of Object.entries(app.ecuDefinition.zones)) {
+        const tabId = String(zoneDef.tab === undefined ? "coding" : zoneDef.tab);
+        if (!(tabId in tabs)) tabs[tabId] = tabId;
+        app.zoneStates[zoneId] = new ZoneState(zoneId, zoneDef);
+    }
 
     let first = true;
 
@@ -939,8 +1027,7 @@ function renderTabs() {
         for (const zoneId in app.ecuDefinition.zones) {
             const zoneDef = app.ecuDefinition.zones[zoneId];
 
-            if (zoneDef.tab === tabId) {
-                app.zoneStates[zoneId] = new ZoneState(zoneId, zoneDef);
+            if (String(zoneDef.tab === undefined ? "coding" : zoneDef.tab) === tabId) {
 
                 tabPane.appendChild(
                     createZoneCard(zoneId, zoneDef)
@@ -987,10 +1074,800 @@ function setupTabs() {
     });
 }
 
+// BRIDGE_JSON_DIAGNOSTICS_V1
+// BRIDGE_JSON_DIAGNOSTICS_V2_RD45_TESTS
+function normalizeHexString(value) {
+    return String(value || "").replace(/\s+/g, "").toUpperCase();
+}
+
+function formatHexCode(bytes) {
+    return Array.from(bytes)
+        .map((value) => value.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+}
+
+const PSA_KWP_FAULT_TYPE_FALLBACK = {
+    0: { name: "Absence", key: "absence" },
+    1: { name: "Coherence fault", key: "coherence" },
+    2: { name: "Short circuit to positive", key: "short_to_positive" },
+    3: { name: "Short circuit to ground", key: "short_to_ground" },
+    4: { name: "Open circuit", key: "open_circuit" },
+    5: { name: "Lower limit", key: "lower_limit" },
+    6: { name: "Upper limit", key: "upper_limit" },
+    7: { name: "Other fault mode", key: "other_mode" }
+};
+
+function getPsaFaultTypeDefinition(index) {
+    const configured = app.ecuDefinition && app.ecuDefinition.dtc_fault_types;
+    const fromJson = configured && configured[String(index)];
+
+    if (fromJson && typeof fromJson === "object") {
+        return {
+            ...PSA_KWP_FAULT_TYPE_FALLBACK[index],
+            ...fromJson
+        };
+    }
+
+    return PSA_KWP_FAULT_TYPE_FALLBACK[index] || {
+        name: "Unknown fault mode " + index,
+        key: "unknown"
+    };
+}
+
+function decodePsaKwpDtcWord(highByte, lowByte) {
+    const word = ((highByte << 8) | lowByte) & 0xFFFF;
+    const originLocal = (word & 0x8000) !== 0;
+    const faultTypeIndex = (word >>> 12) & 0x07;
+    const baseCodeValue = word & 0x0FFF;
+    const faultType = getPsaFaultTypeDefinition(faultTypeIndex);
+
+    return {
+        code: word.toString(16).padStart(4, "0").toUpperCase(),
+        baseCode: baseCodeValue.toString(16).padStart(3, "0").toUpperCase(),
+        origin: originLocal ? "local" : "distant",
+        originLocal,
+        faultTypeIndex,
+        faultTypeKey: faultType.key || "unknown",
+        faultTypeName: faultType.name || ("Fault mode " + faultTypeIndex),
+        faultTypeDefinition: faultType,
+        status: null
+    };
+}
+
+function parsePsaKwpCompactDtcResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 2 || bytes[0] !== 0x57) {
+        throw new Error("Unexpected PSA KWP fault response: " + response);
+    }
+
+    const declaredCount = bytes[1];
+    const payload = bytes.slice(2);
+    const expectedLength = declaredCount * 2;
+
+    if (payload.length !== expectedLength) {
+        throw new Error(
+            "PSA compact DTC payload length mismatch: expected " +
+            expectedLength + " byte(s), got " + payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let i = 0; i < declaredCount; i++) {
+        const offset = i * 2;
+        faults.push(decodePsaKwpDtcWord(payload[offset], payload[offset + 1]));
+    }
+
+    return {
+        declaredCount,
+        faults,
+        format: "psa_kwp_compact"
+    };
+}
+
+function parseKwpTwoByteDtcWithStatusResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 2 || bytes[0] !== 0x57) {
+        throw new Error("Unexpected KWP fault response: " + response);
+    }
+
+    const declaredCount = bytes[1];
+    const payload = bytes.slice(2);
+    const expectedLength = declaredCount * 3;
+
+    if (payload.length !== expectedLength) {
+        throw new Error(
+            "KWP DTC/status payload length mismatch: expected " +
+            expectedLength + " byte(s), got " + payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let i = 0; i < declaredCount; i++) {
+        const offset = i * 3;
+        faults.push({
+            code: formatHexCode(payload.slice(offset, offset + 2)),
+            status: payload[offset + 2]
+        });
+    }
+
+    return {
+        declaredCount,
+        faults,
+        format: "kwp_2byte_status"
+    };
+}
+
+function parseUds1902DtcResponse(response) {
+    const normalized = normalizeHexString(response);
+
+    if (!/^[0-9A-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error("Malformed hex fault response: " + response);
+    }
+
+    const bytes = hexToBytes(normalized);
+
+    if (bytes.length < 3 || bytes[0] !== 0x59 || bytes[1] !== 0x02) {
+        throw new Error("Unexpected UDS 19 02 response: " + response);
+    }
+
+    const availabilityMask = bytes[2];
+    const payload = bytes.slice(3);
+
+    if (payload.length % 4 !== 0) {
+        throw new Error(
+            "UDS DTC/status payload is not a multiple of 4 bytes: " +
+            payload.length
+        );
+    }
+
+    const faults = [];
+
+    for (let offset = 0; offset < payload.length; offset += 4) {
+        faults.push({
+            code: formatHexCode(payload.slice(offset, offset + 3)),
+            status: payload[offset + 3]
+        });
+    }
+
+    return {
+        declaredCount: faults.length,
+        faults,
+        format: "uds_1902",
+        availabilityMask
+    };
+}
+
+const DTC_PARSERS = {
+    psa_kwp_compact: parsePsaKwpCompactDtcResponse,
+    kwp_2byte_status: parseKwpTwoByteDtcWithStatusResponse,
+    uds_1902: parseUds1902DtcResponse
+};
+
+function normalizeDtcDefinition(value) {
+    if (typeof value === "string") {
+        return { name: value };
+    }
+    if (value && typeof value === "object") {
+        return value;
+    }
+    return null;
+}
+
+function getDtcDefinition(fault) {
+    if (!app.ecuDefinition || !fault) {
+        return null;
+    }
+
+    const exactDefinitions = app.ecuDefinition.dtc_definitions;
+    const exact = exactDefinitions &&
+        normalizeDtcDefinition(exactDefinitions[String(fault.code || "").toUpperCase()]);
+
+    const baseDefinitions = app.ecuDefinition.dtc_base_definitions;
+    const base = fault.baseCode && baseDefinitions &&
+        normalizeDtcDefinition(baseDefinitions[String(fault.baseCode).toUpperCase()]);
+
+    if (base && exact) {
+        return { ...base, ...exact };
+    }
+    return exact || base || null;
+}
+
+function appendDiagnosticNote(wrapper, text) {
+    if (text === undefined || text === null || text === "") {
+        return;
+    }
+    const note = document.createElement("div");
+    note.className = "text-secondary";
+    note.style.fontSize = "0.85rem";
+    note.textContent = String(text);
+    wrapper.appendChild(note);
+}
+
+function appendDtcDefinitionNotes(wrapper, definition) {
+    if (!definition) {
+        return;
+    }
+
+    if (definition.component) {
+        appendDiagnosticNote(wrapper, "Component: " + definition.component);
+    }
+    if (definition.description) {
+        appendDiagnosticNote(wrapper, definition.description);
+    }
+    if (definition.electrical_interpretation) {
+        if (typeof definition.electrical_interpretation === "string") {
+            appendDiagnosticNote(wrapper, definition.electrical_interpretation);
+        } else if (typeof definition.electrical_interpretation === "object") {
+            const electrical = definition.electrical_interpretation;
+            if (electrical.what_is_known) appendDiagnosticNote(wrapper, electrical.what_is_known);
+            if (electrical.what_is_not_known) appendDiagnosticNote(wrapper, electrical.what_is_not_known);
+            if (electrical.useful_live_test) appendDiagnosticNote(wrapper, electrical.useful_live_test);
+        }
+    }
+    if (definition.threshold_summary) {
+        appendDiagnosticNote(wrapper, definition.threshold_summary);
+    } else if (definition.thresholds_mV && typeof definition.thresholds_mV === "object") {
+        const thresholds = definition.thresholds_mV;
+        const parts = [];
+        if (thresholds.open_circuit && thresholds.open_circuit.condition) {
+            parts.push("open circuit " + thresholds.open_circuit.condition + " mV");
+        }
+        if (thresholds.short_to_ground && thresholds.short_to_ground.condition) {
+            parts.push("short-to-ground " + thresholds.short_to_ground.condition + " mV");
+        }
+        if (thresholds.healthy && thresholds.healthy.condition) {
+            parts.push("healthy " + thresholds.healthy.condition + " mV");
+        }
+        if (parts.length) appendDiagnosticNote(wrapper, "Internal monitor thresholds: " + parts.join("; "));
+    }
+    if (definition.debounce_samples !== undefined) {
+        appendDiagnosticNote(wrapper, "Electrical classifier debounce: " + definition.debounce_samples + " samples");
+    }
+    if (definition.adc_channel !== undefined) {
+        const registerText = definition.adc_register ? " @ " + definition.adc_register : "";
+        appendDiagnosticNote(wrapper, "Firmware ADC monitor: channel " + definition.adc_channel + registerText);
+    }
+    if (definition.measurement_note) {
+        appendDiagnosticNote(wrapper, definition.measurement_note);
+    }
+    if (definition.threshold_status) {
+        appendDiagnosticNote(wrapper, "Electrical threshold status: " + definition.threshold_status);
+    }
+    if (definition.relevance) {
+        appendDiagnosticNote(wrapper, definition.relevance);
+    }
+    if (definition.clear_condition) {
+        appendDiagnosticNote(wrapper, "Clear condition: " + definition.clear_condition);
+    }
+}
+
+function renderFaultsResponse(response, action) {
+    const card = document.getElementById("faultsCard");
+    const summary = document.getElementById("faultsSummary");
+    const list = document.getElementById("faultsList");
+    const raw = document.getElementById("faultsRaw");
+
+    card.hidden = false;
+    raw.textContent = response;
+    list.replaceChildren();
+
+    const parserName = action.dtc_parser;
+    const parser = DTC_PARSERS[parserName];
+
+    if (!parser) {
+        summary.textContent = parserName
+            ? "No DTC parser named '" + parserName + "' is available. Raw response retained."
+            : "No DTC parser selected by the ECU JSON. Raw response retained.";
+        return;
+    }
+
+    let parsed;
+
+    try {
+        parsed = parser(response);
+    }
+    catch (err) {
+        summary.textContent = "DTC response received but could not be parsed. Raw response retained.";
+        Logger.log("DTC parser " + parserName + " failed: " + err);
+        return;
+    }
+
+    if (parsed.faults.length === 0) {
+        summary.textContent = "No DTCs reported by the ECU.";
+        return;
+    }
+
+    summary.textContent =
+        parsed.faults.length + " DTC(s) reported (" + parsed.format + ").";
+
+    for (const fault of parsed.faults) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-2";
+
+        const row = document.createElement("div");
+        const definition = getDtcDefinition(fault);
+        let text = fault.code;
+
+        if (definition) {
+            const title = definition.name || definition.text || definition.title;
+            const detail = definition.detail || definition.subtitle;
+            const parts = [];
+            if (title) parts.push(title);
+            if (detail) parts.push(detail);
+            if (parts.length > 0) text += " — " + parts.join(": ");
+        }
+
+        if (fault.baseCode !== undefined) {
+            const hasExplicitDetail = Boolean(definition && (definition.detail || definition.subtitle));
+            if (!hasExplicitDetail && fault.faultTypeName) {
+                text += " — " + fault.faultTypeName;
+            }
+            text += " [" + fault.origin + ", base 0x" + fault.baseCode + "]";
+        }
+
+        if (fault.status !== null && fault.status !== undefined) {
+            text +=
+                " (status 0x" +
+                fault.status.toString(16).padStart(2, "0").toUpperCase() +
+                ")";
+        }
+
+        row.textContent = text;
+        wrapper.appendChild(row);
+
+        if (fault.faultTypeDefinition && fault.faultTypeDefinition.interpretation) {
+            appendDiagnosticNote(wrapper, fault.faultTypeDefinition.interpretation);
+        }
+        appendDtcDefinitionNotes(wrapper, definition);
+        list.appendChild(wrapper);
+    }
+}
+
+function renderDiagnosticResult(action, response) {
+    if (action.response_handler === "dtc") {
+        renderFaultsResponse(response, action);
+        return;
+    }
+
+    if (action.response_handler === "clear_faults") {
+        const card = document.getElementById("faultsCard");
+        const summary = document.getElementById("faultsSummary");
+        const list = document.getElementById("faultsList");
+        const raw = document.getElementById("faultsRaw");
+
+        card.hidden = false;
+        summary.textContent = action.success_message || "Fault clear command accepted.";
+        list.replaceChildren();
+        raw.textContent = response;
+    }
+}
+
+function getDiagnosticActions() {
+    const configured = app.ecuDefinition && app.ecuDefinition.diagnostic_actions;
+
+    if (!configured) return [];
+
+    if (Array.isArray(configured)) {
+        return configured
+            .filter((action) => action && typeof action === "object")
+            .map((action, index) => ({ ...action, id: action.id || ("action_" + index) }));
+    }
+
+    if (typeof configured === "object") {
+        return Object.entries(configured)
+            .filter(([, action]) => action && typeof action === "object")
+            .map(([id, action]) => ({ ...action, id: action.id || id }));
+    }
+
+    return [];
+}
+
+function getDiagnosticTests() {
+    const configured = app.ecuDefinition && app.ecuDefinition.diagnostic_tests;
+
+    if (!configured) return [];
+
+    if (Array.isArray(configured)) {
+        return configured
+            .filter((test) => test && typeof test === "object")
+            .map((test, index) => ({ ...test, id: test.id || ("test_" + index) }));
+    }
+
+    if (typeof configured === "object") {
+        return Object.entries(configured)
+            .filter(([, test]) => test && typeof test === "object")
+            .map(([id, test]) => ({ ...test, id: test.id || id }));
+    }
+
+    return [];
+}
+
+function getDiagnosticButtonClass(action) {
+    const allowed = new Set([
+        "primary", "secondary", "success", "danger",
+        "warning", "info", "light", "dark"
+    ]);
+    const style = allowed.has(action.button_style) ? action.button_style : "secondary";
+    return "btn btn-" + style + " me-2 mb-2";
+}
+
+async function runDiagnosticAction(action) {
+    if (!app.diagnosticClient || !app.ecuDefinition) {
+        throw new Error("Load an ECU JSON and connect first");
+    }
+
+    await app.diagnosticClient.selectECU();
+
+    let sessionStarted = false;
+    const shouldStartSession = action.start_session !== false;
+    const shouldStopSession = action.stop_session !== false && action.ecu_resets !== true;
+
+    try {
+        if (shouldStartSession) {
+            await app.diagnosticClient.startSession();
+            sessionStarted = true;
+        }
+
+        if (action.requires_unlock === true) {
+            await app.diagnosticClient.unlock();
+        }
+
+        const response = await app.diagnosticClient.executeDiagnosticAction(action);
+        Logger.log(
+            "Diagnostic action '" + (action.label || action.id) + "' response: " + response
+        );
+        renderDiagnosticResult(action, response);
+
+        if (action.success_message) Logger.log(action.success_message);
+        return response;
+    }
+    finally {
+        if (sessionStarted && shouldStopSession) {
+            try {
+                await app.diagnosticClient.stopSession();
+            }
+            catch (err) {
+                Logger.log("Failed closing diagnostic session: " + err);
+            }
+        }
+    }
+}
+
+function renderDiagnosticActions() {
+    const container = document.getElementById("diagnosticActions");
+    if (!container) return;
+    container.replaceChildren();
+
+    for (const action of getDiagnosticActions()) {
+        if (action.visible === false || !action.request) continue;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = getDiagnosticButtonClass(action);
+        button.textContent = action.label || action.id;
+
+        button.addEventListener("click", async () => {
+            if (action.confirm && !confirm(action.confirm)) return;
+            button.disabled = true;
+            try {
+                await runDiagnosticAction(action);
+            }
+            catch (err) {
+                Logger.log("Diagnostic action '" + (action.label || action.id) + "' failed: " + err);
+                console.error(err);
+            }
+            finally {
+                button.disabled = false;
+            }
+        });
+        container.appendChild(button);
+    }
+}
+
+const RD45_C1_BANK1_KEYS = {
+    "01": "SOURCE",
+    "02": "EJECT",
+    "03": "AUDIO",
+    "04": "MENU",
+    "05": "LIST",
+    "06": "ESC",
+    "07": "CH_UP",
+    "08": "CH_DOWN",
+    "09": "UP",
+    "0A": "DOWN",
+    "0B": "PRESET_1",
+    "0C": "PRESET_2",
+    "0D": "PRESET_3",
+    "0E": "PRESET_4",
+    "0F": "PRESET_5",
+    "10": "PRESET_6",
+    "13": "ON_OFF",
+    "20": "TA_MUTE",
+    "21": "DARK_MUTE",
+    "22": "MODE",
+    "23": "OK",
+    "24": "BAND"
+};
+
+const RD45_ACTUATOR_80_STATUS = {
+    "00": "not launched",
+    "01": "in progress",
+    "02": "finished",
+    "04": "finished NOK",
+    "11": "stopped",
+    "12": "state"
+};
+
+function hexByte(value) {
+    return Number(value).toString(16).padStart(2, "0").toUpperCase();
+}
+
+function decodeRd45TestResponse(handler, response, step) {
+    const normalized = normalizeHexString(response);
+    const bytes = hexToBytes(normalized);
+
+    if (handler === "rd45_c1") {
+        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC1) {
+            return "Unexpected C1 response: " + normalized;
+        }
+        const bank1 = hexByte(bytes[2]);
+        const bank2 = hexByte(bytes[3]);
+        const known = RD45_C1_BANK1_KEYS[bank1];
+        return "C1 bank1=0x" + bank1 +
+            (known ? " (pressed: " + known + ")" : " (released/unknown code)") +
+            ", bank2=0x" + bank2 +
+            " (raw; DGD defines second-bank controls but no fixed idle code).";
+    }
+
+    if (handler === "rd45_a5") {
+        if (bytes.length < 3 || bytes[0] !== 0x61 || bytes[1] !== 0xA5) {
+            return "Unexpected A5 response: " + normalized;
+        }
+        const value = bytes[2];
+        const code = (value >>> 6) & 0x03;
+        const reductions = ["0", "-1", "-2", "-3"];
+        return "A5 raw=0x" + hexByte(value) +
+            "; reduction bits 7..6=" + code.toString(2).padStart(2, "0") +
+            " => " + reductions[code] +
+            "; lower six bits preserved/raw=0x" + hexByte(value & 0x3F) + ".";
+    }
+
+    if (handler === "rd45_c0") {
+        if (bytes.length < 4 || bytes[0] !== 0x61 || bytes[1] !== 0xC0) {
+            return "Unexpected C0 response: " + normalized;
+        }
+        const qualityCode = bytes[2] & 0x0F;
+        const qualityNames = {
+            0: "good",
+            1: "average",
+            2: "weak",
+            3: "very weak",
+            4: "impossible"
+        };
+        const quality = qualityNames[qualityCode] || ("raw quality code " + qualityCode);
+        return "C0 quality=" + quality +
+            " (0x" + qualityCode.toString(16).toUpperCase() + ")" +
+            "; reception level raw=0x" + hexByte(bytes[3]) +
+            " (" + bytes[3] + "). No proven mV conversion is defined by the supplied DGD/YML.";
+    }
+
+    if (handler === "rd45_actuator_80") {
+        if (bytes.length < 3 || bytes[0] !== 0x70 || bytes[1] !== 0x80) {
+            return "Unexpected speaker-actuator response: " + normalized;
+        }
+        const status = hexByte(bytes[2]);
+        return "Speaker actuator 0x80 status=0x" + status +
+            " (" + (RD45_ACTUATOR_80_STATUS[status] || "unknown") + ").";
+    }
+
+    if (handler === "dtc") {
+        const parserName = (step && step.dtc_parser) || "psa_kwp_compact";
+        const parser = DTC_PARSERS[parserName];
+        if (!parser) return "Raw DTC response: " + normalized;
+        try {
+            const parsed = parser(normalized);
+            if (parsed.faults.length === 0) return "No DTCs.";
+            return parsed.faults.map((fault) => {
+                let s = fault.code;
+                const definition = getDtcDefinition(fault);
+                if (definition && definition.name) s += " " + definition.name;
+                if (fault.faultTypeName) s += " / " + fault.faultTypeName;
+                if (fault.baseCode) s += " [" + fault.origin + ", base 0x" + fault.baseCode + "]";
+                return s;
+            }).join("; ");
+        }
+        catch (err) {
+            return "DTC parse error: " + err + "; raw=" + normalized;
+        }
+    }
+
+    return normalized;
+}
+
+function renderDiagnosticTestResult(test, resultLines, rawLines) {
+    const card = document.getElementById("diagnosticTestsCard");
+    const summary = document.getElementById("diagnosticTestSummary");
+    const raw = document.getElementById("diagnosticTestRaw");
+
+    if (!card || !summary || !raw) return;
+
+    card.hidden = false;
+    summary.replaceChildren();
+
+    const title = document.createElement("div");
+    title.className = "fw-bold mb-1";
+    title.textContent = test.label || test.id || "Diagnostic test";
+    summary.appendChild(title);
+
+    if (test.description) appendDiagnosticNote(summary, test.description);
+
+    for (const lineText of resultLines) {
+        const line = document.createElement("div");
+        line.textContent = lineText;
+        summary.appendChild(line);
+    }
+
+    raw.textContent = rawLines.join("\n");
+}
+
+function getTestSteps(test) {
+    if (Array.isArray(test.steps) && test.steps.length > 0) {
+        return test.steps;
+    }
+    if (test.request) {
+        return [{
+            label: test.label || test.id,
+            request: test.request,
+            positive_prefix: test.positive_prefix,
+            response_handler: test.response_handler,
+            dtc_parser: test.dtc_parser
+        }];
+    }
+    return [];
+}
+
+async function sleepMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runDiagnosticTest(test) {
+    if (!app.diagnosticClient || !app.ecuDefinition) {
+        throw new Error("Load an ECU JSON and connect first");
+    }
+
+    const steps = getTestSteps(test);
+    if (steps.length === 0) {
+        throw new Error("Diagnostic test has no request/steps");
+    }
+
+    await app.diagnosticClient.selectECU();
+
+    let sessionStarted = false;
+    let actuatorNeedsStop = false;
+    const results = [];
+    const rawLines = [];
+    const shouldStartSession = test.start_session !== false;
+    const shouldStopSession = test.stop_session !== false;
+
+    try {
+        if (shouldStartSession) {
+            await app.diagnosticClient.startSession();
+            sessionStarted = true;
+        }
+
+        if (test.requires_unlock === true) {
+            await app.diagnosticClient.unlock();
+        }
+
+        for (const step of steps) {
+            const response = await app.diagnosticClient.executeDiagnosticAction(step);
+            const label = step.label || step.request;
+            rawLines.push(label + ": " + response);
+            results.push(label + ": " + decodeRd45TestResponse(step.response_handler, response, step));
+        }
+
+        if (test.auto_stop_request) {
+            actuatorNeedsStop = true;
+            const delayMs = Number.isFinite(Number(test.auto_stop_ms))
+                ? Math.max(0, Number(test.auto_stop_ms))
+                : 800;
+            await sleepMs(delayMs);
+
+            const stopStep = {
+                request: test.auto_stop_request,
+                positive_prefix: test.auto_stop_positive_prefix || ""
+            };
+            const stopResponse = await app.diagnosticClient.executeDiagnosticAction(stopStep);
+            actuatorNeedsStop = false;
+            rawLines.push("Automatic STOP: " + stopResponse);
+            results.push("Automatic STOP: " + decodeRd45TestResponse("rd45_actuator_80", stopResponse, stopStep));
+        }
+
+        renderDiagnosticTestResult(test, results, rawLines);
+        return { results, rawLines };
+    }
+    finally {
+        if (actuatorNeedsStop && test.auto_stop_request) {
+            try {
+                const emergencyStop = await app.diagnosticClient.executeDiagnosticAction({
+                    request: test.auto_stop_request,
+                    positive_prefix: test.auto_stop_positive_prefix || ""
+                });
+                Logger.log("Speaker actuator cleanup STOP response: " + emergencyStop);
+            }
+            catch (err) {
+                Logger.log("Speaker actuator cleanup STOP failed: " + err);
+            }
+        }
+
+        if (sessionStarted && shouldStopSession) {
+            try {
+                await app.diagnosticClient.stopSession();
+            }
+            catch (err) {
+                Logger.log("Failed closing diagnostic test session: " + err);
+            }
+        }
+    }
+}
+
+function renderDiagnosticTests() {
+    const card = document.getElementById("diagnosticTestsCard");
+    const container = document.getElementById("diagnosticTests");
+    if (!card || !container) return;
+
+    const tests = getDiagnosticTests().filter((test) => test.visible !== false);
+    container.replaceChildren();
+    card.hidden = tests.length === 0;
+
+    for (const test of tests) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = getDiagnosticButtonClass(test);
+        button.textContent = test.label || test.id;
+        if (test.description) button.title = test.description;
+
+        button.addEventListener("click", async () => {
+            if (test.confirm && !confirm(test.confirm)) return;
+            button.disabled = true;
+            try {
+                await runDiagnosticTest(test);
+            }
+            catch (err) {
+                Logger.log("Diagnostic test '" + (test.label || test.id) + "' failed: " + err);
+                renderDiagnosticTestResult(test, ["FAILED: " + err], []);
+                console.error(err);
+            }
+            finally {
+                button.disabled = false;
+            }
+        });
+        container.appendChild(button);
+    }
+}
+
 async function readAllZones() {
     await app.diagnosticClient.selectECU();
     await app.diagnosticClient.startSession();
 
+    try {
     for (const zoneId in app.ecuDefinition.zones) {
         const zoneDef = app.ecuDefinition.zones[zoneId];
 
@@ -1007,7 +1884,10 @@ async function readAllZones() {
         }
     }
 
-    await app.diagnosticClient.stopSession();
+    }
+    finally {
+        await app.diagnosticClient.stopSession();
+    }
 }
 
 async function writeModifiedZones() {
@@ -1020,7 +1900,7 @@ async function writeModifiedZones() {
     for (const zoneId in app.zoneStates) {
         const zoneState = app.zoneStates[zoneId];
 
-        if (!zoneState.dirty) {
+        if (app.ecuDefinition.zones[zoneId].read_only === true || !zoneState.dirty) {
             continue;
         }
 
@@ -1101,6 +1981,9 @@ async function loadECU(json) {
     if (selectedKey) {
         app.diagnosticClient.setUnlockKey(selectedKey);
     }
+
+    renderDiagnosticActions();
+    renderDiagnosticTests();
 }
 
 async function connectWebSocket() {
