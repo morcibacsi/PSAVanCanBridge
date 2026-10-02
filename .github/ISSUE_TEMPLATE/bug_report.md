@@ -1,6 +1,7 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something is not working correctly. Please complete the troubleshooting checks
+  before reporting.
 title: "[BUG] "
 labels: ''
 assignees: ''

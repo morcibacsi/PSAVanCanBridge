@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a new feature or vehicle behavior
+about: Suggest new functionality or support for something not currently implemented
 title: "[Feature] "
 labels: ''
 assignees: ''
